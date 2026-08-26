@@ -90,26 +90,26 @@ export default function SidebarNav({
 
   return (
     <aside
-      className={`fixed lg:sticky top-0 left-0 z-40 h-screen w-72 sm:w-80 bg-slate-900 border-r border-slate-700/90 text-white font-bold flex flex-col justify-between transition-transform duration-200 ${
+      className={`fixed lg:sticky top-0 left-0 z-40 h-screen w-72 sm:w-80 bg-slate-50 border-r border-slate-300 flex flex-col justify-between transition-transform duration-200 ${
         isOpenMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}
     >
       {/* Top Branding Section */}
-      <div className="p-4 sm:p-5 border-b border-slate-700/90 flex items-center justify-between shrink-0 bg-slate-950/60">
+      <div className="p-4 sm:p-5 border-b border-slate-300 flex items-center justify-between shrink-0 bg-white">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/40">
             <span className="text-white font-black text-sm tracking-wider">LNG</span>
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-white whitespace-nowrap">
+              <h1 className="font-black text-sm sm:text-base tracking-tight text-slate-900 whitespace-nowrap">
                 Virtual Pipeline
               </h1>
-              <span className="px-1.5 py-0.5 rounded bg-blue-500/20 border border-blue-400/40 text-[9px] font-mono text-white font-bold font-bold">
+              <span className="px-1.5 py-0.5 rounded bg-blue-100 border border-blue-200 text-[9px] font-mono text-blue-800 font-bold">
                 v2.5
               </span>
             </div>
-            <span className="text-[10px] uppercase tracking-widest text-white font-bold font-bold block">
+            <span className="text-[10px] uppercase tracking-widest text-slate-600 font-bold block mt-0.5">
               Closed-Loop & MRO Portal
             </span>
           </div>
@@ -117,14 +117,14 @@ export default function SidebarNav({
       </div>
 
       {/* Navigation Groups */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 custom-scrollbar bg-slate-50">
         {/* Fleet Ticker Summary */}
-        <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-700 flex items-center justify-between text-xs font-mono">
-          <div className="flex items-center gap-2 text-white font-bold">
-            <Radio className="w-3.5 h-3.5 text-white font-bold animate-pulse" />
-            <span className="font-bold">Active Fleet:</span>
+        <div className="p-2.5 rounded-lg bg-white border border-slate-300 flex items-center justify-between text-xs font-mono">
+          <div className="flex items-center gap-2 text-slate-800 font-bold">
+            <Radio className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
+            <span>Active Fleet:</span>
           </div>
-          <span className="font-black text-white font-bold">{counts.totalFleet} ISO Tanks</span>
+          <span className="font-black text-slate-800">{counts.totalFleet} ISO Tanks</span>
         </div>
 
         {/* ========================================================= */}
@@ -132,11 +132,11 @@ export default function SidebarNav({
         {/* ========================================================= */}
         <div className="space-y-1">
           <div className="flex items-center justify-between px-2 py-1">
-            <span className="text-[11px] uppercase tracking-wider font-black text-white font-bold flex items-center gap-1.5">
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-900 flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5" />
               1. Arun PAG Terminal
             </span>
-            <span className="text-[10px] font-mono bg-blue-950 text-white font-bold border border-blue-600 px-1.5 py-0.2 rounded font-bold">
+            <span className="text-[10px] font-mono bg-slate-200 text-slate-800 font-bold border border-slate-300 px-1.5 py-0.2 rounded">
               {counts.arunCount} Tanks
             </span>
           </div>
@@ -144,35 +144,35 @@ export default function SidebarNav({
           <div className="space-y-1">
             <button
               onClick={() => handleItemClick('ARUN_LOADING_COQ')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
                 activeKey === 'ARUN_LOADING_COQ'
-                  ? 'bg-blue-600 text-white border border-blue-400 shadow-sm'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold shadow-sm'
+                  : 'text-slate-800 hover:bg-slate-200'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Anchor className={`w-4 h-4 ${activeKey === 'ARUN_LOADING_COQ' ? 'text-white' : 'text-white font-bold'}`} />
+                <Anchor className={`w-4 h-4 ${activeKey === 'ARUN_LOADING_COQ' ? 'text-white' : 'text-slate-600'}`} />
                 <span>Loading & COQ Workspace</span>
               </div>
               <ChevronRight
-                className={`w-3.5 h-3.5 ${activeKey === 'ARUN_LOADING_COQ' ? 'text-white' : 'text-white font-bold'}`}
+                className={`w-3.5 h-3.5 ${activeKey === 'ARUN_LOADING_COQ' ? 'text-white' : 'text-slate-400'}`}
               />
             </button>
 
             <button
               onClick={() => handleItemClick('ARUN_MASTER_HISTORY')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
                 activeKey === 'ARUN_MASTER_HISTORY'
-                  ? 'bg-blue-600 text-white border border-blue-400 shadow-sm'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold shadow-sm'
+                  : 'text-slate-800 hover:bg-slate-200'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Table className={`w-4 h-4 ${activeKey === 'ARUN_MASTER_HISTORY' ? 'text-white' : 'text-white font-bold'}`} />
+                <Table className={`w-4 h-4 ${activeKey === 'ARUN_MASTER_HISTORY' ? 'text-white' : 'text-slate-600'}`} />
                 <span>Master History Archive</span>
               </div>
               <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-                activeKey === 'ARUN_MASTER_HISTORY' ? 'bg-blue-800 text-white border-blue-300' : 'bg-slate-950 text-white font-bold border-slate-700'
+                activeKey === 'ARUN_MASTER_HISTORY' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
               }`}>
                 {counts.masterHistoryCount}
               </span>
@@ -185,11 +185,11 @@ export default function SidebarNav({
         {/* ========================================================= */}
         <div className="space-y-1">
           <div className="flex items-center justify-between px-2 py-1">
-            <span className="text-[11px] uppercase tracking-wider font-black text-white font-bold flex items-center gap-1.5">
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-900 flex items-center gap-1.5">
               <Navigation className="w-3.5 h-3.5" />
               2. MV. Saviour Transit
             </span>
-            <span className="text-[10px] font-mono bg-cyan-950 text-white font-bold border border-cyan-600 px-1.5 py-0.2 rounded font-bold">
+            <span className="text-[10px] font-mono bg-slate-200 text-slate-800 font-bold border border-slate-300 px-1.5 py-0.2 rounded">
               {counts.sailingCount} Sailing
             </span>
           </div>
@@ -197,18 +197,18 @@ export default function SidebarNav({
           <div className="space-y-1">
             <button
               onClick={() => handleItemClick('SAVIOUR_VOYAGE_MONITORING')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
                 activeKey === 'SAVIOUR_VOYAGE_MONITORING'
-                  ? 'bg-cyan-600 text-white border border-cyan-400 shadow-sm'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold shadow-sm'
+                  : 'text-slate-800 hover:bg-slate-200'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Ship className={`w-4 h-4 ${activeKey === 'SAVIOUR_VOYAGE_MONITORING' ? 'text-white' : 'text-white font-bold'}`} />
+                <Ship className={`w-4 h-4 ${activeKey === 'SAVIOUR_VOYAGE_MONITORING' ? 'text-white' : 'text-slate-600'}`} />
                 <span>Voyage Monitoring</span>
               </div>
               <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-                activeKey === 'SAVIOUR_VOYAGE_MONITORING' ? 'bg-cyan-800 text-white border-cyan-300' : 'bg-cyan-950 text-white font-bold border-cyan-700'
+                activeKey === 'SAVIOUR_VOYAGE_MONITORING' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
               }`}>
                 {counts.sailingCount}
               </span>
@@ -216,18 +216,18 @@ export default function SidebarNav({
 
             <button
               onClick={() => handleItemClick('SAVIOUR_MARINE_PRESSURE')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
                 activeKey === 'SAVIOUR_MARINE_PRESSURE'
-                  ? 'bg-cyan-600 text-white border border-cyan-400 shadow-sm'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold shadow-sm'
+                  : 'text-slate-800 hover:bg-slate-200'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Gauge className={`w-4 h-4 ${activeKey === 'SAVIOUR_MARINE_PRESSURE' ? 'text-white' : 'text-white font-bold'}`} />
+                <Gauge className={`w-4 h-4 ${activeKey === 'SAVIOUR_MARINE_PRESSURE' ? 'text-white' : 'text-slate-600'}`} />
                 <span>Marine Pressure Log</span>
               </div>
               <ChevronRight
-                className={`w-3.5 h-3.5 ${activeKey === 'SAVIOUR_MARINE_PRESSURE' ? 'text-white' : 'text-white font-bold'}`}
+                className={`w-3.5 h-3.5 ${activeKey === 'SAVIOUR_MARINE_PRESSURE' ? 'text-white' : 'text-slate-400'}`}
               />
             </button>
           </div>
@@ -236,13 +236,13 @@ export default function SidebarNav({
         {/* ========================================================= */}
         {/* 3. NIAS REGAS TERMINAL (Promoted Integrated Overview & 2 Domains) */}
         {/* ========================================================= */}
-        <div className="space-y-2 pt-2 border-t border-slate-700">
+        <div className="space-y-2 pt-2 border-t border-slate-300">
           <div className="flex items-center justify-between px-2 py-0.5">
-            <span className="text-[11px] uppercase tracking-wider font-black text-white font-bold flex items-center gap-1.5">
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-900 flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5" />
               3. Nias Regas Terminal
             </span>
-            <span className="text-[10px] font-mono bg-emerald-950 text-white font-bold border border-emerald-600 px-1.5 py-0.2 rounded font-bold">
+            <span className="text-[10px] font-mono bg-slate-200 text-slate-800 font-bold border border-slate-300 px-1.5 py-0.2 rounded">
               2 Domains
             </span>
           </div>
@@ -252,42 +252,44 @@ export default function SidebarNav({
             onClick={() => handleItemClick('NIAS_TERMINAL_OVERVIEW')}
             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-black transition-all group ${
               activeKey === 'NIAS_TERMINAL_OVERVIEW'
-                ? 'bg-emerald-600 text-white border-2 border-emerald-400 shadow-md ring-1 ring-emerald-300'
-                : 'text-white hover:bg-slate-800 border border-slate-700 bg-slate-950'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-slate-800 hover:bg-slate-200 border border-slate-300 bg-white'
             }`}
           >
             <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-white font-bold group-hover:scale-110 transition-transform" />
+              <Activity className={`w-4 h-4 group-hover:scale-110 transition-transform ${activeKey === 'NIAS_TERMINAL_OVERVIEW' ? 'text-white' : 'text-slate-700'}`} />
               <span>🌐 Terminal Integrated Overview</span>
             </div>
             <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-              activeKey === 'NIAS_TERMINAL_OVERVIEW' ? 'bg-emerald-800 text-white border-emerald-300' : 'bg-emerald-950 text-white font-bold border-emerald-600'
+              activeKey === 'NIAS_TERMINAL_OVERVIEW' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
             }`}>
               PFD
             </span>
           </button>
 
           {/* DOMAIN 1: 📦 ISO TANK MANAGEMENT */}
-          <div className="space-y-1 bg-slate-950 p-2 rounded-lg border border-slate-700">
-            <div className="px-1 py-0.5 text-[10px] uppercase font-black text-white font-bold flex items-center gap-1">
-              <Box className="w-3 h-3" />
+          <div className="space-y-1 bg-white p-2 rounded-none border border-slate-300">
+            <div className="px-2 py-1 mb-1 text-xs font-bold text-slate-900 bg-slate-100 border-b border-slate-300 flex items-center gap-1 -mx-2 -mt-2">
+              <Box className="w-3 h-3 text-slate-700" />
               <span>Domain 1: ISO Tank Management</span>
             </div>
 
             {/* Sub-Tab 1: Overview & Visual Yard Map */}
             <button
               onClick={() => handleItemClick('NIAS_TANK_OVERVIEW')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
                 activeKey === 'NIAS_TANK_OVERVIEW' || activeKey === 'NIAS_OPERATIONS_OVERVIEW'
-                  ? 'bg-blue-600 text-white border border-blue-400'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold'
+                  : 'text-slate-800 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Layers className={`w-3.5 h-3.5 ${activeKey === 'NIAS_TANK_OVERVIEW' || activeKey === 'NIAS_OPERATIONS_OVERVIEW' ? 'text-white' : 'text-white font-bold'}`} />
+                <Layers className={`w-3.5 h-3.5 ${activeKey === 'NIAS_TANK_OVERVIEW' || activeKey === 'NIAS_OPERATIONS_OVERVIEW' ? 'text-white' : 'text-slate-600'}`} />
                 <span>🌐 Overview & Yard Map</span>
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-900 text-white font-bold border border-slate-700">
+              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                activeKey === 'NIAS_TANK_OVERVIEW' || activeKey === 'NIAS_OPERATIONS_OVERVIEW' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
+              }`}>
                 {counts.laydownCount + counts.regasBayCount + counts.emptyReturnCount}
               </span>
             </button>
@@ -295,17 +297,19 @@ export default function SidebarNav({
             {/* Sub-Tab 2: Laydown 1 Condition & BOG Log */}
             <button
               onClick={() => handleItemClick('NIAS_LAYDOWN_1_2_LOG')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
                 activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeKey === 'NIAS_DAILY_CONDITION_BOG' || activeKey === 'NIAS_LAYDOWN_DEPRESS'
-                  ? 'bg-blue-600 text-white border border-blue-400'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold'
+                  : 'text-slate-800 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Table className={`w-3.5 h-3.5 ${activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeKey === 'NIAS_DAILY_CONDITION_BOG' || activeKey === 'NIAS_LAYDOWN_DEPRESS' ? 'text-white' : 'text-white font-bold'}`} />
+                <Table className={`w-3.5 h-3.5 ${activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeKey === 'NIAS_DAILY_CONDITION_BOG' || activeKey === 'NIAS_LAYDOWN_DEPRESS' ? 'text-white' : 'text-slate-600'}`} />
                 <span>📥 Laydown 1 Condition & BOG</span>
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-900 text-white font-bold border border-slate-700">
+              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeKey === 'NIAS_DAILY_CONDITION_BOG' || activeKey === 'NIAS_LAYDOWN_DEPRESS' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
+              }`}>
                 {counts.laydownCount}
               </span>
             </button>
@@ -313,17 +317,19 @@ export default function SidebarNav({
             {/* Sub-Tab 3: Active Bay Mounted Tanks */}
             <button
               onClick={() => handleItemClick('NIAS_ACTIVE_BAY_TANKS')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
                 activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeKey === 'NIAS_BAY_MOUNTED_TANKS'
-                  ? 'bg-blue-600 text-white border border-blue-400'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold'
+                  : 'text-slate-800 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Tag className={`w-3.5 h-3.5 ${activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeKey === 'NIAS_BAY_MOUNTED_TANKS' ? 'text-white' : 'text-white font-bold'}`} />
+                <Tag className={`w-3.5 h-3.5 ${activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeKey === 'NIAS_BAY_MOUNTED_TANKS' ? 'text-white' : 'text-slate-600'}`} />
                 <span>🏷️ Active Bay Mounted Tanks</span>
               </div>
-              <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-slate-900 text-white font-bold border border-slate-700">
+              <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${
+                activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeKey === 'NIAS_BAY_MOUNTED_TANKS' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
+              }`}>
                 {counts.regasBayCount} Mounted
               </span>
             </button>
@@ -331,65 +337,71 @@ export default function SidebarNav({
             {/* Sub-Tab 4: Laydown 2 (Heel 4% Staging) */}
             <button
               onClick={() => handleItemClick('NIAS_LAYDOWN_3_HEEL')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
                 activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeKey === 'NIAS_EMPTY_RETURN'
-                  ? 'bg-purple-600 text-white border border-purple-400'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold'
+                  : 'text-slate-800 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center gap-2">
-                <RotateCcw className={`w-3.5 h-3.5 ${activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeKey === 'NIAS_EMPTY_RETURN' ? 'text-white' : 'text-white font-bold'}`} />
+                <RotateCcw className={`w-3.5 h-3.5 ${activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeKey === 'NIAS_EMPTY_RETURN' ? 'text-white' : 'text-slate-600'}`} />
                 <span>🔄 Laydown 2 (Heel 4% Staging)</span>
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-900 text-white font-bold border border-slate-700">
+              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeKey === 'NIAS_EMPTY_RETURN' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
+              }`}>
                 {counts.emptyReturnCount}
               </span>
             </button>
           </div>
 
           {/* DOMAIN 2: ⚡ REGAS SYSTEM & GAS-TO-POWER */}
-          <div className="space-y-1 bg-slate-950 p-2 rounded-lg border border-slate-700">
-            <div className="px-1 py-0.5 text-[10px] uppercase font-black text-white font-bold flex items-center gap-1">
-              <Zap className="w-3 h-3" />
+          <div className="space-y-1 bg-white p-2 rounded-none border border-slate-300 mt-2">
+            <div className="px-2 py-1 mb-1 text-xs font-bold text-slate-900 bg-slate-100 border-b border-slate-300 flex items-center gap-1 -mx-2 -mt-2">
+              <Zap className="w-3 h-3 text-amber-600" />
               <span>Domain 2: Regas System & Power</span>
             </div>
 
             {/* Sub-Tab 1: Gas Process & State Transformation */}
             <button
               onClick={() => handleItemClick('NIAS_GAS_PROCESS_TELEMETRY')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
                 activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeKey === 'NIAS_FOUR_BAY_REGAS' || activeKey === 'NIAS_ACTIVE_REGAS'
-                  ? 'bg-amber-600 text-white border border-amber-400'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold'
+                  : 'text-slate-800 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Activity className={`w-3.5 h-3.5 ${activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeKey === 'NIAS_FOUR_BAY_REGAS' || activeKey === 'NIAS_ACTIVE_REGAS' ? 'text-white' : 'text-white font-bold'}`} />
+                <Activity className={`w-3.5 h-3.5 ${activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeKey === 'NIAS_FOUR_BAY_REGAS' || activeKey === 'NIAS_ACTIVE_REGAS' ? 'text-white' : 'text-slate-600'}`} />
                 <span>📊 Gas Process Telemetry</span>
               </div>
               {counts.activeRunningBays > 0 ? (
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-500/30 text-white font-bold border border-amber-500/50 animate-pulse">
+                <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border animate-pulse ${
+                  activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeKey === 'NIAS_FOUR_BAY_REGAS' || activeKey === 'NIAS_ACTIVE_REGAS' ? 'bg-white text-blue-700 border-white/20' : 'bg-amber-100 text-amber-800 border-amber-300'
+                }`}>
                   {counts.activeRunningBays} Run
                 </span>
               ) : (
-                <span className="text-[9px] font-mono text-white font-bold">4 Bays</span>
+                <span className="text-[9px] font-mono text-slate-500 font-bold">4 Bays</span>
               )}
             </button>
 
             {/* Sub-Tab 2: GC & Gas Quality Stream */}
             <button
               onClick={() => handleItemClick('NIAS_GC_GAS_QUALITY')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
                 activeKey === 'NIAS_GC_GAS_QUALITY'
-                  ? 'bg-amber-600 text-white border border-amber-400'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold'
+                  : 'text-slate-800 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center gap-2">
-                <FlaskConical className={`w-3.5 h-3.5 ${activeKey === 'NIAS_GC_GAS_QUALITY' ? 'text-white' : 'text-white font-bold'}`} />
+                <FlaskConical className={`w-3.5 h-3.5 ${activeKey === 'NIAS_GC_GAS_QUALITY' ? 'text-white' : 'text-slate-600'}`} />
                 <span>🔬 GC & Gas Quality Stream</span>
               </div>
-              <span className="text-[9px] font-mono text-white font-bold bg-cyan-950 border border-cyan-700 px-1.5 py-0.2 rounded font-bold">
+              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                activeKey === 'NIAS_GC_GAS_QUALITY' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
+              }`}>
                 FloBoss
               </span>
             </button>
@@ -397,17 +409,19 @@ export default function SidebarNav({
             {/* Sub-Tab 3: PLTMG Power & Thermal Output */}
             <button
               onClick={() => handleItemClick('NIAS_PLTMG_POWER_OUTPUT')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
                 activeKey === 'NIAS_PLTMG_POWER_OUTPUT'
-                  ? 'bg-amber-600 text-white border border-amber-400'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold'
+                  : 'text-slate-800 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Zap className={`w-3.5 h-3.5 ${activeKey === 'NIAS_PLTMG_POWER_OUTPUT' ? 'text-white' : 'text-white font-bold'}`} />
+                <Zap className={`w-3.5 h-3.5 ${activeKey === 'NIAS_PLTMG_POWER_OUTPUT' ? 'text-white' : 'text-slate-600'}`} />
                 <span>⚡ PLTMG Power & Output</span>
               </div>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-900 text-white font-bold border border-slate-700">
+              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                activeKey === 'NIAS_PLTMG_POWER_OUTPUT' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
+              }`}>
                 18.5 MW
               </span>
             </button>
@@ -415,22 +429,26 @@ export default function SidebarNav({
             {/* Sub-Tab 4: Custody Heat Settlement */}
             <button
               onClick={() => handleItemClick('NIAS_HEAT_SETTLEMENT')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-bold transition-colors group ${
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
                 activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT'
-                  ? 'bg-indigo-600 text-white border border-indigo-400'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                  ? 'bg-blue-600 text-white font-bold'
+                  : 'text-slate-800 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Scale className={`w-3.5 h-3.5 ${activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT' ? 'text-white' : 'text-white font-bold'}`} />
+                <Scale className={`w-3.5 h-3.5 ${activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT' ? 'text-white' : 'text-slate-600'}`} />
                 <span>⚖️ Custody Heat Settlement</span>
               </div>
               {counts.disputeAlerts > 0 ? (
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-red-500/30 text-white font-bold border border-red-500/50 flex items-center gap-0.5 animate-pulse">
+                <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border flex items-center gap-0.5 animate-pulse ${
+                  activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT' ? 'bg-white text-red-600 border-white/20' : 'bg-red-100 text-red-700 border-red-300'
+                }`}>
                   <AlertTriangle className="w-2.5 h-2.5" /> {counts.disputeAlerts}
                 </span>
               ) : (
-                <span className="text-[9px] font-mono text-white font-bold flex items-center gap-0.5 font-bold">
+                <span className={`text-[9px] font-mono font-bold flex items-center gap-0.5 ${
+                  activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT' ? 'text-white' : 'text-slate-500'
+                }`}>
                   <FileCheck className="w-2.5 h-2.5" /> OK
                 </span>
               )}
@@ -441,32 +459,36 @@ export default function SidebarNav({
         {/* ========================================================= */}
         {/* 4. EMERGENCY MAINTENANCE (MRO) HUB */}
         {/* ========================================================= */}
-        <div className="space-y-1.5 pt-2 border-t border-slate-700">
+        <div className="space-y-1.5 pt-2 border-t border-slate-300 mt-2">
           <button
             onClick={() => handleItemClick('MAINTENANCE_MRO_HUB')}
-            className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-bold transition-colors group ${
+            className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold transition-colors group ${
               activeKey === 'MAINTENANCE_MRO_HUB'
-                ? 'bg-amber-600 text-white border border-amber-400 shadow-sm'
-                : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                ? 'bg-blue-600 text-white font-bold shadow-sm'
+                : 'text-slate-800 hover:bg-slate-200'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded bg-amber-500/20 text-white font-bold border border-amber-500/40">
+              <div className={`p-1.5 rounded border ${
+                activeKey === 'MAINTENANCE_MRO_HUB' ? 'bg-blue-500/20 text-white border-blue-400/40' : 'bg-amber-100 text-amber-700 border-amber-300'
+              }`}>
                 <Wrench className="w-4 h-4" />
               </div>
               <div className="text-left">
-                <span className="block text-xs font-black text-white">Maintenance & MRO</span>
-                <span className="text-[10px] text-white font-bold font-mono">
+                <span className={`block text-xs font-black ${activeKey === 'MAINTENANCE_MRO_HUB' ? 'text-white' : 'text-slate-900'}`}>Maintenance & MRO</span>
+                <span className={`text-[10px] font-bold font-mono ${activeKey === 'MAINTENANCE_MRO_HUB' ? 'text-blue-100' : 'text-slate-500'}`}>
                   Depot Repairs & Re-cert
                 </span>
               </div>
             </div>
             {counts.mroCount > 0 ? (
-              <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-bold text-[10px] font-black">
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                activeKey === 'MAINTENANCE_MRO_HUB' ? 'bg-white text-blue-700' : 'bg-amber-100 text-amber-800 border border-amber-300'
+              }`}>
                 {counts.mroCount} Units
               </span>
             ) : (
-              <span className="text-[10px] text-white font-bold font-mono font-bold">Ready</span>
+              <span className={`text-[10px] font-bold font-mono ${activeKey === 'MAINTENANCE_MRO_HUB' ? 'text-blue-100' : 'text-slate-400'}`}>Ready</span>
             )}
           </button>
         </div>
@@ -474,39 +496,41 @@ export default function SidebarNav({
         {/* ========================================================= */}
         {/* 5. SYSTEM DATA HUBS */}
         {/* ========================================================= */}
-        <div className="space-y-1.5 pt-2 border-t border-slate-700">
-          <div className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-black text-white font-bold">
+        <div className="space-y-1.5 pt-2 border-t border-slate-300 mt-2">
+          <div className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-black text-slate-900">
             Enterprise Fleet Hubs
           </div>
 
           <button
             onClick={() => handleItemClick('GLOBAL_FLEET_HUB')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold transition-colors group ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
               activeKey === 'GLOBAL_FLEET_HUB'
-                ? 'bg-blue-600 text-white border border-blue-400'
-                : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                ? 'bg-blue-600 text-white font-bold shadow-sm'
+                : 'text-slate-800 hover:bg-slate-200'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Globe className={`w-4 h-4 ${activeKey === 'GLOBAL_FLEET_HUB' ? 'text-white' : 'text-white font-bold'}`} />
+              <Globe className={`w-4 h-4 ${activeKey === 'GLOBAL_FLEET_HUB' ? 'text-white' : 'text-slate-600'}`} />
               <span>Global 120-Fleet Tracker</span>
             </div>
-            <ChevronRight className="w-3.5 h-3.5 text-white font-bold" />
+            <ChevronRight className={`w-3.5 h-3.5 ${activeKey === 'GLOBAL_FLEET_HUB' ? 'text-white' : 'text-slate-400'}`} />
           </button>
 
           <button
             onClick={() => handleItemClick('DATA_INGESTION_HUB')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold transition-colors group ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
               activeKey === 'DATA_INGESTION_HUB'
-                ? 'bg-blue-600 text-white border border-blue-400'
-                : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                ? 'bg-blue-600 text-white font-bold shadow-sm'
+                : 'text-slate-800 hover:bg-slate-200'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Database className={`w-4 h-4 ${activeKey === 'DATA_INGESTION_HUB' ? 'text-white' : 'text-white font-bold'}`} />
+              <Database className={`w-4 h-4 ${activeKey === 'DATA_INGESTION_HUB' ? 'text-white' : 'text-slate-600'}`} />
               <span>7 CSV Data Ingestion Hub</span>
             </div>
-            <span className="text-[10px] font-mono bg-slate-950 text-white font-bold border border-slate-700 px-1.5 py-0.5 rounded font-bold">
+            <span className={`text-[10px] font-mono font-bold border px-1.5 py-0.5 rounded ${
+              activeKey === 'DATA_INGESTION_HUB' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
+            }`}>
               {counts.loadedFilesCount}/7
             </span>
           </button>
@@ -514,10 +538,10 @@ export default function SidebarNav({
       </div>
 
       {/* Bottom Footer Section */}
-      <div className="p-3 border-t border-slate-700 bg-slate-950/80 text-[10px] font-mono text-white font-bold flex items-center justify-between shrink-0">
-        <span className="font-bold">Virtual Pipeline v2.5</span>
-        <span className="text-white font-bold flex items-center gap-1 font-bold">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+      <div className="p-3 border-t border-slate-300 bg-slate-100 text-[10px] font-mono text-slate-600 font-bold flex items-center justify-between shrink-0">
+        <span>Virtual Pipeline v2.5</span>
+        <span className="text-slate-700 flex items-center gap-1 font-bold">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
           LIVE TELEMETRY
         </span>
       </div>
