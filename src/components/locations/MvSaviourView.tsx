@@ -175,12 +175,12 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full text-slate-100">
+    <div className="flex flex-col gap-6 w-full text-white font-bold">
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 px-4 py-3 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded-xl shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-4">
-          <CheckCircle2 className="w-5 h-5 text-cyan-400" />
-          <span className="text-sm font-semibold">{toastMessage}</span>
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 px-4 py-3 bg-cyan-500/20 border border-cyan-500/50 text-white font-bold rounded-xl shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-4">
+          <CheckCircle2 className="w-5 h-5 text-white font-bold" />
+          <span className="text-sm font-bold">{toastMessage}</span>
         </div>
       )}
 
@@ -188,10 +188,10 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
       <section className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <Ship className="w-6 h-6 text-cyan-400" />
-            <h2 className="text-lg sm:text-xl font-bold text-slate-100">MV. Saviour Marine Transit Hub</h2>
+            <Ship className="w-6 h-6 text-white font-bold" />
+            <h2 className="text-lg sm:text-xl font-bold text-white font-bold">MV. Saviour Marine Transit Hub</h2>
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-white font-bold">
             Dedicated offshore LNG shuttle monitoring between Arun PAG Port and Nias Gunungsitoli Jetty
           </p>
         </div>
@@ -200,7 +200,7 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => setIsDailyLogModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Add Marine Deck Log</span>
@@ -208,20 +208,20 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
 
           <button
             onClick={handleExportMarineCSV}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white font-bold rounded-xl text-xs font-bold transition-colors"
           >
-            <Download className="w-4 h-4 text-cyan-400" />
+            <Download className="w-4 h-4 text-white font-bold" />
             <span>Export CSV</span>
           </button>
 
           {/* Sub-Tabs Selector */}
-          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-bold">
             <button
               onClick={() => setSubTab('VOYAGE_MONITORING')}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all ${
                 subTab === 'VOYAGE_MONITORING'
-                  ? 'bg-cyan-600/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-cyan-600/20 text-white font-bold border border-cyan-500/40 shadow-sm'
+                  : 'text-white font-bold hover:text-white font-bold'
               }`}
             >
               <Compass className="w-4 h-4" />
@@ -231,8 +231,8 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
               onClick={() => setSubTab('MARINE_PRESSURE')}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all ${
                 subTab === 'MARINE_PRESSURE'
-                  ? 'bg-cyan-600/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-cyan-600/20 text-white font-bold border border-cyan-500/40 shadow-sm'
+                  : 'text-white font-bold hover:text-white font-bold'
               }`}
             >
               <Gauge className="w-4 h-4" />
@@ -245,64 +245,64 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
       {/* Voyage Telemetry Status Card */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg">
-          <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">
+          <span className="text-[11px] font-bold uppercase text-white font-bold block mb-1">
             Vessel & Route
           </span>
-          <span className="text-lg font-bold text-cyan-400 block mb-1">MV. SAVIOUR (LCT)</span>
-          <span className="text-xs text-slate-500">Arun PAG ➔ Nias Island Jetty</span>
+          <span className="text-lg font-bold text-white font-bold block mb-1">MV. SAVIOUR (LCT)</span>
+          <span className="text-xs text-white font-bold">Arun PAG ➔ Nias Island Jetty</span>
         </div>
 
         <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg">
-          <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">
+          <span className="text-[11px] font-bold uppercase text-white font-bold block mb-1">
             Sailing Cargo Volume
           </span>
           <div className="flex items-baseline gap-1.5 mb-1">
-            <span className="text-2xl font-bold font-mono text-slate-100">{sailingTanks.length}</span>
-            <span className="text-xs text-slate-400 font-mono">ISO Tanks On Deck</span>
+            <span className="text-2xl font-bold font-mono text-white font-bold">{sailingTanks.length}</span>
+            <span className="text-xs text-white font-bold font-mono">ISO Tanks On Deck</span>
           </div>
-          <span className="text-xs text-slate-500 font-mono">~{(sailingTanks.length * 850).toLocaleString()} MMBtu Equivalent</span>
+          <span className="text-xs text-white font-bold font-mono">~{(sailingTanks.length * 850).toLocaleString()} MMBtu Equivalent</span>
         </div>
 
         <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg">
-          <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">
+          <span className="text-[11px] font-bold uppercase text-white font-bold block mb-1">
             Average Marine Pressure
           </span>
           <div className="flex items-baseline gap-1.5 mb-1">
-            <span className="text-2xl font-bold font-mono text-emerald-400">0.77</span>
-            <span className="text-xs text-slate-400 font-mono">MPa (Stable)</span>
+            <span className="text-2xl font-bold font-mono text-white font-bold">0.77</span>
+            <span className="text-xs text-white font-bold font-mono">MPa (Stable)</span>
           </div>
-          <span className="text-xs text-slate-500">BOG Containment: Normal</span>
+          <span className="text-xs text-white font-bold">BOG Containment: Normal</span>
         </div>
 
         <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg">
-          <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">
+          <span className="text-[11px] font-bold uppercase text-white font-bold block mb-1">
             Voyage State
           </span>
           <div className="flex items-center gap-2 mb-1">
-            <Navigation className="w-4 h-4 text-cyan-400 animate-pulse" />
-            <span className="text-base font-bold text-cyan-300">Underway Sailing</span>
+            <Navigation className="w-4 h-4 text-white font-bold animate-pulse" />
+            <span className="text-base font-bold text-white font-bold">Underway Sailing</span>
           </div>
-          <span className="text-xs text-slate-500">Shipment Code: N1</span>
+          <span className="text-xs text-white font-bold">Shipment Code: N1</span>
         </div>
       </div>
 
       {/* Control Action Bar with Discharge & Closed Return Actions */}
       <section className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div className="relative flex-1 max-w-xs">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-white font-bold absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search Sailing Tanks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-cyan-500"
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white font-bold focus:outline-none focus:border-cyan-500"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={selectAll}
-            className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs text-slate-300 font-medium transition-colors"
+            className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs text-white font-bold font-bold transition-colors"
           >
             {selectedTanks.size > 0 && selectedTanks.size === filteredTanks.length
               ? 'Deselect All'
@@ -313,10 +313,10 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
           <button
             onClick={handleDischargeToNias}
             disabled={selectedTanks.size === 0}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               selectedTanks.size > 0
                 ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-500/20 cursor-pointer'
-                : 'bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed'
+                : 'bg-slate-800 text-white font-bold border border-slate-700/50 cursor-not-allowed'
             }`}
           >
             <Anchor className="w-3.5 h-3.5" />
@@ -327,10 +327,10 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
           <button
             onClick={handleCompleteReturnCycle}
             disabled={selectedTanks.size === 0}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               selectedTanks.size > 0
                 ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20 cursor-pointer'
-                : 'bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed'
+                : 'bg-slate-800 text-white font-bold border border-slate-700/50 cursor-not-allowed'
             }`}
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -369,19 +369,19 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => {}}
-                    className="rounded border-slate-600 bg-slate-950 text-cyan-400 accent-cyan-500 cursor-pointer w-4 h-4"
+                    className="rounded border-slate-600 bg-slate-950 text-white font-bold accent-cyan-500 cursor-pointer w-4 h-4"
                   />
                 </div>
 
                 {/* Card Body */}
                 <div className="p-3 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-300 font-mono font-semibold truncate">{tank.serialNo}</span>
+                    <span className="text-[10px] text-white font-bold font-mono font-bold truncate">{tank.serialNo}</span>
                     <span
                       className={`px-2 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1 border ${
                         isEmptyReturn
-                          ? 'bg-purple-950/90 border-purple-500 text-purple-300'
-                          : 'bg-cyan-950/90 border-cyan-500 text-cyan-300'
+                          ? 'bg-purple-950/90 border-purple-500 text-white font-bold'
+                          : 'bg-cyan-950/90 border-cyan-500 text-white font-bold'
                       }`}
                     >
                       <Ship className="w-3 h-3" />
@@ -390,30 +390,30 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
                   </div>
 
                   <div className="space-y-1.5 pt-1.5 border-t border-slate-700/80 text-xs font-mono">
-                    <div className="flex items-center justify-between text-slate-300">
-                      <span className="flex items-center gap-1 text-[11px] text-slate-300 font-bold font-sans">
-                        <Droplet className="w-3.5 h-3.5 text-blue-400" /> Level:
+                    <div className="flex items-center justify-between text-white font-bold">
+                      <span className="flex items-center gap-1 text-[11px] text-white font-bold font-bold font-sans">
+                        <Droplet className="w-3.5 h-3.5 text-white font-bold" /> Level:
                       </span>
                       <span className="font-black text-white">{tank.level}%</span>
                     </div>
-                    <div className="flex items-center justify-between text-slate-300">
-                      <span className="flex items-center gap-1 text-[11px] text-slate-300 font-bold font-sans">
-                        <Gauge className="w-3.5 h-3.5 text-emerald-400" /> Pressure:
+                    <div className="flex items-center justify-between text-white font-bold">
+                      <span className="flex items-center gap-1 text-[11px] text-white font-bold font-bold font-sans">
+                        <Gauge className="w-3.5 h-3.5 text-white font-bold" /> Pressure:
                       </span>
-                      <span className="font-extrabold text-emerald-400">{tank.pressureMPa.toFixed(2)} MPa</span>
+                      <span className="font-extrabold text-white font-bold">{tank.pressureMPa.toFixed(2)} MPa</span>
                     </div>
-                    <div className="flex items-center justify-between text-slate-300">
-                      <span className="flex items-center gap-1 text-[11px] text-slate-300 font-bold font-sans">
-                        <Thermometer className="w-3.5 h-3.5 text-cyan-400" /> Temp:
+                    <div className="flex items-center justify-between text-white font-bold">
+                      <span className="flex items-center gap-1 text-[11px] text-white font-bold font-bold font-sans">
+                        <Thermometer className="w-3.5 h-3.5 text-white font-bold" /> Temp:
                       </span>
-                      <span className="font-bold text-cyan-300">{tank.tempC.toFixed(1)} °C</span>
+                      <span className="font-bold text-white font-bold">{tank.tempC.toFixed(1)} °C</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Card Footer Bar */}
                 <div className="px-3 py-1.5 bg-slate-950 border-t border-slate-700 flex items-center justify-between text-[11px] font-mono">
-                  <span className="text-slate-300 font-bold truncate max-w-[100px]">
+                  <span className="text-white font-bold font-bold truncate max-w-[100px]">
                     {tank.position}
                   </span>
                   <button
@@ -421,7 +421,7 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
                       e.stopPropagation();
                       setMroModalTankNo(tank.tankNo);
                     }}
-                    className="p-1 text-amber-400 hover:text-amber-300 font-bold font-sans flex items-center gap-1 cursor-pointer"
+                    className="p-1 text-white font-bold hover:text-white font-bold font-bold font-sans flex items-center gap-1 cursor-pointer"
                   >
                     <Wrench className="w-3 h-3" /> MRO
                   </button>
@@ -439,14 +439,14 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
         <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-lg animate-in fade-in duration-200">
           <div className="overflow-x-auto max-h-[550px] overflow-y-auto">
             <table className="w-full text-left border-collapse min-w-[880px]">
-              <thead className="sticky top-0 z-10 bg-slate-950 text-slate-400 text-[11px] uppercase tracking-wider font-semibold">
+              <thead className="sticky top-0 z-10 bg-slate-950 text-white font-bold text-[11px] uppercase tracking-wider font-bold">
                 <tr className="border-b border-slate-800">
                   <th className="p-3 w-10 text-center">
                     <input
                       type="checkbox"
                       checked={selectedTanks.size > 0 && selectedTanks.size === filteredTanks.length}
                       onChange={selectAll}
-                      className="rounded border-slate-700 bg-slate-900 text-cyan-500 accent-cyan-500 cursor-pointer"
+                      className="rounded border-slate-700 bg-slate-900 text-white font-bold accent-cyan-500 cursor-pointer"
                     />
                   </th>
                   <th className="p-3">Tank No / Serial</th>
@@ -473,12 +473,12 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleSelectTank(tank.tankNo)}
-                          className="rounded border-slate-700 bg-slate-950 text-cyan-500 accent-cyan-500 cursor-pointer"
+                          className="rounded border-slate-700 bg-slate-950 text-white font-bold accent-cyan-500 cursor-pointer"
                         />
                       </td>
                       <td className="p-3">
-                        <span className="font-bold text-cyan-400 block">{tank.tankNo}</span>
-                        <span className="text-[10px] text-slate-500">{tank.serialNo}</span>
+                        <span className="font-bold text-white font-bold block">{tank.tankNo}</span>
+                        <span className="text-[10px] text-white font-bold">{tank.serialNo}</span>
                       </td>
                       <td className="p-3 text-right">
                         <input
@@ -486,7 +486,7 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
                           step="0.01"
                           value={tank.pressureMPa}
                           onChange={(e) => handleFieldChange(tank.tankNo, 'pressureMPa', e.target.value)}
-                          className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-emerald-400 font-semibold focus:border-cyan-500 outline-none"
+                          className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-white font-bold font-bold focus:border-cyan-500 outline-none"
                         />
                       </td>
                       <td className="p-3 text-right">
@@ -495,7 +495,7 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
                           step="0.1"
                           value={tank.tempC}
                           onChange={(e) => handleFieldChange(tank.tankNo, 'tempC', e.target.value)}
-                          className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-red-400 focus:border-cyan-500 outline-none"
+                          className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-white font-bold focus:border-cyan-500 outline-none"
                         />
                       </td>
                       <td className="p-3 text-right">
@@ -503,22 +503,22 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
                           type="number"
                           value={tank.level}
                           onChange={(e) => handleFieldChange(tank.tankNo, 'level', e.target.value)}
-                          className="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-slate-100 focus:border-cyan-500 outline-none"
+                          className="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-white font-bold focus:border-cyan-500 outline-none"
                         />
                       </td>
                       <td className="p-3 text-right">
-                        <div className="inline-flex items-center gap-1 text-slate-300">
-                          <Battery className="w-3.5 h-3.5 text-emerald-400" />
+                        <div className="inline-flex items-center gap-1 text-white font-bold">
+                          <Battery className="w-3.5 h-3.5 text-white font-bold" />
                           <span>{tank.battery}%</span>
                         </div>
                       </td>
-                      <td className="p-3 font-sans text-slate-300">{tank.position}</td>
+                      <td className="p-3 font-sans text-white font-bold">{tank.position}</td>
                       <td className="p-3 text-center">
                         <button
                           onClick={() => setMroModalTankNo(tank.tankNo)}
-                          className="p-1 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded font-sans text-[11px] inline-flex items-center gap-1"
+                          className="p-1 text-white font-bold hover:text-white font-bold hover:bg-slate-800 rounded font-sans text-[11px] inline-flex items-center gap-1"
                         >
-                          <Wrench className="w-3 h-3 text-amber-400" />
+                          <Wrench className="w-3 h-3 text-white font-bold" />
                           <span>MRO</span>
                         </button>
                       </td>
@@ -536,13 +536,13 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
         <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                <Gauge className="w-5 h-5 text-cyan-400" />
+              <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
+                <Gauge className="w-5 h-5 text-white font-bold" />
                 Add Daily Marine Deck Inspection Log
               </h3>
               <button
                 onClick={() => setIsDailyLogModalOpen(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-white font-bold hover:text-white"
               >
                 <XCircle className="w-5 h-5" />
               </button>
@@ -550,25 +550,25 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
 
             <form onSubmit={handleDailyInspectionSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1 font-semibold">Inspection Date:</label>
+                <label className="block text-white font-bold mb-1 font-bold">Inspection Date:</label>
                 <input
                   type="date"
                   value={logDate}
                   onChange={(e) => setLogDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:border-cyan-500 outline-none font-mono"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold focus:border-cyan-500 outline-none font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-semibold">Target ISO Tanks:</label>
+                <label className="block text-white font-bold mb-1 font-bold">Target ISO Tanks:</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setLogTargetTanks('ALL_SAILING')}
-                    className={`py-2 px-3 rounded-lg border text-center font-semibold transition-all ${
+                    className={`py-2 px-3 rounded-lg border text-center font-bold transition-all ${
                       logTargetTanks === 'ALL_SAILING'
-                        ? 'bg-cyan-600/20 text-cyan-400 border-cyan-500'
-                        : 'bg-slate-950 border-slate-800 text-slate-400'
+                        ? 'bg-cyan-600/20 text-white font-bold border-cyan-500'
+                        : 'bg-slate-950 border-slate-800 text-white font-bold'
                     }`}
                   >
                     All Sailing ({sailingTanks.length} Tanks)
@@ -576,10 +576,10 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
                   <button
                     type="button"
                     onClick={() => setLogTargetTanks('SELECTED')}
-                    className={`py-2 px-3 rounded-lg border text-center font-semibold transition-all ${
+                    className={`py-2 px-3 rounded-lg border text-center font-bold transition-all ${
                       logTargetTanks === 'SELECTED'
-                        ? 'bg-cyan-600/20 text-cyan-400 border-cyan-500'
-                        : 'bg-slate-950 border-slate-800 text-slate-400'
+                        ? 'bg-cyan-600/20 text-white font-bold border-cyan-500'
+                        : 'bg-slate-950 border-slate-800 text-white font-bold'
                     }`}
                   >
                     Selected Only ({selectedTanks.size} Tanks)
@@ -589,41 +589,41 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
 
               <div className="grid grid-cols-2 gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800">
                 <div>
-                  <label className="block text-slate-400 mb-1 font-sans">Pressure (MPa):</label>
+                  <label className="block text-white font-bold mb-1 font-sans">Pressure (MPa):</label>
                   <input
                     type="number"
                     step="0.01"
                     value={inputPressure}
                     onChange={(e) => setInputPressure(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-emerald-400 font-mono font-bold"
+                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white font-bold font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1 font-sans">Temp (°C):</label>
+                  <label className="block text-white font-bold mb-1 font-sans">Temp (°C):</label>
                   <input
                     type="number"
                     step="0.1"
                     value={inputTemp}
                     onChange={(e) => setInputTemp(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-red-400 font-mono font-bold"
+                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white font-bold font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1 font-sans">Level (%):</label>
+                  <label className="block text-white font-bold mb-1 font-sans">Level (%):</label>
                   <input
                     type="number"
                     value={inputLevel}
                     onChange={(e) => setInputLevel(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 font-mono"
+                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white font-bold font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1 font-sans">Battery (%):</label>
+                  <label className="block text-white font-bold mb-1 font-sans">Battery (%):</label>
                   <input
                     type="number"
                     value={inputBattery}
                     onChange={(e) => setInputBattery(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 font-mono"
+                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white font-bold font-mono"
                   />
                 </div>
               </div>
@@ -632,13 +632,13 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
                 <button
                   type="button"
                   onClick={() => setIsDailyLogModalOpen(false)}
-                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold"
+                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-semibold shadow-md shadow-cyan-500/20"
+                  className="flex-1 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-bold shadow-md shadow-cyan-500/20"
                 >
                   Save Marine Inspection Log
                 </button>
@@ -653,13 +653,13 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                <Wrench className="w-5 h-5 text-amber-400" />
+              <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-white font-bold" />
                 Send {mroModalTankNo} to Arun MRO Workshop
               </h3>
               <button
                 onClick={() => setMroModalTankNo(null)}
-                className="text-slate-400 hover:text-white"
+                className="text-white font-bold hover:text-white"
               >
                 <XCircle className="w-5 h-5" />
               </button>
@@ -667,11 +667,11 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
 
             <form onSubmit={handleMroSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1 font-semibold">Defect Classification:</label>
+                <label className="block text-white font-bold mb-1 font-bold">Defect Classification:</label>
                 <select
                   value={defectCat}
                   onChange={(e) => setDefectCat(e.target.value as DefectCategory)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500"
                 >
                   <option value="VACUUM_LOSS">Vacuum Loss (High Marine BOG / Jacket loss)</option>
                   <option value="VALVE_LEAK">Valve Leak (Liquid/Gas valve packing)</option>
@@ -682,13 +682,13 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-semibold">Defect Description:</label>
+                <label className="block text-white font-bold mb-1 font-bold">Defect Description:</label>
                 <textarea
                   value={defectDesc}
                   onChange={(e) => setDefectDesc(e.target.value)}
                   placeholder="Observed abnormal pressure rise or sensor failure during transit..."
                   rows={3}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500"
                 />
               </div>
 
@@ -696,13 +696,13 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
                 <button
                   type="button"
                   onClick={() => setMroModalTankNo(null)}
-                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold"
+                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-semibold"
+                  className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold"
                 >
                   Route to MRO Workshop
                 </button>

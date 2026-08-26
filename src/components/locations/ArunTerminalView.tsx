@@ -713,22 +713,22 @@ export default function ArunTerminalView({
     field: 'tankNo' | 'date' | 'deliveredWeightKg' | 'deliveredVolumeM3' | 'deliveredMMBtu'
   ) => {
     if (sortField !== field) {
-      return <ArrowUpDown className="w-3 h-3 text-slate-600 inline-block ml-1" />;
+      return <ArrowUpDown className="w-3 h-3 text-white font-bold inline-block ml-1" />;
     }
     return sortAsc ? (
-      <ArrowUp className="w-3 h-3 text-blue-400 inline-block ml-1" />
+      <ArrowUp className="w-3 h-3 text-white font-bold inline-block ml-1" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-blue-400 inline-block ml-1" />
+      <ArrowDown className="w-3 h-3 text-white font-bold inline-block ml-1" />
     );
   };
 
   return (
-    <div className="flex flex-col gap-5 w-full text-slate-100 pb-8">
+    <div className="flex flex-col gap-5 w-full text-white font-bold pb-8">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 px-4 py-3 bg-blue-500/20 border border-blue-500/50 text-blue-300 rounded-xl shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-4">
-          <CheckCircle2 className="w-5 h-5 text-blue-400" />
-          <span className="text-sm font-semibold">{toastMessage}</span>
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 px-4 py-3 bg-blue-500/20 border border-blue-500/50 text-white font-bold rounded-xl shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-4">
+          <CheckCircle2 className="w-5 h-5 text-white font-bold" />
+          <span className="text-sm font-bold">{toastMessage}</span>
         </div>
       )}
 
@@ -736,27 +736,27 @@ export default function ArunTerminalView({
       <section className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <Anchor className="w-6 h-6 text-blue-400" />
-            <h2 className="text-lg sm:text-xl font-bold text-slate-100">
+            <Anchor className="w-6 h-6 text-white font-bold" />
+            <h2 className="text-lg sm:text-xl font-bold text-white font-bold">
               Arun PAG Terminal Operations
             </h2>
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-xs font-mono text-blue-400">
+            <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-xs font-mono text-white font-bold">
               PT Perta Arun Gas • Aceh
             </span>
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-white font-bold">
             LNG loading measurement certification, Certificate of Quality (COQ) lab testing, and staging yard dispatch
           </p>
         </div>
 
         {/* 4 Dedicated Sub-Tabs Navigation Bar */}
-        <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold overflow-x-auto max-w-full">
+        <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-bold overflow-x-auto max-w-full">
           <button
             onClick={() => setActiveTab('OPERATIONS_YARD')}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'OPERATIONS_YARD'
-                ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-blue-600/20 text-white font-bold border border-blue-500/40 shadow-sm'
+                : 'text-white font-bold hover:text-white font-bold'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -767,8 +767,8 @@ export default function ArunTerminalView({
             onClick={() => setActiveTab('LOADING_COQ_ENTRY')}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'LOADING_COQ_ENTRY'
-                ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-blue-600/20 text-white font-bold border border-blue-500/40 shadow-sm'
+                : 'text-white font-bold hover:text-white font-bold'
             }`}
           >
             <PlusCircle className="w-4 h-4" />
@@ -779,8 +779,8 @@ export default function ArunTerminalView({
             onClick={() => setActiveTab('LAB_COQ_SPEC')}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'LAB_COQ_SPEC'
-                ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-blue-600/20 text-white font-bold border border-blue-500/40 shadow-sm'
+                : 'text-white font-bold hover:text-white font-bold'
             }`}
           >
             <FlaskConical className="w-4 h-4" />
@@ -791,8 +791,8 @@ export default function ArunTerminalView({
             onClick={() => setActiveTab('MASTER_HISTORY_SHEET')}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'MASTER_HISTORY_SHEET'
-                ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-blue-600/20 text-white font-bold border border-blue-500/40 shadow-sm'
+                : 'text-white font-bold hover:text-white font-bold'
             }`}
           >
             <Table className="w-4 h-4" />
@@ -811,16 +811,16 @@ export default function ArunTerminalView({
             {/* Card 1: Arun Staging Inventory */}
             <div className="bg-slate-900/80 border border-blue-500/30 rounded-xl p-5 shadow-lg flex flex-col justify-between">
               <div className="flex justify-between items-start mb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 font-sans">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-white font-bold font-sans">
                   Arun Staging Inventory
                 </span>
-                <Boxes className="w-4 h-4 text-blue-400" />
+                <Boxes className="w-4 h-4 text-white font-bold" />
               </div>
-              <div className="text-2xl sm:text-3xl font-bold font-mono text-blue-400 mb-1">
+              <div className="text-2xl sm:text-3xl font-bold font-mono text-white font-bold mb-1">
                 {operationalKPIs.yardTotalCount}{' '}
-                <span className="text-sm font-sans font-normal text-slate-400">Tanks</span>
+                <span className="text-sm font-sans font-bold text-white font-bold">Tanks</span>
               </div>
-              <span className="text-xs font-mono text-blue-300/80">
+              <span className="text-xs font-mono text-white font-bold">
                 Status: Empty / Heel Retention
               </span>
             </div>
@@ -828,16 +828,16 @@ export default function ArunTerminalView({
             {/* Card 2: Active Batch (Shipment N-2) Progress */}
             <div className="bg-slate-900/80 border border-emerald-500/30 rounded-xl p-5 shadow-lg flex flex-col justify-between">
               <div className="flex justify-between items-start mb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 font-sans">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-white font-bold font-sans">
                   Active Batch Loading (Shipment {operationalKPIs.shipmentBatch})
                 </span>
-                <Weight className="w-4 h-4 text-emerald-400" />
+                <Weight className="w-4 h-4 text-white font-bold" />
               </div>
-              <div className="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 mb-1">
+              <div className="text-2xl sm:text-3xl font-bold font-mono text-white font-bold mb-1">
                 {operationalKPIs.loadedCount} / {operationalKPIs.yardTotalCount}{' '}
-                <span className="text-sm font-sans font-normal text-slate-400">Loaded</span>
+                <span className="text-sm font-sans font-bold text-white font-bold">Loaded</span>
               </div>
-              <span className="text-xs font-mono text-slate-400">
+              <span className="text-xs font-mono text-white font-bold">
                 Net: {operationalKPIs.totalTons.toFixed(2)} Ton • {operationalKPIs.totalVolumeM3.toFixed(1)} m³
               </span>
             </div>
@@ -845,19 +845,19 @@ export default function ArunTerminalView({
             {/* Card 3: Active Delivered Energy */}
             <div className="bg-slate-900/80 border border-amber-500/30 rounded-xl p-5 shadow-lg flex flex-col justify-between">
               <div className="flex justify-between items-start mb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 font-sans">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-white font-bold font-sans">
                   Active Delivered Energy
                 </span>
-                <Flame className="w-4 h-4 text-amber-400" />
+                <Flame className="w-4 h-4 text-white font-bold" />
               </div>
-              <div className="text-2xl sm:text-3xl font-bold font-mono text-amber-400 mb-1">
+              <div className="text-2xl sm:text-3xl font-bold font-mono text-white font-bold mb-1">
                 {operationalKPIs.totalMMBtu.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}{' '}
-                <span className="text-sm font-sans font-normal text-slate-400">MMBtu</span>
+                <span className="text-sm font-sans font-bold text-white font-bold">MMBtu</span>
               </div>
-              <span className="text-xs font-mono text-slate-400">
+              <span className="text-xs font-mono text-white font-bold">
                 Avg GHV: {operationalKPIs.avgGHV.toLocaleString(undefined, { maximumFractionDigits: 2 })} BTU/Kg
               </span>
             </div>
@@ -865,18 +865,18 @@ export default function ArunTerminalView({
             {/* Card 4: Terminal Base Conditions */}
             <div className="bg-slate-900/80 border border-cyan-500/30 rounded-xl p-5 shadow-lg flex flex-col justify-between">
               <div className="flex justify-between items-start mb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 font-sans">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-white font-bold font-sans">
                   Terminal Base Conditions
                 </span>
-                <Thermometer className="w-4 h-4 text-cyan-400" />
+                <Thermometer className="w-4 h-4 text-white font-bold" />
               </div>
               <div className="flex items-baseline gap-1.5 mb-1">
-                <span className="text-2xl sm:text-3xl font-bold font-mono text-cyan-400">
+                <span className="text-2xl sm:text-3xl font-bold font-mono text-white font-bold">
                   -160.0
                 </span>
-                <span className="text-xs text-slate-400 font-mono">°C / 442.02 kg/m³</span>
+                <span className="text-xs text-white font-bold font-mono">°C / 442.02 kg/m³</span>
               </div>
-              <span className="text-xs font-mono text-slate-400">
+              <span className="text-xs font-mono text-white font-bold">
                 Operating Press: 0.78 MPa
               </span>
             </div>
@@ -886,30 +886,30 @@ export default function ArunTerminalView({
           <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
             <div className="p-4 sm:p-5 border-b border-slate-800 bg-slate-950/70 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-blue-400 shrink-0" />
+                <h3 className="text-sm sm:text-base font-bold text-white font-bold flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-white font-bold shrink-0" />
                   Arun PAG Staging Yard Fleet (Tanks Staged for Marine Departure)
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-white font-bold">
                   Select ready ISO tanks to batch dispatch and load aboard MV. Saviour
                 </p>
               </div>
 
               <div className="flex items-center gap-2.5 w-full sm:w-auto">
                 <div className="relative flex-1 sm:w-60">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-white font-bold absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     placeholder="Search Yard Tanks..."
                     value={yardSearch}
                     onChange={(e) => setYardSearch(e.target.value)}
-                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500"
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white font-bold focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
                 <button
                   onClick={selectAllYard}
-                  className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs text-slate-300 font-medium transition-colors cursor-pointer"
+                  className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs text-white font-bold font-bold transition-colors cursor-pointer"
                 >
                   {selectedYardTanks.size > 0 &&
                   selectedYardTanks.size === filteredYardTanks.length
@@ -920,10 +920,10 @@ export default function ArunTerminalView({
                 <button
                   onClick={handleDispatchToMarine}
                   disabled={selectedYardTanks.size === 0}
-                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     selectedYardTanks.size > 0
                       ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20 cursor-pointer'
-                      : 'bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed'
+                      : 'bg-slate-800 text-white font-bold border border-slate-700/50 cursor-not-allowed'
                   }`}
                 >
                   <Ship className="w-3.5 h-3.5" />
@@ -936,7 +936,7 @@ export default function ArunTerminalView({
             {/* Yard Tanks Table */}
             <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
               <table className="w-full text-left border-collapse min-w-[950px]">
-                <thead className="sticky top-0 z-10 bg-slate-950 text-slate-400 text-[11px] uppercase tracking-wider font-semibold">
+                <thead className="sticky top-0 z-10 bg-slate-950 text-white font-bold text-[11px] uppercase tracking-wider font-bold">
                   <tr className="border-b border-slate-800">
                     <th className="p-3 w-10 text-center">
                       <input
@@ -946,7 +946,7 @@ export default function ArunTerminalView({
                           selectedYardTanks.size === filteredYardTanks.length
                         }
                         onChange={selectAllYard}
-                        className="rounded border-slate-700 bg-slate-900 text-blue-500 accent-blue-500 cursor-pointer"
+                        className="rounded border-slate-700 bg-slate-900 text-white font-bold accent-blue-500 cursor-pointer"
                       />
                     </th>
                     <th className="p-3">ISO Tank No</th>
@@ -987,10 +987,10 @@ export default function ArunTerminalView({
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleSelectYardTank(tank.tankNo)}
-                            className="rounded border-slate-700 bg-slate-950 text-blue-500 accent-blue-500 cursor-pointer"
+                            className="rounded border-slate-700 bg-slate-950 text-white font-bold accent-blue-500 cursor-pointer"
                           />
                         </td>
-                        <td className="p-3 font-bold text-blue-400 flex items-center gap-1.5">
+                        <td className="p-3 font-bold text-white font-bold flex items-center gap-1.5">
                           <span>{tank.tankNo}</span>
                           {isCertified && (
                             <span
@@ -999,16 +999,16 @@ export default function ArunTerminalView({
                             />
                           )}
                         </td>
-                        <td className="p-3 text-slate-400 text-[11px]">{tank.serialNo}</td>
-                        <td className="p-3 font-sans text-slate-300">
+                        <td className="p-3 text-white font-bold text-[11px]">{tank.serialNo}</td>
+                        <td className="p-3 font-sans text-white font-bold">
                           {isCertified ? 'ARUN_STAGED_FOR_DEPARTURE' : tank.position || 'Aceh Staging Yard'}
                         </td>
                         <td className="p-3 text-right font-mono">
                           <span
-                            className={`font-semibold px-2 py-0.5 rounded text-xs inline-block ${
+                            className={`font-bold px-2 py-0.5 rounded text-xs inline-block ${
                               isCertified
-                                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                                : 'bg-slate-800/80 text-slate-300 border border-slate-700/50'
+                                ? 'bg-cyan-500/20 text-white font-bold border border-cyan-500/30'
+                                : 'bg-slate-800/80 text-white font-bold border border-slate-700/50'
                             }`}
                           >
                             {currentLevel}% {isCertified ? '(Full LNG)' : '(Heel)'}
@@ -1024,7 +1024,7 @@ export default function ArunTerminalView({
                                 pressureMPa: parseFloat(e.target.value) || 0,
                               })
                             }
-                            className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-emerald-400 font-semibold focus:border-blue-500 outline-none"
+                            className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-white font-bold font-bold focus:border-blue-500 outline-none"
                           />
                         </td>
                         <td className="p-3 text-right">
@@ -1037,7 +1037,7 @@ export default function ArunTerminalView({
                                 tempC: parseFloat(e.target.value) || 0,
                               })
                             }
-                            className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-cyan-400 focus:border-blue-500 outline-none"
+                            className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-white font-bold focus:border-blue-500 outline-none"
                           />
                         </td>
                         {/* Heel Closed-Loop & Audit Actions */}
@@ -1046,13 +1046,13 @@ export default function ArunTerminalView({
                             <button
                               type="button"
                               onClick={() => setSelectedHeelAuditTankNo(isAuditSelected ? null : tank.tankNo)}
-                              className={`px-2 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                              className={`px-2 py-1 rounded text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                                 isAuditSelected
                                   ? 'bg-purple-600 text-white shadow-sm'
-                                  : 'bg-purple-950/40 text-purple-300 border border-purple-800/60 hover:bg-purple-900/50'
+                                  : 'bg-purple-950/40 text-white font-bold border border-purple-800/60 hover:bg-purple-900/50'
                               }`}
                             >
-                              <RotateCcw className="w-3 h-3 text-purple-400" />
+                              <RotateCcw className="w-3 h-3 text-white font-bold" />
                               <span>{isAuditSelected ? 'Auditing' : 'Heel Audit'}</span>
                             </button>
                             <button
@@ -1063,7 +1063,7 @@ export default function ArunTerminalView({
                                 setArrivalPressureMPa(tank.arrivalHeelMetrics?.arrivalPressureMPa || tank.pressureMPa || 0.32);
                                 setArrivalTempC(tank.arrivalHeelMetrics?.arrivalTempC || tank.tempC || -128.5);
                               }}
-                              className="px-2 py-1 rounded text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
+                              className="px-2 py-1 rounded text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-white font-bold border border-slate-700 transition-colors cursor-pointer"
                               title="Record Live Arrival Inspection"
                             >
                               Inspect
@@ -1072,13 +1072,13 @@ export default function ArunTerminalView({
                         </td>
                         <td className="p-3 text-center font-sans">
                           {isCertified ? (
-                            <span className="px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-bold inline-flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3 text-cyan-400" />
+                            <span className="px-2.5 py-1 rounded-full bg-cyan-500/20 text-white font-bold border border-cyan-500/40 text-[10px] font-bold inline-flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-white font-bold" />
                               Staged for Departure
                             </span>
                           ) : (
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold inline-flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-white font-bold border border-emerald-500/40 text-[10px] font-bold inline-flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-white font-bold" />
                               Ready for Loading
                             </span>
                           )}
@@ -1086,9 +1086,9 @@ export default function ArunTerminalView({
                         <td className="p-3 text-center">
                           <button
                             onClick={() => setMroModalTankNo(tank.tankNo)}
-                            className="p-1 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded font-sans text-[11px] inline-flex items-center gap-1 cursor-pointer"
+                            className="p-1 text-white font-bold hover:text-white font-bold hover:bg-slate-800 rounded font-sans text-[11px] inline-flex items-center gap-1 cursor-pointer"
                           >
-                            <Wrench className="w-3 h-3 text-amber-400" />
+                            <Wrench className="w-3 h-3 text-white font-bold" />
                             <span>MRO</span>
                           </button>
                         </td>
@@ -1097,7 +1097,7 @@ export default function ArunTerminalView({
                   })}
                   {filteredYardTanks.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="text-center py-12 text-slate-500 font-sans">
+                      <td colSpan={10} className="text-center py-12 text-white font-bold font-sans">
                         No ISO Tanks currently staged in Arun PAG Yard.
                       </td>
                     </tr>
@@ -1152,14 +1152,14 @@ export default function ArunTerminalView({
                 <div className="border-t border-slate-800 bg-slate-950/90 p-5 space-y-4 animate-in fade-in">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div className="flex items-center gap-2">
-                      <RotateCcw className="w-5 h-5 text-purple-400" />
+                      <RotateCcw className="w-5 h-5 text-white font-bold" />
                       <div>
-                        <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                        <h4 className="text-sm font-bold text-white font-bold flex items-center gap-2">
                           <span>Heel Preservation & Transit Audit Card:</span>
-                          <span className="font-mono text-purple-300">{tank.tankNo}</span>
-                          <span className="text-xs text-slate-400 font-mono">({tank.serialNo})</span>
+                          <span className="font-mono text-white font-bold">{tank.tankNo}</span>
+                          <span className="text-xs text-white font-bold font-mono">({tank.serialNo})</span>
                         </h4>
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-[11px] text-white font-bold">
                           3-Stage Closed-Loop Tracking: Nias Post-Regas Offload ➔ Marine Backhaul ➔ Arun PAG Arrival & Thermal Credit
                         </p>
                       </div>
@@ -1185,48 +1185,48 @@ export default function ArunTerminalView({
                     {/* Stage 1 Card */}
                     <div className="p-4 bg-slate-900/90 border border-blue-500/30 rounded-xl space-y-2">
                       <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
-                        <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-white font-bold uppercase tracking-wider">
                           1. Nias Offload Spec
                         </span>
-                        <span className="text-[10px] font-mono text-slate-500">{stage1.offloadDate}</span>
+                        <span className="text-[10px] font-mono text-white font-bold">{stage1.offloadDate}</span>
                       </div>
                       <div className="space-y-1 text-xs font-mono">
-                        <div className="flex justify-between"><span className="text-slate-500">Heel Mass:</span><span className="text-slate-200 font-bold">{stage1.heelMassKg} kg</span></div>
-                        <div className="flex justify-between"><span className="text-slate-500">Heel Level:</span><span className="text-blue-400 font-bold">{stage1.heelLevelPct}% ({stage1.heelVolumeM3} m³)</span></div>
-                        <div className="flex justify-between"><span className="text-slate-500">Holding Press:</span><span className="text-emerald-400 font-bold">{stage1.holdingPressureMPa.toFixed(2)} MPa</span></div>
-                        <div className="flex justify-between"><span className="text-slate-500">Cryo Temp:</span><span className="text-cyan-400 font-bold">{stage1.tempC.toFixed(1)} °C</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Heel Mass:</span><span className="text-white font-bold font-bold">{stage1.heelMassKg} kg</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Heel Level:</span><span className="text-white font-bold font-bold">{stage1.heelLevelPct}% ({stage1.heelVolumeM3} m³)</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Holding Press:</span><span className="text-white font-bold font-bold">{stage1.holdingPressureMPa.toFixed(2)} MPa</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Cryo Temp:</span><span className="text-white font-bold font-bold">{stage1.tempC.toFixed(1)} °C</span></div>
                       </div>
                     </div>
 
                     {/* Stage 2 Card */}
                     <div className="p-4 bg-slate-900/90 border border-purple-500/30 rounded-xl space-y-2">
                       <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
-                        <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-white font-bold uppercase tracking-wider">
                           2. Nias Departure Spec
                         </span>
-                        <span className="text-[10px] font-mono text-slate-500">{stage2.departureDate}</span>
+                        <span className="text-[10px] font-mono text-white font-bold">{stage2.departureDate}</span>
                       </div>
                       <div className="space-y-1 text-xs font-mono">
-                        <div className="flex justify-between"><span className="text-slate-500">Manifest No:</span><span className="text-purple-300 font-bold">{stage2.manifestNo}</span></div>
-                        <div className="flex justify-between"><span className="text-slate-500">Departure Mass:</span><span className="text-slate-200 font-bold">{stage2.departureMassKg} kg</span></div>
-                        <div className="flex justify-between"><span className="text-slate-500">Departure Press:</span><span className="text-emerald-400 font-bold">{stage2.departurePressureMPa.toFixed(2)} MPa</span></div>
-                        <div className="flex justify-between"><span className="text-slate-500">Safety Status:</span><span className="text-emerald-400 font-bold">VALVES LOCKED</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Manifest No:</span><span className="text-white font-bold font-bold">{stage2.manifestNo}</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Departure Mass:</span><span className="text-white font-bold font-bold">{stage2.departureMassKg} kg</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Departure Press:</span><span className="text-white font-bold font-bold">{stage2.departurePressureMPa.toFixed(2)} MPa</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Safety Status:</span><span className="text-white font-bold font-bold">VALVES LOCKED</span></div>
                       </div>
                     </div>
 
                     {/* Stage 3 Card */}
                     <div className="p-4 bg-slate-900/90 border border-emerald-500/30 rounded-xl space-y-2">
                       <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
-                        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-white font-bold uppercase tracking-wider">
                           3. Arun Arrival Inspection
                         </span>
-                        <span className="text-[10px] font-mono text-slate-500">{stage3.arrivalDate}</span>
+                        <span className="text-[10px] font-mono text-white font-bold">{stage3.arrivalDate}</span>
                       </div>
                       <div className="space-y-1 text-xs font-mono">
-                        <div className="flex justify-between"><span className="text-slate-500">Measured Mass:</span><span className="text-emerald-400 font-bold">{stage3.arrivalMassKg} kg</span></div>
-                        <div className="flex justify-between"><span className="text-slate-500">Arrival Press:</span><span className="text-slate-200 font-bold">{stage3.arrivalPressureMPa.toFixed(2)} MPa</span></div>
-                        <div className="flex justify-between"><span className="text-slate-500">Arrival Temp:</span><span className="text-cyan-400 font-bold">{stage3.arrivalTempC.toFixed(1)} °C</span></div>
-                        <div className="flex justify-between"><span className="text-slate-500">Tare / Gross:</span><span className="text-slate-400">{stage3.tareWeightKg || 10850} / {stage3.grossWeightKg || 11182} kg</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Measured Mass:</span><span className="text-white font-bold font-bold">{stage3.arrivalMassKg} kg</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Arrival Press:</span><span className="text-white font-bold font-bold">{stage3.arrivalPressureMPa.toFixed(2)} MPa</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Arrival Temp:</span><span className="text-white font-bold font-bold">{stage3.arrivalTempC.toFixed(1)} °C</span></div>
+                        <div className="flex justify-between"><span className="text-white font-bold">Tare / Gross:</span><span className="text-white font-bold">{stage3.tareWeightKg || 10850} / {stage3.grossWeightKg || 11182} kg</span></div>
                       </div>
                     </div>
                   </div>
@@ -1234,24 +1234,24 @@ export default function ArunTerminalView({
                   {/* Calculated Delta Metrics Strip */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 font-mono text-xs">
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase block font-sans font-semibold">Voyage BOG Loss</span>
-                      <span className="font-bold text-base text-amber-400">Δ {massLoss} Kg</span>
-                      <span className="text-[10px] text-slate-500 block">Departure - Arrival</span>
+                      <span className="text-[10px] text-white font-bold uppercase block font-sans font-bold">Voyage BOG Loss</span>
+                      <span className="font-bold text-base text-white font-bold">Δ {massLoss} Kg</span>
+                      <span className="text-[10px] text-white font-bold block">Departure - Arrival</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase block font-sans font-semibold">Pressure Rise</span>
-                      <span className="font-bold text-base text-emerald-400">+ {pressRise} MPa</span>
-                      <span className="text-[10px] text-slate-500 block">Normal cryogenic rise</span>
+                      <span className="text-[10px] text-white font-bold uppercase block font-sans font-bold">Pressure Rise</span>
+                      <span className="font-bold text-base text-white font-bold">+ {pressRise} MPa</span>
+                      <span className="text-[10px] text-white font-bold block">Normal cryogenic rise</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase block font-sans font-semibold">Preservation Efficiency</span>
-                      <span className="font-bold text-base text-cyan-400">{efficiency}%</span>
-                      <span className="text-[10px] text-slate-500 block">Cold vacuum retained</span>
+                      <span className="text-[10px] text-white font-bold uppercase block font-sans font-bold">Preservation Efficiency</span>
+                      <span className="font-bold text-base text-white font-bold">{efficiency}%</span>
+                      <span className="text-[10px] text-white font-bold block">Cold vacuum retained</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-purple-400 uppercase block font-sans font-semibold">Pre-existing MMBtu Credit</span>
-                      <span className="font-bold text-base text-purple-300">-{heelCredit} MMBtu</span>
-                      <span className="text-[10px] text-slate-500 block">Deducted from loading bill</span>
+                      <span className="text-[10px] text-white font-bold uppercase block font-sans font-bold">Pre-existing MMBtu Credit</span>
+                      <span className="font-bold text-base text-white font-bold">-{heelCredit} MMBtu</span>
+                      <span className="text-[10px] text-white font-bold block">Deducted from loading bill</span>
                     </div>
                   </div>
                 </div>
@@ -1273,21 +1273,21 @@ export default function ArunTerminalView({
           >
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-blue-500/10 border border-blue-500/30 rounded-xl text-blue-400">
+                <div className="p-2 bg-blue-500/10 border border-blue-500/30 rounded-xl text-white font-bold">
                   <Calculator className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-white font-bold flex items-center gap-2">
                     Arun PAG Live Loading & COQ Certification Console
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-white font-bold">
                     Interactive scale measurement, smart location picker, and certified chromatographic quality validation
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-xs text-blue-300 font-mono font-semibold">
-                  Batch Target: <strong className="text-blue-400">Shipment {formShipment || 'N-2'} (Pending Departure)</strong>
+                <span className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-xs text-white font-bold font-mono font-bold">
+                  Batch Target: <strong className="text-white font-bold">Shipment {formShipment || 'N-2'} (Pending Departure)</strong>
                 </span>
               </div>
             </div>
@@ -1300,11 +1300,11 @@ export default function ArunTerminalView({
               <div className="lg:col-span-4 bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-inner">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-sm text-slate-200 flex items-center gap-1.5">
-                      <Boxes className="w-4 h-4 text-blue-400" />
+                    <span className="font-bold text-sm text-white font-bold flex items-center gap-1.5">
+                      <Boxes className="w-4 h-4 text-white font-bold" />
                       1. Select ISO Tank
                     </span>
-                    <span className="text-[11px] text-blue-400 font-mono font-semibold">
+                    <span className="text-[11px] text-white font-bold font-mono font-bold">
                       {consoleCandidateTanks.length} Candidates
                     </span>
                   </div>
@@ -1314,10 +1314,10 @@ export default function ArunTerminalView({
                     <button
                       type="button"
                       onClick={() => setConsoleTankFilter('ARUN_YARD')}
-                      className={`py-1 px-1.5 rounded text-center transition-all cursor-pointer font-semibold ${
+                      className={`py-1 px-1.5 rounded text-center transition-all cursor-pointer font-bold ${
                         consoleTankFilter === 'ARUN_YARD'
                           ? 'bg-blue-600 text-white shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200'
+                          : 'text-white font-bold hover:text-white font-bold'
                       }`}
                     >
                       🎯 Arun Yard
@@ -1325,10 +1325,10 @@ export default function ArunTerminalView({
                     <button
                       type="button"
                       onClick={() => setConsoleTankFilter('SAVIOUR_RETURN')}
-                      className={`py-1 px-1.5 rounded text-center transition-all cursor-pointer font-semibold ${
+                      className={`py-1 px-1.5 rounded text-center transition-all cursor-pointer font-bold ${
                         consoleTankFilter === 'SAVIOUR_RETURN'
                           ? 'bg-blue-600 text-white shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200'
+                          : 'text-white font-bold hover:text-white font-bold'
                       }`}
                     >
                       🚢 MV. Saviour
@@ -1336,10 +1336,10 @@ export default function ArunTerminalView({
                     <button
                       type="button"
                       onClick={() => setConsoleTankFilter('ALL')}
-                      className={`py-1 px-1.5 rounded text-center transition-all cursor-pointer font-semibold ${
+                      className={`py-1 px-1.5 rounded text-center transition-all cursor-pointer font-bold ${
                         consoleTankFilter === 'ALL'
                           ? 'bg-blue-600 text-white shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200'
+                          : 'text-white font-bold hover:text-white font-bold'
                       }`}
                     >
                       🔍 All (120)
@@ -1348,13 +1348,13 @@ export default function ArunTerminalView({
 
                   {/* Instant Search Bar */}
                   <div className="relative mb-2.5">
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <Search className="w-3.5 h-3.5 text-white font-bold absolute left-2.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       placeholder="Search Tank No or Serial No..."
                       value={consoleTankSearch}
                       onChange={(e) => setConsoleTankSearch(e.target.value)}
-                      className="w-full pl-8 pr-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-blue-500"
+                      className="w-full pl-8 pr-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-white font-bold text-xs focus:outline-none focus:border-blue-500"
                     />
                   </div>
 
@@ -1368,19 +1368,19 @@ export default function ArunTerminalView({
                           onClick={() => handleSelectTank(tank)}
                           className={`p-2 rounded-lg border transition-all cursor-pointer flex items-center justify-between text-xs ${
                             isSelected
-                              ? 'bg-blue-600/20 border-blue-500 text-blue-200 font-semibold'
-                              : 'bg-slate-900/80 border-slate-800 text-slate-300 hover:bg-slate-800/80'
+                              ? 'bg-blue-600/20 border-blue-500 text-white font-bold font-bold'
+                              : 'bg-slate-900/80 border-slate-800 text-white font-bold hover:bg-slate-800/80'
                           }`}
                         >
                           <div className="flex items-center gap-2">
                             <span className="font-mono font-bold">{tank.tankNo}</span>
-                            <span className="text-[10px] text-slate-400 font-mono">({tank.serialNo})</span>
+                            <span className="text-[10px] text-white font-bold font-mono">({tank.serialNo})</span>
                           </div>
                           <span
                             className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
                               tank.location.includes('Aceh') || tank.location.includes('Arun')
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                                ? 'bg-emerald-500/20 text-white font-bold border border-emerald-500/30'
+                                : 'bg-cyan-500/20 text-white font-bold border border-cyan-500/30'
                             }`}
                           >
                             {tank.location}
@@ -1389,7 +1389,7 @@ export default function ArunTerminalView({
                       );
                     })}
                     {consoleCandidateTanks.length === 0 && (
-                      <div className="text-center py-6 text-slate-500 text-xs">
+                      <div className="text-center py-6 text-white font-bold text-xs">
                         No matching ISO tanks found.
                       </div>
                     )}
@@ -1401,28 +1401,28 @@ export default function ArunTerminalView({
                   {/* Selected Context Box */}
                   <div className="bg-slate-900 p-3 rounded-xl border border-blue-500/30 space-y-1.5">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                      <span className="text-[10px] text-white font-bold uppercase tracking-wider font-bold">
                         Selected Target:
                       </span>
-                      <span className="font-bold font-mono text-blue-400 text-sm">{formTankNo}</span>
+                      <span className="font-bold font-mono text-white font-bold text-sm">{formTankNo}</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-[11px] font-mono pt-1 border-t border-slate-800 text-slate-300">
+                    <div className="grid grid-cols-2 gap-2 text-[11px] font-mono pt-1 border-t border-slate-800 text-white font-bold">
                       <div>
-                        <span className="text-slate-500 block text-[10px]">Serial No:</span>
+                        <span className="text-white font-bold block text-[10px]">Serial No:</span>
                         <span className="font-bold">{selectedTankMaster?.serialNo || 'TRSU-GEN'}</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-[10px]">Heel Pressure:</span>
-                        <span className="font-bold text-emerald-400">
+                        <span className="text-white font-bold block text-[10px]">Heel Pressure:</span>
+                        <span className="font-bold text-white font-bold">
                           {selectedTankMaster?.pressureMPa ?? 0.15} MPa
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-[10px]">Current Temp:</span>
-                        <span className="font-bold text-cyan-400">{selectedTankMaster?.tempC ?? -160.0} °C</span>
+                        <span className="text-white font-bold block text-[10px]">Current Temp:</span>
+                        <span className="font-bold text-white font-bold">{selectedTankMaster?.tempC ?? -160.0} °C</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-[10px]">Staging Position:</span>
+                        <span className="text-white font-bold block text-[10px]">Staging Position:</span>
                         <span className="font-bold truncate">{selectedTankMaster?.position || 'Arun PAG'}</span>
                       </div>
                     </div>
@@ -1430,40 +1430,40 @@ export default function ArunTerminalView({
 
                   {/* Pre-Loading Checklist */}
                   <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold block flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Pre-Loading Inspection Checklist
+                    <span className="text-[10px] text-white font-bold uppercase font-bold block flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-white font-bold" /> Pre-Loading Inspection Checklist
                     </span>
                     <div className="space-y-1 text-[11px]">
-                      <label className="flex items-center gap-1.5 text-slate-300 cursor-pointer">
+                      <label className="flex items-center gap-1.5 text-white font-bold cursor-pointer">
                         <input
                           type="checkbox"
                           checked={consoleChecklist.valvesVerified}
                           onChange={(e) =>
                             setConsoleChecklist({ ...consoleChecklist, valvesVerified: e.target.checked })
                           }
-                          className="rounded border-slate-700 bg-slate-950 text-blue-500 accent-blue-500"
+                          className="rounded border-slate-700 bg-slate-950 text-white font-bold accent-blue-500"
                         />
                         <span>Dual Cryogenic Valves Verified Tight</span>
                       </label>
-                      <label className="flex items-center gap-1.5 text-slate-300 cursor-pointer">
+                      <label className="flex items-center gap-1.5 text-white font-bold cursor-pointer">
                         <input
                           type="checkbox"
                           checked={consoleChecklist.vacuumSealOk}
                           onChange={(e) =>
                             setConsoleChecklist({ ...consoleChecklist, vacuumSealOk: e.target.checked })
                           }
-                          className="rounded border-slate-700 bg-slate-950 text-blue-500 accent-blue-500"
+                          className="rounded border-slate-700 bg-slate-950 text-white font-bold accent-blue-500"
                         />
                         <span>Annular Vacuum Seal Level Normal</span>
                       </label>
-                      <label className="flex items-center gap-1.5 text-slate-300 cursor-pointer">
+                      <label className="flex items-center gap-1.5 text-white font-bold cursor-pointer">
                         <input
                           type="checkbox"
                           checked={consoleChecklist.safetyGrounding}
                           onChange={(e) =>
                             setConsoleChecklist({ ...consoleChecklist, safetyGrounding: e.target.checked })
                           }
-                          className="rounded border-slate-700 bg-slate-950 text-blue-500 accent-blue-500"
+                          className="rounded border-slate-700 bg-slate-950 text-white font-bold accent-blue-500"
                         />
                         <span>Static Grounding Clamp Connected</span>
                       </label>
@@ -1477,15 +1477,15 @@ export default function ArunTerminalView({
               {/* ==================================================================== */}
               <div className="lg:col-span-4 bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-inner">
                 <div className="space-y-3">
-                  <span className="font-bold text-sm text-slate-200 block border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
-                    <Weight className="w-4 h-4 text-emerald-400" />
+                  <span className="font-bold text-sm text-white font-bold block border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
+                    <Weight className="w-4 h-4 text-white font-bold" />
                     2. Scale Weights & Cryogenic Parameters
                   </span>
 
                   {/* Shipment Batch & Date Metadata */}
                   <div className="grid grid-cols-2 gap-2.5 font-mono bg-slate-900/60 p-2 rounded-lg border border-slate-800/80">
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[11px] font-semibold">
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[11px] font-bold">
                         Shipment Batch:
                       </label>
                       <input
@@ -1493,7 +1493,7 @@ export default function ArunTerminalView({
                         value={formShipment}
                         onChange={(e) => setFormShipment(e.target.value)}
                         placeholder="e.g. N-2"
-                        className="w-full bg-slate-950 border border-slate-700/80 rounded px-2.5 py-1 text-blue-400 font-bold text-xs focus:border-blue-500 outline-none"
+                        className="w-full bg-slate-950 border border-slate-700/80 rounded px-2.5 py-1 text-white font-bold font-bold text-xs focus:border-blue-500 outline-none"
                         list="shipment-batches"
                       />
                       <datalist id="shipment-batches">
@@ -1506,14 +1506,14 @@ export default function ArunTerminalView({
                       </datalist>
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[11px] font-semibold">
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[11px] font-bold">
                         Loading Date:
                       </label>
                       <input
                         type="date"
                         value={formDate}
                         onChange={(e) => setFormDate(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700/80 rounded px-2.5 py-1 text-slate-100 text-xs focus:border-blue-500 outline-none"
+                        className="w-full bg-slate-950 border border-slate-700/80 rounded px-2.5 py-1 text-white font-bold text-xs focus:border-blue-500 outline-none"
                       />
                     </div>
                   </div>
@@ -1521,18 +1521,18 @@ export default function ArunTerminalView({
                   {/* Tare / Gross Inputs */}
                   <div className="grid grid-cols-2 gap-2.5 font-mono">
                     <div>
-                      <label className="text-slate-400 block mb-1 font-sans text-xs font-semibold">
+                      <label className="text-white font-bold block mb-1 font-sans text-xs font-bold">
                         Tare Before (Kg):
                       </label>
                       <input
                         type="number"
                         value={formWeightBefore}
                         onChange={(e) => setFormWeightBefore(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-2 px-3 text-slate-100 text-sm focus:border-blue-500 outline-none"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-2 px-3 text-white font-bold text-sm focus:border-blue-500 outline-none"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1 font-sans text-xs font-semibold">
+                      <label className="text-white font-bold block mb-1 font-sans text-xs font-bold">
                         Gross After (Kg):
                       </label>
                       <input
@@ -1540,7 +1540,7 @@ export default function ArunTerminalView({
                         placeholder="e.g. 30600"
                         value={formWeightAfter === 0 ? '' : formWeightAfter}
                         onChange={(e) => setFormWeightAfter(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-2 px-3 text-slate-100 font-bold text-sm focus:border-blue-500 outline-none placeholder:text-slate-600"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-2 px-3 text-white font-bold font-bold text-sm focus:border-blue-500 outline-none placeholder:text-white font-bold"
                       />
                     </div>
                   </div>
@@ -1548,7 +1548,7 @@ export default function ArunTerminalView({
                   {/* Density & Temp Inputs */}
                   <div className="grid grid-cols-2 gap-2.5 font-mono">
                     <div>
-                      <label className="text-slate-400 block mb-1 font-sans text-xs font-semibold">
+                      <label className="text-white font-bold block mb-1 font-sans text-xs font-bold">
                         Density (Kg/m³):
                       </label>
                       <input
@@ -1556,11 +1556,11 @@ export default function ArunTerminalView({
                         step="0.01"
                         value={formDensity}
                         onChange={(e) => setFormDensity(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-2 px-3 text-slate-100 text-sm focus:border-blue-500 outline-none"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-2 px-3 text-white font-bold text-sm focus:border-blue-500 outline-none"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1 font-sans text-xs font-semibold">
+                      <label className="text-white font-bold block mb-1 font-sans text-xs font-bold">
                         Liquid Temp (°C):
                       </label>
                       <input
@@ -1568,19 +1568,19 @@ export default function ArunTerminalView({
                         step="0.1"
                         value={formTemp}
                         onChange={(e) => setFormTemp(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-2 px-3 text-cyan-400 text-sm focus:border-blue-500 outline-none font-bold"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-2 px-3 text-white font-bold text-sm focus:border-blue-500 outline-none font-bold"
                       />
                     </div>
                   </div>
 
                   {/* Pre-Cooling & Gassing Up Section */}
                   <div className="pt-1">
-                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    <span className="text-[11px] font-bold text-white font-bold uppercase tracking-wider block mb-1.5">
                       Pre-Cooling & Gassing Up (GUP / CD)
                     </span>
                     <div className="grid grid-cols-2 gap-2.5 font-mono">
                       <div>
-                        <label className="text-slate-500 block mb-0.5 font-sans text-[11px]">
+                        <label className="text-white font-bold block mb-0.5 font-sans text-[11px]">
                           GUP Energy (MMBtu):
                         </label>
                         <input
@@ -1589,11 +1589,11 @@ export default function ArunTerminalView({
                           placeholder="0.0"
                           value={formGUPEnergy === 0 ? '' : formGUPEnergy}
                           onChange={(e) => setFormGUPEnergy(parseFloat(e.target.value) || 0)}
-                          className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-purple-300 text-xs focus:border-blue-500 outline-none placeholder:text-slate-600"
+                          className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-white font-bold text-xs focus:border-blue-500 outline-none placeholder:text-white font-bold"
                         />
                       </div>
                       <div>
-                        <label className="text-slate-500 block mb-0.5 font-sans text-[11px]">
+                        <label className="text-white font-bold block mb-0.5 font-sans text-[11px]">
                           CD Energy (MMBtu):
                         </label>
                         <input
@@ -1602,7 +1602,7 @@ export default function ArunTerminalView({
                           placeholder="0.0"
                           value={formCDEnergy === 0 ? '' : formCDEnergy}
                           onChange={(e) => setFormCDEnergy(parseFloat(e.target.value) || 0)}
-                          className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-purple-300 text-xs focus:border-blue-500 outline-none placeholder:text-slate-600"
+                          className="w-full bg-slate-900 border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-white font-bold text-xs focus:border-blue-500 outline-none placeholder:text-white font-bold"
                         />
                       </div>
                     </div>
@@ -1612,10 +1612,10 @@ export default function ArunTerminalView({
                 {/* Live Net Result Highlight Card */}
                 <div className="bg-slate-900 p-3.5 rounded-xl border border-emerald-500/40 space-y-2 font-mono shadow-md">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-400 font-sans">Net Loaded Weight:</span>
+                    <span className="text-xs text-white font-bold font-sans">Net Loaded Weight:</span>
                     <span
                       className={`text-base font-bold ${
-                        calculatedLoadedWeight > 0 ? 'text-emerald-400' : 'text-slate-500'
+                        calculatedLoadedWeight > 0 ? 'text-white font-bold' : 'text-white font-bold'
                       }`}
                     >
                       {calculatedLoadedWeight > 0
@@ -1624,22 +1624,22 @@ export default function ArunTerminalView({
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-400 font-sans">Volume Loaded:</span>
+                    <span className="text-xs text-white font-bold font-sans">Volume Loaded:</span>
                     <span
                       className={`text-sm font-bold ${
-                        calculatedVolumeM3 > 0 ? 'text-cyan-400' : 'text-slate-500'
+                        calculatedVolumeM3 > 0 ? 'text-white font-bold' : 'text-white font-bold'
                       }`}
                     >
                       {calculatedVolumeM3.toFixed(2)} m³
                     </span>
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-slate-800">
-                    <span className="text-xs font-bold text-slate-200 font-sans">
+                    <span className="text-xs font-bold text-white font-bold font-sans">
                       Total Energy Delivered:
                     </span>
                     <span
                       className={`text-lg font-black ${
-                        calculatedTotalEnergyMMBtu > 0 ? 'text-amber-400' : 'text-slate-500'
+                        calculatedTotalEnergyMMBtu > 0 ? 'text-white font-bold' : 'text-white font-bold'
                       }`}
                     >
                       {calculatedTotalEnergyMMBtu.toFixed(2)} MMBTU
@@ -1655,8 +1655,8 @@ export default function ArunTerminalView({
                 <div className="space-y-3">
                   {/* Header & Quick Action Buttons */}
                   <div className="flex justify-between items-center border-b border-slate-800 pb-1.5 gap-2">
-                    <span className="font-bold text-sm text-slate-200 flex items-center gap-1.5">
-                      <Atom className="w-4 h-4 text-cyan-400" />
+                    <span className="font-bold text-sm text-white font-bold flex items-center gap-1.5">
+                      <Atom className="w-4 h-4 text-white font-bold" />
                       3. Lab COQ 11 Gas Spec
                     </span>
                     <div className="flex items-center gap-1">
@@ -1664,16 +1664,16 @@ export default function ArunTerminalView({
                         type="button"
                         onClick={handleLoadStandardSpec}
                         title="Apply Certified Arun Standard Lab Spec Template"
-                        className="px-2 py-0.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 rounded text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                        className="px-2 py-0.5 bg-blue-600/20 hover:bg-blue-600/30 text-white font-bold border border-blue-500/40 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                       >
-                        <Zap className="w-3 h-3 text-amber-400" />
+                        <Zap className="w-3 h-3 text-white font-bold" />
                         <span>📋 Apply Arun Standard Lab Spec</span>
                       </button>
                       <button
                         type="button"
                         onClick={handleClearGasSpec}
                         title="Clear Gas Spec"
-                        className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded text-[10px] cursor-pointer"
+                        className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded text-[10px] cursor-pointer"
                       >
                         <RotateCcw className="w-3 h-3" />
                       </button>
@@ -1682,12 +1682,12 @@ export default function ArunTerminalView({
 
                   {/* 100.00% Validation Banner */}
                   <div className="flex justify-between items-center bg-slate-900 p-1.5 rounded-lg border border-slate-800 font-mono">
-                    <span className="text-[10px] text-slate-400 font-sans">Lab Molecular Sum:</span>
+                    <span className="text-[10px] text-white font-bold font-sans">Lab Molecular Sum:</span>
                     <span
                       className={`font-bold px-2 py-0.5 rounded text-[11px] border ${
                         Math.abs(formComponentSum - 100.0) < 0.05
-                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                          : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                          ? 'bg-emerald-500/20 text-white font-bold border-emerald-500/40'
+                          : 'bg-amber-500/20 text-white font-bold border-amber-500/40'
                       }`}
                     >
                       Total Mol%: {formComponentSum.toFixed(2)}% {Math.abs(formComponentSum - 100.0) < 0.05 ? '✓' : ''}
@@ -1697,91 +1697,91 @@ export default function ArunTerminalView({
                   {/* 11 Component Inputs Grid */}
                   <div className="grid grid-cols-2 gap-2 font-mono text-xs">
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[10px]">CH₄ (Methane):</label>
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[10px]">CH₄ (Methane):</label>
                       <input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
                         value={ch4 === 0 ? '' : ch4}
                         onChange={(e) => setCh4(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-slate-100 font-bold placeholder:text-slate-600"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-white font-bold font-bold placeholder:text-white font-bold"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[10px]">C₂H₆ (Ethane):</label>
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[10px]">C₂H₆ (Ethane):</label>
                       <input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
                         value={c2h6 === 0 ? '' : c2h6}
                         onChange={(e) => setC2h6(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-slate-100 font-bold text-cyan-400 placeholder:text-slate-600"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-white font-bold font-bold text-white font-bold placeholder:text-white font-bold"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[10px]">C₃H₈ (Propane):</label>
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[10px]">C₃H₈ (Propane):</label>
                       <input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
                         value={c3h8 === 0 ? '' : c3h8}
                         onChange={(e) => setC3h8(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-slate-100 placeholder:text-slate-600"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-white font-bold placeholder:text-white font-bold"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[10px]">i-C₄H₁₀ (i-Butane):</label>
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[10px]">i-C₄H₁₀ (i-Butane):</label>
                       <input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
                         value={iC4 === 0 ? '' : iC4}
                         onChange={(e) => setIC4(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-slate-100 placeholder:text-slate-600"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-white font-bold placeholder:text-white font-bold"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[10px]">n-C₄H₁₀ (n-Butane):</label>
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[10px]">n-C₄H₁₀ (n-Butane):</label>
                       <input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
                         value={nC4 === 0 ? '' : nC4}
                         onChange={(e) => setNC4(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-slate-100 placeholder:text-slate-600"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-white font-bold placeholder:text-white font-bold"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[10px]">i-C₅H₁₂ (i-Pentane):</label>
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[10px]">i-C₅H₁₂ (i-Pentane):</label>
                       <input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
                         value={iC5 === 0 ? '' : iC5}
                         onChange={(e) => setIC5(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-slate-100 placeholder:text-slate-600"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-white font-bold placeholder:text-white font-bold"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[10px]">n-C₅H₁₂ (n-Pentane):</label>
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[10px]">n-C₅H₁₂ (n-Pentane):</label>
                       <input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
                         value={nC5 === 0 ? '' : nC5}
                         onChange={(e) => setNC5(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-slate-100 placeholder:text-slate-600"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-white font-bold placeholder:text-white font-bold"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[10px]">N₂ (Nitrogen):</label>
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[10px]">N₂ (Nitrogen):</label>
                       <input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
                         value={n2 === 0 ? '' : n2}
                         onChange={(e) => setN2(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-slate-100 placeholder:text-slate-600"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-white font-bold placeholder:text-white font-bold"
                       />
                     </div>
                   </div>
@@ -1789,7 +1789,7 @@ export default function ArunTerminalView({
                   {/* Calculated GHVs */}
                   <div className="space-y-2 pt-1 font-mono">
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[10px] font-semibold">
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[10px] font-bold">
                         Lab Gross Heating Value (BTU/SCF):
                       </label>
                       <input
@@ -1798,11 +1798,11 @@ export default function ArunTerminalView({
                         placeholder="e.g. 1056.4"
                         value={coqGhv === 0 ? '' : coqGhv}
                         onChange={(e) => setCoqGhv(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-emerald-400 font-bold placeholder:text-slate-600"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-white font-bold font-bold placeholder:text-white font-bold"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-0.5 font-sans text-[10px] font-semibold">
+                      <label className="text-white font-bold block mb-0.5 font-sans text-[10px] font-bold">
                         Weight Base GHV (BTU/Kg):
                       </label>
                       <input
@@ -1810,7 +1810,7 @@ export default function ArunTerminalView({
                         step="0.01"
                         value={formGHV}
                         onChange={(e) => setFormGHV(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-emerald-400 font-bold"
+                        className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1.5 text-white font-bold font-bold"
                       />
                     </div>
                   </div>
@@ -1824,7 +1824,7 @@ export default function ArunTerminalView({
                     className={`w-full py-3 rounded-xl font-bold shadow-lg transition-all text-sm flex items-center justify-center gap-2 ${
                       calculatedLoadedWeight > 0
                         ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/25 cursor-pointer'
-                        : 'bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed'
+                        : 'bg-slate-800 text-white font-bold border border-slate-700/50 cursor-not-allowed'
                     }`}
                   >
                     <FileCheck className="w-4 h-4" />
@@ -1834,7 +1834,7 @@ export default function ArunTerminalView({
                         : `Enter Gross Weight to Certify ${formTankNo}`}
                     </span>
                   </button>
-                  <p className="text-[10px] text-slate-500 text-center">
+                  <p className="text-[10px] text-white font-bold text-center">
                     Auto-updates Delivered Measurement ledger & stages tank to Arun Departure Yard (Batch N-2)
                   </p>
                 </div>
@@ -1847,34 +1847,34 @@ export default function ArunTerminalView({
             <div className="p-4 border-b border-slate-800 bg-slate-950/70 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-slate-200">
+                  <span className="font-bold text-sm text-white font-bold">
                     Active Loading & Custody Measurement Ledger ({formShipment.trim() || 'N-2'})
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px] font-mono font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-white font-bold border border-blue-500/30 text-[10px] font-mono font-bold">
                     In-Progress
                   </span>
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-white font-bold">
                   {activeBatchRecords.length} tanks certified in active batch ({formShipment.trim() || 'N-2'}) • Completed shipments (such as Shipment N-1) are archived in <strong>📈 Master History Sheet</strong>
                 </p>
               </div>
               <button
                 onClick={handleExportBatchCSV}
                 disabled={activeBatchRecords.length === 0}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                   activeBatchRecords.length > 0
-                    ? 'bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 cursor-pointer'
-                    : 'bg-slate-950 text-slate-600 border border-slate-800 cursor-not-allowed'
+                    ? 'bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold cursor-pointer'
+                    : 'bg-slate-950 text-white font-bold border border-slate-800 cursor-not-allowed'
                 }`}
               >
-                <Download className="w-3.5 h-3.5 text-blue-400" />
+                <Download className="w-3.5 h-3.5 text-white font-bold" />
                 <span>Export Active Batch CSV ({formShipment.trim() || 'N-2'})</span>
               </button>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[950px]">
-                <thead className="bg-slate-950 text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                <thead className="bg-slate-950 text-white font-bold text-xs uppercase tracking-wider font-bold">
                   <tr className="border-b border-slate-800">
                     <th className="py-3.5 px-4">ISO Tank No</th>
                     <th className="py-3.5 px-4">Serial No</th>
@@ -1882,10 +1882,10 @@ export default function ArunTerminalView({
                     <th className="py-3.5 px-4">Date</th>
                     <th className="py-3.5 px-4 text-right">Tare (Before Kg)</th>
                     <th className="py-3.5 px-4 text-right">Gross (After Kg)</th>
-                    <th className="py-3.5 px-4 text-right text-emerald-400">Net Loaded (Kg)</th>
+                    <th className="py-3.5 px-4 text-right text-white font-bold">Net Loaded (Kg)</th>
                     <th className="py-3.5 px-4 text-right">Density (Kg/m³)</th>
-                    <th className="py-3.5 px-4 text-right text-cyan-400">Volume (m³)</th>
-                    <th className="py-3.5 px-4 text-right text-amber-400 font-bold">
+                    <th className="py-3.5 px-4 text-right text-white font-bold">Volume (m³)</th>
+                    <th className="py-3.5 px-4 text-right text-white font-bold font-bold">
                       Delivered (MMBtu)
                     </th>
                   </tr>
@@ -1898,39 +1898,39 @@ export default function ArunTerminalView({
                         cert.tankNo === formTankNo ? 'bg-blue-950/30' : ''
                       }`}
                     >
-                      <td className="py-3.5 px-4 font-bold text-blue-400">{cert.tankNo}</td>
-                      <td className="py-3.5 px-4 text-slate-300 text-xs">{cert.serialNo}</td>
-                      <td className="py-3.5 px-4 font-sans text-xs text-blue-300 font-semibold">{cert.shipment}</td>
-                      <td className="py-3.5 px-4 text-slate-400 text-xs">{cert.date}</td>
-                      <td className="py-3.5 px-4 text-right text-slate-400">
+                      <td className="py-3.5 px-4 font-bold text-white font-bold">{cert.tankNo}</td>
+                      <td className="py-3.5 px-4 text-white font-bold text-xs">{cert.serialNo}</td>
+                      <td className="py-3.5 px-4 font-sans text-xs text-white font-bold font-bold">{cert.shipment}</td>
+                      <td className="py-3.5 px-4 text-white font-bold text-xs">{cert.date}</td>
+                      <td className="py-3.5 px-4 text-right text-white font-bold">
                         {(cert.weightBeforeKg || 12100).toLocaleString()}
                       </td>
-                      <td className="py-3.5 px-4 text-right text-slate-300 font-semibold">
+                      <td className="py-3.5 px-4 text-right text-white font-bold font-bold">
                         {(cert.weightAfterKg || 30600).toLocaleString()}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-bold text-emerald-400">
+                      <td className="py-3.5 px-4 text-right font-bold text-white font-bold">
                         {cert.deliveredWeightKg.toLocaleString()}
                       </td>
-                      <td className="py-3.5 px-4 text-right text-slate-300">
+                      <td className="py-3.5 px-4 text-right text-white font-bold">
                         {cert.deliveredDensity.toFixed(2)}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-semibold text-cyan-400">
+                      <td className="py-3.5 px-4 text-right font-bold text-white font-bold">
                         {cert.deliveredVolumeM3.toFixed(2)}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-bold text-amber-400">
+                      <td className="py-3.5 px-4 text-right font-bold text-white font-bold">
                         {cert.deliveredMMBtu.toFixed(2)}
                       </td>
                     </tr>
                   ))}
                   {activeBatchRecords.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="text-center py-16 text-slate-500 font-sans text-xs">
+                      <td colSpan={10} className="text-center py-16 text-white font-bold font-sans text-xs">
                         <div className="flex flex-col items-center justify-center gap-2">
-                          <Boxes className="w-8 h-8 text-slate-600" />
-                          <p className="text-slate-300 font-semibold text-sm">
+                          <Boxes className="w-8 h-8 text-white font-bold" />
+                          <p className="text-white font-bold font-bold text-sm">
                             No tanks certified yet for active batch (Shipment {formShipment.trim() || 'N-2'}).
                           </p>
-                          <p className="text-slate-500 max-w-md text-xs">
+                          <p className="text-white font-bold max-w-md text-xs">
                             Select an ISO tank from Arun Yard above and enter gross weight & COQ spec to certify and add to this batch. Past batches (such as Shipment N-1) are preserved and viewable in the <strong>📈 Master History Sheet</strong>.
                           </p>
                         </div>
@@ -1953,23 +1953,23 @@ export default function ArunTerminalView({
           <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-800 pb-4">
               <div>
-                <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                  <Atom className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
+                  <Atom className="w-5 h-5 text-white font-bold" />
                   Arun PAG Gas Quality Specification (11 Molecular Components)
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-white font-bold">
                   Certified laboratory chromatographic gas analysis for high-rich Arun PAG LNG
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-1.5 text-xs">
-                  <Filter className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="text-slate-400">Shipment Batch:</span>
+                  <Filter className="w-3.5 h-3.5 text-white font-bold" />
+                  <span className="text-white font-bold">Shipment Batch:</span>
                   <select
                     value={coqShipmentFilter}
                     onChange={(e) => setCoqShipmentFilter(e.target.value)}
-                    className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-mono font-semibold"
+                    className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-white font-bold text-xs focus:outline-none focus:border-cyan-500 font-mono font-bold"
                   >
                     <option value="ALL">All Batches (Fleet Avg)</option>
                     {distinctCOQShipments.map((shp) => (
@@ -1981,8 +1981,8 @@ export default function ArunTerminalView({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400">Lab Sum:</span>
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold">
+                  <span className="text-xs text-white font-bold">Lab Sum:</span>
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-white font-bold text-xs font-mono font-bold">
                     Total Mol%: {coqTotalMol.toFixed(2)}% (Verified OK)
                   </span>
                 </div>
@@ -2026,7 +2026,7 @@ export default function ArunTerminalView({
                   className="bg-purple-400 h-full"
                 />
               </div>
-              <div className="flex flex-wrap items-center justify-between text-xs text-slate-400 font-mono">
+              <div className="flex flex-wrap items-center justify-between text-xs text-white font-bold font-mono">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" /> CH₄ ({activeCOQSpec.methane.toFixed(2)}%)
                 </span>
@@ -2048,48 +2048,48 @@ export default function ArunTerminalView({
             {/* 11 Component Grid Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 font-mono">
               <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-sans block">CH₄ (Methane)</span>
-                <span className="text-lg font-bold text-blue-400">{activeCOQSpec.methane.toFixed(2)} %</span>
+                <span className="text-[11px] text-white font-bold font-sans block">CH₄ (Methane)</span>
+                <span className="text-lg font-bold text-white font-bold">{activeCOQSpec.methane.toFixed(2)} %</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-sans block">C₂H₆ (Ethane)</span>
-                <span className="text-lg font-bold text-cyan-400">{activeCOQSpec.ethane.toFixed(2)} %</span>
+                <span className="text-[11px] text-white font-bold font-sans block">C₂H₆ (Ethane)</span>
+                <span className="text-lg font-bold text-white font-bold">{activeCOQSpec.ethane.toFixed(2)} %</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-sans block">C₃H₈ (Propane)</span>
-                <span className="text-lg font-bold text-emerald-400">{activeCOQSpec.propane.toFixed(2)} %</span>
+                <span className="text-[11px] text-white font-bold font-sans block">C₃H₈ (Propane)</span>
+                <span className="text-lg font-bold text-white font-bold">{activeCOQSpec.propane.toFixed(2)} %</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-sans block">i-C₄H₁₀ (i-Butane)</span>
-                <span className="text-lg font-bold text-amber-400">{activeCOQSpec.iButane.toFixed(2)} %</span>
+                <span className="text-[11px] text-white font-bold font-sans block">i-C₄H₁₀ (i-Butane)</span>
+                <span className="text-lg font-bold text-white font-bold">{activeCOQSpec.iButane.toFixed(2)} %</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-sans block">n-C₄H₁₀ (n-Butane)</span>
-                <span className="text-lg font-bold text-amber-400">{activeCOQSpec.nButane.toFixed(2)} %</span>
+                <span className="text-[11px] text-white font-bold font-sans block">n-C₄H₁₀ (n-Butane)</span>
+                <span className="text-lg font-bold text-white font-bold">{activeCOQSpec.nButane.toFixed(2)} %</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-sans block">i-C₅H₁₂ (i-Pentane)</span>
-                <span className="text-lg font-bold text-purple-400">{activeCOQSpec.iPentane.toFixed(2)} %</span>
+                <span className="text-[11px] text-white font-bold font-sans block">i-C₅H₁₂ (i-Pentane)</span>
+                <span className="text-lg font-bold text-white font-bold">{activeCOQSpec.iPentane.toFixed(2)} %</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-sans block">n-C₅H₁₂ (n-Pentane)</span>
-                <span className="text-lg font-bold text-purple-400">{activeCOQSpec.nPentane.toFixed(2)} %</span>
+                <span className="text-[11px] text-white font-bold font-sans block">n-C₅H₁₂ (n-Pentane)</span>
+                <span className="text-lg font-bold text-white font-bold">{activeCOQSpec.nPentane.toFixed(2)} %</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-sans block">C₆⁺ (Hexane+)</span>
-                <span className="text-lg font-bold text-purple-400">{(activeCOQSpec.c6Plus || 0).toFixed(2)} %</span>
+                <span className="text-[11px] text-white font-bold font-sans block">C₆⁺ (Hexane+)</span>
+                <span className="text-lg font-bold text-white font-bold">{(activeCOQSpec.c6Plus || 0).toFixed(2)} %</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-sans block">N₂ (Nitrogen)</span>
-                <span className="text-lg font-bold text-slate-300">{activeCOQSpec.nitrogen.toFixed(2)} %</span>
+                <span className="text-[11px] text-white font-bold font-sans block">N₂ (Nitrogen)</span>
+                <span className="text-lg font-bold text-white font-bold">{activeCOQSpec.nitrogen.toFixed(2)} %</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-sans block">CO₂ (Carbon Dioxide)</span>
-                <span className="text-lg font-bold text-slate-300">{activeCOQSpec.co2.toFixed(2)} %</span>
+                <span className="text-[11px] text-white font-bold font-sans block">CO₂ (Carbon Dioxide)</span>
+                <span className="text-lg font-bold text-white font-bold">{activeCOQSpec.co2.toFixed(2)} %</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 sm:col-span-2">
-                <span className="text-[11px] text-slate-400 font-sans block">Gross Heating Value (BTU/SCF)</span>
-                <span className="text-lg font-bold text-emerald-400">{activeCOQSpec.ghv.toFixed(1)} BTU/SCF</span>
+                <span className="text-[11px] text-white font-bold font-sans block">Gross Heating Value (BTU/SCF)</span>
+                <span className="text-lg font-bold text-white font-bold">{activeCOQSpec.ghv.toFixed(1)} BTU/SCF</span>
               </div>
             </div>
           </div>
@@ -2098,25 +2098,25 @@ export default function ArunTerminalView({
           <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
             <div className="p-4 border-b border-slate-800 bg-slate-950/70 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div>
-                <span className="font-bold text-sm text-slate-200">
+                <span className="font-bold text-sm text-white font-bold">
                   COQ Laboratory Testing Archive Across Tank Batches
                 </span>
-                <span className="text-xs text-slate-400 block">
+                <span className="text-xs text-white font-bold block">
                   {filteredCOQRecords.length} records matching {coqShipmentFilter === 'ALL' ? 'all shipments' : `Shipment ${coqShipmentFilter}`}
                 </span>
               </div>
               <button
                 onClick={handleExportCOQ}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white font-bold rounded-lg text-xs font-bold transition-colors cursor-pointer"
               >
-                <Download className="w-3.5 h-3.5 text-cyan-400" />
+                <Download className="w-3.5 h-3.5 text-white font-bold" />
                 <span>Export COQ (.CSV)</span>
               </button>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[1300px]">
-                <thead className="bg-slate-950 text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                <thead className="bg-slate-950 text-white font-bold text-xs uppercase tracking-wider font-bold">
                   <tr className="border-b border-slate-800">
                     <th className="p-3">Sample Specimen</th>
                     <th className="p-3">Shipment</th>
@@ -2131,33 +2131,33 @@ export default function ArunTerminalView({
                     <th className="p-3 text-right">C₆⁺ (%)</th>
                     <th className="p-3 text-right">N₂ (%)</th>
                     <th className="p-3 text-right">CO₂ (%)</th>
-                    <th className="p-3 text-right text-emerald-400 font-bold">GHV (BTU/SCF)</th>
+                    <th className="p-3 text-right text-white font-bold font-bold">GHV (BTU/SCF)</th>
                     <th className="p-3 text-center">Status</th>
                   </tr>
                 </thead>
                 <tbody className="text-xs divide-y divide-slate-800/60 font-mono tabular-nums">
                   {filteredCOQRecords.map((coq) => (
                     <tr key={coq.id} className="hover:bg-slate-800/50 transition-colors">
-                      <td className="p-3 font-bold text-blue-400">{coq.samplePoint}</td>
+                      <td className="p-3 font-bold text-white font-bold">{coq.samplePoint}</td>
                       <td className="p-3">
-                        <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[11px] font-semibold">
+                        <span className="px-2 py-0.5 rounded bg-blue-500/20 text-white font-bold border border-blue-500/30 text-[11px] font-bold">
                           {coq.shipment || 'N-1'}
                         </span>
                       </td>
-                      <td className="p-3 text-slate-400">{coq.reportDate}</td>
-                      <td className="p-3 text-right font-bold text-slate-200">{coq.methane.toFixed(2)}</td>
-                      <td className="p-3 text-right text-cyan-400">{coq.ethane.toFixed(2)}</td>
-                      <td className="p-3 text-right text-emerald-400">{coq.propane.toFixed(2)}</td>
-                      <td className="p-3 text-right text-amber-400">{coq.iButane.toFixed(2)}</td>
-                      <td className="p-3 text-right text-amber-400">{coq.nButane.toFixed(2)}</td>
-                      <td className="p-3 text-right text-purple-400">{coq.iPentane.toFixed(2)}</td>
-                      <td className="p-3 text-right text-purple-400">{coq.nPentane.toFixed(2)}</td>
-                      <td className="p-3 text-right text-purple-400">{(coq.c6Plus || 0).toFixed(2)}</td>
-                      <td className="p-3 text-right text-slate-300">{coq.nitrogen.toFixed(2)}</td>
-                      <td className="p-3 text-right text-slate-300">{coq.co2.toFixed(2)}</td>
-                      <td className="p-3 text-right font-bold text-emerald-400">{coq.ghv.toFixed(1)}</td>
+                      <td className="p-3 text-white font-bold">{coq.reportDate}</td>
+                      <td className="p-3 text-right font-bold text-white font-bold">{coq.methane.toFixed(2)}</td>
+                      <td className="p-3 text-right text-white font-bold">{coq.ethane.toFixed(2)}</td>
+                      <td className="p-3 text-right text-white font-bold">{coq.propane.toFixed(2)}</td>
+                      <td className="p-3 text-right text-white font-bold">{coq.iButane.toFixed(2)}</td>
+                      <td className="p-3 text-right text-white font-bold">{coq.nButane.toFixed(2)}</td>
+                      <td className="p-3 text-right text-white font-bold">{coq.iPentane.toFixed(2)}</td>
+                      <td className="p-3 text-right text-white font-bold">{coq.nPentane.toFixed(2)}</td>
+                      <td className="p-3 text-right text-white font-bold">{(coq.c6Plus || 0).toFixed(2)}</td>
+                      <td className="p-3 text-right text-white font-bold">{coq.nitrogen.toFixed(2)}</td>
+                      <td className="p-3 text-right text-white font-bold">{coq.co2.toFixed(2)}</td>
+                      <td className="p-3 text-right font-bold text-white font-bold">{coq.ghv.toFixed(1)}</td>
                       <td className="p-3 text-center font-sans">
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-white font-bold text-[10px] font-bold">
                           Passed Spec
                         </span>
                       </td>
@@ -2165,7 +2165,7 @@ export default function ArunTerminalView({
                   ))}
                   {filteredCOQRecords.length === 0 && (
                     <tr>
-                      <td colSpan={15} className="text-center py-12 text-slate-500 font-sans">
+                      <td colSpan={15} className="text-center py-12 text-white font-bold font-sans">
                         No COQ test records found for {coqShipmentFilter === 'ALL' ? 'selected criteria' : `Shipment ${coqShipmentFilter}`}.
                       </td>
                     </tr>
@@ -2187,24 +2187,24 @@ export default function ArunTerminalView({
             <div className="flex flex-wrap items-center gap-3">
               {/* Search Box */}
               <div className="relative w-64">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-white font-bold absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Filter by Tank, Serial, Date..."
                   value={historySearch}
                   onChange={(e) => setHistorySearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-white font-bold focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               {/* Shipment Batch Filter */}
               <div className="flex items-center gap-1.5 text-xs">
-                <Filter className="w-3.5 h-3.5 text-slate-400" />
-                <span className="text-slate-400">Batch:</span>
+                <Filter className="w-3.5 h-3.5 text-white font-bold" />
+                <span className="text-white font-bold">Batch:</span>
                 <select
                   value={historyShipmentFilter}
                   onChange={(e) => setHistoryShipmentFilter(e.target.value)}
-                  className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs focus:outline-none focus:border-blue-500"
+                  className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-white font-bold text-xs focus:outline-none focus:border-blue-500"
                 >
                   <option value="ALL">All Shipments</option>
                   {distinctShipments.map((shp) => (
@@ -2223,7 +2223,7 @@ export default function ArunTerminalView({
                     setHistoryShipmentFilter('ALL');
                     setHistoryDateFilter('ALL');
                   }}
-                  className="flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 cursor-pointer"
+                  className="flex items-center gap-1 text-[11px] text-white font-bold hover:text-white font-bold cursor-pointer"
                 >
                   <RefreshCw className="w-3 h-3" /> Reset Filters
                 </button>
@@ -2232,12 +2232,12 @@ export default function ArunTerminalView({
 
             {/* Quick Export Button */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-slate-400">
+              <span className="text-xs font-mono text-white font-bold">
                 {filteredHistoryRecords.length} of {certificateRecords.length} Records
               </span>
               <button
                 onClick={handleExportFullHistory}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-md transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Export Full History (.CSV / Excel)</span>
@@ -2252,25 +2252,25 @@ export default function ArunTerminalView({
               <thead className="sticky top-0 z-30 bg-slate-950 text-[10px] uppercase font-bold tracking-wider">
                 {/* Level 1: Category Groups */}
                 <tr className="border-b border-slate-800 text-center">
-                  <th colSpan={4} className="p-2 bg-blue-950/50 text-blue-300 border-r border-slate-800">
+                  <th colSpan={4} className="p-2 bg-blue-950/50 text-white font-bold border-r border-slate-800">
                     1. Basic Identification
                   </th>
-                  <th colSpan={3} className="p-2 bg-emerald-950/50 text-emerald-300 border-r border-slate-800">
+                  <th colSpan={3} className="p-2 bg-emerald-950/50 text-white font-bold border-r border-slate-800">
                     2. Scale Weights (Kg)
                   </th>
-                  <th colSpan={4} className="p-2 bg-cyan-950/50 text-cyan-300 border-r border-slate-800">
+                  <th colSpan={4} className="p-2 bg-cyan-950/50 text-white font-bold border-r border-slate-800">
                     3. Cryogenic Properties
                   </th>
-                  <th colSpan={5} className="p-2 bg-purple-950/50 text-purple-300 border-r border-slate-800">
+                  <th colSpan={5} className="p-2 bg-purple-950/50 text-white font-bold border-r border-slate-800">
                     4. Pre-Cooling & Gassing Up (GUP / CD)
                   </th>
-                  <th colSpan={3} className="p-2 bg-amber-950/50 text-amber-300">
+                  <th colSpan={3} className="p-2 bg-amber-950/50 text-white font-bold">
                     5. Custody Energy & Total Delivery
                   </th>
                 </tr>
 
                 {/* Level 2: Individual 20 Columns */}
-                <tr className="border-b border-slate-800 text-slate-400">
+                <tr className="border-b border-slate-800 text-white font-bold">
                   {/* 1. Identification */}
                   <th
                     onClick={() => handleSort('tankNo')}
@@ -2292,7 +2292,7 @@ export default function ArunTerminalView({
                   <th className="p-2.5 text-right w-28">Gross After (Kg)</th>
                   <th
                     onClick={() => handleSort('deliveredWeightKg')}
-                    className="p-2.5 text-right w-28 border-r border-slate-800 text-emerald-400 cursor-pointer hover:text-emerald-300"
+                    className="p-2.5 text-right w-28 border-r border-slate-800 text-white font-bold cursor-pointer hover:text-white font-bold"
                   >
                     Loaded Net (Kg) {renderSortIcon('deliveredWeightKg')}
                   </th>
@@ -2302,7 +2302,7 @@ export default function ArunTerminalView({
                   <th className="p-2.5 text-right w-24">Liquid Temp (°C)</th>
                   <th
                     onClick={() => handleSort('deliveredVolumeM3')}
-                    className="p-2.5 text-right w-24 text-cyan-400 cursor-pointer hover:text-cyan-300"
+                    className="p-2.5 text-right w-24 text-white font-bold cursor-pointer hover:text-white font-bold"
                   >
                     Volume (m³) {renderSortIcon('deliveredVolumeM3')}
                   </th>
@@ -2317,10 +2317,10 @@ export default function ArunTerminalView({
 
                   {/* 5. Custody Delivery */}
                   <th className="p-2.5 text-right w-32">BTU Loaded (MMBtu)</th>
-                  <th className="p-2.5 text-right w-28 text-cyan-400">Total Vol (m³)</th>
+                  <th className="p-2.5 text-right w-28 text-white font-bold">Total Vol (m³)</th>
                   <th
                     onClick={() => handleSort('deliveredMMBtu')}
-                    className="p-2.5 text-right w-36 text-amber-400 bg-amber-950/20 cursor-pointer hover:text-amber-300"
+                    className="p-2.5 text-right w-36 text-white font-bold bg-amber-950/20 cursor-pointer hover:text-white font-bold"
                   >
                     Total Energy (MMBTU) {renderSortIcon('deliveredMMBtu')}
                   </th>
@@ -2332,59 +2332,59 @@ export default function ArunTerminalView({
                 {filteredHistoryRecords.map((cert) => (
                   <tr key={cert.id} className="hover:bg-slate-800/50 transition-colors">
                     {/* Sticky ISO Tank No */}
-                    <td className="p-2.5 sticky left-0 z-20 bg-slate-950/95 font-bold text-blue-400 border-r border-slate-800 shadow-[2px_0_5px_rgba(0,0,0,0.5)]">
+                    <td className="p-2.5 sticky left-0 z-20 bg-slate-950/95 font-bold text-white font-bold border-r border-slate-800 shadow-[2px_0_5px_rgba(0,0,0,0.5)]">
                       {cert.tankNo}
                     </td>
-                    <td className="p-2.5 text-slate-400 text-[11px]">{cert.serialNo}</td>
-                    <td className="p-2.5 text-slate-400 text-[11px]">{cert.date}</td>
-                    <td className="p-2.5 font-sans font-semibold text-slate-300 border-r border-slate-800">
+                    <td className="p-2.5 text-white font-bold text-[11px]">{cert.serialNo}</td>
+                    <td className="p-2.5 text-white font-bold text-[11px]">{cert.date}</td>
+                    <td className="p-2.5 font-sans font-bold text-white font-bold border-r border-slate-800">
                       {cert.shipment}
                     </td>
 
                     {/* Scale Weights */}
-                    <td className="p-2.5 text-right text-slate-400">
+                    <td className="p-2.5 text-right text-white font-bold">
                       {(cert.weightBeforeKg || 12100).toLocaleString()}
                     </td>
-                    <td className="p-2.5 text-right text-slate-300 font-semibold">
+                    <td className="p-2.5 text-right text-white font-bold font-bold">
                       {(cert.weightAfterKg || 30600).toLocaleString()}
                     </td>
-                    <td className="p-2.5 text-right font-bold text-emerald-400 border-r border-slate-800">
+                    <td className="p-2.5 text-right font-bold text-white font-bold border-r border-slate-800">
                       {cert.deliveredWeightKg.toLocaleString()}
                     </td>
 
                     {/* Cryogenic Properties */}
-                    <td className="p-2.5 text-right text-slate-300">{cert.deliveredDensity.toFixed(2)}</td>
-                    <td className="p-2.5 text-right text-cyan-400">{cert.deliveredTempC.toFixed(1)}</td>
-                    <td className="p-2.5 text-right font-semibold text-cyan-300">{cert.deliveredVolumeM3.toFixed(2)}</td>
-                    <td className="p-2.5 text-right text-slate-300 border-r border-slate-800">
+                    <td className="p-2.5 text-right text-white font-bold">{cert.deliveredDensity.toFixed(2)}</td>
+                    <td className="p-2.5 text-right text-white font-bold">{cert.deliveredTempC.toFixed(1)}</td>
+                    <td className="p-2.5 text-right font-bold text-white font-bold">{cert.deliveredVolumeM3.toFixed(2)}</td>
+                    <td className="p-2.5 text-right text-white font-bold border-r border-slate-800">
                       {cert.deliveredGHV.toLocaleString()}
                     </td>
 
                     {/* Pre-Cooling & Gassing Up */}
-                    <td className="p-2.5 text-right text-purple-300">
+                    <td className="p-2.5 text-right text-white font-bold">
                       {(cert.gassingUpVolM3 || 0).toFixed(2)}
                     </td>
-                    <td className="p-2.5 text-right text-purple-300">
+                    <td className="p-2.5 text-right text-white font-bold">
                       {(cert.gassingUpEnergyMMBtu || 0).toFixed(2)}
                     </td>
-                    <td className="p-2.5 text-right text-slate-400">
+                    <td className="p-2.5 text-right text-white font-bold">
                       {(cert.coolingDownTempC || cert.deliveredTempC).toFixed(1)}
                     </td>
-                    <td className="p-2.5 text-right text-purple-300">
+                    <td className="p-2.5 text-right text-white font-bold">
                       {(cert.coolingDownVolM3 || 0).toFixed(2)}
                     </td>
-                    <td className="p-2.5 text-right text-purple-300 border-r border-slate-800">
+                    <td className="p-2.5 text-right text-white font-bold border-r border-slate-800">
                       {(cert.coolingDownEnergyMMBtu || 0).toFixed(2)}
                     </td>
 
                     {/* Custody Delivery */}
-                    <td className="p-2.5 text-right text-slate-200">
+                    <td className="p-2.5 text-right text-white font-bold">
                       {(cert.btuLoadedMMBtu || (cert.deliveredWeightKg * cert.deliveredGHV) / 1000000).toFixed(2)}
                     </td>
-                    <td className="p-2.5 text-right font-bold text-cyan-400">
+                    <td className="p-2.5 text-right font-bold text-white font-bold">
                       {(cert.totalDeliveredVolM3 || cert.deliveredVolumeM3).toFixed(2)}
                     </td>
-                    <td className="p-2.5 text-right font-bold text-amber-400 text-sm bg-amber-950/20">
+                    <td className="p-2.5 text-right font-bold text-white font-bold text-sm bg-amber-950/20">
                       {cert.deliveredMMBtu.toFixed(2)}
                     </td>
                   </tr>
@@ -2392,7 +2392,7 @@ export default function ArunTerminalView({
 
                 {filteredHistoryRecords.length === 0 && (
                   <tr>
-                    <td colSpan={20} className="text-center py-16 text-slate-500 font-sans text-xs">
+                    <td colSpan={20} className="text-center py-16 text-white font-bold font-sans text-xs">
                       No delivered measurement records match the selected filters.
                     </td>
                   </tr>
@@ -2408,13 +2408,13 @@ export default function ArunTerminalView({
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                <Wrench className="w-5 h-5 text-amber-400" />
+              <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-white font-bold" />
                 Send {mroModalTankNo} to Arun MRO Workshop
               </h3>
               <button
                 onClick={() => setMroModalTankNo(null)}
-                className="text-slate-400 hover:text-white cursor-pointer"
+                className="text-white font-bold hover:text-white cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
               </button>
@@ -2422,11 +2422,11 @@ export default function ArunTerminalView({
 
             <form onSubmit={handleMroSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1 font-semibold">Defect Classification:</label>
+                <label className="block text-white font-bold mb-1 font-bold">Defect Classification:</label>
                 <select
                   value={defectCat}
                   onChange={(e) => setDefectCat(e.target.value as DefectCategory)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500"
                 >
                   <option value="VACUUM_LOSS">Vacuum Loss (High BOG / Annular failure)</option>
                   <option value="VALVE_LEAK">Valve Leak (Liquid/Gas valve packing)</option>
@@ -2437,13 +2437,13 @@ export default function ArunTerminalView({
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-semibold">Defect Description:</label>
+                <label className="block text-white font-bold mb-1 font-bold">Defect Description:</label>
                 <textarea
                   value={defectDesc}
                   onChange={(e) => setDefectDesc(e.target.value)}
                   placeholder="Observed leak, pressure drop, or sensor failure..."
                   rows={3}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500"
                 />
               </div>
 
@@ -2451,13 +2451,13 @@ export default function ArunTerminalView({
                 <button
                   type="button"
                   onClick={() => setMroModalTankNo(null)}
-                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold cursor-pointer"
+                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg font-bold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-semibold cursor-pointer"
+                  className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold cursor-pointer"
                 >
                   Route to MRO Workshop
                 </button>
@@ -2474,49 +2474,49 @@ export default function ArunTerminalView({
         <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                <RotateCcw className="w-5 h-5 text-emerald-400" />
+              <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
+                <RotateCcw className="w-5 h-5 text-white font-bold" />
                 Stage 3: Arun PAG Arrival Heel Inspection
               </h3>
               <button
                 onClick={() => setArrivalModalTankNo(null)}
-                className="text-slate-400 hover:text-white cursor-pointer"
+                className="text-white font-bold hover:text-white cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-400 mb-4">
-              Record physical weighbridge scale and cryogenic gauge inspection upon arrival from MV. Saviour voyage for <span className="font-bold text-blue-400">{arrivalModalTankNo}</span>:
+            <p className="text-xs text-white font-bold mb-4">
+              Record physical weighbridge scale and cryogenic gauge inspection upon arrival from MV. Saviour voyage for <span className="font-bold text-white font-bold">{arrivalModalTankNo}</span>:
             </p>
 
             <form onSubmit={handleArrivalInspectionSubmit} className="space-y-4 text-xs">
               <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center font-mono">
                 <div>
-                  <span className="text-[10px] text-slate-500 uppercase block font-semibold">ISO Tank</span>
-                  <span className="font-bold text-base text-blue-400">{arrivalModalTankNo}</span>
+                  <span className="text-[10px] text-white font-bold uppercase block font-bold">ISO Tank</span>
+                  <span className="font-bold text-base text-white font-bold">{arrivalModalTankNo}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-500 uppercase block font-semibold">Inspection Terminal</span>
-                  <span className="font-bold text-xs text-emerald-400">PT Perta Arun Gas (Aceh)</span>
+                  <span className="text-[10px] text-white font-bold uppercase block font-bold">Inspection Terminal</span>
+                  <span className="font-bold text-xs text-white font-bold">PT Perta Arun Gas (Aceh)</span>
                 </div>
               </div>
 
               {/* Arrival Date */}
               <div>
-                <label className="block text-slate-400 mb-1 font-semibold">Arrival Date & Time:</label>
+                <label className="block text-white font-bold mb-1 font-bold">Arrival Date & Time:</label>
                 <input
                   type="text"
                   value={arrivalDate}
                   onChange={(e) => setArrivalDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 font-mono"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono"
                 />
               </div>
 
               {/* Scale Weights */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1 font-semibold">Tare Weight (Empty Shell Kg):</label>
+                  <label className="block text-white font-bold mb-1 font-bold">Tare Weight (Empty Shell Kg):</label>
                   <input
                     type="number"
                     value={tareWeightKg}
@@ -2525,11 +2525,11 @@ export default function ArunTerminalView({
                       setTareWeightKg(t);
                       setArrivalMassKg(Math.max(0, grossWeightKg - t));
                     }}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 font-mono font-bold"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1 font-semibold">Gross Weight (Arrival Scale Kg):</label>
+                  <label className="block text-white font-bold mb-1 font-bold">Gross Weight (Arrival Scale Kg):</label>
                   <input
                     type="number"
                     value={grossWeightKg}
@@ -2538,7 +2538,7 @@ export default function ArunTerminalView({
                       setGrossWeightKg(g);
                       setArrivalMassKg(Math.max(0, g - tareWeightKg));
                     }}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-emerald-400 font-mono font-bold"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold"
                   />
                 </div>
               </div>
@@ -2546,57 +2546,57 @@ export default function ArunTerminalView({
               {/* Measured Heel Mass & Gauge */}
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1 font-semibold">Net Heel Mass (Kg):</label>
+                  <label className="block text-white font-bold mb-1 font-bold">Net Heel Mass (Kg):</label>
                   <input
                     type="number"
                     value={arrivalMassKg}
                     onChange={(e) => setArrivalMassKg(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-emerald-400 font-mono font-bold"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1 font-semibold">Arrival Press (MPa):</label>
+                  <label className="block text-white font-bold mb-1 font-bold">Arrival Press (MPa):</label>
                   <input
                     type="number"
                     step="0.01"
                     value={arrivalPressureMPa}
                     onChange={(e) => setArrivalPressureMPa(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-cyan-400 font-mono font-bold"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1 font-semibold">Arrival Temp (°C):</label>
+                  <label className="block text-white font-bold mb-1 font-bold">Arrival Temp (°C):</label>
                   <input
                     type="number"
                     step="0.5"
                     value={arrivalTempC}
                     onChange={(e) => setArrivalTempC(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-cyan-400 font-mono font-bold"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold"
                   />
                 </div>
               </div>
 
               {/* Calculated Credit Preview */}
               <div className="p-3 bg-purple-950/40 border border-purple-800/60 rounded-xl space-y-1 font-mono text-xs">
-                <div className="flex justify-between items-center text-purple-300">
+                <div className="flex justify-between items-center text-white font-bold">
                   <span>Pre-existing Heel MMBtu Credit:</span>
-                  <span className="font-bold text-sm text-purple-200">
+                  <span className="font-bold text-sm text-white font-bold">
                     -{parseFloat(((arrivalMassKg * 52215) / 1000000 * 0.947817 * 0.001055).toFixed(2))} MMBtu
                   </span>
                 </div>
-                <span className="text-[10px] text-purple-400/80 block font-sans">
+                <span className="text-[10px] text-white font-bold block font-sans">
                   This thermal energy will be automatically credited against the gross delivered MMBtu on the next Arun COQ invoice.
                 </span>
               </div>
 
               {/* Remarks */}
               <div>
-                <label className="block text-slate-400 mb-1 font-semibold">Inspector Remarks:</label>
+                <label className="block text-white font-bold mb-1 font-bold">Inspector Remarks:</label>
                 <input
                   type="text"
                   value={inspectorRemarks}
                   onChange={(e) => setInspectorRemarks(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 text-xs"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold text-xs"
                 />
               </div>
 
@@ -2604,13 +2604,13 @@ export default function ArunTerminalView({
                 <button
                   type="button"
                   onClick={() => setArrivalModalTankNo(null)}
-                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold transition-colors cursor-pointer"
+                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl font-bold transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow-md shadow-emerald-600/25 transition-all cursor-pointer"
+                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-md shadow-emerald-600/25 transition-all cursor-pointer"
                 >
                   Certify Arrival & Save Stage 3
                 </button>

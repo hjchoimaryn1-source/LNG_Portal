@@ -81,33 +81,33 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
-            <h3 className="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-amber-400" />
+            <h3 className="text-sm sm:text-base font-bold text-white font-bold flex items-center gap-2">
+              <Activity className="w-4 h-4 text-white font-bold" />
               LNG Process & State Transformation Overview
             </h3>
           </div>
-          <span className="text-slate-600 hidden sm:inline">|</span>
-          <span className="text-xs text-slate-400 hidden md:inline">
+          <span className="text-white font-bold hidden sm:inline">|</span>
+          <span className="text-xs text-white font-bold hidden md:inline">
             4-Hour Periodic Field Inspection & Daily Reconciled Operational Flow
           </span>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+          <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-slate-800 text-white font-bold border border-slate-700">
             Click AAV to Toggle Duty / Standby
           </span>
 
           <button
             type="button"
             onClick={() => setIsAnimationActive(!isAnimationActive)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
               isAnimationActive
-                ? 'bg-emerald-950/40 text-emerald-300 border-emerald-600/40'
-                : 'bg-slate-900 text-slate-400 border-slate-700'
+                ? 'bg-emerald-950/40 text-white font-bold border-emerald-600/40'
+                : 'bg-slate-900 text-white font-bold border-slate-700'
             }`}
             title="Toggle animated process flow lines"
           >
-            {isAnimationActive ? <Pause className="w-3.5 h-3.5 text-emerald-400" /> : <Play className="w-3.5 h-3.5 text-slate-400" />}
+            {isAnimationActive ? <Pause className="w-3.5 h-3.5 text-white font-bold" /> : <Play className="w-3.5 h-3.5 text-white font-bold" />}
             <span>{isAnimationActive ? 'Flow Active' : 'Flow Paused'}</span>
           </button>
         </div>
@@ -119,28 +119,28 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
           {/* Phase 1: Liquid */}
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-blue-600 shadow-sm shadow-blue-500/50" />
-            <span className="text-blue-300 font-semibold">Liquid Zone: Cryo LNG (-126.7°C • 8.1 bar)</span>
+            <span className="text-white font-bold font-bold">Liquid Zone: Cryo LNG (-126.7°C • 8.1 bar)</span>
           </div>
-          <ArrowRight className="w-3.5 h-3.5 text-slate-600 hidden sm:block" />
+          <ArrowRight className="w-3.5 h-3.5 text-white font-bold hidden sm:block" />
 
           {/* Phase 2: Vaporization */}
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-amber-500 shadow-sm shadow-amber-500/50" />
-            <span className="text-amber-300 font-semibold">Phase Transition: Latent Heat Absorption</span>
+            <span className="text-white font-bold font-bold">Phase Transition: Latent Heat Absorption</span>
           </div>
-          <ArrowRight className="w-3.5 h-3.5 text-slate-600 hidden sm:block" />
+          <ArrowRight className="w-3.5 h-3.5 text-white font-bold hidden sm:block" />
 
           {/* Phase 3: Gas */}
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
-            <span className="text-emerald-300 font-semibold">Gas Zone: Superheated Natural Gas (+28.0°C • 3.5 bar)</span>
+            <span className="text-white font-bold font-bold">Gas Zone: Superheated Natural Gas (+28.0°C • 3.5 bar)</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 text-[11px] text-slate-400">
-          <span>Active Units: <strong className="text-emerald-400 font-bold">{activeVapCount} / 4 AAV</strong></span>
+        <div className="flex items-center gap-3 text-[11px] text-white font-bold">
+          <span>Active Units: <strong className="text-white font-bold font-bold">{activeVapCount} / 4 AAV</strong></span>
           <span>•</span>
-          <span>Duty Load: <strong className="text-amber-400 font-bold">18.5 MW</strong></span>
+          <span>Duty Load: <strong className="text-white font-bold font-bold">18.5 MW</strong></span>
         </div>
       </div>
 
@@ -166,12 +166,12 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
             {/* Header */}
             <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-slate-800">
               <div className="flex items-center gap-1.5">
-                <Droplet className="w-4 h-4 text-blue-400" />
-                <span className="font-mono font-bold text-xs text-blue-300 uppercase tracking-wider">
+                <Droplet className="w-4 h-4 text-white font-bold" />
+                <span className="font-mono font-bold text-xs text-white font-bold uppercase tracking-wider">
                   1. ISO Supply (4-Bay)
                 </span>
               </div>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-500/20 text-white font-bold border border-blue-500/40">
                 -126.7°C • 8.1 bar
               </span>
             </div>
@@ -181,112 +181,112 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
               {/* Tank 1: T-201 (Bay 01) */}
               <div className="p-2.5 rounded-xl border bg-slate-900/80 border-blue-500/40 flex flex-col justify-between">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-blue-300">T-201 (Bay 01)</span>
-                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                  <span className="font-mono font-bold text-xs text-white font-bold">T-201 (Bay 01)</span>
+                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-emerald-500/20 text-white font-bold border border-emerald-500/40">
                     {bay1?.status || 'RUNNING'}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-1 text-[9px] font-mono my-1">
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">LEVEL</span>
-                    <span className="text-blue-300 font-bold">{bay1?.level || 49}%</span>
+                    <span className="text-white font-bold block text-[7px]">LEVEL</span>
+                    <span className="text-white font-bold font-bold">{bay1?.level || 49}%</span>
                   </div>
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">PRESS</span>
-                    <span className="text-slate-200 font-bold">8.1 bar</span>
+                    <span className="text-white font-bold block text-[7px]">PRESS</span>
+                    <span className="text-white font-bold font-bold">8.1 bar</span>
                   </div>
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">TEMP</span>
-                    <span className="text-cyan-400 font-bold">-126.7°C</span>
+                    <span className="text-white font-bold block text-[7px]">TEMP</span>
+                    <span className="text-white font-bold font-bold">-126.7°C</span>
                   </div>
                 </div>
-                <div className="text-[8px] font-mono text-slate-400 flex justify-between pt-0.5 border-t border-slate-800/80">
+                <div className="text-[8px] font-mono text-white font-bold flex justify-between pt-0.5 border-t border-slate-800/80">
                   <span>{bay1?.tankNo || 'ISOT-009'}</span>
-                  <span className="text-slate-500">15,092 kg</span>
+                  <span className="text-white font-bold">15,092 kg</span>
                 </div>
               </div>
 
               {/* Tank 2: T-202 (Bay 02) */}
               <div className="p-2.5 rounded-xl border bg-slate-900/80 border-slate-800 flex flex-col justify-between">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-300">T-202 (Bay 02)</span>
-                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+                  <span className="font-mono font-bold text-xs text-white font-bold">T-202 (Bay 02)</span>
+                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-blue-500/20 text-white font-bold border border-blue-500/40">
                     {bay2?.status || 'STANDBY'}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-1 text-[9px] font-mono my-1">
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">LEVEL</span>
-                    <span className="text-slate-300 font-bold">{bay2?.level || 54}%</span>
+                    <span className="text-white font-bold block text-[7px]">LEVEL</span>
+                    <span className="text-white font-bold font-bold">{bay2?.level || 54}%</span>
                   </div>
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">PRESS</span>
-                    <span className="text-slate-300 font-bold">8.0 bar</span>
+                    <span className="text-white font-bold block text-[7px]">PRESS</span>
+                    <span className="text-white font-bold font-bold">8.0 bar</span>
                   </div>
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">TEMP</span>
-                    <span className="text-cyan-400 font-bold">-126.5°C</span>
+                    <span className="text-white font-bold block text-[7px]">TEMP</span>
+                    <span className="text-white font-bold font-bold">-126.5°C</span>
                   </div>
                 </div>
-                <div className="text-[8px] font-mono text-slate-400 flex justify-between pt-0.5 border-t border-slate-800/80">
+                <div className="text-[8px] font-mono text-white font-bold flex justify-between pt-0.5 border-t border-slate-800/80">
                   <span>{bay2?.tankNo || 'ISOT-014'}</span>
-                  <span className="text-slate-500">17,337 kg</span>
+                  <span className="text-white font-bold">17,337 kg</span>
                 </div>
               </div>
 
               {/* Tank 3: T-203 (Bay 03) */}
               <div className="p-2.5 rounded-xl border bg-slate-900/80 border-slate-800 flex flex-col justify-between">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-300">T-203 (Bay 03)</span>
-                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                  <span className="font-mono font-bold text-xs text-white font-bold">T-203 (Bay 03)</span>
+                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-slate-800 text-white font-bold border border-slate-700">
                     {bay3?.status || 'STANDBY'}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-1 text-[9px] font-mono my-1">
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">LEVEL</span>
-                    <span className="text-slate-300 font-bold">{bay3?.level || 63}%</span>
+                    <span className="text-white font-bold block text-[7px]">LEVEL</span>
+                    <span className="text-white font-bold font-bold">{bay3?.level || 63}%</span>
                   </div>
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">PRESS</span>
-                    <span className="text-slate-300 font-bold">7.9 bar</span>
+                    <span className="text-white font-bold block text-[7px]">PRESS</span>
+                    <span className="text-white font-bold font-bold">7.9 bar</span>
                   </div>
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">TEMP</span>
-                    <span className="text-cyan-400 font-bold">-126.8°C</span>
+                    <span className="text-white font-bold block text-[7px]">TEMP</span>
+                    <span className="text-white font-bold font-bold">-126.8°C</span>
                   </div>
                 </div>
-                <div className="text-[8px] font-mono text-slate-400 flex justify-between pt-0.5 border-t border-slate-800/80">
+                <div className="text-[8px] font-mono text-white font-bold flex justify-between pt-0.5 border-t border-slate-800/80">
                   <span>{bay3?.tankNo || 'ISOT-017'}</span>
-                  <span className="text-slate-500">17,896 kg</span>
+                  <span className="text-white font-bold">17,896 kg</span>
                 </div>
               </div>
 
               {/* Tank 4: T-204 (Bay 04) */}
               <div className="p-2.5 rounded-xl border bg-slate-900/80 border-slate-800 flex flex-col justify-between">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-300">T-204 (Bay 04)</span>
-                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                  <span className="font-mono font-bold text-xs text-white font-bold">T-204 (Bay 04)</span>
+                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-slate-800 text-white font-bold border border-slate-700">
                     {bay4?.status || 'STANDBY'}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-1 text-[9px] font-mono my-1">
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">LEVEL</span>
-                    <span className="text-slate-300 font-bold">{bay4?.level || 62}%</span>
+                    <span className="text-white font-bold block text-[7px]">LEVEL</span>
+                    <span className="text-white font-bold font-bold">{bay4?.level || 62}%</span>
                   </div>
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">PRESS</span>
-                    <span className="text-slate-300 font-bold">8.0 bar</span>
+                    <span className="text-white font-bold block text-[7px]">PRESS</span>
+                    <span className="text-white font-bold font-bold">8.0 bar</span>
                   </div>
                   <div className="bg-slate-950 p-1 rounded border border-slate-800 text-center">
-                    <span className="text-slate-500 block text-[7px]">TEMP</span>
-                    <span className="text-cyan-400 font-bold">-126.6°C</span>
+                    <span className="text-white font-bold block text-[7px]">TEMP</span>
+                    <span className="text-white font-bold font-bold">-126.6°C</span>
                   </div>
                 </div>
-                <div className="text-[8px] font-mono text-slate-400 flex justify-between pt-0.5 border-t border-slate-800/80">
+                <div className="text-[8px] font-mono text-white font-bold flex justify-between pt-0.5 border-t border-slate-800/80">
                   <span>{bay4?.tankNo || 'ISOT-026'}</span>
-                  <span className="text-slate-500">17,942 kg</span>
+                  <span className="text-white font-bold">17,942 kg</span>
                 </div>
               </div>
             </div>
@@ -294,12 +294,12 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
             {/* Bottom PBU Units Representation */}
             <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800">
               <div className="flex-1 bg-slate-900 px-2 py-1 rounded-lg text-center border border-slate-800">
-                <span className="text-[9px] font-mono font-bold text-amber-400 block">PBU-101 (Active)</span>
-                <span className="text-[7px] text-slate-500 font-mono">Coil Self-Pressurization</span>
+                <span className="text-[9px] font-mono font-bold text-white font-bold block">PBU-101 (Active)</span>
+                <span className="text-[7px] text-white font-bold font-mono">Coil Self-Pressurization</span>
               </div>
               <div className="flex-1 bg-slate-900 px-2 py-1 rounded-lg text-center border border-slate-800">
-                <span className="text-[9px] font-mono text-slate-400 block">PBU-102 (Standby)</span>
-                <span className="text-[7px] text-slate-500 font-mono">Hot Backup Coil</span>
+                <span className="text-[9px] font-mono text-white font-bold block">PBU-102 (Standby)</span>
+                <span className="text-[7px] text-white font-bold font-mono">Hot Backup Coil</span>
               </div>
             </div>
           </div>
@@ -311,12 +311,12 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
             {/* Header */}
             <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-slate-800">
               <div className="flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-amber-400" />
-                <span className="font-mono font-bold text-xs text-amber-300 uppercase tracking-wider">
+                <Flame className="w-4 h-4 text-white font-bold" />
+                <span className="font-mono font-bold text-xs text-white font-bold uppercase tracking-wider">
                   2. AAV Trains (2 & 3)
                 </span>
               </div>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-white font-bold border border-emerald-500/40">
                 {activeVapCount}/4 Units Active
               </span>
             </div>
@@ -333,12 +333,12 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-amber-300">VAP 103 (Train 2)</span>
+                  <span className="font-mono font-bold text-xs text-white font-bold">VAP 103 (Train 2)</span>
                   <span
                     className={`px-1.5 py-0.2 rounded text-[8px] font-bold ${
                       vaporizerStates['VAP-103'] === 'RUNNING'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                        : 'bg-slate-800 text-slate-400'
+                        ? 'bg-emerald-500/20 text-white font-bold border border-emerald-500/40'
+                        : 'bg-slate-800 text-white font-bold'
                     }`}
                   >
                     {vaporizerStates['VAP-103']}
@@ -349,9 +349,9 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                   <span className={`w-1 h-2.5 rounded-full ${vaporizerStates['VAP-103'] === 'RUNNING' ? 'bg-amber-400' : 'bg-slate-700'}`} />
                   <span className={`w-1 h-2.5 rounded-full ${vaporizerStates['VAP-103'] === 'RUNNING' ? 'bg-emerald-400' : 'bg-slate-700'}`} />
                 </div>
-                <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                <div className="flex justify-between text-[9px] font-mono text-white font-bold">
                   <span>Daily Throughput:</span>
-                  <span className={vaporizerStates['VAP-103'] === 'RUNNING' ? 'text-amber-300 font-bold' : 'text-slate-500'}>
+                  <span className={vaporizerStates['VAP-103'] === 'RUNNING' ? 'text-white font-bold font-bold' : 'text-white font-bold'}>
                     {vaporizerStates['VAP-103'] === 'RUNNING' ? `${perVapThroughputTon} ton/day` : '0.0 ton/d'}
                   </span>
                 </div>
@@ -367,12 +367,12 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-amber-300">VAP 104 (Train 2)</span>
+                  <span className="font-mono font-bold text-xs text-white font-bold">VAP 104 (Train 2)</span>
                   <span
                     className={`px-1.5 py-0.2 rounded text-[8px] font-bold ${
                       vaporizerStates['VAP-104'] === 'RUNNING'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                        : 'bg-slate-800 text-slate-400'
+                        ? 'bg-emerald-500/20 text-white font-bold border border-emerald-500/40'
+                        : 'bg-slate-800 text-white font-bold'
                     }`}
                   >
                     {vaporizerStates['VAP-104']}
@@ -383,9 +383,9 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                   <span className={`w-1 h-2.5 rounded-full ${vaporizerStates['VAP-104'] === 'RUNNING' ? 'bg-amber-400' : 'bg-slate-700'}`} />
                   <span className={`w-1 h-2.5 rounded-full ${vaporizerStates['VAP-104'] === 'RUNNING' ? 'bg-emerald-400' : 'bg-slate-700'}`} />
                 </div>
-                <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                <div className="flex justify-between text-[9px] font-mono text-white font-bold">
                   <span>Daily Throughput:</span>
-                  <span className={vaporizerStates['VAP-104'] === 'RUNNING' ? 'text-amber-300 font-bold' : 'text-slate-500'}>
+                  <span className={vaporizerStates['VAP-104'] === 'RUNNING' ? 'text-white font-bold font-bold' : 'text-white font-bold'}>
                     {vaporizerStates['VAP-104'] === 'RUNNING' ? `${perVapThroughputTon} ton/day` : '0.0 ton/d'}
                   </span>
                 </div>
@@ -401,12 +401,12 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-300">VAP 105 (Train 3)</span>
+                  <span className="font-mono font-bold text-xs text-white font-bold">VAP 105 (Train 3)</span>
                   <span
                     className={`px-1.5 py-0.2 rounded text-[8px] font-bold ${
                       vaporizerStates['VAP-105'] === 'RUNNING'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                        : 'bg-slate-800 text-slate-400'
+                        ? 'bg-emerald-500/20 text-white font-bold border border-emerald-500/40'
+                        : 'bg-slate-800 text-white font-bold'
                     }`}
                   >
                     {vaporizerStates['VAP-105']}
@@ -417,9 +417,9 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                   <span className={`w-1 h-2.5 rounded-full ${vaporizerStates['VAP-105'] === 'RUNNING' ? 'bg-amber-400' : 'bg-slate-700'}`} />
                   <span className={`w-1 h-2.5 rounded-full ${vaporizerStates['VAP-105'] === 'RUNNING' ? 'bg-emerald-400' : 'bg-slate-700'}`} />
                 </div>
-                <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                <div className="flex justify-between text-[9px] font-mono text-white font-bold">
                   <span>Daily Throughput:</span>
-                  <span className={vaporizerStates['VAP-105'] === 'RUNNING' ? 'text-amber-300 font-bold' : 'text-slate-500'}>
+                  <span className={vaporizerStates['VAP-105'] === 'RUNNING' ? 'text-white font-bold font-bold' : 'text-white font-bold'}>
                     {vaporizerStates['VAP-105'] === 'RUNNING' ? `${perVapThroughputTon} ton/day` : '0.0 ton/d'}
                   </span>
                 </div>
@@ -435,12 +435,12 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-300">VAP 106 (Train 3)</span>
+                  <span className="font-mono font-bold text-xs text-white font-bold">VAP 106 (Train 3)</span>
                   <span
                     className={`px-1.5 py-0.2 rounded text-[8px] font-bold ${
                       vaporizerStates['VAP-106'] === 'RUNNING'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                        : 'bg-slate-800 text-slate-400'
+                        ? 'bg-emerald-500/20 text-white font-bold border border-emerald-500/40'
+                        : 'bg-slate-800 text-white font-bold'
                     }`}
                   >
                     {vaporizerStates['VAP-106']}
@@ -451,9 +451,9 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                   <span className={`w-1 h-2.5 rounded-full ${vaporizerStates['VAP-106'] === 'RUNNING' ? 'bg-amber-400' : 'bg-slate-700'}`} />
                   <span className={`w-1 h-2.5 rounded-full ${vaporizerStates['VAP-106'] === 'RUNNING' ? 'bg-emerald-400' : 'bg-slate-700'}`} />
                 </div>
-                <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                <div className="flex justify-between text-[9px] font-mono text-white font-bold">
                   <span>Daily Throughput:</span>
-                  <span className={vaporizerStates['VAP-106'] === 'RUNNING' ? 'text-amber-300 font-bold' : 'text-slate-500'}>
+                  <span className={vaporizerStates['VAP-106'] === 'RUNNING' ? 'text-white font-bold font-bold' : 'text-white font-bold'}>
                     {vaporizerStates['VAP-106'] === 'RUNNING' ? `${perVapThroughputTon} ton/day` : '0.0 ton/d'}
                   </span>
                 </div>
@@ -468,12 +468,12 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
             {/* Header */}
             <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-slate-800">
               <div className="flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-emerald-400" />
-                <span className="font-mono font-bold text-xs text-emerald-300 uppercase tracking-wider">
+                <Layers className="w-4 h-4 text-white font-bold" />
+                <span className="font-mono font-bold text-xs text-white font-bold uppercase tracking-wider">
                   3. Buffer & Metering
                 </span>
               </div>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-white font-bold border border-emerald-500/40">
                 Reg: 3.5 bar
               </span>
             </div>
@@ -481,17 +481,17 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
             {/* Top GC Analyzer Box */}
             <div className="p-2.5 bg-slate-900/80 border border-cyan-500/40 rounded-xl mb-2.5 font-mono">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-bold text-cyan-400 flex items-center gap-1">
-                  <FlaskConical className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-[9px] font-bold text-white font-bold flex items-center gap-1">
+                  <FlaskConical className="w-3.5 h-3.5 text-white font-bold" />
                   GC Analyzer (FloBoss)
                 </span>
-                <span className="text-[8px] font-bold text-emerald-400 bg-emerald-500/20 px-1.5 py-0.2 rounded">ONLINE</span>
+                <span className="text-[8px] font-bold text-white font-bold bg-emerald-500/20 px-1.5 py-0.2 rounded">ONLINE</span>
               </div>
               <div className="flex justify-between items-baseline">
-                <span className="text-xs font-black text-slate-100">
-                  CH₄ {latestGC.methane}% <span className="text-[8px] text-slate-400 font-normal">Vol</span>
+                <span className="text-xs font-black text-white font-bold">
+                  CH₄ {latestGC.methane}% <span className="text-[8px] text-white font-bold font-bold">Vol</span>
                 </span>
-                <span className="text-[10px] font-bold text-emerald-400">GHV: 1,054.6 BTU/Scf</span>
+                <span className="text-[10px] font-bold text-white font-bold">GHV: 1,054.6 BTU/Scf</span>
               </div>
             </div>
 
@@ -499,16 +499,16 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
             <div className="grid grid-cols-5 gap-2.5 items-center flex-1 mb-2.5">
               {/* Buffer Tank (2 cols) */}
               <div className="col-span-2 p-2.5 rounded-xl border border-emerald-500/40 bg-slate-900/80 flex flex-col justify-between items-center text-center h-full">
-                <span className="text-[9px] font-mono font-bold text-emerald-400 block">BUFFER TANK</span>
-                <span className="text-[7px] text-slate-500 font-mono">V-301 Surge Drum</span>
+                <span className="text-[9px] font-mono font-bold text-white font-bold block">BUFFER TANK</span>
+                <span className="text-[7px] text-white font-bold font-mono">V-301 Surge Drum</span>
 
                 <div className="w-5 h-12 bg-gradient-to-t from-emerald-950 to-emerald-600/30 rounded-full border border-emerald-500/30 relative flex items-center justify-center my-1">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping opacity-60" />
                 </div>
 
                 <div>
-                  <span className="text-[9px] font-mono font-bold text-slate-200 block">3.5 bar</span>
-                  <span className="text-[7px] font-mono text-emerald-400">Dry Gas Buffer</span>
+                  <span className="text-[9px] font-mono font-bold text-white font-bold block">3.5 bar</span>
+                  <span className="text-[7px] font-mono text-white font-bold">Dry Gas Buffer</span>
                 </div>
               </div>
 
@@ -517,32 +517,32 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                 {/* Meter A Duty */}
                 <div className="p-2 rounded-xl border border-emerald-500/40 bg-slate-900/80">
                   <div className="flex justify-between items-center mb-0.5">
-                    <span className="text-[9px] font-mono font-bold text-emerald-400">FT 02A (Duty)</span>
+                    <span className="text-[9px] font-mono font-bold text-white font-bold">FT 02A (Duty)</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   </div>
-                  <span className="text-xs font-mono font-bold text-slate-100 block">2.12 <span className="text-[8px] font-normal text-slate-400">t/h</span></span>
-                  <span className="text-[8px] font-mono text-emerald-400 block">4,250 Nm³/h</span>
+                  <span className="text-xs font-mono font-bold text-white font-bold block">2.12 <span className="text-[8px] font-bold text-white font-bold">t/h</span></span>
+                  <span className="text-[8px] font-mono text-white font-bold block">4,250 Nm³/h</span>
                 </div>
 
                 {/* Meter B Standby */}
                 <div className="p-2 rounded-xl border border-slate-800 bg-slate-900/80 opacity-60">
                   <div className="flex justify-between items-center mb-0.5">
-                    <span className="text-[9px] font-mono font-bold text-slate-400">FT 02B (Stby)</span>
+                    <span className="text-[9px] font-mono font-bold text-white font-bold">FT 02B (Stby)</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-600" />
                   </div>
-                  <span className="text-xs font-mono font-bold text-slate-400 block">0.00 <span className="text-[8px] font-normal text-slate-500">t/h</span></span>
-                  <span className="text-[8px] font-mono text-slate-500 block">HOT STANDBY</span>
+                  <span className="text-xs font-mono font-bold text-white font-bold block">0.00 <span className="text-[8px] font-bold text-white font-bold">t/h</span></span>
+                  <span className="text-[8px] font-mono text-white font-bold block">HOT STANDBY</span>
                 </div>
               </div>
             </div>
 
             {/* Bottom Atmospheric Vent Indicator */}
             <div className="flex items-center justify-between p-2 bg-slate-900/90 rounded-xl border border-slate-800 font-mono text-[9px]">
-              <span className="text-slate-300 font-bold flex items-center gap-1">
-                <Wind className="w-3 h-3 text-slate-400" />
+              <span className="text-white font-bold font-bold flex items-center gap-1">
+                <Wind className="w-3 h-3 text-white font-bold" />
                 VT-101 Vent Stack
               </span>
-              <span className="text-emerald-400 font-bold">Closed (0.0 kg/h)</span>
+              <span className="text-white font-bold font-bold">Closed (0.0 kg/h)</span>
             </div>
           </div>
 
@@ -553,12 +553,12 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
             {/* Header */}
             <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-slate-800">
               <div className="flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-amber-400" />
-                <span className="font-mono font-bold text-xs text-amber-300 uppercase tracking-wider">
+                <Zap className="w-4 h-4 text-white font-bold" />
+                <span className="font-mono font-bold text-xs text-white font-bold uppercase tracking-wider">
                   4. PLTMG 25MW Plant
                 </span>
               </div>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-white font-bold border border-amber-500/40">
                 50.00 Hz Grid
               </span>
             </div>
@@ -567,17 +567,17 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
             <div className="p-3 bg-slate-900/80 border border-amber-500/30 rounded-xl mb-3 flex-1 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-bold font-sans text-slate-100">Gunungsitoli Gas Turbines</span>
+                  <span className="text-xs font-bold font-sans text-white font-bold">Gunungsitoli Gas Turbines</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 </div>
-                <span className="text-[10px] text-slate-400 font-mono block">Units: GT-01, GT-02 (GT-03 Stby)</span>
+                <span className="text-[10px] text-white font-bold font-mono block">Units: GT-01, GT-02 (GT-03 Stby)</span>
               </div>
 
               {/* Load Bar */}
               <div className="my-2 space-y-1 font-mono">
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Active Load:</span>
-                  <span className="text-amber-400 font-bold">18.5 MW (74.0%)</span>
+                  <span className="text-white font-bold">Active Load:</span>
+                  <span className="text-white font-bold font-bold">18.5 MW (74.0%)</span>
                 </div>
                 <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
                   <div className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full w-[74%]" />
@@ -586,19 +586,19 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
 
               <div className="grid grid-cols-2 gap-2 text-[10px] font-mono pt-1.5 border-t border-slate-800">
                 <div className="bg-slate-950 p-1.5 rounded border border-slate-800">
-                  <span className="text-slate-500 block text-[8px]">HEAT RATE</span>
-                  <span className="text-emerald-400 font-bold">36.1% Eff</span>
+                  <span className="text-white font-bold block text-[8px]">HEAT RATE</span>
+                  <span className="text-white font-bold font-bold">36.1% Eff</span>
                 </div>
                 <div className="bg-slate-950 p-1.5 rounded border border-slate-800">
-                  <span className="text-slate-500 block text-[8px]">DAILY ENERGY</span>
-                  <span className="text-slate-200 font-bold">440.0 MWh</span>
+                  <span className="text-white font-bold block text-[8px]">DAILY ENERGY</span>
+                  <span className="text-white font-bold font-bold">440.0 MWh</span>
                 </div>
               </div>
             </div>
 
             {/* Footer Summary in Sec 4 */}
-            <div className="p-2 bg-slate-900/90 rounded-xl border border-slate-800 text-center font-mono text-[9px] text-slate-400">
-              <span className="text-emerald-400 font-bold">3.5 bar</span> Direct Superheated Natural Gas Feed
+            <div className="p-2 bg-slate-900/90 rounded-xl border border-slate-800 text-center font-mono text-[9px] text-white font-bold">
+              <span className="text-white font-bold font-bold">3.5 bar</span> Direct Superheated Natural Gas Feed
             </div>
           </div>
 
@@ -609,64 +609,64 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
       <div className="w-full bg-slate-900/90 border-t border-slate-800 px-4 sm:px-6 py-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* KPI 1: Cumulative Daily Gas Sendout */}
         <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-medium text-slate-400 block mb-1">
+          <span className="text-[11px] font-bold text-white font-bold block mb-1">
             금일 누적 가스 송출량 (FloBoss)
           </span>
           <div className="flex items-baseline gap-1.5 my-1">
-            <span className="font-mono text-2xl sm:text-3xl font-black text-amber-400">
+            <span className="font-mono text-2xl sm:text-3xl font-black text-white font-bold">
               {totalDailySendoutNm3.toLocaleString()}
             </span>
-            <span className="text-xs font-mono text-slate-400 font-semibold">Nm³/day</span>
+            <span className="text-xs font-mono text-white font-bold font-bold">Nm³/day</span>
           </div>
-          <span className="text-[10px] font-mono text-slate-500 block pt-1 border-t border-slate-800/80">
+          <span className="text-[10px] font-mono text-white font-bold block pt-1 border-t border-slate-800/80">
             LNG Mass: {totalDailySendoutTon} ton/day
           </span>
         </div>
 
         {/* KPI 2: Daily Power Generation */}
         <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-medium text-slate-400 block mb-1">
+          <span className="text-[11px] font-bold text-white font-bold block mb-1">
             금일 일일 발전량 (PLTMG)
           </span>
           <div className="flex items-baseline gap-1.5 my-1">
-            <span className="font-mono text-2xl sm:text-3xl font-black text-emerald-400">
+            <span className="font-mono text-2xl sm:text-3xl font-black text-white font-bold">
               {totalDailyGenMwh.toFixed(1)}
             </span>
-            <span className="text-xs font-mono text-slate-400 font-semibold">MWh/day</span>
+            <span className="text-xs font-mono text-white font-bold font-bold">MWh/day</span>
           </div>
-          <span className="text-[10px] font-mono text-slate-500 block pt-1 border-t border-slate-800/80">
+          <span className="text-[10px] font-mono text-white font-bold block pt-1 border-t border-slate-800/80">
             Thermal Energy: 531.2 MMBtu/d
           </span>
         </div>
 
         {/* KPI 3: Operating Load & Efficiency */}
         <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-medium text-slate-400 block mb-1">
+          <span className="text-[11px] font-bold text-white font-bold block mb-1">
             평균 가동 부하 / 열효율
           </span>
           <div className="flex items-baseline gap-1.5 my-1">
-            <span className="font-mono text-2xl sm:text-3xl font-black text-slate-100">
+            <span className="font-mono text-2xl sm:text-3xl font-black text-white font-bold">
               18.5 MW
             </span>
-            <span className="text-xs font-mono text-emerald-400 font-bold">@ 36.1%</span>
+            <span className="text-xs font-mono text-white font-bold font-bold">@ 36.1%</span>
           </div>
-          <span className="text-[10px] font-mono text-slate-500 block pt-1 border-t border-slate-800/80">
+          <span className="text-[10px] font-mono text-white font-bold block pt-1 border-t border-slate-800/80">
             Feed Pressure: 3.5 bar (Regulated)
           </span>
         </div>
 
         {/* KPI 4: Active Vaporizers & Unit Distribution */}
         <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-medium text-slate-400 block mb-1">
+          <span className="text-[11px] font-bold text-white font-bold block mb-1">
             가동 기화기 수 & 안분 처리량
           </span>
           <div className="flex items-baseline gap-1.5 my-1">
-            <span className="font-mono text-2xl sm:text-3xl font-black text-cyan-400">
+            <span className="font-mono text-2xl sm:text-3xl font-black text-white font-bold">
               {activeVapCount} / 4 Units
             </span>
-            <span className="text-xs font-mono text-slate-400 font-semibold">Active</span>
+            <span className="text-xs font-mono text-white font-bold font-bold">Active</span>
           </div>
-          <span className="text-[10px] font-mono text-cyan-300/80 block pt-1 border-t border-slate-800/80">
+          <span className="text-[10px] font-mono text-white font-bold block pt-1 border-t border-slate-800/80">
             Unit Load: ~{perVapThroughputTon} ton/day per unit
           </span>
         </div>

@@ -162,17 +162,17 @@ export function NiasActiveBayWorkspace({
       {/* Top Header Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
         <div>
-          <h3 className="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
-            <Flame className="w-4 h-4 text-blue-400" />
+          <h3 className="text-sm sm:text-base font-bold text-white font-bold flex items-center gap-2">
+            <Flame className="w-4 h-4 text-white font-bold" />
             Active Bay Mounted ISO Tanks (Vaporizer Racks 01 ~ 04)
           </h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-white font-bold">
             Clean, focused view of vessels actively mounted on the 4 vaporization racks supplying PLTMG Gunungsitoli
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-blue-950/60 text-blue-300 border border-blue-800/60">
+          <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-blue-950/60 text-white font-bold border border-blue-800/60">
             {zoneStats.activeBaysCount} / 4 Bays Occupied
           </span>
         </div>
@@ -205,16 +205,16 @@ export function NiasActiveBayWorkspace({
                 {/* Bay ID & Status */}
                 <div className="flex justify-between items-center mb-3">
                   <div className="flex items-center gap-2">
-                    <Flame className={`w-4 h-4 ${isRunning ? 'text-amber-400 animate-pulse' : 'text-slate-500'}`} />
-                    <span className="font-bold text-base text-slate-100">{bay.bayId}</span>
+                    <Flame className={`w-4 h-4 ${isRunning ? 'text-white font-bold animate-pulse' : 'text-white font-bold'}`} />
+                    <span className="font-bold text-base text-white font-bold">{bay.bayId}</span>
                   </div>
                   <span
                     className={`px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border ${
                       isRunning
-                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/30 animate-pulse'
+                        ? 'bg-amber-500/20 text-white font-bold border-amber-500/30 animate-pulse'
                         : isStandby
-                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                        : 'bg-slate-800 text-slate-400 border-slate-700'
+                        ? 'bg-blue-500/20 text-white font-bold border-blue-500/30'
+                        : 'bg-slate-800 text-white font-bold border-slate-700'
                     }`}
                   >
                     {bay.status}
@@ -224,14 +224,14 @@ export function NiasActiveBayWorkspace({
                 {/* Mounted Vessel Information */}
                 <div className="bg-slate-950/80 border border-slate-800/90 rounded-xl p-3.5 mb-3 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold block">
+                    <span className="text-[10px] text-white font-bold uppercase tracking-wider font-bold block">
                       Mounted ISO Tank
                     </span>
-                    <span className="font-mono font-bold text-base text-blue-400">
+                    <span className="font-mono font-bold text-base text-white font-bold">
                       {bay.tankNo || 'Empty Rack'}
                     </span>
                     {bay.serialNo && (
-                      <span className="text-[10px] text-slate-400 font-mono block">{bay.serialNo}</span>
+                      <span className="text-[10px] text-white font-bold font-mono block">{bay.serialNo}</span>
                     )}
                   </div>
                   {isConnected ? (
@@ -246,7 +246,7 @@ export function NiasActiveBayWorkspace({
                         className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap border ${
                           activeDrawerBayId === bay.bayId && activeDrawerType === 'PATROL'
                             ? 'bg-blue-600 text-white border-blue-500'
-                            : 'bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border-blue-500/40'
+                            : 'bg-blue-600/20 hover:bg-blue-600/40 text-white font-bold border-blue-500/40'
                         }`}
                       >
                         <Edit3 className="w-3 h-3" />
@@ -262,7 +262,7 @@ export function NiasActiveBayWorkspace({
                         className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap border ${
                           activeDrawerBayId === bay.bayId && activeDrawerType === 'DISCONNECT'
                             ? 'bg-purple-600 text-white border-purple-500'
-                            : 'bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border-purple-500/40'
+                            : 'bg-purple-600/20 hover:bg-purple-600/40 text-white font-bold border-purple-500/40'
                         }`}
                       >
                         <Zap className="w-3 h-3" />
@@ -276,7 +276,7 @@ export function NiasActiveBayWorkspace({
                         e.stopPropagation();
                         setMountModalBayId(bay.bayId);
                       }}
-                      className="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/40 text-blue-400 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                      className="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/40 text-white font-bold rounded-md text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
                     >
                       <PlusCircle className="w-3.5 h-3.5" /> Mount
                     </button>
@@ -286,28 +286,28 @@ export function NiasActiveBayWorkspace({
                 {/* Vessel Telemetry Metrics */}
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 flex flex-col items-center">
-                    <Activity className="w-3.5 h-3.5 text-emerald-400 mb-1" />
-                    <span className="text-[10px] uppercase text-slate-500 font-semibold">Holding Press</span>
-                    <span className="font-mono font-bold text-sm text-slate-200">
+                    <Activity className="w-3.5 h-3.5 text-white font-bold mb-1" />
+                    <span className="text-[10px] uppercase text-white font-bold font-bold">Holding Press</span>
+                    <span className="font-mono font-bold text-sm text-white font-bold">
                       {bay.pressure.toFixed(2)} MPa
                     </span>
                   </div>
                   <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 flex flex-col items-center">
-                    <Thermometer className="w-3.5 h-3.5 text-red-400 mb-1" />
-                    <span className="text-[10px] uppercase text-slate-500 font-semibold">Cryo Temp</span>
-                    <span className="font-mono font-bold text-sm text-slate-200">
+                    <Thermometer className="w-3.5 h-3.5 text-white font-bold mb-1" />
+                    <span className="text-[10px] uppercase text-white font-bold font-bold">Cryo Temp</span>
+                    <span className="font-mono font-bold text-sm text-white font-bold">
                       {bay.temp.toFixed(1)}°C
                     </span>
                   </div>
                   <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 flex flex-col items-center">
-                    <Droplet className="w-3.5 h-3.5 text-blue-400 mb-1" />
-                    <span className="text-[10px] uppercase text-slate-500 font-semibold">Current Level</span>
-                    <span className="font-mono font-bold text-sm text-slate-200">{bay.level}%</span>
+                    <Droplet className="w-3.5 h-3.5 text-white font-bold mb-1" />
+                    <span className="text-[10px] uppercase text-white font-bold font-bold">Current Level</span>
+                    <span className="font-mono font-bold text-sm text-white font-bold">{bay.level}%</span>
                   </div>
                   <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 flex flex-col items-center">
-                    <ArrowRightCircle className="w-3.5 h-3.5 text-purple-400 mb-1" />
-                    <span className="text-[10px] uppercase text-slate-500 font-semibold">Flow Rate</span>
-                    <span className="font-mono font-bold text-sm text-slate-200">
+                    <ArrowRightCircle className="w-3.5 h-3.5 text-white font-bold mb-1" />
+                    <span className="text-[10px] uppercase text-white font-bold font-bold">Flow Rate</span>
+                    <span className="font-mono font-bold text-sm text-white font-bold">
                       {bay.flowRate.toFixed(1)} t/h
                     </span>
                   </div>
@@ -316,7 +316,7 @@ export function NiasActiveBayWorkspace({
                 {/* Fill Level Gauge */}
                 {isConnected && (
                   <div>
-                    <div className="flex justify-between items-center text-[10px] text-slate-400 mb-1 font-mono">
+                    <div className="flex justify-between items-center text-[10px] text-white font-bold mb-1 font-mono">
                       <span>Liquid Depletion</span>
                       <span>{bay.level}% ({((bay.level / 100) * 45).toFixed(1)} m³)</span>
                     </div>
@@ -340,9 +340,9 @@ export function NiasActiveBayWorkspace({
                   type="button"
                   onClick={() => toggleBayRunning(bay.bayId)}
                   disabled={!isConnected}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold flex justify-center items-center gap-1.5 transition-all ${
+                  className={`flex-1 py-2 rounded-xl text-xs font-bold flex justify-center items-center gap-1.5 transition-all ${
                     !isConnected
-                      ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                      ? 'bg-slate-800 text-white font-bold cursor-not-allowed'
                       : isRunning
                       ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-md shadow-amber-600/20 cursor-pointer'
                       : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 cursor-pointer'
@@ -362,10 +362,10 @@ export function NiasActiveBayWorkspace({
                   <button
                     type="button"
                     onClick={() => setSelectedChartBayId(bay.bayId === selectedChartBayId ? null : bay.bayId)}
-                    className={`flex-1 py-2 rounded-xl text-xs font-semibold flex justify-center items-center gap-1.5 transition-all cursor-pointer ${
+                    className={`flex-1 py-2 rounded-xl text-xs font-bold flex justify-center items-center gap-1.5 transition-all cursor-pointer ${
                       selectedChartBayId === bay.bayId
                         ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/20'
-                        : 'bg-indigo-950/40 hover:bg-indigo-900/60 text-indigo-300 border border-indigo-900/50'
+                        : 'bg-indigo-950/40 hover:bg-indigo-900/60 text-white font-bold border border-indigo-900/50'
                     }`}
                   >
                     <BarChart3 className="w-3.5 h-3.5" />
@@ -383,17 +383,17 @@ export function NiasActiveBayWorkspace({
         <div className="bg-slate-900 border border-indigo-500/40 rounded-2xl p-6 shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300">
           <div className="flex justify-between items-start mb-6 border-b border-slate-800 pb-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-indigo-400" />
+              <h3 className="text-lg font-bold text-white font-bold flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-white font-bold" />
                 Physical Telemetry Shifts: {selectedChartBayId}
               </h3>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-white font-bold mt-1">
                 Integrated view of residual volume, pressure, and temperature over 4-hour intervals.
               </p>
             </div>
             <button
               onClick={() => setSelectedChartBayId(null)}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-white font-bold hover:text-white transition-colors"
             >
               <XCircle className="w-6 h-6" />
             </button>
@@ -464,17 +464,17 @@ export function NiasActiveBayWorkspace({
         <div className="bg-slate-900 border border-blue-500/50 rounded-2xl p-6 shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300">
           <div className="flex justify-between items-start mb-6 border-b border-slate-800 pb-4">
             <div>
-              <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-blue-400" />
+              <h3 className="text-xl font-bold text-white font-bold flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-white font-bold" />
                 Routine 4-Hour Shift Patrol Log for {activeDrawerBayId}
               </h3>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-white font-bold mt-1">
                 Record current physical gauges and state.
               </p>
             </div>
             <button
               onClick={() => setActiveDrawerBayId(null)}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-white font-bold hover:text-white transition-colors"
             >
               <XCircle className="w-6 h-6" />
             </button>
@@ -490,7 +490,7 @@ export function NiasActiveBayWorkspace({
                     type="button"
                     onClick={() => setPatrolTimeSlot(slot)}
                     className={`px-4 py-2 rounded-xl text-xs font-bold border transition-colors ${
-                      isActive ? 'bg-blue-600/20 text-blue-400 border-blue-500/50' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-600'
+                      isActive ? 'bg-blue-600/20 text-white font-bold border-blue-500/50' : 'bg-slate-950 border-slate-800 text-white font-bold hover:border-slate-600'
                     }`}
                   >
                     {slot}
@@ -501,64 +501,64 @@ export function NiasActiveBayWorkspace({
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="flex flex-col">
-                <label className="text-xs text-slate-400 mb-1">Level (%)</label>
+                <label className="text-xs text-white font-bold mb-1">Level (%)</label>
                 <input
                   type="number"
                   step="0.1"
                   value={patrolLevelPct}
                   onChange={(e) => setPatrolLevelPct(parseFloat(e.target.value))}
-                  className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-mono"
+                  className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono"
                 />
               </div>
               <div className="flex flex-col">
-                <label className="text-xs text-slate-400 mb-1">Volume (m³)</label>
+                <label className="text-xs text-white font-bold mb-1">Volume (m³)</label>
                 <input
                   type="number"
                   step="0.1"
                   value={patrolVolumeM3}
                   onChange={(e) => setPatrolVolumeM3(parseFloat(e.target.value))}
-                  className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-mono"
+                  className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono"
                 />
               </div>
               <div className="flex flex-col">
-                <label className="text-xs text-slate-400 mb-1">Mass (Ton)</label>
+                <label className="text-xs text-white font-bold mb-1">Mass (Ton)</label>
                 <input
                   type="number"
                   step="0.1"
                   value={patrolMassTon}
                   onChange={(e) => setPatrolMassTon(parseFloat(e.target.value))}
-                  className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-mono"
+                  className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono"
                 />
               </div>
               <div className="flex flex-col">
-                <label className="text-xs text-slate-400 mb-1">Pressure (MPa)</label>
+                <label className="text-xs text-white font-bold mb-1">Pressure (MPa)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={patrolPressureMPa}
                   onChange={(e) => setPatrolPressureMPa(parseFloat(e.target.value))}
-                  className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-mono"
+                  className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono"
                 />
               </div>
               <div className="flex flex-col">
-                <label className="text-xs text-slate-400 mb-1">Temp (°C)</label>
+                <label className="text-xs text-white font-bold mb-1">Temp (°C)</label>
                 <input
                   type="number"
                   step="0.1"
                   value={patrolTempC}
                   onChange={(e) => setPatrolTempC(parseFloat(e.target.value))}
-                  className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 font-mono"
+                  className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono"
                 />
               </div>
             </div>
 
             <div className="flex flex-col">
-              <label className="text-xs text-slate-400 mb-1">Remarks</label>
+              <label className="text-xs text-white font-bold mb-1">Remarks</label>
               <input
                 type="text"
                 value={patrolRemarks}
                 onChange={(e) => setPatrolRemarks(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200"
+                className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold"
                 placeholder="Optional remarks..."
               />
             </div>
@@ -579,17 +579,17 @@ export function NiasActiveBayWorkspace({
         <div className="bg-slate-900 border border-purple-500/50 rounded-2xl p-6 shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300">
           <div className="flex justify-between items-start mb-6 border-b border-slate-800 pb-4">
             <div>
-              <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-purple-400" />
+              <h3 className="text-xl font-bold text-white font-bold flex items-center gap-2">
+                <Zap className="w-5 h-5 text-white font-bold" />
                 Pre-Disconnect SOP Settlement for {activeDrawerBayId}
               </h3>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-white font-bold mt-1">
                 Log final offload metrics and safely unmount the tank to Laydown Yard 2.
               </p>
             </div>
             <button
               onClick={() => setActiveDrawerBayId(null)}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-white font-bold hover:text-white transition-colors"
             >
               <XCircle className="w-6 h-6" />
             </button>
@@ -598,13 +598,13 @@ export function NiasActiveBayWorkspace({
           <form onSubmit={handleHeelModalSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="p-4 bg-slate-950/50 rounded-xl border border-slate-800">
-                <span className="text-xs text-slate-500 font-semibold block">Target Destination</span>
-                <span className="font-bold text-purple-400">Laydown Yard 2</span>
+                <span className="text-xs text-white font-bold font-bold block">Target Destination</span>
+                <span className="font-bold text-white font-bold">Laydown Yard 2</span>
               </div>
             </div>
 
             <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-              <div className="grid grid-cols-12 bg-slate-900 border-b border-slate-800 p-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <div className="grid grid-cols-12 bg-slate-900 border-b border-slate-800 p-3 text-xs font-bold text-white font-bold uppercase tracking-wider">
                 <div className="col-span-4 pl-2">Inspection Parameter</div>
                 <div className="col-span-4">SOP Target Baseline</div>
                 <div className="col-span-4">Actual Input</div>
@@ -612,55 +612,55 @@ export function NiasActiveBayWorkspace({
               <div className="divide-y divide-slate-800/60">
                 {/* Row 1: Residual Heel Level */}
                 <div className="grid grid-cols-12 p-4 items-center">
-                  <div className="col-span-4 pl-2 font-semibold text-sm text-slate-300">Residual Heel Level</div>
-                  <div className="col-span-4 font-mono text-sm text-slate-400">1.0 m³ (~4.0% / ~400 kg)</div>
+                  <div className="col-span-4 pl-2 font-bold text-sm text-white font-bold">Residual Heel Level</div>
+                  <div className="col-span-4 font-mono text-sm text-white font-bold">1.0 m³ (~4.0% / ~400 kg)</div>
                   <div className="col-span-4">
                     <input
                       type="number"
                       step="0.1"
                       value={heelLevelPct}
                       onChange={(e) => setHeelLevelPct(parseFloat(e.target.value))}
-                      className="w-24 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-100 font-mono font-bold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                      className="w-24 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white font-bold font-mono font-bold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     />
-                    <span className="ml-2 text-slate-500 text-xs">%</span>
+                    <span className="ml-2 text-white font-bold text-xs">%</span>
                   </div>
                 </div>
 
                 {/* Row 2: Pre-Venting Pressure */}
                 <div className="grid grid-cols-12 p-4 items-center">
-                  <div className="col-span-4 pl-2 font-semibold text-sm text-slate-300">Pre-Venting Pressure</div>
-                  <div className="col-span-4 font-mono text-sm text-slate-400">0.70 MPa (7.0 bar)</div>
+                  <div className="col-span-4 pl-2 font-bold text-sm text-white font-bold">Pre-Venting Pressure</div>
+                  <div className="col-span-4 font-mono text-sm text-white font-bold">0.70 MPa (7.0 bar)</div>
                   <div className="col-span-4">
                     <input
                       type="number"
                       step="0.01"
                       value={heelPreVentPressureMPa}
                       onChange={(e) => setHeelPreVentPressureMPa(parseFloat(e.target.value))}
-                      className="w-24 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-orange-400 font-mono font-bold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                      className="w-24 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white font-bold font-mono font-bold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     />
-                    <span className="ml-2 text-slate-500 text-xs">MPa</span>
+                    <span className="ml-2 text-white font-bold text-xs">MPa</span>
                   </div>
                 </div>
 
                 {/* Row 3: Disconnect Pressure */}
                 <div className="grid grid-cols-12 p-4 items-center">
-                  <div className="col-span-4 pl-2 font-semibold text-sm text-slate-300">Post-Venting Disconnect Pressure</div>
-                  <div className="col-span-4 font-mono text-sm text-slate-400">0.30 MPa (3.0 bar)</div>
+                  <div className="col-span-4 pl-2 font-bold text-sm text-white font-bold">Post-Venting Disconnect Pressure</div>
+                  <div className="col-span-4 font-mono text-sm text-white font-bold">0.30 MPa (3.0 bar)</div>
                   <div className="col-span-4 flex items-center gap-2">
                     <input
                       type="number"
                       step="0.01"
                       value={heelPressureMPa}
                       onChange={(e) => setHeelPressureMPa(parseFloat(e.target.value))}
-                      className="w-24 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-emerald-400 font-mono font-bold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                      className="w-24 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white font-bold font-mono font-bold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     />
-                    <span className="text-slate-500 text-xs">MPa</span>
+                    <span className="text-white font-bold text-xs">MPa</span>
                     {heelPressureMPa <= 0.30 ? (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 border border-emerald-900">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950/40 text-white font-bold border border-emerald-900">
                         ✓ Safe
                       </span>
                     ) : (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950/40 text-amber-400 border border-amber-900">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950/40 text-white font-bold border border-amber-900">
                         ⚠️ High
                       </span>
                     )}
@@ -670,11 +670,11 @@ export function NiasActiveBayWorkspace({
             </div>
 
             <div className="flex flex-col">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Operator Remarks</label>
+              <label className="text-xs font-bold text-white font-bold uppercase tracking-wider mb-2">Operator Remarks</label>
               <textarea
                 value={stage1Remarks}
                 onChange={(e) => setStage1Remarks(e.target.value)}
-                className="flex-1 w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none"
+                className="flex-1 w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none"
               />
             </div>
 

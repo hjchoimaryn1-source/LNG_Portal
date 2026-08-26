@@ -386,31 +386,31 @@ export default function NiasPowerThermalTab() {
   }, [engines, activeDischargingTank, yardInventorySummary, engineSpec]);
 
   return (
-    <div className="w-full space-y-5 animate-in fade-in duration-200 text-slate-100 font-sans">
+    <div className="w-full space-y-5 animate-in fade-in duration-200 text-white font-bold font-sans">
       {/* 1. Top Experion DCS Command Banner */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-white font-bold border border-amber-500/30">
               <Zap className="w-3.5 h-3.5" />
               PLTMG GUNUNGSITOLI (5 × {(engineSpec.mcrKwPerUnit / 1000).toFixed(2)} MW = {summary.totalPlantMcrMw.toFixed(2)} MW)
             </span>
-            <span className="inline-flex items-center gap-1 text-xs font-mono text-cyan-300 bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800 font-bold">
-              <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="inline-flex items-center gap-1 text-xs font-mono text-white font-bold bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800 font-bold">
+              <ShieldCheck className="w-3.5 h-3.5 text-white font-bold" />
               MAN 7L 51/60 DF (MCR {engineSpec.mcrKwPerUnit.toLocaleString()} kW | NCR {engineSpec.ncrKwPerUnit.toLocaleString()} kW)
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-mono px-2.5 py-0.5 rounded border bg-slate-950 text-emerald-300 border-emerald-500/30 font-semibold">
-              <Edit3 className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="inline-flex items-center gap-1.5 text-xs font-mono px-2.5 py-0.5 rounded border bg-slate-950 text-white font-bold border-emerald-500/30 font-bold">
+              <Edit3 className="w-3.5 h-3.5 text-white font-bold" />
               Daily Operational Entry Mode
             </span>
           </div>
 
-          <h3 className="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2 mt-2">
-            <Cpu className="w-4 h-4 text-amber-400" />
+          <h3 className="text-sm sm:text-base font-bold text-white font-bold flex items-center gap-2 mt-2">
+            <Cpu className="w-4 h-4 text-white font-bold" />
             MAN 7L 51/60 DF 5-Engine Generator Dispatch & Thermal Efficiency Log
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Live Feed: Active Discharging Tank <strong className="text-emerald-400">{activeDischargingTank.tankNo}</strong> ({activeDischargingTank.levelPct.toFixed(1)}% / {activeDischargingTank.remainingNm3.toLocaleString()} Nm³) | Yard Inventory: {yardInventorySummary.fullCount} Full Tanks ({(yardInventorySummary.totalRemainingNm3 / 1000).toFixed(1)}k Nm³).
+          <p className="text-xs text-white font-bold mt-0.5">
+            Live Feed: Active Discharging Tank <strong className="text-white font-bold">{activeDischargingTank.tankNo}</strong> ({activeDischargingTank.levelPct.toFixed(1)}% / {activeDischargingTank.remainingNm3.toLocaleString()} Nm³) | Yard Inventory: {yardInventorySummary.fullCount} Full Tanks ({(yardInventorySummary.totalRemainingNm3 / 1000).toFixed(1)}k Nm³).
           </p>
         </div>
 
@@ -423,9 +423,9 @@ export default function NiasPowerThermalTab() {
               setDraftSpec({ ...engineSpec });
               setIsSpecModalOpen(true);
             }}
-            className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 text-amber-300 rounded-xl border border-amber-500/40 text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer shadow-sm hover:border-amber-400 transition-colors"
+            className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-xl border border-amber-500/40 text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer shadow-sm hover:border-amber-400 transition-colors"
           >
-            <Settings className="w-3.5 h-3.5 text-amber-400" />
+            <Settings className="w-3.5 h-3.5 text-white font-bold" />
             <span>⚙️ MAN Spec Settings</span>
           </button>
 
@@ -435,11 +435,11 @@ export default function NiasPowerThermalTab() {
             onClick={() => setShowSpecTable(!showSpecTable)}
             className={`px-3 py-1.5 rounded-xl border text-xs font-mono flex items-center gap-1.5 cursor-pointer transition-colors ${
               showSpecTable
-                ? 'bg-cyan-600/30 text-cyan-300 border-cyan-500/50 shadow-sm'
-                : 'bg-slate-950 hover:bg-slate-800 text-slate-300 border-slate-800'
+                ? 'bg-cyan-600/30 text-white font-bold border-cyan-500/50 shadow-sm'
+                : 'bg-slate-950 hover:bg-slate-800 text-white font-bold border-slate-800'
             }`}
           >
-            <Table className="w-3.5 h-3.5 text-cyan-400" />
+            <Table className="w-3.5 h-3.5 text-white font-bold" />
             <span>{showSpecTable ? 'Hide Spec Table' : '📊 MAN 7L Spec Table'}</span>
           </button>
 
@@ -458,17 +458,17 @@ export default function NiasPowerThermalTab() {
             type="button"
             onClick={() => setEngines(INITIAL_ENGINES)}
             title="Reset 5 Engines to Default Nominal Values"
-            className="p-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-xl border border-slate-800 transition-colors cursor-pointer"
           >
-            <RefreshCw className="w-4 h-4 text-slate-400 hover:text-emerald-400" />
+            <RefreshCw className="w-4 h-4 text-white font-bold hover:text-white font-bold" />
           </button>
         </div>
       </div>
 
       {/* Save Notification Toast */}
       {toastMessage && (
-        <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl text-xs font-mono text-emerald-300 flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150 shadow-lg">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl text-xs font-mono text-white font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150 shadow-lg">
+          <CheckCircle2 className="w-4 h-4 text-white font-bold shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -479,24 +479,24 @@ export default function NiasPowerThermalTab() {
         <div className="p-4 bg-slate-900/90 rounded-2xl border border-amber-500/40 shadow-lg font-mono flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-start">
-              <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">
+              <span className="text-[10px] text-white font-bold font-bold uppercase tracking-wider block">
                 Total Combined Output
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-white font-bold border border-amber-500/30">
                 {summary.runningCount}/5 RUN
               </span>
             </div>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-2xl sm:text-3xl font-black text-amber-400">
+              <span className="text-2xl sm:text-3xl font-black text-white font-bold">
                 {summary.totalMw.toFixed(2)}
               </span>
-              <span className="text-xs text-slate-400 font-semibold">MW</span>
-              <span className="text-xs text-slate-500">({summary.totalKw.toLocaleString()} kW)</span>
+              <span className="text-xs text-white font-bold font-bold">MW</span>
+              <span className="text-xs text-white font-bold">({summary.totalKw.toLocaleString()} kW)</span>
             </div>
           </div>
           <div className="mt-2 pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px]">
-            <span className="text-slate-400">Plant Load Factor:</span>
-            <span className="text-emerald-400 font-bold">
+            <span className="text-white font-bold">Plant Load Factor:</span>
+            <span className="text-white font-bold font-bold">
               {summary.loadFactorPct.toFixed(1)}% of {summary.totalPlantMcrMw.toFixed(2)} MW MCR
             </span>
           </div>
@@ -506,22 +506,22 @@ export default function NiasPowerThermalTab() {
         <div className="p-4 bg-slate-900/90 rounded-2xl border border-emerald-500/30 shadow-lg font-mono flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-start">
-              <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">
+              <span className="text-[10px] text-white font-bold font-bold uppercase tracking-wider block">
                 Power Usage by Gas (LNG)
               </span>
-              <Flame className="w-4 h-4 text-emerald-400" />
+              <Flame className="w-4 h-4 text-white font-bold" />
             </div>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-2xl sm:text-3xl font-black text-emerald-400">
+              <span className="text-2xl sm:text-3xl font-black text-white font-bold">
                 {summary.gasMw.toFixed(2)}
               </span>
-              <span className="text-xs text-slate-400 font-semibold">MW</span>
-              <span className="text-xs text-slate-500">({summary.gasKw.toLocaleString()} kW)</span>
+              <span className="text-xs text-white font-bold font-bold">MW</span>
+              <span className="text-xs text-white font-bold">({summary.gasKw.toLocaleString()} kW)</span>
             </div>
           </div>
           <div className="mt-2 pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px]">
-            <span className="text-slate-400">Gas Dispatch Share:</span>
-            <span className="text-cyan-300 font-bold">
+            <span className="text-white font-bold">Gas Dispatch Share:</span>
+            <span className="text-white font-bold font-bold">
               {summary.totalKw > 0 ? ((summary.gasKw / summary.totalKw) * 100).toFixed(1) : '0.0'}%
             </span>
           </div>
@@ -531,22 +531,22 @@ export default function NiasPowerThermalTab() {
         <div className="p-4 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-lg font-mono flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-start">
-              <span className="text-[10px] text-yellow-400 font-bold uppercase tracking-wider block">
+              <span className="text-[10px] text-white font-bold font-bold uppercase tracking-wider block">
                 Power Usage by Diesel (HSD)
               </span>
-              <Fuel className="w-4 h-4 text-yellow-400" />
+              <Fuel className="w-4 h-4 text-white font-bold" />
             </div>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-2xl sm:text-3xl font-black text-yellow-400">
+              <span className="text-2xl sm:text-3xl font-black text-white font-bold">
                 {summary.dieselMw.toFixed(2)}
               </span>
-              <span className="text-xs text-slate-400 font-semibold">MW</span>
-              <span className="text-xs text-slate-500">({summary.dieselKw.toLocaleString()} kW)</span>
+              <span className="text-xs text-white font-bold font-bold">MW</span>
+              <span className="text-xs text-white font-bold">({summary.dieselKw.toLocaleString()} kW)</span>
             </div>
           </div>
           <div className="mt-2 pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px]">
-            <span className="text-slate-400">Diesel Backup Share:</span>
-            <span className="text-yellow-400 font-bold">
+            <span className="text-white font-bold">Diesel Backup Share:</span>
+            <span className="text-white font-bold font-bold">
               {summary.totalKw > 0 ? ((summary.dieselKw / summary.totalKw) * 100).toFixed(1) : '0.0'}%
             </span>
           </div>
@@ -556,24 +556,24 @@ export default function NiasPowerThermalTab() {
         <div className="p-4 bg-slate-900/90 rounded-2xl border border-cyan-500/30 shadow-lg font-mono flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-start">
-              <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block">
+              <span className="text-[10px] text-white font-bold font-bold uppercase tracking-wider block">
                 SFC & Autonomy Buffer
               </span>
-              <TrendingUp className="w-4 h-4 text-cyan-400" />
+              <TrendingUp className="w-4 h-4 text-white font-bold" />
             </div>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-2xl sm:text-3xl font-black text-cyan-300">
+              <span className="text-2xl sm:text-3xl font-black text-white font-bold">
                 {summary.activeTankAutonomyHours.toFixed(1)}
               </span>
-              <span className="text-xs text-slate-400 font-semibold">Hours</span>
-              <span className="text-[10px] text-emerald-300 font-bold bg-emerald-950/90 px-1.5 py-0.5 rounded border border-emerald-500/40">
+              <span className="text-xs text-white font-bold font-bold">Hours</span>
+              <span className="text-[10px] text-white font-bold font-bold bg-emerald-950/90 px-1.5 py-0.5 rounded border border-emerald-500/40">
                 {activeDischargingTank.tankNo}
               </span>
             </div>
           </div>
           <div className="mt-2 pt-2 border-t border-slate-800/80 flex justify-between items-center text-[10px]">
-            <span className="text-slate-400">Total Yard ({yardInventorySummary.fullCount} Tanks):</span>
-            <span className="text-blue-400 font-bold">
+            <span className="text-white font-bold">Total Yard ({yardInventorySummary.fullCount} Tanks):</span>
+            <span className="text-white font-bold font-bold">
               {summary.yardTotalAutonomyHours.toFixed(1)} Hours
             </span>
           </div>
@@ -585,12 +585,12 @@ export default function NiasPowerThermalTab() {
         <div className="p-4 sm:p-5 bg-slate-950/90 rounded-2xl border border-cyan-500/30 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200 font-mono text-xs space-y-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <Table className="w-4 h-4 text-cyan-400" />
-              <h4 className="font-bold text-slate-100 text-sm">
+              <Table className="w-4 h-4 text-white font-bold" />
+              <h4 className="font-bold text-white font-bold text-sm">
                 Official MAN 7L 51/60 DF Engine Load & Autonomy Reference Table
               </h4>
             </div>
-            <span className="text-[11px] text-slate-400">
+            <span className="text-[11px] text-white font-bold">
               MCR {engineSpec.mcrKwPerUnit.toLocaleString()} kW | NCR {engineSpec.ncrKwPerUnit.toLocaleString()} kW | Heat Rate {engineSpec.heatRateKjKwh.toLocaleString()} kJ/kWh | Gas LHV {engineSpec.referenceLhvKjNm3.toLocaleString()} kJ/Nm³ | Active Tank: {activeDischargingTank.tankNo} ({activeDischargingTank.remainingNm3.toLocaleString()} Nm³)
             </span>
           </div>
@@ -598,17 +598,17 @@ export default function NiasPowerThermalTab() {
           <div className="overflow-x-auto rounded-xl border border-slate-800">
             <table className="w-full text-xs text-left border-collapse font-mono">
               <thead>
-                <tr className="bg-slate-900 text-slate-300 border-b border-slate-800 text-[10px] uppercase font-bold text-center">
+                <tr className="bg-slate-900 text-white font-bold border-b border-slate-800 text-[10px] uppercase font-bold text-center">
                   <th className="px-3 py-2 text-left">Load (% MCR)</th>
-                  <th className="px-3 py-2 text-right text-amber-400">Output (kW)</th>
+                  <th className="px-3 py-2 text-right text-white font-bold">Output (kW)</th>
                   <th className="px-3 py-2 text-right">Heat Rate (kJ/kWh)</th>
-                  <th className="px-3 py-2 text-right text-cyan-300 font-bold">Gas Flow (Nm³/h)</th>
+                  <th className="px-3 py-2 text-right text-white font-bold font-bold">Gas Flow (Nm³/h)</th>
                   <th className="px-3 py-2 text-right">SFC (Nm³/kWh)</th>
-                  <th className="px-3 py-2 text-right text-emerald-400">Active Tank ({activeDischargingTank.tankNo})</th>
-                  <th className="px-3 py-2 text-right text-blue-400 font-bold">{yardInventorySummary.fullCount} Yard Tanks Hours</th>
+                  <th className="px-3 py-2 text-right text-white font-bold">Active Tank ({activeDischargingTank.tankNo})</th>
+                  <th className="px-3 py-2 text-right text-white font-bold font-bold">{yardInventorySummary.fullCount} Yard Tanks Hours</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
+              <tbody className="divide-y divide-slate-800 text-white font-bold">
                 {[
                   { pct: 25, label: '25% (Min Load)' },
                   { pct: 50, label: '50% (Part Load)' },
@@ -623,13 +623,13 @@ export default function NiasPowerThermalTab() {
                   const tYard = flow > 0 ? yardInventorySummary.totalRemainingNm3 / flow : 999;
                   return (
                     <tr key={item.pct} className="hover:bg-slate-900/50">
-                      <td className="px-3 py-2 font-bold text-slate-100">{item.label}</td>
-                      <td className="px-3 py-2 text-right text-amber-400 font-bold">{kw.toLocaleString()} kW</td>
-                      <td className="px-3 py-2 text-right text-slate-300">{engineSpec.heatRateKjKwh.toLocaleString()}</td>
-                      <td className="px-3 py-2 text-right text-cyan-300 font-bold">{flow.toFixed(1)} Nm³/h</td>
-                      <td className="px-3 py-2 text-right text-slate-400">{sfc.toFixed(4)}</td>
-                      <td className="px-3 py-2 text-right text-emerald-400 font-bold">{tActive.toFixed(1)} h</td>
-                      <td className="px-3 py-2 text-right text-blue-400 font-black">{tYard.toFixed(1)} h</td>
+                      <td className="px-3 py-2 font-bold text-white font-bold">{item.label}</td>
+                      <td className="px-3 py-2 text-right text-white font-bold font-bold">{kw.toLocaleString()} kW</td>
+                      <td className="px-3 py-2 text-right text-white font-bold">{engineSpec.heatRateKjKwh.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-right text-white font-bold font-bold">{flow.toFixed(1)} Nm³/h</td>
+                      <td className="px-3 py-2 text-right text-white font-bold">{sfc.toFixed(4)}</td>
+                      <td className="px-3 py-2 text-right text-white font-bold font-bold">{tActive.toFixed(1)} h</td>
+                      <td className="px-3 py-2 text-right text-white font-bold font-black">{tYard.toFixed(1)} h</td>
                     </tr>
                   );
                 })}
@@ -642,11 +642,11 @@ export default function NiasPowerThermalTab() {
       {/* 3. 5-Engine Grid Cards (Generator Engine 1 ~ 5) */}
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-1">
-          <h4 className="text-xs sm:text-sm font-bold text-slate-200 flex items-center gap-2">
-            <Layers className="w-4 h-4 text-amber-400" />
+          <h4 className="text-xs sm:text-sm font-bold text-white font-bold flex items-center gap-2">
+            <Layers className="w-4 h-4 text-white font-bold" />
             <span>Honeywell Experion DCS Generator Engine Skid Units (MAN 7L 51/60 DF 1 ~ 5)</span>
           </h4>
-          <span className="text-[11px] font-mono text-slate-400">
+          <span className="text-[11px] font-mono text-white font-bold">
             💡 Direct Dispatch Input: Type values or toggle Run/Stop & Fuel Mode
           </span>
         </div>
@@ -675,8 +675,8 @@ export default function NiasPowerThermalTab() {
                 <div>
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h5 className="font-bold text-sm text-slate-100">{eng.name}</h5>
-                      <span className="text-[10px] text-cyan-400 font-mono font-bold block">
+                      <h5 className="font-bold text-sm text-white font-bold">{eng.name}</h5>
+                      <span className="text-[10px] text-white font-bold font-mono font-bold block">
                         {eng.tag} (MAN 7L 51/60 DF)
                       </span>
                     </div>
@@ -687,8 +687,8 @@ export default function NiasPowerThermalTab() {
                       onClick={() => toggleEngineStatus(eng.id)}
                       className={`px-2.5 py-1 rounded-xl text-[10px] font-mono font-black border transition-all cursor-pointer flex items-center gap-1 ${
                         isRunning
-                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-sm shadow-emerald-500/20'
-                          : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'
+                          ? 'bg-emerald-500/20 text-white font-bold border-emerald-500/50 shadow-sm shadow-emerald-500/20'
+                          : 'bg-slate-800 text-white font-bold border-slate-700 hover:bg-slate-700'
                       }`}
                     >
                       <span
@@ -707,8 +707,8 @@ export default function NiasPowerThermalTab() {
                       onClick={() => setEngineFuelMode(eng.id, 'GAS')}
                       className={`flex-1 py-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
                         isGas
-                          ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 shadow-sm'
-                          : 'text-slate-500 hover:text-slate-300'
+                          ? 'bg-emerald-600/30 text-white font-bold border border-emerald-500/40 shadow-sm'
+                          : 'text-white font-bold hover:text-white font-bold'
                       }`}
                     >
                       <Flame className="w-3 h-3" />
@@ -719,8 +719,8 @@ export default function NiasPowerThermalTab() {
                       onClick={() => setEngineFuelMode(eng.id, 'DIESEL')}
                       className={`flex-1 py-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
                         !isGas
-                          ? 'bg-yellow-600/30 text-yellow-300 border border-yellow-500/40 shadow-sm'
-                          : 'text-slate-500 hover:text-slate-300'
+                          ? 'bg-yellow-600/30 text-white font-bold border border-yellow-500/40 shadow-sm'
+                          : 'text-white font-bold hover:text-white font-bold'
                       }`}
                     >
                       <Fuel className="w-3 h-3" />
@@ -730,9 +730,9 @@ export default function NiasPowerThermalTab() {
 
                   {/* Main Active Power Display & Load % */}
                   <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800/80 mb-3 font-mono">
-                    <div className="flex justify-between items-center text-[10px] text-slate-400 mb-1">
+                    <div className="flex justify-between items-center text-[10px] text-white font-bold mb-1">
                       <span>Active Output:</span>
-                      <span className="text-cyan-400 font-bold">
+                      <span className="text-white font-bold font-bold">
                         MCR {(engineSpec.mcrKwPerUnit / 1000).toFixed(2)} MW
                       </span>
                     </div>
@@ -749,11 +749,11 @@ export default function NiasPowerThermalTab() {
                             const val = e.target.value;
                             updateEngineField(eng.id, 'activePowerKw', val === '' ? 0 : parseFloat(val) || 0);
                           }}
-                          className="w-24 bg-slate-900 text-slate-100 font-black text-lg px-1.5 py-0.5 rounded border border-slate-800 text-left focus:outline-none focus:border-amber-500 disabled:opacity-40"
+                          className="w-24 bg-slate-900 text-white font-bold font-black text-lg px-1.5 py-0.5 rounded border border-slate-800 text-left focus:outline-none focus:border-amber-500 disabled:opacity-40"
                         />
-                        <span className="text-[10px] text-slate-400 font-bold">kW</span>
+                        <span className="text-[10px] text-white font-bold font-bold">kW</span>
                       </div>
-                      <span className="text-xs font-bold text-amber-400">
+                      <span className="text-xs font-bold text-white font-bold">
                         {engineLoadPct.toFixed(1)}% Load
                       </span>
                     </div>
@@ -761,8 +761,8 @@ export default function NiasPowerThermalTab() {
                     {/* Gas Flow Rate Indicator */}
                     {isRunning && isGas && (
                       <div className="mt-2 pt-1.5 border-t border-slate-800/60 flex justify-between items-center text-[10px]">
-                        <span className="text-slate-500">Gas Flow:</span>
-                        <span className="text-cyan-300 font-bold">{engineGasFlow.toFixed(1)} Nm³/h</span>
+                        <span className="text-white font-bold">Gas Flow:</span>
+                        <span className="text-white font-bold font-bold">{engineGasFlow.toFixed(1)} Nm³/h</span>
                       </div>
                     )}
                   </div>
@@ -771,8 +771,8 @@ export default function NiasPowerThermalTab() {
                   <div className="space-y-2 font-mono text-xs">
                     {/* Gas Press Inlet */}
                     <div className="p-2 bg-slate-950/80 rounded-lg border border-slate-800/60 flex justify-between items-center">
-                      <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                        <Gauge className="w-3 h-3 text-cyan-400" />
+                      <span className="text-[10px] text-white font-bold flex items-center gap-1">
+                        <Gauge className="w-3 h-3 text-white font-bold" />
                         Gas Press Inlet:
                       </span>
                       <div className="flex items-center gap-1">
@@ -787,16 +787,16 @@ export default function NiasPowerThermalTab() {
                             const val = e.target.value;
                             updateEngineField(eng.id, 'gasPressInletBar', val === '' ? 0 : parseFloat(val) || 0);
                           }}
-                          className="w-16 bg-slate-900 text-cyan-300 px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs font-bold focus:outline-none focus:border-cyan-500 disabled:opacity-40"
+                          className="w-16 bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs font-bold focus:outline-none focus:border-cyan-500 disabled:opacity-40"
                         />
-                        <span className="text-[10px] text-slate-500 font-bold">bar</span>
+                        <span className="text-[10px] text-white font-bold font-bold">bar</span>
                       </div>
                     </div>
 
                     {/* Gas Temp Inlet */}
                     <div className="p-2 bg-slate-950/80 rounded-lg border border-slate-800/60 flex justify-between items-center">
-                      <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                        <Thermometer className="w-3 h-3 text-emerald-400" />
+                      <span className="text-[10px] text-white font-bold flex items-center gap-1">
+                        <Thermometer className="w-3 h-3 text-white font-bold" />
                         Gas Temp Inlet:
                       </span>
                       <div className="flex items-center gap-1">
@@ -811,31 +811,31 @@ export default function NiasPowerThermalTab() {
                             const val = e.target.value;
                             updateEngineField(eng.id, 'gasTempInletC', val === '' ? 0 : parseFloat(val) || 0);
                           }}
-                          className="w-16 bg-slate-900 text-emerald-300 px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs font-bold focus:outline-none focus:border-emerald-500 disabled:opacity-40"
+                          className="w-16 bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs font-bold focus:outline-none focus:border-emerald-500 disabled:opacity-40"
                         />
-                        <span className="text-[10px] text-slate-500 font-bold">°C</span>
+                        <span className="text-[10px] text-white font-bold font-bold">°C</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Engine Operating Telemetry Sub-panel */}
-                <div className="mt-3 pt-2.5 border-t border-slate-800/80 font-mono text-[10px] text-slate-400 space-y-1">
+                <div className="mt-3 pt-2.5 border-t border-slate-800/80 font-mono text-[10px] text-white font-bold space-y-1">
                   <div className="flex justify-between">
                     <span>Rated Speed:</span>
-                    <span className="text-slate-200 font-bold">{eng.rpm} RPM</span>
+                    <span className="text-white font-bold font-bold">{eng.rpm} RPM</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Exhaust Temp:</span>
-                    <span className="text-amber-400 font-bold">{eng.exhaustTempC} °C</span>
+                    <span className="text-white font-bold font-bold">{eng.exhaustTempC} °C</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Bus Frequency:</span>
-                    <span className="text-cyan-400 font-bold">{eng.frequencyHz.toFixed(2)} Hz</span>
+                    <span className="text-white font-bold font-bold">{eng.frequencyHz.toFixed(2)} Hz</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Generator Voltage:</span>
-                    <span className="text-slate-200 font-bold">{eng.voltageKv.toFixed(1)} kV</span>
+                    <span className="text-white font-bold font-bold">{eng.voltageKv.toFixed(1)} kV</span>
                   </div>
                 </div>
               </div>
@@ -848,49 +848,49 @@ export default function NiasPowerThermalTab() {
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold font-mono border border-amber-500/30">
+            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-white font-bold text-[10px] font-bold font-mono border border-amber-500/30">
               DOMAIN 1 & 2 LINKED RECONCILIATION
             </span>
-            <h4 className="text-xs sm:text-sm font-bold text-slate-100 flex items-center gap-1.5">
-              <Activity className="w-4 h-4 text-amber-400" />
+            <h4 className="text-xs sm:text-sm font-bold text-white font-bold flex items-center gap-1.5">
+              <Activity className="w-4 h-4 text-white font-bold" />
               PLTMG Fuel Gas Demand & Real-Time ISO Tank Inventory Autonomy
             </h4>
           </div>
-          <span className="text-[11px] font-mono text-slate-400">
-            Active Feed Tank: <strong className="text-emerald-400">{activeDischargingTank.tankNo}</strong> ({activeDischargingTank.bayName})
+          <span className="text-[11px] font-mono text-white font-bold">
+            Active Feed Tank: <strong className="text-white font-bold">{activeDischargingTank.tankNo}</strong> ({activeDischargingTank.bayName})
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
           {/* Item 1 */}
           <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
-            <span className="text-[10px] text-slate-400 block mb-1">Fuel Gas Flow Rate (Total)</span>
-            <span className="text-lg font-black text-cyan-300 block">
+            <span className="text-[10px] text-white font-bold block mb-1">Fuel Gas Flow Rate (Total)</span>
+            <span className="text-lg font-black text-white font-bold block">
               {summary.totalGasFlowNm3h.toLocaleString(undefined, { maximumFractionDigits: 1 })} Nm³/h
             </span>
-            <span className="text-[10px] text-slate-500 mt-0.5 block">
+            <span className="text-[10px] text-white font-bold mt-0.5 block">
               ≈ {((summary.totalGasFlowNm3h * 35.3147) / 1000).toFixed(1)} kSCFH
             </span>
           </div>
 
           {/* Item 2 */}
           <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
-            <span className="text-[10px] text-slate-400 block mb-1">Daily Gas Heat Demand</span>
-            <span className="text-lg font-black text-amber-400 block">
+            <span className="text-[10px] text-white font-bold block mb-1">Daily Gas Heat Demand</span>
+            <span className="text-lg font-black text-white font-bold block">
               {summary.deliveredMmbtuDay.toLocaleString(undefined, { maximumFractionDigits: 1 })} MMBtu/day
             </span>
-            <span className="text-[10px] text-slate-500 mt-0.5 block">
+            <span className="text-[10px] text-white font-bold mt-0.5 block">
               At {engineSpec.referenceLhvKjNm3.toLocaleString()} kJ/Nm³ LHV (1,048.5 BTU/SCF)
             </span>
           </div>
 
           {/* Item 3 */}
           <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
-            <span className="text-[10px] text-slate-400 block mb-1">LNG Mass Consumption</span>
-            <span className="text-lg font-black text-emerald-400 block">
+            <span className="text-[10px] text-white font-bold block mb-1">LNG Mass Consumption</span>
+            <span className="text-lg font-black text-white font-bold block">
               {summary.deliveredMassTonneDay.toFixed(2)} Tonne/day
             </span>
-            <span className="text-[10px] text-slate-500 mt-0.5 block">
+            <span className="text-[10px] text-white font-bold mt-0.5 block">
               ≈ {(summary.deliveredMassTonneDay * 1000).toLocaleString(undefined, { maximumFractionDigits: 0 })} kg/day
             </span>
           </div>
@@ -898,22 +898,22 @@ export default function NiasPowerThermalTab() {
           {/* Item 4: 2-Tier Autonomy Buffer */}
           <div className="p-3.5 bg-slate-950 rounded-xl border border-cyan-500/30 space-y-1.5">
             <div className="flex justify-between items-center text-[10px]">
-              <span className="text-slate-400">Active Tank Autonomy:</span>
-              <span className="text-emerald-400 font-bold bg-emerald-950/80 px-1.5 py-0.2 rounded border border-emerald-500/30">
+              <span className="text-white font-bold">Active Tank Autonomy:</span>
+              <span className="text-white font-bold font-bold bg-emerald-950/80 px-1.5 py-0.2 rounded border border-emerald-500/30">
                 {activeDischargingTank.tankNo} ({activeDischargingTank.levelPct.toFixed(1)}%)
               </span>
             </div>
             <div className="flex items-baseline justify-between">
-              <span className="text-xl font-black text-emerald-300">
+              <span className="text-xl font-black text-white font-bold">
                 {summary.activeTankAutonomyHours.toFixed(1)} Hours
               </span>
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[11px] text-white font-bold">
                 {activeDischargingTank.remainingNm3.toLocaleString()} Nm³
               </span>
             </div>
             <div className="pt-1.5 border-t border-slate-800/80 flex justify-between items-center text-[10px]">
-              <span className="text-slate-400">Total Yard ({yardInventorySummary.fullCount} Tanks):</span>
-              <span className="text-blue-400 font-bold">
+              <span className="text-white font-bold">Total Yard ({yardInventorySummary.fullCount} Tanks):</span>
+              <span className="text-white font-bold font-bold">
                 {summary.yardTotalAutonomyHours.toFixed(1)} Hours ({(yardInventorySummary.totalRemainingNm3 / 1000).toFixed(1)}k Nm³)
               </span>
             </div>
@@ -932,13 +932,13 @@ export default function NiasPowerThermalTab() {
               <div>
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/30">
-                    <Settings className="w-7 h-7 text-amber-400" />
+                    <Settings className="w-7 h-7 text-white font-bold" />
                   </div>
                   <div>
-                    <h3 className="text-xl md:text-2xl font-bold text-slate-100">
+                    <h3 className="text-xl md:text-2xl font-bold text-white font-bold">
                       MAN 7L 51/60 DF Engine Specification Settings
                     </h3>
-                    <p className="text-sm text-slate-400 mt-1">
+                    <p className="text-sm text-white font-bold mt-1">
                       Fine-tune thermodynamic constants: MCR, NCR, gas consumption rate, reference LHV, and nominal ISO tank volume.
                     </p>
                   </div>
@@ -947,7 +947,7 @@ export default function NiasPowerThermalTab() {
               <button
                 type="button"
                 onClick={() => setIsSpecModalOpen(false)}
-                className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+                className="text-white font-bold hover:text-white p-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <XCircle className="w-6 h-6" />
               </button>
@@ -955,9 +955,9 @@ export default function NiasPowerThermalTab() {
 
             {/* Fixed Engine Model Banner */}
             <div className="py-3.5 px-6 bg-slate-950 rounded-2xl border border-cyan-500/30 flex items-center justify-between flex-wrap gap-3 font-mono text-sm">
-              <span className="text-slate-400 font-semibold tracking-wide">Locked Base Generator Engine:</span>
-              <span className="text-base font-bold text-cyan-300 px-4 py-1.5 bg-cyan-950/70 rounded-xl border border-cyan-500/40 flex items-center gap-2 shadow-sm">
-                <ShieldCheck className="w-5 h-5 text-cyan-400" />
+              <span className="text-white font-bold font-bold tracking-wide">Locked Base Generator Engine:</span>
+              <span className="text-base font-bold text-white font-bold px-4 py-1.5 bg-cyan-950/70 rounded-xl border border-cyan-500/40 flex items-center gap-2 shadow-sm">
+                <ShieldCheck className="w-5 h-5 text-white font-bold" />
                 MAN 7L 51/60 DF (Standard PLTMG Dual-Fuel Unit)
               </span>
             </div>
@@ -968,7 +968,7 @@ export default function NiasPowerThermalTab() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 {/* Field 1: Unit MCR Power (kW) */}
                 <div className="space-y-2">
-                  <label className="text-xs md:text-sm font-semibold tracking-wider text-slate-300 uppercase block">
+                  <label className="text-xs md:text-sm font-bold tracking-wider text-white font-bold uppercase block">
                     Unit MCR Rated Power (kW)
                   </label>
                   <input
@@ -987,16 +987,16 @@ export default function NiasPowerThermalTab() {
                         ncrKwPerUnit: Math.round(newMcr * 0.9), // Auto-suggest 90% NCR
                       });
                     }}
-                    className="w-full h-13 py-3 px-4 bg-slate-950 border border-slate-800 text-amber-400 text-xl md:text-2xl font-mono font-black rounded-2xl focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner"
+                    className="w-full h-13 py-3 px-4 bg-slate-950 border border-slate-800 text-white font-bold text-xl md:text-2xl font-mono font-black rounded-2xl focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner"
                   />
-                  <span className="text-xs text-slate-400 block pl-1">
-                    Plant Total Capability (5 Units): <strong className="text-slate-200">{((draftSpec.mcrKwPerUnit * 5) / 1000).toFixed(2)} MW</strong>
+                  <span className="text-xs text-white font-bold block pl-1">
+                    Plant Total Capability (5 Units): <strong className="text-white font-bold">{((draftSpec.mcrKwPerUnit * 5) / 1000).toFixed(2)} MW</strong>
                   </span>
                 </div>
 
                 {/* Field 2: Unit NCR Power (kW) */}
                 <div className="space-y-2">
-                  <label className="text-xs md:text-sm font-semibold tracking-wider text-slate-300 uppercase block">
+                  <label className="text-xs md:text-sm font-bold tracking-wider text-white font-bold uppercase block">
                     Unit NCR Normal Continuous Rating (kW)
                   </label>
                   <input
@@ -1010,10 +1010,10 @@ export default function NiasPowerThermalTab() {
                       const val = e.target.value;
                       setDraftSpec({ ...draftSpec, ncrKwPerUnit: val === '' ? 0 : parseFloat(val) || 0 });
                     }}
-                    className="w-full h-13 py-3 px-4 bg-slate-950 border border-slate-800 text-yellow-400 text-xl md:text-2xl font-mono font-black rounded-2xl focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner"
+                    className="w-full h-13 py-3 px-4 bg-slate-950 border border-slate-800 text-white font-bold text-xl md:text-2xl font-mono font-black rounded-2xl focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner"
                   />
-                  <span className="text-xs text-slate-400 block pl-1">
-                    Continuous Target: <strong className="text-yellow-300">{draftSpec.mcrKwPerUnit > 0 ? ((draftSpec.ncrKwPerUnit / draftSpec.mcrKwPerUnit) * 100).toFixed(1) : 90}%</strong> of MCR ({((draftSpec.ncrKwPerUnit * 5) / 1000).toFixed(2)} MW Total)
+                  <span className="text-xs text-white font-bold block pl-1">
+                    Continuous Target: <strong className="text-white font-bold">{draftSpec.mcrKwPerUnit > 0 ? ((draftSpec.ncrKwPerUnit / draftSpec.mcrKwPerUnit) * 100).toFixed(1) : 90}%</strong> of MCR ({((draftSpec.ncrKwPerUnit * 5) / 1000).toFixed(2)} MW Total)
                   </span>
                 </div>
               </div>
@@ -1022,7 +1022,7 @@ export default function NiasPowerThermalTab() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 {/* Field 3: Gas Consumption Rate (kJ/kWh) */}
                 <div className="space-y-2">
-                  <label className="text-xs md:text-sm font-semibold tracking-wider text-slate-300 uppercase block">
+                  <label className="text-xs md:text-sm font-bold tracking-wider text-white font-bold uppercase block">
                     Gas Consumption Rate / Heat Rate (kJ/kWh)
                   </label>
                   <input
@@ -1036,16 +1036,16 @@ export default function NiasPowerThermalTab() {
                       const val = e.target.value;
                       setDraftSpec({ ...draftSpec, heatRateKjKwh: val === '' ? 0 : parseFloat(val) || 0 });
                     }}
-                    className="w-full h-13 py-3 px-4 bg-slate-950 border border-slate-800 text-cyan-300 text-xl md:text-2xl font-mono font-black rounded-2xl focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all shadow-inner"
+                    className="w-full h-13 py-3 px-4 bg-slate-950 border border-slate-800 text-white font-bold text-xl md:text-2xl font-mono font-black rounded-2xl focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all shadow-inner"
                   />
-                  <span className="text-xs text-slate-400 block pl-1">
-                    Thermal Efficiency: <strong className="text-cyan-300">{draftSpec.heatRateKjKwh > 0 ? ((3600 / draftSpec.heatRateKjKwh) * 100).toFixed(2) : 0}%</strong> (LHV Electrical)
+                  <span className="text-xs text-white font-bold block pl-1">
+                    Thermal Efficiency: <strong className="text-white font-bold">{draftSpec.heatRateKjKwh > 0 ? ((3600 / draftSpec.heatRateKjKwh) * 100).toFixed(2) : 0}%</strong> (LHV Electrical)
                   </span>
                 </div>
 
                 {/* Field 4: Reference Gas LHV (kJ/Nm3) */}
                 <div className="space-y-2">
-                  <label className="text-xs md:text-sm font-semibold tracking-wider text-slate-300 uppercase block">
+                  <label className="text-xs md:text-sm font-bold tracking-wider text-white font-bold uppercase block">
                     Design Fuel Gas LHV (kJ/Nm³)
                   </label>
                   <input
@@ -1059,17 +1059,17 @@ export default function NiasPowerThermalTab() {
                       const val = e.target.value;
                       setDraftSpec({ ...draftSpec, referenceLhvKjNm3: val === '' ? 0 : parseFloat(val) || 0 });
                     }}
-                    className="w-full h-13 py-3 px-4 bg-slate-950 border border-slate-800 text-slate-100 text-xl md:text-2xl font-mono font-black rounded-2xl focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner"
+                    className="w-full h-13 py-3 px-4 bg-slate-950 border border-slate-800 text-white font-bold text-xl md:text-2xl font-mono font-black rounded-2xl focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner"
                   />
-                  <span className="text-xs text-slate-400 block pl-1">
-                    Equivalent Heating Value: <strong className="text-slate-200">{(draftSpec.referenceLhvKjNm3 * 0.037446).toFixed(1)} BTU/SCF</strong>
+                  <span className="text-xs text-white font-bold block pl-1">
+                    Equivalent Heating Value: <strong className="text-white font-bold">{(draftSpec.referenceLhvKjNm3 * 0.037446).toFixed(1)} BTU/SCF</strong>
                   </span>
                 </div>
               </div>
 
               {/* Row 3: Nominal ISO Tank Volume */}
               <div className="space-y-2">
-                <label className="text-xs md:text-sm font-semibold tracking-wider text-slate-300 uppercase block">
+                <label className="text-xs md:text-sm font-bold tracking-wider text-white font-bold uppercase block">
                   Nominal ISO Tank Usable Gas Volume (Default Baseline Nm³/tank)
                 </label>
                 <input
@@ -1083,9 +1083,9 @@ export default function NiasPowerThermalTab() {
                     const val = e.target.value;
                     setDraftSpec({ ...draftSpec, isoTankGasVolumeNm3: val === '' ? 0 : parseFloat(val) || 0 });
                   }}
-                  className="w-full h-13 py-3 px-4 bg-slate-950 border border-slate-800 text-emerald-400 text-xl md:text-2xl font-mono font-black rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all shadow-inner"
+                  className="w-full h-13 py-3 px-4 bg-slate-950 border border-slate-800 text-white font-bold text-xl md:text-2xl font-mono font-black rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all shadow-inner"
                 />
-                <span className="text-xs text-slate-400 block pl-1 leading-relaxed">
+                <span className="text-xs text-white font-bold block pl-1 leading-relaxed">
                   💡 Used as fallback baseline when individual tank telemetry is unavailable. Actual real-time calculations prioritize active Bay tank live loaded volume & yard inventory.
                 </span>
               </div>
@@ -1095,9 +1095,9 @@ export default function NiasPowerThermalTab() {
                 <button
                   type="button"
                   onClick={() => setDraftSpec(DEFAULT_ENGINE_SPEC_CONFIG)}
-                  className="w-full sm:w-auto h-12 px-6 bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-white rounded-2xl border border-slate-800 text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+                  className="w-full sm:w-auto h-12 px-6 bg-slate-950 hover:bg-slate-800 text-white font-bold hover:text-white rounded-2xl border border-slate-800 text-sm font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
                 >
-                  <RotateCcw className="w-4 h-4 text-slate-400" />
+                  <RotateCcw className="w-4 h-4 text-white font-bold" />
                   <span>Restore Official MAN</span>
                 </button>
 
@@ -1105,7 +1105,7 @@ export default function NiasPowerThermalTab() {
                   <button
                     type="button"
                     onClick={() => setIsSpecModalOpen(false)}
-                    className="flex-1 sm:flex-none h-12 px-6 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-sm font-semibold transition-colors cursor-pointer"
+                    className="flex-1 sm:flex-none h-12 px-6 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl text-sm font-bold transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>

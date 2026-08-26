@@ -40,104 +40,104 @@ const SUBPROCESS_TITLES: Record<
   NIAS_TERMINAL_OVERVIEW: {
     location: 'Nias Regas Terminal',
     process: '🌐 Terminal Integrated Overview & PFD',
-    icon: <Activity className="w-4 h-4 text-emerald-400" />,
-    color: 'text-emerald-400',
+    icon: <Activity className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   'terminal-overview': {
     location: 'Nias Regas Terminal',
     process: '🌐 Terminal Integrated Overview & PFD',
-    icon: <Activity className="w-4 h-4 text-emerald-400" />,
-    color: 'text-emerald-400',
+    icon: <Activity className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   ARUN_LOADING_COQ: {
     location: 'Arun PAG Terminal',
     process: 'Loading & COQ Workspace',
-    icon: <Building2 className="w-4 h-4 text-blue-400" />,
-    color: 'text-blue-400',
+    icon: <Building2 className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   ARUN_MASTER_HISTORY: {
     location: 'Arun PAG Terminal',
     process: 'Master History Archive',
-    icon: <Building2 className="w-4 h-4 text-blue-400" />,
-    color: 'text-blue-400',
+    icon: <Building2 className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   SAVIOUR_VOYAGE_MONITORING: {
     location: 'MV. Saviour Transit',
     process: 'Voyage Fleet Monitoring',
-    icon: <Ship className="w-4 h-4 text-cyan-400" />,
-    color: 'text-cyan-400',
+    icon: <Ship className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   SAVIOUR_MARINE_PRESSURE: {
     location: 'MV. Saviour Transit',
     process: 'Marine Pressure & BOG Log',
-    icon: <Ship className="w-4 h-4 text-cyan-400" />,
-    color: 'text-cyan-400',
+    icon: <Ship className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   NIAS_TANK_OVERVIEW: {
     location: 'Nias Regas Terminal',
     process: 'Domain 1: 🌐 Overview & Yard Map',
-    icon: <Building2 className="w-4 h-4 text-blue-400" />,
-    color: 'text-blue-400',
+    icon: <Building2 className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   NIAS_LAYDOWN_1_2_LOG: {
     location: 'Nias Regas Terminal',
     process: 'Domain 1: 📥 Laydown 1 Condition & BOG',
-    icon: <MapPin className="w-4 h-4 text-blue-400" />,
-    color: 'text-blue-400',
+    icon: <MapPin className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   NIAS_ACTIVE_BAY_TANKS: {
     location: 'Nias Regas Terminal',
     process: 'Domain 1: 🏷️ Active Bay Mounted Tanks',
-    icon: <Flame className="w-4 h-4 text-blue-400" />,
-    color: 'text-blue-400',
+    icon: <Flame className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   NIAS_LAYDOWN_3_HEEL: {
     location: 'Nias Regas Terminal',
     process: 'Domain 1: 🔄 Laydown 2 (Heel 4% Staging)',
-    icon: <MapPin className="w-4 h-4 text-purple-400" />,
-    color: 'text-purple-400',
+    icon: <MapPin className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   NIAS_GAS_PROCESS_TELEMETRY: {
     location: 'Nias Regas Terminal',
     process: 'Domain 2: 📊 Gas Process Telemetry',
-    icon: <Activity className="w-4 h-4 text-amber-400" />,
-    color: 'text-amber-400',
+    icon: <Activity className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   NIAS_GC_GAS_QUALITY: {
     location: 'Nias Regas Terminal',
     process: 'Domain 2: 🔬 GC & Gas Quality Stream',
-    icon: <Activity className="w-4 h-4 text-cyan-400" />,
-    color: 'text-cyan-400',
+    icon: <Activity className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   NIAS_PLTMG_POWER_OUTPUT: {
     location: 'Nias Regas Terminal',
     process: 'Domain 2: ⚡ PLTMG Power & Output',
-    icon: <Activity className="w-4 h-4 text-amber-400" />,
-    color: 'text-amber-400',
+    icon: <Activity className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   NIAS_HEAT_SETTLEMENT: {
     location: 'Nias Regas Terminal',
     process: 'Domain 2: ⚖️ Custody Heat Settlement',
-    icon: <Scale className="w-4 h-4 text-indigo-400" />,
-    color: 'text-indigo-400',
+    icon: <Scale className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   MAINTENANCE_MRO_HUB: {
     location: 'Maintenance & Repair Depot',
     process: 'Emergency MRO & Recertification',
-    icon: <Wrench className="w-4 h-4 text-amber-400" />,
-    color: 'text-amber-400',
+    icon: <Wrench className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   GLOBAL_FLEET_HUB: {
     location: 'System Hub',
     process: 'Global ISO Tank Fleet Control Center',
-    icon: <Globe className="w-4 h-4 text-blue-400" />,
-    color: 'text-blue-400',
+    icon: <Globe className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
   DATA_INGESTION_HUB: {
     location: 'System Hub',
     process: 'Automatic 7 CSV Data Ingestion Hub',
-    icon: <Database className="w-4 h-4 text-blue-400" />,
-    color: 'text-blue-400',
+    icon: <Database className="w-4 h-4 text-white font-bold" />,
+    color: 'text-white font-bold',
   },
 };
 
@@ -197,10 +197,10 @@ function LNGPortalInner() {
   return (
     <div className={`min-h-screen font-sans selection:bg-blue-500/30 flex transition-colors duration-200 ${
       theme === 'PURE_WHITE'
-        ? 'bg-white text-slate-900'
+        ? 'bg-white text-white font-bold'
         : theme === 'INDUSTRIAL_LIGHT'
-        ? 'bg-slate-100 text-slate-800'
-        : 'bg-slate-950 text-slate-200'
+        ? 'bg-slate-100 text-white font-bold'
+        : 'bg-slate-950 text-white font-bold'
     }`}>
       {/* Left Sidebar Navigation */}
       <SidebarNav
@@ -233,15 +233,15 @@ function LNGPortalInner() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-                className="lg:hidden p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+                className="lg:hidden p-2 rounded-lg bg-slate-900 border border-slate-800 text-white font-bold hover:text-white"
               >
                 {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
 
-              <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
-                <span className="text-slate-400 hidden sm:inline">{currentNav.location}</span>
-                <span className="text-slate-600 hidden sm:inline">/</span>
-                <div className="flex items-center gap-1.5 font-bold text-slate-100">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-bold">
+                <span className="text-white font-bold hidden sm:inline">{currentNav.location}</span>
+                <span className="text-white font-bold hidden sm:inline">/</span>
+                <div className="flex items-center gap-1.5 font-bold text-white font-bold">
                   {currentNav.icon}
                   <span>{currentNav.process}</span>
                 </div>
@@ -251,24 +251,24 @@ function LNGPortalInner() {
             {/* Right: Live Telemetry Tickers & 3-Way Theme Switcher */}
             <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
               {/* 3-Way Theme Switcher */}
-              <div className={`flex items-center p-1 rounded-xl border text-xs font-semibold gap-1 ${
+              <div className={`flex items-center p-1 rounded-xl border text-xs font-bold gap-1 ${
                 theme === 'PURE_WHITE'
-                  ? 'bg-slate-100 border-slate-200 text-slate-800'
+                  ? 'bg-slate-100 border-slate-200 text-white font-bold'
                   : theme === 'INDUSTRIAL_LIGHT'
-                  ? 'bg-slate-200/80 border-slate-300 text-slate-700'
-                  : 'bg-slate-900/90 border-slate-800 text-slate-300'
+                  ? 'bg-slate-200/80 border-slate-300 text-white font-bold'
+                  : 'bg-slate-900/90 border-slate-800 text-white font-bold'
               }`}>
                 <button
                   type="button"
                   onClick={() => setTheme('PURE_WHITE')}
                   className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all cursor-pointer ${
                     theme === 'PURE_WHITE'
-                      ? 'bg-white text-slate-900 font-bold shadow-sm ring-1 ring-slate-300'
-                      : 'text-slate-500 hover:text-slate-800'
+                      ? 'bg-white text-white font-bold font-bold shadow-sm ring-1 ring-slate-300'
+                      : 'text-white font-bold hover:text-white font-bold'
                   }`}
                   title="Theme A: Pure White (High Contrast Daylight)"
                 >
-                  <Sun className="w-3.5 h-3.5 text-amber-600" />
+                  <Sun className="w-3.5 h-3.5 text-white font-bold" />
                   <span className="hidden sm:inline">Pure White</span>
                 </button>
 
@@ -277,12 +277,12 @@ function LNGPortalInner() {
                   onClick={() => setTheme('INDUSTRIAL_LIGHT')}
                   className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all cursor-pointer ${
                     theme === 'INDUSTRIAL_LIGHT'
-                      ? 'bg-white text-indigo-900 font-bold shadow-sm ring-1 ring-slate-300'
-                      : 'text-slate-500 hover:text-slate-800'
+                      ? 'bg-white text-white font-bold font-bold shadow-sm ring-1 ring-slate-300'
+                      : 'text-white font-bold hover:text-white font-bold'
                   }`}
                   title="Theme B: Industrial Light Slate (Soft Industrial Eye-Care)"
                 >
-                  <CloudSun className="w-3.5 h-3.5 text-sky-600" />
+                  <CloudSun className="w-3.5 h-3.5 text-white font-bold" />
                   <span className="hidden sm:inline">Industrial Light</span>
                 </button>
 
@@ -291,12 +291,12 @@ function LNGPortalInner() {
                   onClick={() => setTheme('CYBER_DARK')}
                   className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all cursor-pointer ${
                     theme === 'CYBER_DARK'
-                      ? 'bg-slate-800 text-cyan-300 font-bold shadow-sm ring-1 ring-slate-700'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-slate-800 text-white font-bold font-bold shadow-sm ring-1 ring-slate-700'
+                      : 'text-white font-bold hover:text-white font-bold'
                   }`}
                   title="Theme C: Cyber Dark (Night / Control Room)"
                 >
-                  <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                  <Moon className="w-3.5 h-3.5 text-white font-bold" />
                   <span className="hidden sm:inline">Cyber Dark</span>
                 </button>
               </div>
@@ -308,9 +308,9 @@ function LNGPortalInner() {
                   ? 'bg-white border-slate-300'
                   : 'bg-slate-900/70 border-slate-800'
               }`}>
-                <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-                <span className={theme === 'CYBER_DARK' ? 'text-slate-400' : 'text-slate-600'}>Total Fleet:</span>
-                <span className={`font-mono font-bold ${theme === 'CYBER_DARK' ? 'text-blue-400' : 'text-blue-700'}`}>
+                <Radio className="w-3.5 h-3.5 text-white font-bold animate-pulse" />
+                <span className={theme === 'CYBER_DARK' ? 'text-white font-bold' : 'text-white font-bold'}>Total Fleet:</span>
+                <span className={`font-mono font-bold ${theme === 'CYBER_DARK' ? 'text-white font-bold' : 'text-white font-bold'}`}>
                   {fleetTanks.length} Tanks
                 </span>
               </div>
@@ -318,7 +318,7 @@ function LNGPortalInner() {
               {mroCount > 0 && (
                 <button
                   onClick={() => handleSelectSubProcess('MAINTENANCE_MRO_HUB')}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-600 text-xs font-semibold hover:bg-amber-500/25 transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-white font-bold text-xs font-bold hover:bg-amber-500/25 transition-colors"
                 >
                   <Wrench className="w-3.5 h-3.5" />
                   <span>{mroCount} in MRO</span>
@@ -326,14 +326,14 @@ function LNGPortalInner() {
               )}
 
               {activeBaysCount > 0 && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 font-bold text-xs">
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-white font-bold font-bold text-xs">
                   <Flame className="w-3.5 h-3.5 animate-pulse" />
                   <span>{activeBaysCount} Regas Active</span>
                 </div>
               )}
 
               {disputeCount > 0 && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/15 border border-red-500/30 text-red-600 text-xs font-semibold">
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/15 border border-red-500/30 text-white font-bold text-xs font-bold">
                   <Scale className="w-3.5 h-3.5" />
                   <span>{disputeCount} Disputes</span>
                 </div>
@@ -345,9 +345,9 @@ function LNGPortalInner() {
         {/* Dynamic Workspace Route View */}
         <main className="flex-1 w-full p-4 sm:p-6 lg:p-8 xl:p-10 max-w-[2200px]">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-400">
-              <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-              <p className="text-sm font-semibold">Hydrating 7 CSV operational datasets ...</p>
+            <div className="flex flex-col items-center justify-center py-24 gap-3 text-white font-bold">
+              <Loader2 className="w-8 h-8 text-white font-bold animate-spin" />
+              <p className="text-sm font-bold">Hydrating 7 CSV operational datasets ...</p>
             </div>
           ) : (
             <div className="animate-in fade-in duration-300 w-full">
