@@ -3,6 +3,7 @@
 
 import React, { useMemo } from 'react';
 import { usePortalData } from '../context/PortalDataContext';
+import { useTheme } from '../context/ThemeContext';
 import { NodeState, SubProcessKey } from '../types/lng';
 import {
   Anchor,
@@ -44,6 +45,7 @@ export default function SidebarNav({
   onCloseMobile,
 }: SidebarNavProps) {
   const { fleetTanks, activeBays, settlementRecords, ingestionStatuses } = usePortalData();
+  const { theme, isDark } = useTheme();
 
   // Compute live tank distribution by node
   const counts = useMemo(() => {
@@ -90,26 +92,38 @@ export default function SidebarNav({
 
   return (
     <aside
-      className={`fixed lg:sticky top-0 left-0 z-40 h-screen w-72 sm:w-80 bg-slate-950/95 backdrop-blur-2xl border-r border-slate-800/80 flex flex-col justify-between transition-transform duration-300 ${
-        isOpenMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      }`}
+      className={`fixed lg:sticky top-0 left-0 z-40 h-screen w-72 sm:w-80 backdrop-blur-2xl border-r flex flex-col justify-between transition-all duration-200 ${
+        theme === 'PURE_WHITE'
+          ? 'bg-white border-slate-200 text-slate-900 shadow-xl'
+          : theme === 'INDUSTRIAL_LIGHT'
+          ? 'bg-slate-50 border-slate-300 text-slate-800 shadow-lg'
+          : 'bg-slate-950/95 border-slate-800/80 text-slate-100'
+      } ${isOpenMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
     >
       {/* Top Branding Section */}
-      <div className="p-4 sm:p-5 border-b border-slate-800/80 flex items-center justify-between shrink-0">
+      <div className={`p-4 sm:p-5 border-b flex items-center justify-between shrink-0 ${
+        theme === 'PURE_WHITE' ? 'border-slate-200' : theme === 'INDUSTRIAL_LIGHT' ? 'border-slate-300' : 'border-slate-800/80'
+      }`}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/30">
             <span className="text-white font-black text-sm tracking-wider">LNG</span>
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-slate-100 whitespace-nowrap">
+              <h1 className={`font-extrabold text-sm sm:text-base tracking-tight whitespace-nowrap ${
+                isDark ? 'text-slate-100' : 'text-slate-900'
+              }`}>
                 Virtual Pipeline
               </h1>
-              <span className="px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-[9px] font-mono text-blue-400 font-semibold">
+              <span className={`px-1.5 py-0.5 rounded border text-[9px] font-mono font-semibold ${
+                isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700'
+              }`}>
                 v2.5
               </span>
             </div>
-            <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold block">
+            <span className={`text-[10px] uppercase tracking-widest font-semibold block ${
+              isDark ? 'text-slate-400' : 'text-slate-500'
+            }`}>
               Closed-Loop & MRO Portal
             </span>
           </div>
@@ -119,12 +133,18 @@ export default function SidebarNav({
       {/* Navigation Groups */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-5 custom-scrollbar">
         {/* Fleet Ticker Summary */}
-        <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between text-xs font-mono">
-          <div className="flex items-center gap-2 text-slate-400">
-            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+        <div className={`p-2.5 rounded-xl border flex items-center justify-between text-xs font-mono ${
+          theme === 'PURE_WHITE'
+            ? 'bg-slate-50 border-slate-200 text-slate-700'
+            : theme === 'INDUSTRIAL_LIGHT'
+            ? 'bg-white border-slate-300 text-slate-800'
+            : 'bg-slate-900/60 border-slate-800/80 text-slate-400'
+        }`}>
+          <div className="flex items-center gap-2">
+            <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
             <span>Active Fleet:</span>
           </div>
-          <span className="font-bold text-blue-400">{counts.totalFleet} ISO Tanks</span>
+          <span className={`font-bold ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>{counts.totalFleet} ISO Tanks</span>
         </div>
 
         {/* ========================================================= */}

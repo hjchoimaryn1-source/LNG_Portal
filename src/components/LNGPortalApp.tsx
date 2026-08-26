@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { PortalDataProvider, usePortalData } from '../context/PortalDataContext';
+import { ThemeProvider, useTheme, AppTheme } from '../context/ThemeContext';
 import { SubProcessKey } from '../types/lng';
 import SidebarNav from './SidebarNav';
 import ArunTerminalView from './locations/ArunTerminalView';
@@ -25,6 +26,9 @@ import {
   Wrench,
   Globe,
   Activity,
+  Sun,
+  CloudSun,
+  Moon,
 } from 'lucide-react';
 
 const SUBPROCESS_TITLES: Record<
@@ -188,6 +192,7 @@ const SUBPROCESS_TITLES: Record<
 };
 
 function LNGPortalInner() {
+  const { theme, setTheme } = useTheme();
   const [activeKey, setActiveKey] = useState<SubProcessKey>('NIAS_TERMINAL_OVERVIEW');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const { fleetTanks, activeBays, settlementRecords, isLoading } = usePortalData();
@@ -198,7 +203,13 @@ function LNGPortalInner() {
   const currentNav = SUBPROCESS_TITLES[activeKey] || SUBPROCESS_TITLES.NIAS_OPERATIONS_OVERVIEW;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-blue-500/30 flex">
+    <div className={`min-h-screen font-sans selection:bg-blue-500/30 flex transition-colors duration-200 ${
+      theme === 'PURE_WHITE'
+        ? 'bg-white text-slate-900'
+        : theme === 'INDUSTRIAL_LIGHT'
+        ? 'bg-slate-100 text-slate-800'
+        : 'bg-slate-950 text-slate-200'
+    }`}>
       {/* Left Sidebar Navigation */}
       <SidebarNav
         activeKey={activeKey}
@@ -218,7 +229,13 @@ function LNGPortalInner() {
       {/* Right Main Content Body */}
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
         {/* Top Sticky Header */}
-        <header className="sticky top-0 z-20 bg-slate-950/85 backdrop-blur-xl border-b border-slate-800/80 shadow-md">
+        <header className={`sticky top-0 z-20 backdrop-blur-xl border-b shadow-sm transition-colors duration-200 ${
+          theme === 'PURE_WHITE'
+            ? 'bg-white/95 border-slate-200 shadow-slate-100'
+            : theme === 'INDUSTRIAL_LIGHT'
+            ? 'bg-slate-50/95 border-slate-300 shadow-slate-200/50'
+            : 'bg-slate-950/85 border-slate-800/80 shadow-md'
+        }`}>
           <div className="w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
             {/* Left: Mobile Toggle & Breadcrumbs */}
             <div className="flex items-center gap-3">
@@ -239,18 +256,77 @@ function LNGPortalInner() {
               </div>
             </div>
 
-            {/* Right: Live Telemetry Tickers */}
-            <div className="flex items-center gap-2.5 shrink-0">
-              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/70 border border-slate-800 text-xs">
-                <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                <span className="text-slate-400">Total Fleet:</span>
-                <span className="font-mono font-bold text-blue-400">{fleetTanks.length} Tanks</span>
+            {/* Right: Live Telemetry Tickers & 3-Way Theme Switcher */}
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+              {/* 3-Way Theme Switcher */}
+              <div className={`flex items-center p-1 rounded-xl border text-xs font-semibold gap-1 ${
+                theme === 'PURE_WHITE'
+                  ? 'bg-slate-100 border-slate-200 text-slate-800'
+                  : theme === 'INDUSTRIAL_LIGHT'
+                  ? 'bg-slate-200/80 border-slate-300 text-slate-700'
+                  : 'bg-slate-900/90 border-slate-800 text-slate-300'
+              }`}>
+                <button
+                  type="button"
+                  onClick={() => setTheme('PURE_WHITE')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all cursor-pointer ${
+                    theme === 'PURE_WHITE'
+                      ? 'bg-white text-slate-900 font-bold shadow-sm ring-1 ring-slate-300'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                  title="Theme A: Pure White (High Contrast Daylight)"
+                >
+                  <Sun className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="hidden sm:inline">Pure White</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme('INDUSTRIAL_LIGHT')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all cursor-pointer ${
+                    theme === 'INDUSTRIAL_LIGHT'
+                      ? 'bg-white text-indigo-900 font-bold shadow-sm ring-1 ring-slate-300'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                  title="Theme B: Industrial Light Slate (Soft Industrial Eye-Care)"
+                >
+                  <CloudSun className="w-3.5 h-3.5 text-sky-600" />
+                  <span className="hidden sm:inline">Industrial Light</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme('CYBER_DARK')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all cursor-pointer ${
+                    theme === 'CYBER_DARK'
+                      ? 'bg-slate-800 text-cyan-300 font-bold shadow-sm ring-1 ring-slate-700'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Theme C: Cyber Dark (Night / Control Room)"
+                >
+                  <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="hidden sm:inline">Cyber Dark</span>
+                </button>
+              </div>
+
+              <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs ${
+                theme === 'PURE_WHITE'
+                  ? 'bg-slate-50 border-slate-200'
+                  : theme === 'INDUSTRIAL_LIGHT'
+                  ? 'bg-white border-slate-300'
+                  : 'bg-slate-900/70 border-slate-800'
+              }`}>
+                <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+                <span className={theme === 'CYBER_DARK' ? 'text-slate-400' : 'text-slate-600'}>Total Fleet:</span>
+                <span className={`font-mono font-bold ${theme === 'CYBER_DARK' ? 'text-blue-400' : 'text-blue-700'}`}>
+                  {fleetTanks.length} Tanks
+                </span>
               </div>
 
               {mroCount > 0 && (
                 <button
                   onClick={() => setActiveKey('MAINTENANCE_MRO_HUB')}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-semibold hover:bg-amber-500/25 transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-600 text-xs font-semibold hover:bg-amber-500/25 transition-colors"
                 >
                   <Wrench className="w-3.5 h-3.5" />
                   <span>{mroCount} in MRO</span>
@@ -258,14 +334,14 @@ function LNGPortalInner() {
               )}
 
               {activeBaysCount > 0 && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 font-bold text-xs">
                   <Flame className="w-3.5 h-3.5 animate-pulse" />
                   <span>{activeBaysCount} Regas Active</span>
                 </div>
               )}
 
               {disputeCount > 0 && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold">
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/15 border border-red-500/30 text-red-600 text-xs font-semibold">
                   <Scale className="w-3.5 h-3.5" />
                   <span>{disputeCount} Disputes</span>
                 </div>
@@ -345,8 +421,10 @@ function LNGPortalInner() {
 
 export default function LNGPortalApp() {
   return (
-    <PortalDataProvider>
-      <LNGPortalInner />
-    </PortalDataProvider>
+    <ThemeProvider>
+      <PortalDataProvider>
+        <LNGPortalInner />
+      </PortalDataProvider>
+    </ThemeProvider>
   );
 }

@@ -3,6 +3,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { usePortalData } from '../../context/PortalDataContext';
+import { useTheme } from '../../context/ThemeContext';
 import { DailyMasterRecord, DefectCategory, FleetTankItem, NodeState } from '../../types/lng';
 import SettlementAuditView from '../SettlementAuditView';
 import { NiasActiveBayWorkspace } from './nias/NiasActiveBayWorkspace';
@@ -130,6 +131,7 @@ export default function NiasTerminalView({
   initialDomain = 'TERMINAL_OVERVIEW',
   initialSubTab = 'TERMINAL_OVERVIEW',
 }: NiasTerminalViewProps) {
+  const { theme, isDark } = useTheme();
   const {
     fleetTanks,
     dailyMasterRecords,
@@ -1316,28 +1318,38 @@ export default function NiasTerminalView({
       )}
 
       {/* Top Header & 2-Domain Switcher Navigation */}
-      <section className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
+      <section className={`border rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col gap-4 transition-colors duration-200 ${
+        isDark
+          ? 'bg-slate-900/80 border-slate-800 text-slate-100'
+          : theme === 'PURE_WHITE'
+          ? 'bg-slate-50 border-slate-200 text-slate-900 shadow-sm'
+          : 'bg-white border-slate-300 text-slate-800 shadow-sm'
+      }`}>
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
-              <MapPin className="w-6 h-6 text-emerald-400" />
-              <h2 className="text-lg sm:text-xl font-bold text-slate-100">
+              <MapPin className="w-6 h-6 text-emerald-600" />
+              <h2 className={`text-lg sm:text-xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                 Nias Regasification Terminal (ORU Nias, Gunungsitoli)
               </h2>
             </div>
-            <p className="text-xs text-slate-400">
+            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
               Clean 2-domain architecture separating physical ISO Tank Lifecycle from the Gas-to-Power Process.
             </p>
           </div>
 
           {/* Core 3-Level Switcher (Integrated Overview + 2 Major Operational Domains) */}
-          <div className="flex items-center bg-slate-950 p-1.5 rounded-2xl border border-slate-800 shadow-inner gap-1.5 flex-wrap">
+          <div className={`flex items-center p-1.5 rounded-2xl border shadow-inner gap-1.5 flex-wrap ${
+            isDark ? 'bg-slate-950 border-slate-800' : theme === 'PURE_WHITE' ? 'bg-white border-slate-200' : 'bg-slate-100 border-slate-300'
+          }`}>
             <button
               onClick={() => setActiveDomain('TERMINAL_OVERVIEW')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 activeDomain === 'TERMINAL_OVERVIEW'
                   ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25 ring-1 ring-emerald-400/50'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  : isDark
+                  ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
               <Activity className="w-4 h-4 text-emerald-300" />
@@ -1352,7 +1364,9 @@ export default function NiasTerminalView({
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 activeDomain === 'ISO_TANK_MGMT'
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 ring-1 ring-blue-400/50'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  : isDark
+                  ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
               <Box className="w-4 h-4 text-blue-300" />
@@ -1367,7 +1381,9 @@ export default function NiasTerminalView({
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 activeDomain === 'REGAS_SYSTEM'
                   ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/25 ring-1 ring-amber-400/50'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  : isDark
+                  ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
               <Zap className="w-4 h-4 text-amber-300" />
@@ -1380,29 +1396,39 @@ export default function NiasTerminalView({
         </div>
 
         {/* Sub-Tab Navigation Bar (Contextual to the Selected Domain) */}
-        <div className="flex items-center justify-between border-t border-slate-800/80 pt-3 overflow-x-auto">
+        <div className={`flex items-center justify-between border-t pt-3 overflow-x-auto ${
+          isDark ? 'border-slate-800/80' : 'border-slate-200'
+        }`}>
           {activeDomain === 'TERMINAL_OVERVIEW' ? (
-            <div className="flex items-center bg-slate-950/80 p-1.5 px-3 rounded-xl border border-slate-800 text-xs font-semibold text-slate-300 flex-wrap gap-2">
-              <span className="text-emerald-400 flex items-center gap-1.5 font-bold">
+            <div className={`flex items-center p-1.5 px-3 rounded-xl border text-xs font-semibold flex-wrap gap-2 ${
+              isDark ? 'bg-slate-950/80 border-slate-800 text-slate-300' : 'bg-slate-100/90 border-slate-200 text-slate-700'
+            }`}>
+              <span className={`flex items-center gap-1.5 font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
                 <Activity className="w-4 h-4" />
                 Virtual Pipeline 5-Node Process Flow Diagram & Daily Confirmed Operational KPI Suite
               </span>
-              <span className="text-slate-500">|</span>
-              <span className="text-[11px] font-mono text-slate-400">
+              <span className="text-slate-400">|</span>
+              <span className={`text-[11px] font-mono ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                 Arun Loading ➔ Sea Transit ➔ Nias Decanting ➔ Vaporizer/PRSS ➔ PLTMG Hall
               </span>
             </div>
           ) : activeDomain === 'ISO_TANK_MGMT' ? (
-            <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs font-semibold whitespace-nowrap gap-1">
+            <div className={`flex items-center p-1 rounded-xl border text-xs font-semibold whitespace-nowrap gap-1 ${
+              isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-100 border-slate-200'
+            }`}>
               <button
                 onClick={() => setTankSubTab('TANK_OVERVIEW')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
                   tankSubTab === 'TANK_OVERVIEW'
-                    ? 'bg-blue-600/25 text-blue-300 border border-blue-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? isDark
+                      ? 'bg-blue-600/25 text-blue-300 border border-blue-500/40 shadow-sm'
+                      : 'bg-white text-blue-800 font-bold border border-blue-200 shadow-sm'
+                    : isDark
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5 text-blue-400" />
+                <Layers className="w-3.5 h-3.5 text-blue-500" />
                 <span>🌐 1. Overview & Visual Yard Map</span>
               </button>
 
@@ -1410,11 +1436,15 @@ export default function NiasTerminalView({
                 onClick={() => setTankSubTab('LAYDOWN_1_2_LOG')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
                   tankSubTab === 'LAYDOWN_1_2_LOG'
-                    ? 'bg-blue-600/25 text-blue-300 border border-blue-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? isDark
+                      ? 'bg-blue-600/25 text-blue-300 border border-blue-500/40 shadow-sm'
+                      : 'bg-white text-blue-800 font-bold border border-blue-200 shadow-sm'
+                    : isDark
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <FileText className="w-3.5 h-3.5 text-blue-400" />
+                <FileText className="w-3.5 h-3.5 text-blue-500" />
                 <span>📥 2. Laydown 1 Condition & BOG Log ({masterInspectionList.length})</span>
               </button>
 
@@ -1422,11 +1452,15 @@ export default function NiasTerminalView({
                 onClick={() => setTankSubTab('ACTIVE_BAY_TANKS')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
                   tankSubTab === 'ACTIVE_BAY_TANKS'
-                    ? 'bg-blue-600/25 text-blue-300 border border-blue-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? isDark
+                      ? 'bg-blue-600/25 text-blue-300 border border-blue-500/40 shadow-sm'
+                      : 'bg-white text-blue-800 font-bold border border-blue-200 shadow-sm'
+                    : isDark
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Tag className="w-3.5 h-3.5 text-blue-400" />
+                <Tag className="w-3.5 h-3.5 text-blue-500" />
                 <span>🏷️ 3. Active Bay Mounted Tanks ({zoneStats.activeBaysCount}/4)</span>
               </button>
 
@@ -1434,11 +1468,15 @@ export default function NiasTerminalView({
                 onClick={() => setTankSubTab('LAYDOWN_3_HEEL')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
                   tankSubTab === 'LAYDOWN_3_HEEL'
-                    ? 'bg-purple-600/25 text-purple-300 border border-purple-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? isDark
+                      ? 'bg-purple-600/25 text-purple-300 border border-purple-500/40 shadow-sm'
+                      : 'bg-white text-purple-800 font-bold border border-purple-200 shadow-sm'
+                    : isDark
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <RotateCcw className="w-3.5 h-3.5 text-purple-400" />
+                <RotateCcw className="w-3.5 h-3.5 text-purple-500" />
                 <span>🔄 4. Laydown 2 (Heel 4% Staging) ({zoneStats.yard2.count})</span>
               </button>
 
@@ -1446,25 +1484,35 @@ export default function NiasTerminalView({
                 onClick={() => setTankSubTab('TANK_MASS_BALANCE')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
                   tankSubTab === 'TANK_MASS_BALANCE'
-                    ? 'bg-blue-600/25 text-blue-300 border border-blue-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? isDark
+                      ? 'bg-blue-600/25 text-blue-300 border border-blue-500/40 shadow-sm'
+                      : 'bg-white text-blue-800 font-bold border border-blue-200 shadow-sm'
+                    : isDark
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Scale className="w-3.5 h-3.5 text-cyan-400" />
+                <Scale className="w-3.5 h-3.5 text-cyan-500" />
                 <span>⚖️ 5. ISO Tank Mass Balance & Depressurization Log</span>
               </button>
             </div>
           ) : (
-            <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs font-semibold whitespace-nowrap gap-1">
+            <div className={`flex items-center p-1 rounded-xl border text-xs font-semibold whitespace-nowrap gap-1 ${
+              isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-100 border-slate-200'
+            }`}>
               <button
                 onClick={() => setRegasSubTab('GAS_PROCESS_TELEMETRY')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
                   regasSubTab === 'GAS_PROCESS_TELEMETRY'
-                    ? 'bg-amber-600/25 text-amber-300 border border-amber-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? isDark
+                      ? 'bg-amber-600/25 text-amber-300 border border-amber-500/40 shadow-sm'
+                      : 'bg-white text-amber-800 font-bold border border-amber-200 shadow-sm'
+                    : isDark
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Activity className="w-3.5 h-3.5 text-amber-400" />
+                <Activity className="w-3.5 h-3.5 text-amber-500" />
                 <span>📊 1. Gas Process & State Telemetry</span>
               </button>
 
@@ -1472,11 +1520,15 @@ export default function NiasTerminalView({
                 onClick={() => setRegasSubTab('GC_GAS_QUALITY')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
                   regasSubTab === 'GC_GAS_QUALITY'
-                    ? 'bg-amber-600/25 text-amber-300 border border-amber-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? isDark
+                      ? 'bg-amber-600/25 text-amber-300 border border-amber-500/40 shadow-sm'
+                      : 'bg-white text-amber-800 font-bold border border-amber-200 shadow-sm'
+                    : isDark
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <FlaskConical className="w-3.5 h-3.5 text-cyan-400" />
+                <FlaskConical className="w-3.5 h-3.5 text-cyan-500" />
                 <span>🔬 2. GC & Gas Quality Stream</span>
               </button>
 
@@ -1484,11 +1536,15 @@ export default function NiasTerminalView({
                 onClick={() => setRegasSubTab('PLTMG_POWER_OUTPUT')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
                   regasSubTab === 'PLTMG_POWER_OUTPUT'
-                    ? 'bg-amber-600/25 text-amber-300 border border-amber-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? isDark
+                      ? 'bg-amber-600/25 text-amber-300 border border-amber-500/40 shadow-sm'
+                      : 'bg-white text-amber-800 font-bold border border-amber-200 shadow-sm'
+                    : isDark
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Zap className="w-3.5 h-3.5 text-amber-400" />
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
                 <span>⚡ 3. PLTMG Power & Thermal Output</span>
               </button>
 
@@ -1496,14 +1552,18 @@ export default function NiasTerminalView({
                 onClick={() => setRegasSubTab('CUSTODY_HEAT_SETTLEMENT')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
                   regasSubTab === 'CUSTODY_HEAT_SETTLEMENT'
-                    ? 'bg-indigo-600/25 text-indigo-300 border border-indigo-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? isDark
+                      ? 'bg-indigo-600/25 text-indigo-300 border border-indigo-500/40 shadow-sm'
+                      : 'bg-white text-indigo-800 font-bold border border-indigo-200 shadow-sm'
+                    : isDark
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Scale className="w-3.5 h-3.5 text-indigo-400" />
+                <Scale className="w-3.5 h-3.5 text-indigo-500" />
                 <span>⚖️ 4. Custody Heat Settlement</span>
                 {disputeCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full bg-red-500/20 text-red-400 text-[9px] font-bold">
+                  <span className="px-1.5 py-0.2 rounded-full bg-red-500/20 text-red-500 text-[9px] font-bold">
                     {disputeCount} Alert
                   </span>
                 )}
