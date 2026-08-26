@@ -195,13 +195,7 @@ function LNGPortalInner() {
   };
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-blue-500/30 flex transition-colors duration-200 ${
-      theme === 'PURE_WHITE'
-        ? 'bg-white text-white font-bold'
-        : theme === 'INDUSTRIAL_LIGHT'
-        ? 'bg-slate-100 text-white font-bold'
-        : 'bg-slate-950 text-white font-bold'
-    }`}>
+    <div className="min-h-screen bg-slate-100 text-slate-900 font-sans selection:bg-blue-500/30 flex transition-colors duration-200">
       {/* Left Sidebar Navigation */}
       <SidebarNav
         activeKey={activeKey}

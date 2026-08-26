@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --background: #FFFFFF;
+  --foreground: #0f172a;
 }
 
 @theme inline {
@@ -14,8 +14,8 @@
 
 html, body {
   min-height: 100%;
-  background-color: #020617;
-  color: #f8fafc;
+  background-color: #FFFFFF;
+  color: #0f172a;
   overflow-x: hidden;
 }
 
