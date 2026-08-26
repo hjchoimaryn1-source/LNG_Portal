@@ -3068,22 +3068,6 @@ export default function NiasTerminalView({
       )}
 
       {/* ==================================================================== */}
-      {/* 🌐 PROMOTED TOP LEVEL: TERMINAL INTEGRATED OVERVIEW & PFD DASHBOARD   */}
-      {/* ==================================================================== */}
-      {activeDomain === 'TERMINAL_OVERVIEW' && (
-        <NiasOperationalOverviewTab
-          onNavigateSubTab={(targetTab, domain) => {
-            if (domain) setActiveDomain(domain);
-            if (domain === 'ISO_TANK_MGMT') {
-              setTankSubTab(targetTab as any);
-            } else {
-              setRegasSubTab(targetTab as any);
-            }
-          }}
-        />
-      )}
-
-      {/* ==================================================================== */}
       {/* DOMAIN 2 - SUB-TAB 1: 📊 GAS PROCESS & STATE TELEMETRY (ROLLBACK)    */}
       {/* ==================================================================== */}
       {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_PROCESS_TELEMETRY' && (
