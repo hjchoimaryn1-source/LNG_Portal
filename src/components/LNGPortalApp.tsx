@@ -188,7 +188,7 @@ const SUBPROCESS_TITLES: Record<
 };
 
 function LNGPortalInner() {
-  const [activeKey, setActiveKey] = useState<SubProcessKey>('SAVIOUR_VOYAGE_MONITORING');
+  const [activeKey, setActiveKey] = useState<SubProcessKey>('NIAS_TERMINAL_OVERVIEW');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const { fleetTanks, activeBays, settlementRecords, isLoading } = usePortalData();
 

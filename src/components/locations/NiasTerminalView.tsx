@@ -127,8 +127,8 @@ const INSPECTION_DATES = [
 ];
 
 export default function NiasTerminalView({
-  initialDomain,
-  initialSubTab = 'TANK_OVERVIEW',
+  initialDomain = 'TERMINAL_OVERVIEW',
+  initialSubTab = 'TERMINAL_OVERVIEW',
 }: NiasTerminalViewProps) {
   const {
     fleetTanks,
