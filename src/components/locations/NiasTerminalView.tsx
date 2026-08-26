@@ -2689,10 +2689,10 @@ export default function NiasTerminalView({
             </div>
 
             {/* Scrollable Master Table */}
-            <div className="overflow-x-auto max-h-[650px] overflow-y-auto">
+            <div className="overflow-x-auto max-h-[650px] overflow-y-auto border border-slate-600 rounded-lg">
               <table className="w-full text-left border-collapse min-w-[1450px]">
-                <thead className="sticky top-0 z-10 bg-slate-950 text-slate-400 text-[11px] uppercase tracking-wider font-semibold">
-                  <tr className="border-b border-slate-800">
+                <thead className="sticky top-0 z-10 bg-slate-800 border-b border-slate-600 text-slate-200 text-[11px] uppercase tracking-wider font-bold">
+                  <tr className="border-b border-slate-600">
                     <th className="p-3">Report Date</th>
                     <th className="p-3">ISO Tank No.</th>
                     <th className="p-3">Serial No.</th>
