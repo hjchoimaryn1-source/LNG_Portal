@@ -1318,77 +1318,63 @@ export default function NiasTerminalView({
       )}
 
       {/* Top Header & 2-Domain Switcher Navigation */}
-      <section className={`border rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col gap-4 transition-colors duration-200 ${
-        isDark
-          ? 'bg-slate-900/80 border-slate-800 text-slate-100'
-          : theme === 'PURE_WHITE'
-          ? 'bg-slate-50 border-slate-200 text-slate-900 shadow-sm'
-          : 'bg-white border-slate-300 text-slate-800 shadow-sm'
-      }`}>
+      <section className="bg-slate-900/90 border border-slate-600 rounded-lg p-4 sm:p-5 shadow-lg flex flex-col gap-3.5 transition-colors duration-200">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <div className="flex items-center gap-2.5 mb-1">
-              <MapPin className="w-6 h-6 text-emerald-600" />
-              <h2 className={`text-lg sm:text-xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+            <div className="flex items-center gap-2 mb-1">
+              <MapPin className="w-5 h-5 text-emerald-400" />
+              <h2 className="text-base sm:text-lg font-black text-white">
                 Nias Regasification Terminal (ORU Nias, Gunungsitoli)
               </h2>
             </div>
-            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+            <p className="text-xs text-slate-300">
               Clean 2-domain architecture separating physical ISO Tank Lifecycle from the Gas-to-Power Process.
             </p>
           </div>
 
           {/* Core 3-Level Switcher (Integrated Overview + 2 Major Operational Domains) */}
-          <div className={`flex items-center p-1.5 rounded-2xl border shadow-inner gap-1.5 flex-wrap ${
-            isDark ? 'bg-slate-950 border-slate-800' : theme === 'PURE_WHITE' ? 'bg-white border-slate-200' : 'bg-slate-100 border-slate-300'
-          }`}>
+          <div className="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-600 gap-1 flex-wrap">
             <button
               onClick={() => setActiveDomain('TERMINAL_OVERVIEW')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded text-xs font-bold transition-all cursor-pointer ${
                 activeDomain === 'TERMINAL_OVERVIEW'
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25 ring-1 ring-emerald-400/50'
-                  : isDark
-                  ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  ? 'bg-emerald-600 text-white border border-emerald-400 shadow-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
               }`}
             >
               <Activity className="w-4 h-4 text-emerald-300" />
               <span>🌐 Terminal Integrated Overview</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-900/60 text-emerald-200 ml-1">
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-200 ml-1 border border-emerald-500/40">
                 PFD
               </span>
             </button>
 
             <button
               onClick={() => setActiveDomain('ISO_TANK_MGMT')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded text-xs font-bold transition-all cursor-pointer ${
                 activeDomain === 'ISO_TANK_MGMT'
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 ring-1 ring-blue-400/50'
-                  : isDark
-                  ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  ? 'bg-blue-600 text-white border border-blue-400 shadow-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
               }`}
             >
               <Box className="w-4 h-4 text-blue-300" />
               <span>📦 Domain 1: ISO Tank Management</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-blue-900/60 text-blue-200 ml-1">
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-blue-950 text-blue-200 ml-1 border border-blue-500/40">
                 {fleetTanks.length} Tanks
               </span>
             </button>
 
             <button
               onClick={() => setActiveDomain('REGAS_SYSTEM')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded text-xs font-bold transition-all cursor-pointer ${
                 activeDomain === 'REGAS_SYSTEM'
-                  ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/25 ring-1 ring-amber-400/50'
-                  : isDark
-                  ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  ? 'bg-amber-600 text-white border border-amber-400 shadow-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
               }`}
             >
               <Zap className="w-4 h-4 text-amber-300" />
               <span>⚡ Domain 2: Regas System & Power</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-900/60 text-amber-200 ml-1">
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-950 text-amber-200 ml-1 border border-amber-500/40">
                 17.64 MW
               </span>
             </button>
