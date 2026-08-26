@@ -166,17 +166,19 @@ export default function SidebarNav({
               onClick={() => handleItemClick('ARUN_LOADING_COQ')}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'ARUN_LOADING_COQ'
-                  ? 'bg-blue-600/20 text-blue-300 border border-blue-500/50 shadow-md shadow-blue-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-blue-600 text-white font-bold border border-blue-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Anchor className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                <Anchor className={`w-4 h-4 ${activeKey === 'ARUN_LOADING_COQ' ? 'text-white' : 'text-blue-500'} group-hover:scale-110 transition-transform`} />
                 <span>Loading & COQ Workspace</span>
               </div>
               <ChevronRight
-                className={`w-3.5 h-3.5 opacity-60 transition-transform ${
-                  activeKey === 'ARUN_LOADING_COQ' ? 'text-blue-400 translate-x-0.5' : ''
+                className={`w-3.5 h-3.5 opacity-70 transition-transform ${
+                  activeKey === 'ARUN_LOADING_COQ' ? 'text-white translate-x-0.5' : ''
                 }`}
               />
             </button>
@@ -185,15 +187,19 @@ export default function SidebarNav({
               onClick={() => handleItemClick('ARUN_MASTER_HISTORY')}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'ARUN_MASTER_HISTORY'
-                  ? 'bg-blue-600/20 text-blue-300 border border-blue-500/50 shadow-md shadow-blue-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-blue-600 text-white font-bold border border-blue-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Table className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+                <Table className={`w-4 h-4 ${activeKey === 'ARUN_MASTER_HISTORY' ? 'text-white' : 'text-cyan-500'} group-hover:scale-110 transition-transform`} />
                 <span>Master History Archive</span>
               </div>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-900 text-cyan-300 border border-slate-800">
+              <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                activeKey === 'ARUN_MASTER_HISTORY' ? 'bg-blue-800 text-white border-blue-400' : isDark ? 'bg-slate-900 text-cyan-300 border-slate-800' : 'bg-slate-200 text-cyan-800 border-slate-300'
+              }`}>
                 {counts.masterHistoryCount}
               </span>
             </button>
@@ -205,7 +211,7 @@ export default function SidebarNav({
         {/* ========================================================= */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between px-2 py-1">
-            <span className="text-[11px] uppercase tracking-wider font-extrabold text-cyan-400 flex items-center gap-1.5">
+            <span className="text-[11px] uppercase tracking-wider font-extrabold text-cyan-500 flex items-center gap-1.5">
               <Navigation className="w-3.5 h-3.5" />
               2. MV. Saviour Transit
             </span>
@@ -219,15 +225,19 @@ export default function SidebarNav({
               onClick={() => handleItemClick('SAVIOUR_VOYAGE_MONITORING')}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'SAVIOUR_VOYAGE_MONITORING'
-                  ? 'bg-cyan-600/20 text-cyan-300 border border-cyan-500/50 shadow-md shadow-cyan-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-cyan-600 text-white font-bold border border-cyan-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Ship className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+                <Ship className={`w-4 h-4 ${activeKey === 'SAVIOUR_VOYAGE_MONITORING' ? 'text-white' : 'text-cyan-500'} group-hover:scale-110 transition-transform`} />
                 <span>Voyage Monitoring</span>
               </div>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/60">
+              <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                activeKey === 'SAVIOUR_VOYAGE_MONITORING' ? 'bg-cyan-800 text-white border-cyan-400' : isDark ? 'bg-cyan-950 text-cyan-300 border-cyan-800/60' : 'bg-cyan-100 text-cyan-800 border-cyan-300'
+              }`}>
                 {counts.sailingCount}
               </span>
             </button>
@@ -236,17 +246,19 @@ export default function SidebarNav({
               onClick={() => handleItemClick('SAVIOUR_MARINE_PRESSURE')}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'SAVIOUR_MARINE_PRESSURE'
-                  ? 'bg-cyan-600/20 text-cyan-300 border border-cyan-500/50 shadow-md shadow-cyan-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-cyan-600 text-white font-bold border border-cyan-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Gauge className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+                <Gauge className={`w-4 h-4 ${activeKey === 'SAVIOUR_MARINE_PRESSURE' ? 'text-white' : 'text-cyan-500'} group-hover:scale-110 transition-transform`} />
                 <span>Marine Pressure Log</span>
               </div>
               <ChevronRight
-                className={`w-3.5 h-3.5 opacity-60 transition-transform ${
-                  activeKey === 'SAVIOUR_MARINE_PRESSURE' ? 'text-cyan-400 translate-x-0.5' : ''
+                className={`w-3.5 h-3.5 opacity-70 transition-transform ${
+                  activeKey === 'SAVIOUR_MARINE_PRESSURE' ? 'text-white translate-x-0.5' : ''
                 }`}
               />
             </button>
@@ -258,7 +270,7 @@ export default function SidebarNav({
         {/* ========================================================= */}
         <div className="space-y-2.5 pt-1 border-t border-slate-800/80">
           <div className="flex items-center justify-between px-2 py-1">
-            <span className="text-[11px] uppercase tracking-wider font-extrabold text-emerald-400 flex items-center gap-1.5">
+            <span className="text-[11px] uppercase tracking-wider font-extrabold text-emerald-500 flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5" />
               3. Nias Regas Terminal
             </span>
@@ -272,22 +284,28 @@ export default function SidebarNav({
             onClick={() => handleItemClick('NIAS_TERMINAL_OVERVIEW')}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 group ${
               activeKey === 'NIAS_TERMINAL_OVERVIEW'
-                ? 'bg-emerald-600/25 text-emerald-300 border border-emerald-500/50 shadow-md shadow-emerald-500/15'
-                : 'text-slate-300 hover:text-white hover:bg-slate-900/80 border border-slate-800/80 bg-slate-900/40'
+                ? 'bg-emerald-600 text-white border border-emerald-500 shadow-md'
+                : isDark
+                ? 'text-slate-100 hover:text-white hover:bg-slate-900/80 border border-slate-800/80 bg-slate-900/40'
+                : 'text-slate-800 hover:text-slate-900 hover:bg-slate-200/80 border border-slate-300 bg-white'
             }`}
           >
             <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+              <Activity className={`w-4 h-4 ${activeKey === 'NIAS_TERMINAL_OVERVIEW' ? 'text-white' : 'text-emerald-500'} group-hover:scale-110 transition-transform`} />
               <span>🌐 Terminal Integrated Overview</span>
             </div>
-            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/40">
+            <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+              activeKey === 'NIAS_TERMINAL_OVERVIEW' ? 'bg-emerald-800 text-white border-emerald-400' : 'bg-emerald-950 text-emerald-300 border-emerald-500/40'
+            }`}>
               PFD
             </span>
           </button>
 
           {/* DOMAIN 1: 📦 ISO TANK MANAGEMENT */}
-          <div className="space-y-1 bg-slate-900/30 p-1.5 rounded-xl border border-slate-800/50">
-            <div className="px-2 py-0.5 text-[10px] uppercase font-bold text-blue-400 flex items-center gap-1">
+          <div className={`space-y-1 p-1.5 rounded-xl border ${
+            isDark ? 'bg-slate-900/30 border-slate-800/50' : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="px-2 py-0.5 text-[10px] uppercase font-bold text-blue-500 flex items-center gap-1">
               <Box className="w-3 h-3" />
               <span>Domain 1: ISO Tank Management</span>
             </div>
@@ -297,12 +315,14 @@ export default function SidebarNav({
               onClick={() => handleItemClick('NIAS_TANK_OVERVIEW')}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'NIAS_TANK_OVERVIEW' || activeKey === 'NIAS_OPERATIONS_OVERVIEW'
-                  ? 'bg-blue-600/20 text-blue-300 border border-blue-500/50 shadow-sm shadow-blue-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-blue-600 text-white font-bold border border-blue-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Layers className="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform" />
+                <Layers className={`w-3.5 h-3.5 ${activeKey === 'NIAS_TANK_OVERVIEW' || activeKey === 'NIAS_OPERATIONS_OVERVIEW' ? 'text-white' : 'text-blue-500'} group-hover:scale-110 transition-transform`} />
                 <span>🌐 Overview & Visual Yard Map</span>
               </div>
               <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-900 text-slate-300 border border-slate-800">
@@ -315,12 +335,14 @@ export default function SidebarNav({
               onClick={() => handleItemClick('NIAS_LAYDOWN_1_2_LOG')}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeKey === 'NIAS_DAILY_CONDITION_BOG' || activeKey === 'NIAS_LAYDOWN_DEPRESS'
-                  ? 'bg-blue-600/20 text-blue-300 border border-blue-500/50 shadow-sm shadow-blue-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-blue-600 text-white font-bold border border-blue-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Table className="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform" />
+                <Table className={`w-3.5 h-3.5 ${activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeKey === 'NIAS_DAILY_CONDITION_BOG' || activeKey === 'NIAS_LAYDOWN_DEPRESS' ? 'text-white' : 'text-blue-500'} group-hover:scale-110 transition-transform`} />
                 <span>📥 Laydown 1 Condition & BOG</span>
               </div>
               <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-900 text-slate-300 border border-slate-800">
@@ -333,12 +355,14 @@ export default function SidebarNav({
               onClick={() => handleItemClick('NIAS_ACTIVE_BAY_TANKS')}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeKey === 'NIAS_BAY_MOUNTED_TANKS'
-                  ? 'bg-blue-600/20 text-blue-300 border border-blue-500/50 shadow-sm shadow-blue-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-blue-600 text-white font-bold border border-blue-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Tag className="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform" />
+                <Tag className={`w-3.5 h-3.5 ${activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeKey === 'NIAS_BAY_MOUNTED_TANKS' ? 'text-white' : 'text-blue-500'} group-hover:scale-110 transition-transform`} />
                 <span>🏷️ Active Bay Mounted Tanks</span>
               </div>
               <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">
@@ -351,12 +375,14 @@ export default function SidebarNav({
               onClick={() => handleItemClick('NIAS_LAYDOWN_3_HEEL')}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeKey === 'NIAS_EMPTY_RETURN'
-                  ? 'bg-blue-600/20 text-blue-300 border border-blue-500/50 shadow-sm shadow-blue-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-purple-600 text-white font-bold border border-purple-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2">
-                <RotateCcw className="w-3.5 h-3.5 text-purple-400 group-hover:scale-110 transition-transform" />
+                <RotateCcw className={`w-3.5 h-3.5 ${activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeKey === 'NIAS_EMPTY_RETURN' ? 'text-white' : 'text-purple-500'} group-hover:scale-110 transition-transform`} />
                 <span>🔄 Laydown 2 (Heel 4% Staging)</span>
               </div>
               <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-900 text-slate-300 border border-slate-800">
@@ -366,8 +392,10 @@ export default function SidebarNav({
           </div>
 
           {/* DOMAIN 2: ⚡ REGAS SYSTEM & GAS-TO-POWER */}
-          <div className="space-y-1 bg-slate-900/30 p-1.5 rounded-xl border border-slate-800/50">
-            <div className="px-2 py-0.5 text-[10px] uppercase font-bold text-amber-400 flex items-center gap-1">
+          <div className={`space-y-1 p-1.5 rounded-xl border ${
+            isDark ? 'bg-slate-900/30 border-slate-800/50' : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="px-2 py-0.5 text-[10px] uppercase font-bold text-amber-500 flex items-center gap-1">
               <Zap className="w-3 h-3" />
               <span>Domain 2: Regas System & Power</span>
             </div>
@@ -377,12 +405,14 @@ export default function SidebarNav({
               onClick={() => handleItemClick('NIAS_GAS_PROCESS_TELEMETRY')}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeKey === 'NIAS_FOUR_BAY_REGAS' || activeKey === 'NIAS_ACTIVE_REGAS'
-                  ? 'bg-amber-600/20 text-amber-300 border border-amber-500/50 shadow-sm shadow-amber-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-amber-600 text-white font-bold border border-amber-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Activity className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+                <Activity className={`w-3.5 h-3.5 ${activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeKey === 'NIAS_FOUR_BAY_REGAS' || activeKey === 'NIAS_ACTIVE_REGAS' ? 'text-white' : 'text-amber-500'} group-hover:scale-110 transition-transform`} />
                 <span>📊 Gas Process & State Telemetry</span>
               </div>
               {counts.activeRunningBays > 0 ? (
@@ -399,12 +429,14 @@ export default function SidebarNav({
               onClick={() => handleItemClick('NIAS_GC_GAS_QUALITY')}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'NIAS_GC_GAS_QUALITY'
-                  ? 'bg-amber-600/20 text-amber-300 border border-amber-500/50 shadow-sm shadow-amber-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-amber-600 text-white font-bold border border-amber-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2">
-                <FlaskConical className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                <FlaskConical className={`w-3.5 h-3.5 ${activeKey === 'NIAS_GC_GAS_QUALITY' ? 'text-white' : 'text-cyan-500'} group-hover:scale-110 transition-transform`} />
                 <span>🔬 GC & Gas Quality Stream</span>
               </div>
               <span className="text-[9px] font-mono text-cyan-300 bg-cyan-950/60 border border-cyan-800/60 px-1.5 py-0.2 rounded">
@@ -417,12 +449,14 @@ export default function SidebarNav({
               onClick={() => handleItemClick('NIAS_PLTMG_POWER_OUTPUT')}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'NIAS_PLTMG_POWER_OUTPUT'
-                  ? 'bg-amber-600/20 text-amber-300 border border-amber-500/50 shadow-sm shadow-amber-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-amber-600 text-white font-bold border border-amber-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Zap className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+                <Zap className={`w-3.5 h-3.5 ${activeKey === 'NIAS_PLTMG_POWER_OUTPUT' ? 'text-white' : 'text-amber-500'} group-hover:scale-110 transition-transform`} />
                 <span>⚡ PLTMG Power & Output</span>
               </div>
               <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-900 text-amber-300 border border-slate-800">
@@ -435,12 +469,14 @@ export default function SidebarNav({
               onClick={() => handleItemClick('NIAS_HEAT_SETTLEMENT')}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 group ${
                 activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT'
-                  ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/50 shadow-sm shadow-indigo-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? 'bg-indigo-600 text-white font-bold border border-indigo-500 shadow-sm'
+                  : isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-900/60'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Scale className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+                <Scale className={`w-3.5 h-3.5 ${activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT' ? 'text-white' : 'text-indigo-500'} group-hover:scale-110 transition-transform`} />
                 <span>⚖️ Custody Heat Settlement</span>
               </div>
               {counts.disputeAlerts > 0 ? (
