@@ -106,6 +106,7 @@ export type NiasSubTab = NiasTankSubTab | NiasRegasSubTab | string;
 interface NiasTerminalViewProps {
   initialDomain?: NiasDomain;
   initialSubTab?: string;
+  onNavigateSubTab?: (targetTab: string, domain?: 'ISO_TANK_MGMT' | 'REGAS_SYSTEM') => void;
 }
 
 type LaydownZone = 'ALL' | 'LAYDOWN_1' | 'LAYDOWN_2' | 'LAYDOWN_3' | 'FOUR_BAY_REGAS';
@@ -130,6 +131,7 @@ const INSPECTION_DATES = [
 export default function NiasTerminalView({
   initialDomain = 'TERMINAL_OVERVIEW',
   initialSubTab = 'TERMINAL_OVERVIEW',
+  onNavigateSubTab,
 }: NiasTerminalViewProps) {
   const { theme, isDark } = useTheme();
   const {
@@ -1572,6 +1574,22 @@ export default function NiasTerminalView({
           </div>
         </div>
       </section>
+
+      {/* ==================================================================== */}
+      {/* TERMINAL OVERVIEW - PROMOTED 5-NODE PFD DASHBOARD                    */}
+      {/* ==================================================================== */}
+      {activeDomain === 'TERMINAL_OVERVIEW' && (
+        <NiasOperationalOverviewTab
+          onNavigateSubTab={(targetTab, domain) => {
+            if (domain) setActiveDomain(domain);
+            if (domain === 'ISO_TANK_MGMT') {
+              setTankSubTab(targetTab as NiasTankSubTab);
+            } else if (domain === 'REGAS_SYSTEM') {
+              setRegasSubTab(targetTab as NiasRegasSubTab);
+            }
+          }}
+        />
+      )}
 
       {/* ==================================================================== */}
       {/* DOMAIN 1 - SUB-TAB 1: 🌐 PURE 3-COLUMN VISUAL YARD MAP (DRAG & DROP)  */}

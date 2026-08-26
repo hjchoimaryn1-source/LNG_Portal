@@ -3,12 +3,13 @@
 
 import React, { useState } from 'react';
 import { PortalDataProvider, usePortalData } from '../context/PortalDataContext';
-import { ThemeProvider, useTheme, AppTheme } from '../context/ThemeContext';
+import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { SubProcessKey } from '../types/lng';
 import SidebarNav from './SidebarNav';
 import ArunTerminalView from './locations/ArunTerminalView';
 import MvSaviourView from './locations/MvSaviourView';
 import NiasTerminalView from './locations/NiasTerminalView';
+import NiasOperationalOverviewTab from './locations/nias/NiasOperationalOverviewTab';
 import MaintenanceHubView from './MaintenanceHubView';
 import DataIngestionHub from './DataIngestionHub';
 import GlobalFleetHubView from './GlobalFleetHubView';
@@ -32,9 +33,22 @@ import {
 } from 'lucide-react';
 
 const SUBPROCESS_TITLES: Record<
-  SubProcessKey,
+  string,
   { location: string; process: string; icon: React.ReactNode; color: string }
 > = {
+  // Nias Regas Terminal - Promoted Integrated Overview (Default)
+  NIAS_TERMINAL_OVERVIEW: {
+    location: 'Nias Regas Terminal',
+    process: '🌐 Terminal Integrated Overview & PFD',
+    icon: <Activity className="w-4 h-4 text-emerald-400" />,
+    color: 'text-emerald-400',
+  },
+  'terminal-overview': {
+    location: 'Nias Regas Terminal',
+    process: '🌐 Terminal Integrated Overview & PFD',
+    icon: <Activity className="w-4 h-4 text-emerald-400" />,
+    color: 'text-emerald-400',
+  },
   ARUN_LOADING_COQ: {
     location: 'Arun PAG Terminal',
     process: 'Loading & COQ Workspace',
@@ -47,12 +61,6 @@ const SUBPROCESS_TITLES: Record<
     icon: <Building2 className="w-4 h-4 text-blue-400" />,
     color: 'text-blue-400',
   },
-  ARUN_STAGING_YARD: {
-    location: 'Arun PAG Terminal',
-    process: 'Operations & Staging Yard',
-    icon: <Building2 className="w-4 h-4 text-blue-400" />,
-    color: 'text-blue-400',
-  },
   SAVIOUR_VOYAGE_MONITORING: {
     location: 'MV. Saviour Transit',
     process: 'Voyage Fleet Monitoring',
@@ -61,27 +69,19 @@ const SUBPROCESS_TITLES: Record<
   },
   SAVIOUR_MARINE_PRESSURE: {
     location: 'MV. Saviour Transit',
-    process: 'Marine Pressure & BOG Containment Log',
+    process: 'Marine Pressure & BOG Log',
     icon: <Ship className="w-4 h-4 text-cyan-400" />,
     color: 'text-cyan-400',
   },
-  // Nias Regas Terminal - Promoted Integrated Overview
-  NIAS_TERMINAL_OVERVIEW: {
-    location: 'Nias Regas Terminal',
-    process: '🌐 Terminal Integrated Overview & PFD',
-    icon: <Activity className="w-4 h-4 text-emerald-400" />,
-    color: 'text-emerald-400',
-  },
-  // Nias Regas Terminal - Domain 1: ISO Tank Management
   NIAS_TANK_OVERVIEW: {
     location: 'Nias Regas Terminal',
-    process: 'Domain 1: 🌐 Overview & Visual Yard Map',
+    process: 'Domain 1: 🌐 Overview & Yard Map',
     icon: <Building2 className="w-4 h-4 text-blue-400" />,
     color: 'text-blue-400',
   },
   NIAS_LAYDOWN_1_2_LOG: {
     location: 'Nias Regas Terminal',
-    process: 'Domain 1: 📥 Laydown 1 Condition & BOG Log',
+    process: 'Domain 1: 📥 Laydown 1 Condition & BOG',
     icon: <MapPin className="w-4 h-4 text-blue-400" />,
     color: 'text-blue-400',
   },
@@ -97,23 +97,22 @@ const SUBPROCESS_TITLES: Record<
     icon: <MapPin className="w-4 h-4 text-purple-400" />,
     color: 'text-purple-400',
   },
-  // Nias Regas Terminal - Domain 2: Regas System & Gas-to-Power
   NIAS_GAS_PROCESS_TELEMETRY: {
     location: 'Nias Regas Terminal',
-    process: 'Domain 2: 📊 Gas Process & State Telemetry',
-    icon: <Flame className="w-4 h-4 text-amber-400" />,
+    process: 'Domain 2: 📊 Gas Process Telemetry',
+    icon: <Activity className="w-4 h-4 text-amber-400" />,
     color: 'text-amber-400',
   },
   NIAS_GC_GAS_QUALITY: {
     location: 'Nias Regas Terminal',
     process: 'Domain 2: 🔬 GC & Gas Quality Stream',
-    icon: <Building2 className="w-4 h-4 text-cyan-400" />,
+    icon: <Activity className="w-4 h-4 text-cyan-400" />,
     color: 'text-cyan-400',
   },
   NIAS_PLTMG_POWER_OUTPUT: {
     location: 'Nias Regas Terminal',
-    process: 'Domain 2: ⚡ PLTMG Power & Thermal Output',
-    icon: <Building2 className="w-4 h-4 text-amber-400" />,
+    process: 'Domain 2: ⚡ PLTMG Power & Output',
+    icon: <Activity className="w-4 h-4 text-amber-400" />,
     color: 'text-amber-400',
   },
   NIAS_HEAT_SETTLEMENT: {
@@ -122,58 +121,9 @@ const SUBPROCESS_TITLES: Record<
     icon: <Scale className="w-4 h-4 text-indigo-400" />,
     color: 'text-indigo-400',
   },
-  // Legacy Aliases for Backwards Compatibility
-  NIAS_OPERATIONS_OVERVIEW: {
-    location: 'Nias Regas Terminal',
-    process: 'Domain 1: 🌐 Operations Overview',
-    icon: <Building2 className="w-4 h-4 text-emerald-400" />,
-    color: 'text-emerald-400',
-  },
-  NIAS_DAILY_CONDITION_BOG: {
-    location: 'Nias Regas Terminal',
-    process: 'Domain 1: 📥 Laydown 1 & 2 Condition & BOG',
-    icon: <MapPin className="w-4 h-4 text-blue-400" />,
-    color: 'text-blue-400',
-  },
-  NIAS_FOUR_BAY_REGAS: {
-    location: 'Nias Regas Terminal',
-    process: 'Domain 2: 📊 Gas Process Telemetry',
-    icon: <Flame className="w-4 h-4 text-amber-400" />,
-    color: 'text-amber-400',
-  },
-  NIAS_EMPTY_RETURN: {
-    location: 'Nias Regas Terminal',
-    process: 'Domain 1: 🔄 Laydown 3 (Heel 4% Return)',
-    icon: <MapPin className="w-4 h-4 text-purple-400" />,
-    color: 'text-purple-400',
-  },
-  NIAS_LAYDOWN_DEPRESS: {
-    location: 'Nias Regas Terminal',
-    process: 'Domain 1: 📥 Laydown 1 & 2 Condition & BOG',
-    icon: <MapPin className="w-4 h-4 text-blue-400" />,
-    color: 'text-blue-400',
-  },
-  NIAS_ACTIVE_REGAS: {
-    location: 'Nias Regas Terminal',
-    process: 'Domain 2: 📊 Gas Process Telemetry',
-    icon: <Flame className="w-4 h-4 text-amber-400" />,
-    color: 'text-amber-400',
-  },
-  NIAS_BAY_MOUNTED_TANKS: {
-    location: 'Nias Regas Terminal',
-    process: 'Domain 1: 🏷️ Active Bay Mounted Tanks',
-    icon: <Flame className="w-4 h-4 text-blue-400" />,
-    color: 'text-blue-400',
-  },
-  NIAS_CUSTODY_HEAT_SETTLEMENT: {
-    location: 'Nias Regas Terminal',
-    process: 'Domain 2: ⚖️ Custody Heat Settlement',
-    icon: <Scale className="w-4 h-4 text-indigo-400" />,
-    color: 'text-indigo-400',
-  },
   MAINTENANCE_MRO_HUB: {
     location: 'Maintenance & Repair Depot',
-    process: 'Emergency MRO & Recertification Subsystem',
+    process: 'Emergency MRO & Recertification',
     icon: <Wrench className="w-4 h-4 text-amber-400" />,
     color: 'text-amber-400',
   },
@@ -193,14 +143,56 @@ const SUBPROCESS_TITLES: Record<
 
 function LNGPortalInner() {
   const { theme, setTheme } = useTheme();
+
+  // Explicit Strict State Initialization to Nias Terminal Overview (NO Arun Default)
+  const [activeMenu, setActiveMenu] = useState<string>('nias-terminal');
+  const [activeSubTab, setActiveSubTab] = useState<string>('terminal-overview');
   const [activeKey, setActiveKey] = useState<SubProcessKey>('NIAS_TERMINAL_OVERVIEW');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+
   const { fleetTanks, activeBays, settlementRecords, isLoading } = usePortalData();
 
   const activeBaysCount = activeBays.filter((b) => b.status === 'RUNNING').length;
   const disputeCount = settlementRecords.filter((s) => s.disputeStatus === 'DISPUTE_ALERT').length;
   const mroCount = fleetTanks.filter((t) => t.isUnderMaintenance || t.node === 'NODE_MAINTENANCE_MRO').length;
-  const currentNav = SUBPROCESS_TITLES[activeKey] || SUBPROCESS_TITLES.NIAS_OPERATIONS_OVERVIEW;
+
+  const currentNav =
+    SUBPROCESS_TITLES[activeKey] ||
+    SUBPROCESS_TITLES[activeSubTab] ||
+    SUBPROCESS_TITLES['NIAS_TERMINAL_OVERVIEW'];
+
+  const handleSelectSubProcess = (key: SubProcessKey) => {
+    setActiveKey(key);
+    if (key === 'NIAS_TERMINAL_OVERVIEW') {
+      setActiveMenu('nias-terminal');
+      setActiveSubTab('terminal-overview');
+    } else if (
+      key === 'NIAS_TANK_OVERVIEW' ||
+      key === 'NIAS_LAYDOWN_1_2_LOG' ||
+      key === 'NIAS_ACTIVE_BAY_TANKS' ||
+      key === 'NIAS_LAYDOWN_3_HEEL'
+    ) {
+      setActiveMenu('nias-terminal');
+      setActiveSubTab(key);
+    } else if (
+      key === 'NIAS_GAS_PROCESS_TELEMETRY' ||
+      key === 'NIAS_GC_GAS_QUALITY' ||
+      key === 'NIAS_PLTMG_POWER_OUTPUT' ||
+      key === 'NIAS_HEAT_SETTLEMENT'
+    ) {
+      setActiveMenu('nias-terminal');
+      setActiveSubTab(key);
+    } else if (key === 'ARUN_LOADING_COQ' || key === 'ARUN_MASTER_HISTORY') {
+      setActiveMenu('arun-terminal');
+      setActiveSubTab(key);
+    } else if (key === 'SAVIOUR_VOYAGE_MONITORING' || key === 'SAVIOUR_MARINE_PRESSURE') {
+      setActiveMenu('saviour-transit');
+      setActiveSubTab(key);
+    } else {
+      setActiveMenu(key);
+      setActiveSubTab(key);
+    }
+  };
 
   return (
     <div className={`min-h-screen font-sans selection:bg-blue-500/30 flex transition-colors duration-200 ${
@@ -213,7 +205,7 @@ function LNGPortalInner() {
       {/* Left Sidebar Navigation */}
       <SidebarNav
         activeKey={activeKey}
-        onSelectKey={(key) => setActiveKey(key)}
+        onSelectKey={handleSelectSubProcess}
         isOpenMobile={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
@@ -325,7 +317,7 @@ function LNGPortalInner() {
 
               {mroCount > 0 && (
                 <button
-                  onClick={() => setActiveKey('MAINTENANCE_MRO_HUB')}
+                  onClick={() => handleSelectSubProcess('MAINTENANCE_MRO_HUB')}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-600 text-xs font-semibold hover:bg-amber-500/25 transition-colors"
                 >
                   <Wrench className="w-3.5 h-3.5" />
@@ -359,58 +351,79 @@ function LNGPortalInner() {
             </div>
           ) : (
             <div className="animate-in fade-in duration-300 w-full">
-              {/* 1. Arun PAG Terminal */}
-              {activeKey === 'ARUN_LOADING_COQ' && <ArunTerminalView initialSubTab="LOADING_COQ_ENTRY" />}
-              {activeKey === 'ARUN_MASTER_HISTORY' && <ArunTerminalView initialSubTab="MASTER_HISTORY_SHEET" />}
-              {activeKey === 'ARUN_STAGING_YARD' && <ArunTerminalView initialSubTab="OPERATIONS_YARD" />}
-
-              {/* 2. MV. Saviour Transit */}
-              {activeKey === 'SAVIOUR_VOYAGE_MONITORING' && (
-                <MvSaviourView initialSubTab="VOYAGE_MONITORING" />
+              {/* ========================================================================= */}
+              {/* 1. NIAS REGAS TERMINAL - DEFAULT AND TOP INTEGRATED OVERVIEW (5-NODE PFD) */}
+              {/* ========================================================================= */}
+              {(activeKey === 'NIAS_TERMINAL_OVERVIEW' || activeSubTab === 'terminal-overview' || (!activeKey && !activeSubTab)) && (
+                <NiasTerminalView
+                  initialDomain="TERMINAL_OVERVIEW"
+                  initialSubTab="TERMINAL_OVERVIEW"
+                  onNavigateSubTab={(targetTab, domain) => {
+                    if (domain === 'ISO_TANK_MGMT') {
+                      handleSelectSubProcess((targetTab as SubProcessKey) || 'NIAS_TANK_OVERVIEW');
+                    } else if (domain === 'REGAS_SYSTEM') {
+                      handleSelectSubProcess((targetTab as SubProcessKey) || 'NIAS_GAS_PROCESS_TELEMETRY');
+                    }
+                  }}
+                />
               )}
-              {activeKey === 'SAVIOUR_MARINE_PRESSURE' && (
-                <MvSaviourView initialSubTab="MARINE_PRESSURE" />
-              )}
 
-              {/* 3. Nias Regas Terminal - Promoted Overview & 2 Domains */}
-              {activeKey === 'NIAS_TERMINAL_OVERVIEW' && (
-                <NiasTerminalView initialDomain="TERMINAL_OVERVIEW" initialSubTab="TERMINAL_OVERVIEW" />
-              )}
-
-              {/* 3. Nias Regas Terminal - Domain 1: ISO Tank Management */}
-              {(activeKey === 'NIAS_TANK_OVERVIEW' || activeKey === 'NIAS_OPERATIONS_OVERVIEW') && (
+              {/* 2. Nias Regas Terminal - Domain 1: ISO Tank Management */}
+              {(activeKey === 'NIAS_TANK_OVERVIEW' || activeSubTab === 'NIAS_TANK_OVERVIEW') && (
                 <NiasTerminalView initialDomain="ISO_TANK_MGMT" initialSubTab="TANK_OVERVIEW" />
               )}
-              {(activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeKey === 'NIAS_DAILY_CONDITION_BOG' || activeKey === 'NIAS_LAYDOWN_DEPRESS') && (
+              {(activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeSubTab === 'NIAS_LAYDOWN_1_2_LOG') && (
                 <NiasTerminalView initialDomain="ISO_TANK_MGMT" initialSubTab="LAYDOWN_1_2_LOG" />
               )}
-              {(activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeKey === 'NIAS_BAY_MOUNTED_TANKS') && (
+              {(activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeSubTab === 'NIAS_ACTIVE_BAY_TANKS') && (
                 <NiasTerminalView initialDomain="ISO_TANK_MGMT" initialSubTab="ACTIVE_BAY_TANKS" />
               )}
-              {(activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeKey === 'NIAS_EMPTY_RETURN') && (
+              {(activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeSubTab === 'NIAS_LAYDOWN_3_HEEL') && (
                 <NiasTerminalView initialDomain="ISO_TANK_MGMT" initialSubTab="LAYDOWN_3_HEEL" />
               )}
 
               {/* 3. Nias Regas Terminal - Domain 2: Regas System & Gas-to-Power */}
-              {(activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeKey === 'NIAS_FOUR_BAY_REGAS' || activeKey === 'NIAS_ACTIVE_REGAS') && (
+              {(activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeSubTab === 'NIAS_GAS_PROCESS_TELEMETRY') && (
                 <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="GAS_PROCESS_TELEMETRY" />
               )}
-              {activeKey === 'NIAS_GC_GAS_QUALITY' && (
+              {(activeKey === 'NIAS_GC_GAS_QUALITY' || activeSubTab === 'NIAS_GC_GAS_QUALITY') && (
                 <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="GC_GAS_QUALITY" />
               )}
-              {activeKey === 'NIAS_PLTMG_POWER_OUTPUT' && (
+              {(activeKey === 'NIAS_PLTMG_POWER_OUTPUT' || activeSubTab === 'NIAS_PLTMG_POWER_OUTPUT') && (
                 <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="PLTMG_POWER_OUTPUT" />
               )}
-              {(activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT') && (
+              {(activeKey === 'NIAS_HEAT_SETTLEMENT' || activeSubTab === 'NIAS_HEAT_SETTLEMENT') && (
                 <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="CUSTODY_HEAT_SETTLEMENT" />
               )}
 
-              {/* 4. MRO Hub */}
-              {activeKey === 'MAINTENANCE_MRO_HUB' && <MaintenanceHubView />}
+              {/* 4. Arun PAG Terminal */}
+              {activeKey === 'ARUN_LOADING_COQ' && activeSubTab !== 'terminal-overview' && (
+                <ArunTerminalView initialSubTab="LOADING_COQ_ENTRY" />
+              )}
+              {activeKey === 'ARUN_MASTER_HISTORY' && activeSubTab !== 'terminal-overview' && (
+                <ArunTerminalView initialSubTab="MASTER_HISTORY_SHEET" />
+              )}
 
-              {/* 5. System Ingestion & Hub */}
-              {activeKey === 'GLOBAL_FLEET_HUB' && <GlobalFleetHubView />}
-              {activeKey === 'DATA_INGESTION_HUB' && <DataIngestionHub />}
+              {/* 5. MV. Saviour Transit */}
+              {activeKey === 'SAVIOUR_VOYAGE_MONITORING' && activeSubTab !== 'terminal-overview' && (
+                <MvSaviourView initialSubTab="VOYAGE_MONITORING" />
+              )}
+              {activeKey === 'SAVIOUR_MARINE_PRESSURE' && activeSubTab !== 'terminal-overview' && (
+                <MvSaviourView initialSubTab="MARINE_PRESSURE" />
+              )}
+
+              {/* 6. MRO Hub */}
+              {activeKey === 'MAINTENANCE_MRO_HUB' && activeSubTab !== 'terminal-overview' && (
+                <MaintenanceHubView />
+              )}
+
+              {/* 7. System Ingestion & Hub */}
+              {activeKey === 'GLOBAL_FLEET_HUB' && activeSubTab !== 'terminal-overview' && (
+                <GlobalFleetHubView />
+              )}
+              {activeKey === 'DATA_INGESTION_HUB' && activeSubTab !== 'terminal-overview' && (
+                <DataIngestionHub />
+              )}
             </div>
           )}
         </main>
