@@ -119,14 +119,14 @@ export default function MaintenanceHubView() {
     <div className="flex flex-col gap-6 w-full text-white font-bold">
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 px-4 py-3 bg-emerald-500/20 border border-emerald-500/50 text-white font-bold rounded-xl shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-4">
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/50 text-white font-bold rounded-none shadow-none backdrop-blur-md animate-in fade-in slide-in-from-top-4">
           <CheckCircle2 className="w-5 h-5 text-white font-bold" />
           <span className="text-sm font-bold">{toastMessage}</span>
         </div>
       )}
 
       {/* Top Header Banner */}
-      <section className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <section className="bg-slate-900/80 border border-slate-800 rounded-none p-5 sm:p-6 shadow-none flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
             <Wrench className="w-6 h-6 text-white font-bold" />
@@ -141,7 +141,7 @@ export default function MaintenanceHubView() {
 
         <button
           onClick={() => setIsLogModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-amber-600/20 transition-all cursor-pointer shrink-0"
+          className="flex items-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-none text-xs font-bold shadow-none shadow-amber-600/20 transition-all cursor-pointer shrink-0"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Report Fault / Log MRO Incident</span>
@@ -150,8 +150,8 @@ export default function MaintenanceHubView() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-16 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="bg-slate-900/70 border border-slate-800 rounded-none p-4 sm:p-5 shadow-none relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-16 bg-amber-500/5 rounded-none blur-2xl pointer-events-none" />
           <span className="text-[11px] font-bold uppercase text-white font-bold block mb-1">
             Active Tanks in MRO
           </span>
@@ -164,7 +164,7 @@ export default function MaintenanceHubView() {
           </span>
         </div>
 
-        <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
+        <div className="bg-slate-900/70 border border-slate-800 rounded-none p-4 sm:p-5 shadow-none relative overflow-hidden">
           <span className="text-[11px] font-bold uppercase text-white font-bold block mb-1">
             Arun PAG Workshop
           </span>
@@ -177,7 +177,7 @@ export default function MaintenanceHubView() {
           <span className="text-xs text-white font-bold">Major Vacuum & Overhaul Depot</span>
         </div>
 
-        <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
+        <div className="bg-slate-900/70 border border-slate-800 rounded-none p-4 sm:p-5 shadow-none relative overflow-hidden">
           <span className="text-[11px] font-bold uppercase text-white font-bold block mb-1">
             Nias MRO Field Bay
           </span>
@@ -190,7 +190,7 @@ export default function MaintenanceHubView() {
           <span className="text-xs text-white font-bold">Field Valve Gland & Sensor Repair</span>
         </div>
 
-        <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
+        <div className="bg-slate-900/70 border border-slate-800 rounded-none p-4 sm:p-5 shadow-none relative overflow-hidden">
           <span className="text-[11px] font-bold uppercase text-white font-bold block mb-1">
             Operational Availability
           </span>
@@ -205,7 +205,7 @@ export default function MaintenanceHubView() {
       </div>
 
       {/* Control Filter Bar */}
-      <section className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+      <section className="bg-slate-900/80 border border-slate-800 rounded-none p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div className="relative flex-1 max-w-xs">
           <Search className="w-3.5 h-3.5 text-white font-bold absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -213,14 +213,14 @@ export default function MaintenanceHubView() {
             placeholder="Search MRO Tanks, Defects..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white font-bold focus:outline-none focus:border-amber-500"
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-none text-white font-bold focus:outline-none focus:border-amber-500"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+        <div className="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1 rounded-none border border-slate-800 text-xs">
           <button
             onClick={() => setFilterCategory('ALL')}
-            className={`px-2.5 py-1 rounded-md transition-colors ${
+            className={`px-2.5 py-1 rounded-none transition-colors ${
               filterCategory === 'ALL'
                 ? 'bg-slate-800 text-white font-bold font-bold'
                 : 'text-white font-bold hover:text-white font-bold'
@@ -232,7 +232,7 @@ export default function MaintenanceHubView() {
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
-              className={`px-2 py-1 rounded-md transition-colors text-[11px] whitespace-nowrap ${
+              className={`px-2 py-1 rounded-none transition-colors text-[11px] whitespace-nowrap ${
                 filterCategory === cat
                   ? 'bg-slate-800 text-white font-bold font-bold'
                   : 'text-white font-bold hover:text-white font-bold'
@@ -253,10 +253,10 @@ export default function MaintenanceHubView() {
           return (
             <div
               key={tank.tankNo}
-              className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-5 shadow-lg flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 hover:border-slate-700 transition-all"
+              className="bg-slate-900/80 border border-slate-800/90 rounded-none p-5 shadow-none flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 hover:border-slate-700 transition-all"
             >
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-none bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
                   <ShieldAlert className="w-6 h-6 text-white font-bold" />
                 </div>
 
@@ -264,7 +264,7 @@ export default function MaintenanceHubView() {
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <span className="font-mono font-bold text-base text-white font-bold">{tank.tankNo}</span>
                     <span className="text-xs text-white font-bold font-mono">({tank.serialNo})</span>
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badge.bg} ${badge.text} ${badge.border}`}>
+                    <span className={`px-2.5 py-0.5 rounded-none text-[10px] font-bold border ${badge.bg} ${badge.text} ${badge.border}`}>
                       {badge.label}
                     </span>
                     <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-[10px] text-white font-bold font-mono flex items-center gap-1">
@@ -298,7 +298,7 @@ export default function MaintenanceHubView() {
                       isArun ? NodeState.NODE_1_ARUN_PAG_TERMINAL : NodeState.NODE_3_NIAS_LAYDOWN_YARD
                     )
                   }
-                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-none text-xs font-bold shadow-none shadow-emerald-600/20 transition-all cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Complete Inspection & Return to Service</span>
@@ -309,7 +309,7 @@ export default function MaintenanceHubView() {
         })}
 
         {filteredMroTanks.length === 0 && (
-          <div className="text-center py-16 bg-slate-900/30 border border-slate-800 rounded-2xl text-white font-bold text-sm">
+          <div className="text-center py-16 bg-slate-900/30 border border-slate-800 rounded-none text-white font-bold text-sm">
             No tanks currently under maintenance matching the filter.
           </div>
         )}
@@ -318,7 +318,7 @@ export default function MaintenanceHubView() {
       {/* Log New Fault Modal */}
       {isLogModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95">
+          <div className="bg-slate-900 border border-slate-700 rounded-none max-w-lg w-full p-6 shadow-none animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
                 <Wrench className="w-5 h-5 text-white font-bold" />
@@ -340,7 +340,7 @@ export default function MaintenanceHubView() {
                   value={targetTankNo}
                   onChange={(e) => setTargetTankNo(e.target.value)}
                   required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-none px-1.5 py-0.5 text-white font-bold focus:outline-none focus:border-amber-500"
                 >
                   <option value="">-- Choose Tank from 120 Fleet --</option>
                   {fleetTanks.map((t) => (
@@ -357,7 +357,7 @@ export default function MaintenanceHubView() {
                 <select
                   value={defectCat}
                   onChange={(e) => setDefectCat(e.target.value as DefectCategory)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-none px-1.5 py-0.5 text-white font-bold focus:outline-none focus:border-amber-500"
                 >
                   <option value="VACUUM_LOSS">Vacuum Loss (High BOG / Annular failure)</option>
                   <option value="VALVE_LEAK">Valve Leak (Liquid/Gas valve packing)</option>
@@ -374,7 +374,7 @@ export default function MaintenanceHubView() {
                   <button
                     type="button"
                     onClick={() => setMroLocation('NIAS_MRO_BAY')}
-                    className={`py-2 px-3 rounded-lg border text-center transition-all ${
+                    className={`py-2 px-3 rounded-none border text-center transition-all ${
                       mroLocation === 'NIAS_MRO_BAY'
                         ? 'bg-emerald-600/20 text-white font-bold border-emerald-500 font-bold'
                         : 'bg-slate-950 border-slate-800 text-white font-bold'
@@ -385,7 +385,7 @@ export default function MaintenanceHubView() {
                   <button
                     type="button"
                     onClick={() => setMroLocation('ARUN_WORKSHOP')}
-                    className={`py-2 px-3 rounded-lg border text-center transition-all ${
+                    className={`py-2 px-3 rounded-none border text-center transition-all ${
                       mroLocation === 'ARUN_WORKSHOP'
                         ? 'bg-blue-600/20 text-white font-bold border-blue-500 font-bold'
                         : 'bg-slate-950 border-slate-800 text-white font-bold'
@@ -404,7 +404,7 @@ export default function MaintenanceHubView() {
                   onChange={(e) => setDefectDesc(e.target.value)}
                   placeholder="Describe observed leak, pressure drop, or sensor failure..."
                   rows={3}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-none px-1.5 py-0.5 text-white font-bold focus:outline-none focus:border-amber-500"
                 />
               </div>
 
@@ -413,13 +413,13 @@ export default function MaintenanceHubView() {
                 <button
                   type="button"
                   onClick={() => setIsLogModalOpen(false)}
-                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg font-bold transition-colors"
+                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-none font-bold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold shadow-md transition-colors"
+                  className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-none font-bold shadow-none transition-colors"
                 >
                   Submit Fault Ticket
                 </button>

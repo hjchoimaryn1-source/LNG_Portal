@@ -226,14 +226,14 @@ export default function SettlementAuditView() {
     <div className="flex flex-col gap-6 w-full text-slate-100">
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 px-4 py-3 bg-indigo-500/20 border border-indigo-500/50 text-indigo-300 rounded-xl shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-4">
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 px-1.5 py-0.5 bg-indigo-500/20 border border-indigo-500/50 text-indigo-300 rounded-none shadow-none backdrop-blur-md animate-in fade-in slide-in-from-top-4">
           <CheckCircle2 className="w-5 h-5 text-indigo-400" />
           <span className="text-sm font-semibold">{toastMessage}</span>
         </div>
       )}
 
       {/* Header Banner */}
-      <section className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <section className="bg-slate-900/80 border border-slate-800 rounded-none p-5 sm:p-6 shadow-none flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
             <Scale className="w-6 h-6 text-indigo-400" />
@@ -249,7 +249,7 @@ export default function SettlementAuditView() {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setIsGCModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-none text-xs font-semibold shadow-none shadow-indigo-600/20 transition-all cursor-pointer"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Log FloBoss / GC Analysis</span>
@@ -257,7 +257,7 @@ export default function SettlementAuditView() {
 
           <button
             onClick={handleExportLedger}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-none text-xs font-semibold transition-colors"
           >
             <Download className="w-4 h-4 text-indigo-400" />
             <span>Export Settlement CSV</span>
@@ -266,7 +266,7 @@ export default function SettlementAuditView() {
       </section>
 
       {/* 1. PLTMG Commercial Settlement Summary Cards */}
-      <section className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+      <section className="bg-slate-900/80 border border-slate-800 rounded-none p-5 sm:p-6 shadow-none space-y-4">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-emerald-400" />
@@ -276,7 +276,7 @@ export default function SettlementAuditView() {
           </div>
 
           {/* Configurable Unit Price Input */}
-          <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+          <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-none border border-slate-800 text-xs">
             <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-slate-400 font-semibold">LNG Contract Price:</span>
             <div className="flex items-center gap-1 font-mono">
@@ -295,7 +295,7 @@ export default function SettlementAuditView() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
           {/* Arun Invoiced Energy */}
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-blue-500/30">
+          <div className="p-4 rounded-none bg-slate-950/80 border border-blue-500/30">
             <span className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1 font-sans">
               1. Total Arun Invoiced Energy
             </span>
@@ -309,7 +309,7 @@ export default function SettlementAuditView() {
           </div>
 
           {/* PLTMG Accepted Heat */}
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-emerald-500/30">
+          <div className="p-4 rounded-none bg-slate-950/80 border border-emerald-500/30">
             <span className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1 font-sans">
               2. Total PLTMG Accepted Heat
             </span>
@@ -323,7 +323,7 @@ export default function SettlementAuditView() {
           </div>
 
           {/* Net BOG Loss & Variance */}
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-amber-500/30">
+          <div className="p-4 rounded-none bg-slate-950/80 border border-amber-500/30">
             <span className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1 font-sans">
               3. Net BOG & Transit Variance
             </span>
@@ -338,7 +338,7 @@ export default function SettlementAuditView() {
 
           {/* Disputed Amount / Tolerance */}
           <div
-            className={`p-4 rounded-xl border ${
+            className={`p-4 rounded-none border ${
               metrics.disputeAlertsCount > 0
                 ? 'bg-red-950/30 border-red-500/50 text-red-400'
                 : 'bg-slate-950/80 border-slate-800 text-slate-300'
@@ -367,7 +367,7 @@ export default function SettlementAuditView() {
       </section>
 
       {/* 2. Molecular Boil-Off Gas (BOG) & Weathering Shift Matrix */}
-      <section className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <section className="bg-slate-900/80 border border-slate-800 rounded-none overflow-hidden shadow-none">
         <div className="p-4 sm:p-5 border-b border-slate-800 bg-slate-950/70 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
           <div>
             <h3 className="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
@@ -380,7 +380,7 @@ export default function SettlementAuditView() {
           </div>
           <button
             onClick={handleExportGC}
-            className="self-start sm:self-auto px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs text-slate-300 font-semibold flex items-center gap-1.5"
+            className="self-start sm:self-auto px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-none text-xs text-slate-300 font-semibold flex items-center gap-1.5"
           >
             <Download className="w-3.5 h-3.5 text-cyan-400" /> Export GC Matrix
           </button>
@@ -450,7 +450,7 @@ export default function SettlementAuditView() {
       </section>
 
       {/* 3. 3-Way Custody Transfer Reconciliation Table */}
-      <section className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <section className="bg-slate-900/80 border border-slate-800 rounded-none overflow-hidden shadow-none">
         {/* Table Controls */}
         <div className="p-4 sm:p-5 border-b border-slate-800 bg-slate-950/70 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
           <div>
@@ -471,14 +471,14 @@ export default function SettlementAuditView() {
                 placeholder="Search Tank / Shipment..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500"
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-none text-slate-200 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
-            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-none border border-slate-800 text-xs">
               <button
                 onClick={() => setStatusFilter('ALL')}
-                className={`px-2.5 py-1 rounded-md transition-colors ${
+                className={`px-2.5 py-1 rounded-none transition-colors ${
                   statusFilter === 'ALL'
                     ? 'bg-slate-800 text-indigo-400 font-bold'
                     : 'text-slate-400 hover:text-slate-200'
@@ -488,7 +488,7 @@ export default function SettlementAuditView() {
               </button>
               <button
                 onClick={() => setStatusFilter('DISPUTE_ALERT')}
-                className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 ${
+                className={`px-2.5 py-1 rounded-none transition-colors flex items-center gap-1 ${
                   statusFilter === 'DISPUTE_ALERT'
                     ? 'bg-red-500/20 text-red-400 font-bold border border-red-500/30'
                     : 'text-slate-400 hover:text-red-400'
@@ -499,7 +499,7 @@ export default function SettlementAuditView() {
               </button>
               <button
                 onClick={() => setStatusFilter('VERIFIED')}
-                className={`px-2.5 py-1 rounded-md transition-colors ${
+                className={`px-2.5 py-1 rounded-none transition-colors ${
                   statusFilter === 'VERIFIED'
                     ? 'bg-emerald-500/20 text-emerald-400 font-bold'
                     : 'text-slate-400 hover:text-emerald-400'
@@ -583,9 +583,9 @@ export default function SettlementAuditView() {
                     </td>
                     <td className="p-3 text-center">
                       <span
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1 border ${
+                        className={`px-2.5 py-1 rounded-none text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1 border ${
                           isDispute
-                            ? 'bg-red-500/20 text-red-400 border-red-500/40 shadow-sm animate-pulse'
+                            ? 'bg-red-500/20 text-red-400 border-red-500/40 shadow-none animate-pulse'
                             : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                         }`}
                       >
@@ -618,7 +618,7 @@ export default function SettlementAuditView() {
       {/* Log FloBoss / Plant GC Analysis Modal */}
       {isGCModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95">
+          <div className="bg-slate-900 border border-slate-700 rounded-none max-w-lg w-full p-6 shadow-none animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <FlaskConical className="w-5 h-5 text-indigo-400" />
@@ -639,7 +639,7 @@ export default function SettlementAuditView() {
                       setGcSource('Plant Gas GC M-101A/B');
                       setGcSamplePoint('Gas Header to PLTMG Turbine M-101A');
                     }}
-                    className={`py-2 px-3 rounded-lg border text-center font-semibold transition-all ${
+                    className={`py-2 px-3 rounded-none border text-center font-semibold transition-all ${
                       gcSource === 'Plant Gas GC M-101A/B'
                         ? 'bg-purple-600/20 text-purple-400 border-purple-500'
                         : 'bg-slate-950 border-slate-800 text-slate-400'
@@ -653,7 +653,7 @@ export default function SettlementAuditView() {
                       setGcSource('FloBoss Gas Chromatograph');
                       setGcSamplePoint('Metering Skid Run A/B Flow Computer');
                     }}
-                    className={`py-2 px-3 rounded-lg border text-center font-semibold transition-all ${
+                    className={`py-2 px-3 rounded-none border text-center font-semibold transition-all ${
                       gcSource === 'FloBoss Gas Chromatograph'
                         ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500'
                         : 'bg-slate-950 border-slate-800 text-slate-400'
@@ -685,7 +685,7 @@ export default function SettlementAuditView() {
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+              <div className="p-3 bg-slate-950 rounded-none border border-slate-800 space-y-2">
                 <span className="font-bold text-slate-300 block mb-1">Component Breakdown (%):</span>
                 <div className="grid grid-cols-3 gap-2 font-mono">
                   <div>
@@ -766,13 +766,13 @@ export default function SettlementAuditView() {
                 <button
                   type="button"
                   onClick={() => setIsGCModalOpen(false)}
-                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold"
+                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-none font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold shadow-md shadow-indigo-500/20"
+                  className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-none font-semibold shadow-none shadow-indigo-500/20"
                 >
                   Save GC Record
                 </button>

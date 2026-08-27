@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type AppTheme = 'PURE_WHITE' | 'INDUSTRIAL_LIGHT' | 'CYBER_DARK';
+export type AppTheme = 'WIN_CLASSIC' | 'PURE_WHITE' | 'INDUSTRIAL_LIGHT' | 'CYBER_DARK';
 
 interface ThemeContextType {
   theme: AppTheme;
@@ -13,14 +13,16 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<AppTheme>('PURE_WHITE');
+  const [theme, setThemeState] = useState<AppTheme>('WIN_CLASSIC');
   const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem('nias_portal_theme') as AppTheme;
-      if (savedTheme && ['PURE_WHITE', 'INDUSTRIAL_LIGHT', 'CYBER_DARK'].includes(savedTheme)) {
+      if (savedTheme && ['WIN_CLASSIC', 'PURE_WHITE', 'INDUSTRIAL_LIGHT', 'CYBER_DARK'].includes(savedTheme)) {
         setThemeState(savedTheme);
+      } else {
+        setThemeState('WIN_CLASSIC');
       }
     } catch (e) {
       console.warn('Unable to read saved theme from localStorage:', e);
@@ -43,8 +45,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     <ThemeContext.Provider value={{ theme, setTheme, isDark }}>
       <div
         data-theme={theme}
-        className={`w-full min-h-screen transition-colors duration-200 ${
-          theme === 'PURE_WHITE'
+        className={`w-screen h-screen overflow-hidden flex flex-col ${
+          theme === 'WIN_CLASSIC'
+            ? 'bg-[#d4d0c8] text-black font-sans'
+            : theme === 'PURE_WHITE'
             ? 'bg-white text-slate-900 font-sans'
             : theme === 'INDUSTRIAL_LIGHT'
             ? 'bg-slate-100 text-slate-800 font-sans'
@@ -61,7 +65,7 @@ export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
     return {
-      theme: 'PURE_WHITE' as AppTheme,
+      theme: 'WIN_CLASSIC' as AppTheme,
       setTheme: () => {},
       isDark: false,
     };

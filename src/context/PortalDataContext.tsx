@@ -177,33 +177,6 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
 
       // Seed operational sample states & heel metrics
       const initialFleet = (data.fleetTanks || []).map((t, idx) => {
-        if (idx === 101) {
-          return {
-            ...t,
-            node: NodeState.NODE_MAINTENANCE_MRO,
-            isUnderMaintenance: true,
-            defectCategory: 'VALVE_LEAK' as DefectCategory,
-            maintenanceLocation: 'NIAS_MRO_BAY' as MaintenanceLocation,
-            defectDescription: 'Gaseous phase needle valve gland seal weeping (0.80 MPa)',
-            repairStartedAt: '2026-08-13 14:30',
-            location: 'ORU NIAS',
-            position: 'NIAS MRO BAY',
-          };
-        }
-        if (idx === 102) {
-          return {
-            ...t,
-            node: NodeState.NODE_MAINTENANCE_MRO,
-            isUnderMaintenance: true,
-            defectCategory: 'VACUUM_LOSS' as DefectCategory,
-            maintenanceLocation: 'ARUN_WORKSHOP' as MaintenanceLocation,
-            defectDescription: 'Outer jacket vacuum degradation (abnormal BOG boil-off rate in Nias)',
-            repairStartedAt: '2026-08-12 09:15',
-            location: 'Aceh',
-            position: 'ARUN MRO WORKSHOP',
-          };
-        }
-
         // Pre-seed Heel Lifecycle metrics for staged and returned tanks
         if (t.node === NodeState.NODE_5_EMPTY_RETURN_CYCLE || t.position.toLowerCase().includes('laydown 2') || t.position.toLowerCase().includes('laydown 3') || idx === 3 || idx === 7) {
           const offload: OffloadHeelMetrics = {

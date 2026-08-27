@@ -1,34 +1,10 @@
 // src/components/SidebarNav.tsx
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { usePortalData } from '../context/PortalDataContext';
 import { NodeState, SubProcessKey } from '../types/lng';
-import {
-  Anchor,
-  Ship,
-  Flame,
-  FileCheck,
-  MapPin,
-  RotateCcw,
-  Gauge,
-  Scale,
-  Database,
-  Layers,
-  ChevronRight,
-  Radio,
-  AlertTriangle,
-  Building2,
-  Navigation,
-  Wrench,
-  Table,
-  Box,
-  Zap,
-  FlaskConical,
-  Tag,
-  Activity,
-  Globe,
-} from 'lucide-react';
+import { COMPANY_CONFIG } from '../config/siteConfig';
 
 interface SidebarNavProps {
   activeKey: SubProcessKey;
@@ -37,6 +13,13 @@ interface SidebarNavProps {
   onCloseMobile?: () => void;
 }
 
+// Minimal 9px SCADA [+]/[-] Square Indicator (No redundant folder icons)
+const TreeToggle = ({ isOpen }: { isOpen: boolean }) => (
+  <span className="w-2.5 h-2.5 min-w-[10px] bg-white border border-slate-400 text-[8px] font-mono font-bold text-slate-700 flex items-center justify-center select-none mr-2 leading-none shadow-[inset_1px_1px_0px_white] shrink-0">
+    {isOpen ? '-' : '+'}
+  </span>
+);
+
 export default function SidebarNav({
   activeKey,
   onSelectKey,
@@ -44,6 +27,25 @@ export default function SidebarNav({
   onCloseMobile,
 }: SidebarNavProps) {
   const { fleetTanks, activeBays, settlementRecords, ingestionStatuses } = usePortalData();
+
+  // Collapsible tree branches with initial state:
+  // Root, LNG-Process, and PAGT (Arun) Open by default; others Closed
+  const [openNodes, setOpenNodes] = useState<Record<string, boolean>>({
+    root: true,
+    lngProcess: true,
+    arun: true,
+    saviour: false,
+    nias: false,
+    domain1: false,
+    domain2: false,
+    equipment: false,
+    workOrder: false,
+    manpower: false,
+  });
+
+  const toggleNode = (node: string) => {
+    setOpenNodes((prev) => ({ ...prev, [node]: !prev[node] }));
+  };
 
   // Compute live tank distribution by node
   const counts = useMemo(() => {
@@ -90,460 +92,653 @@ export default function SidebarNav({
 
   return (
     <aside
-      className={`fixed lg:sticky top-0 left-0 z-40 h-screen w-72 sm:w-80 bg-slate-50 border-r border-slate-300 flex flex-col justify-between transition-transform duration-200 ${
+      className={`fixed lg:sticky top-0 left-0 z-40 h-full w-72 sm:w-80 shrink-0 bg-[#d4d0c8] border-r-2 border-[#404040] flex flex-col justify-between transition-transform duration-150 select-none ${
         isOpenMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}
     >
-      {/* Top Branding Section */}
-      <div className="p-4 sm:p-5 border-b border-slate-300 flex items-center justify-between shrink-0 bg-white">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/40">
-            <span className="text-white font-black text-sm tracking-wider">LNG</span>
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <h1 className="font-black text-sm sm:text-base tracking-tight text-slate-900 whitespace-nowrap">
-                Virtual Pipeline
-              </h1>
-              <span className="px-1.5 py-0.5 rounded bg-blue-100 border border-blue-200 text-[9px] font-mono text-blue-800 font-bold">
-                v2.5
-              </span>
-            </div>
-            <span className="text-[10px] uppercase tracking-widest text-slate-600 font-bold block mt-0.5">
-              Closed-Loop & MRO Portal
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Groups */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 custom-scrollbar bg-slate-50">
-        {/* Fleet Ticker Summary */}
-        <div className="p-2.5 rounded-lg bg-white border border-slate-300 flex items-center justify-between text-xs font-mono">
-          <div className="flex items-center gap-2 text-slate-800 font-bold">
-            <Radio className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
-            <span>Active Fleet:</span>
-          </div>
-          <span className="font-black text-slate-800">{counts.totalFleet} ISO Tanks</span>
-        </div>
-
-        {/* ========================================================= */}
-        {/* 1. ARUN PAG TERMINAL */}
-        {/* ========================================================= */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between px-2 py-1">
-            <span className="text-xs uppercase tracking-wider font-bold text-slate-900 flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5" />
-              1. Arun PAG Terminal
-            </span>
-            <span className="text-[10px] font-mono bg-slate-200 text-slate-800 font-bold border border-slate-300 px-1.5 py-0.2 rounded">
-              {counts.arunCount} Tanks
-            </span>
-          </div>
-
-          <div className="space-y-1">
-            <button
-              onClick={() => handleItemClick('ARUN_LOADING_COQ')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
-                activeKey === 'ARUN_LOADING_COQ'
-                  ? 'bg-blue-600 text-white font-bold shadow-sm'
-                  : 'text-slate-800 hover:bg-slate-200'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Anchor className={`w-4 h-4 ${activeKey === 'ARUN_LOADING_COQ' ? 'text-white' : 'text-slate-600'}`} />
-                <span>Loading & COQ Workspace</span>
-              </div>
-              <ChevronRight
-                className={`w-3.5 h-3.5 ${activeKey === 'ARUN_LOADING_COQ' ? 'text-white' : 'text-slate-400'}`}
-              />
-            </button>
-
-            <button
-              onClick={() => handleItemClick('ARUN_MASTER_HISTORY')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
-                activeKey === 'ARUN_MASTER_HISTORY'
-                  ? 'bg-blue-600 text-white font-bold shadow-sm'
-                  : 'text-slate-800 hover:bg-slate-200'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Table className={`w-4 h-4 ${activeKey === 'ARUN_MASTER_HISTORY' ? 'text-white' : 'text-slate-600'}`} />
-                <span>Master History Archive</span>
-              </div>
-              <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-                activeKey === 'ARUN_MASTER_HISTORY' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
-              }`}>
-                {counts.masterHistoryCount}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* 2. MV. SAVIOUR TRANSIT */}
-        {/* ========================================================= */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between px-2 py-1">
-            <span className="text-xs uppercase tracking-wider font-bold text-slate-900 flex items-center gap-1.5">
-              <Navigation className="w-3.5 h-3.5" />
-              2. MV. Saviour Transit
-            </span>
-            <span className="text-[10px] font-mono bg-slate-200 text-slate-800 font-bold border border-slate-300 px-1.5 py-0.2 rounded">
-              {counts.sailingCount} Sailing
-            </span>
-          </div>
-
-          <div className="space-y-1">
-            <button
-              onClick={() => handleItemClick('SAVIOUR_VOYAGE_MONITORING')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
-                activeKey === 'SAVIOUR_VOYAGE_MONITORING'
-                  ? 'bg-blue-600 text-white font-bold shadow-sm'
-                  : 'text-slate-800 hover:bg-slate-200'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Ship className={`w-4 h-4 ${activeKey === 'SAVIOUR_VOYAGE_MONITORING' ? 'text-white' : 'text-slate-600'}`} />
-                <span>Voyage Monitoring</span>
-              </div>
-              <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-                activeKey === 'SAVIOUR_VOYAGE_MONITORING' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
-              }`}>
-                {counts.sailingCount}
-              </span>
-            </button>
-
-            <button
-              onClick={() => handleItemClick('SAVIOUR_MARINE_PRESSURE')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
-                activeKey === 'SAVIOUR_MARINE_PRESSURE'
-                  ? 'bg-blue-600 text-white font-bold shadow-sm'
-                  : 'text-slate-800 hover:bg-slate-200'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Gauge className={`w-4 h-4 ${activeKey === 'SAVIOUR_MARINE_PRESSURE' ? 'text-white' : 'text-slate-600'}`} />
-                <span>Marine Pressure Log</span>
-              </div>
-              <ChevronRight
-                className={`w-3.5 h-3.5 ${activeKey === 'SAVIOUR_MARINE_PRESSURE' ? 'text-white' : 'text-slate-400'}`}
-              />
-            </button>
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* 3. NIAS REGAS TERMINAL (Promoted Integrated Overview & 2 Domains) */}
-        {/* ========================================================= */}
-        <div className="space-y-2 pt-2 border-t border-slate-300">
-          <div className="flex items-center justify-between px-2 py-0.5">
-            <span className="text-xs uppercase tracking-wider font-bold text-slate-900 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5" />
-              3. Nias Regas Terminal
-            </span>
-            <span className="text-[10px] font-mono bg-slate-200 text-slate-800 font-bold border border-slate-300 px-1.5 py-0.2 rounded">
-              2 Domains
-            </span>
-          </div>
-
-          {/* ★ PROMOTED TERMINAL MAIN INTEGRATED OVERVIEW (PFD) ★ */}
-          <button
-            onClick={() => handleItemClick('NIAS_TERMINAL_OVERVIEW')}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-black transition-all group ${
-              activeKey === 'NIAS_TERMINAL_OVERVIEW'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-800 hover:bg-slate-200 border border-slate-300 bg-white'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Activity className={`w-4 h-4 group-hover:scale-110 transition-transform ${activeKey === 'NIAS_TERMINAL_OVERVIEW' ? 'text-white' : 'text-slate-700'}`} />
-              <span>🌐 Terminal Integrated Overview</span>
-            </div>
-            <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-              activeKey === 'NIAS_TERMINAL_OVERVIEW' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
-            }`}>
-              PFD
-            </span>
-          </button>
-
-          {/* DOMAIN 1: 📦 ISO TANK MANAGEMENT */}
-          <div className="space-y-1 bg-white p-2 rounded-none border border-slate-300">
-            <div className="px-2 py-1 mb-1 text-xs font-bold text-slate-900 bg-slate-100 border-b border-slate-300 flex items-center gap-1 -mx-2 -mt-2">
-              <Box className="w-3 h-3 text-slate-700" />
-              <span>Domain 1: ISO Tank Management</span>
-            </div>
-
-            {/* Sub-Tab 1: Overview & Visual Yard Map */}
-            <button
-              onClick={() => handleItemClick('NIAS_TANK_OVERVIEW')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
-                activeKey === 'NIAS_TANK_OVERVIEW' || activeKey === 'NIAS_OPERATIONS_OVERVIEW'
-                  ? 'bg-blue-600 text-white font-bold'
-                  : 'text-slate-800 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Layers className={`w-3.5 h-3.5 ${activeKey === 'NIAS_TANK_OVERVIEW' || activeKey === 'NIAS_OPERATIONS_OVERVIEW' ? 'text-white' : 'text-slate-600'}`} />
-                <span>🌐 Overview & Yard Map</span>
-              </div>
-              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
-                activeKey === 'NIAS_TANK_OVERVIEW' || activeKey === 'NIAS_OPERATIONS_OVERVIEW' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
-              }`}>
-                {counts.laydownCount + counts.regasBayCount + counts.emptyReturnCount}
-              </span>
-            </button>
-
-            {/* Sub-Tab 2: Laydown 1 Condition & BOG Log */}
-            <button
-              onClick={() => handleItemClick('NIAS_LAYDOWN_1_2_LOG')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
-                activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeKey === 'NIAS_DAILY_CONDITION_BOG' || activeKey === 'NIAS_LAYDOWN_DEPRESS'
-                  ? 'bg-blue-600 text-white font-bold'
-                  : 'text-slate-800 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Table className={`w-3.5 h-3.5 ${activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeKey === 'NIAS_DAILY_CONDITION_BOG' || activeKey === 'NIAS_LAYDOWN_DEPRESS' ? 'text-white' : 'text-slate-600'}`} />
-                <span>📥 Laydown 1 Condition & BOG</span>
-              </div>
-              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
-                activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeKey === 'NIAS_DAILY_CONDITION_BOG' || activeKey === 'NIAS_LAYDOWN_DEPRESS' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
-              }`}>
-                {counts.laydownCount}
-              </span>
-            </button>
-
-            {/* Sub-Tab 3: Active Bay Mounted Tanks */}
-            <button
-              onClick={() => handleItemClick('NIAS_ACTIVE_BAY_TANKS')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
-                activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeKey === 'NIAS_BAY_MOUNTED_TANKS'
-                  ? 'bg-blue-600 text-white font-bold'
-                  : 'text-slate-800 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Tag className={`w-3.5 h-3.5 ${activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeKey === 'NIAS_BAY_MOUNTED_TANKS' ? 'text-white' : 'text-slate-600'}`} />
-                <span>🏷️ Active Bay Mounted Tanks</span>
-              </div>
-              <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${
-                activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeKey === 'NIAS_BAY_MOUNTED_TANKS' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
-              }`}>
-                {counts.regasBayCount} Mounted
-              </span>
-            </button>
-
-            {/* Sub-Tab 4: Laydown 2 (Heel 4% Staging) */}
-            <button
-              onClick={() => handleItemClick('NIAS_LAYDOWN_3_HEEL')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
-                activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeKey === 'NIAS_EMPTY_RETURN'
-                  ? 'bg-blue-600 text-white font-bold'
-                  : 'text-slate-800 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <RotateCcw className={`w-3.5 h-3.5 ${activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeKey === 'NIAS_EMPTY_RETURN' ? 'text-white' : 'text-slate-600'}`} />
-                <span>🔄 Laydown 2 (Heel 4% Staging)</span>
-              </div>
-              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
-                activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeKey === 'NIAS_EMPTY_RETURN' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
-              }`}>
-                {counts.emptyReturnCount}
-              </span>
-            </button>
-          </div>
-
-          {/* DOMAIN 2: ⚡ REGAS SYSTEM & GAS-TO-POWER */}
-          <div className="space-y-1 bg-white p-2 rounded-none border border-slate-300 mt-2">
-            <div className="px-2 py-1 mb-1 text-xs font-bold text-slate-900 bg-slate-100 border-b border-slate-300 flex items-center gap-1 -mx-2 -mt-2">
-              <Zap className="w-3 h-3 text-amber-600" />
-              <span>Domain 2: Regas System & Power</span>
-            </div>
-
-            {/* Sub-Tab 1: Gas Process & State Transformation */}
-            <button
-              onClick={() => handleItemClick('NIAS_GAS_PROCESS_TELEMETRY')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
-                activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeKey === 'NIAS_FOUR_BAY_REGAS' || activeKey === 'NIAS_ACTIVE_REGAS'
-                  ? 'bg-blue-600 text-white font-bold'
-                  : 'text-slate-800 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Activity className={`w-3.5 h-3.5 ${activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeKey === 'NIAS_FOUR_BAY_REGAS' || activeKey === 'NIAS_ACTIVE_REGAS' ? 'text-white' : 'text-slate-600'}`} />
-                <span>📊 Gas Process Telemetry</span>
-              </div>
-              {counts.activeRunningBays > 0 ? (
-                <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border animate-pulse ${
-                  activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeKey === 'NIAS_FOUR_BAY_REGAS' || activeKey === 'NIAS_ACTIVE_REGAS' ? 'bg-white text-blue-700 border-white/20' : 'bg-amber-100 text-amber-800 border-amber-300'
-                }`}>
-                  {counts.activeRunningBays} Run
-                </span>
-              ) : (
-                <span className="text-[9px] font-mono text-slate-500 font-bold">4 Bays</span>
-              )}
-            </button>
-
-            {/* Sub-Tab 2: GC & Gas Quality Stream */}
-            <button
-              onClick={() => handleItemClick('NIAS_GC_GAS_QUALITY')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
-                activeKey === 'NIAS_GC_GAS_QUALITY'
-                  ? 'bg-blue-600 text-white font-bold'
-                  : 'text-slate-800 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <FlaskConical className={`w-3.5 h-3.5 ${activeKey === 'NIAS_GC_GAS_QUALITY' ? 'text-white' : 'text-slate-600'}`} />
-                <span>🔬 GC & Gas Quality Stream</span>
-              </div>
-              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
-                activeKey === 'NIAS_GC_GAS_QUALITY' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
-              }`}>
-                FloBoss
-              </span>
-            </button>
-
-            {/* Sub-Tab 3: PLTMG Power & Thermal Output */}
-            <button
-              onClick={() => handleItemClick('NIAS_PLTMG_POWER_OUTPUT')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
-                activeKey === 'NIAS_PLTMG_POWER_OUTPUT'
-                  ? 'bg-blue-600 text-white font-bold'
-                  : 'text-slate-800 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Zap className={`w-3.5 h-3.5 ${activeKey === 'NIAS_PLTMG_POWER_OUTPUT' ? 'text-white' : 'text-slate-600'}`} />
-                <span>⚡ PLTMG Power & Output</span>
-              </div>
-              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
-                activeKey === 'NIAS_PLTMG_POWER_OUTPUT' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
-              }`}>
-                18.5 MW
-              </span>
-            </button>
-
-            {/* Sub-Tab 4: Custody Heat Settlement */}
-            <button
-              onClick={() => handleItemClick('NIAS_HEAT_SETTLEMENT')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold transition-colors group ${
-                activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT'
-                  ? 'bg-blue-600 text-white font-bold'
-                  : 'text-slate-800 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Scale className={`w-3.5 h-3.5 ${activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT' ? 'text-white' : 'text-slate-600'}`} />
-                <span>⚖️ Custody Heat Settlement</span>
-              </div>
-              {counts.disputeAlerts > 0 ? (
-                <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border flex items-center gap-0.5 animate-pulse ${
-                  activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT' ? 'bg-white text-red-600 border-white/20' : 'bg-red-100 text-red-700 border-red-300'
-                }`}>
-                  <AlertTriangle className="w-2.5 h-2.5" /> {counts.disputeAlerts}
-                </span>
-              ) : (
-                <span className={`text-[9px] font-mono font-bold flex items-center gap-0.5 ${
-                  activeKey === 'NIAS_HEAT_SETTLEMENT' || activeKey === 'NIAS_CUSTODY_HEAT_SETTLEMENT' ? 'text-white' : 'text-slate-500'
-                }`}>
-                  <FileCheck className="w-2.5 h-2.5" /> OK
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* 4. EMERGENCY MAINTENANCE (MRO) HUB */}
-        {/* ========================================================= */}
-        <div className="space-y-1.5 pt-2 border-t border-slate-300 mt-2">
-          <button
-            onClick={() => handleItemClick('MAINTENANCE_MRO_HUB')}
-            className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold transition-colors group ${
-              activeKey === 'MAINTENANCE_MRO_HUB'
-                ? 'bg-blue-600 text-white font-bold shadow-sm'
-                : 'text-slate-800 hover:bg-slate-200'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <div className={`p-1.5 rounded border ${
-                activeKey === 'MAINTENANCE_MRO_HUB' ? 'bg-blue-500/20 text-white border-blue-400/40' : 'bg-amber-100 text-amber-700 border-amber-300'
-              }`}>
-                <Wrench className="w-4 h-4" />
-              </div>
-              <div className="text-left">
-                <span className={`block text-xs font-black ${activeKey === 'MAINTENANCE_MRO_HUB' ? 'text-white' : 'text-slate-900'}`}>Maintenance & MRO</span>
-                <span className={`text-[10px] font-bold font-mono ${activeKey === 'MAINTENANCE_MRO_HUB' ? 'text-blue-100' : 'text-slate-500'}`}>
-                  Depot Repairs & Re-cert
-                </span>
-              </div>
-            </div>
-            {counts.mroCount > 0 ? (
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                activeKey === 'MAINTENANCE_MRO_HUB' ? 'bg-white text-blue-700' : 'bg-amber-100 text-amber-800 border border-amber-300'
-              }`}>
-                {counts.mroCount} Units
-              </span>
-            ) : (
-              <span className={`text-[10px] font-bold font-mono ${activeKey === 'MAINTENANCE_MRO_HUB' ? 'text-blue-100' : 'text-slate-400'}`}>Ready</span>
-            )}
-          </button>
-        </div>
-
-        {/* ========================================================= */}
-        {/* 5. SYSTEM DATA HUBS */}
-        {/* ========================================================= */}
-        <div className="space-y-1.5 pt-2 border-t border-slate-300 mt-2">
-          <div className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-black text-slate-900">
-            Enterprise Fleet Hubs
-          </div>
-
-          <button
-            onClick={() => handleItemClick('GLOBAL_FLEET_HUB')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
-              activeKey === 'GLOBAL_FLEET_HUB'
-                ? 'bg-blue-600 text-white font-bold shadow-sm'
-                : 'text-slate-800 hover:bg-slate-200'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Globe className={`w-4 h-4 ${activeKey === 'GLOBAL_FLEET_HUB' ? 'text-white' : 'text-slate-600'}`} />
-              <span>Global 120-Fleet Tracker</span>
-            </div>
-            <ChevronRight className={`w-3.5 h-3.5 ${activeKey === 'GLOBAL_FLEET_HUB' ? 'text-white' : 'text-slate-400'}`} />
-          </button>
-
-          <button
-            onClick={() => handleItemClick('DATA_INGESTION_HUB')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors group ${
-              activeKey === 'DATA_INGESTION_HUB'
-                ? 'bg-blue-600 text-white font-bold shadow-sm'
-                : 'text-slate-800 hover:bg-slate-200'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Database className={`w-4 h-4 ${activeKey === 'DATA_INGESTION_HUB' ? 'text-white' : 'text-slate-600'}`} />
-              <span>7 CSV Data Ingestion Hub</span>
-            </div>
-            <span className={`text-[10px] font-mono font-bold border px-1.5 py-0.5 rounded ${
-              activeKey === 'DATA_INGESTION_HUB' ? 'bg-white text-blue-700 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
-            }`}>
-              {counts.loadedFilesCount}/7
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {/* Bottom Footer Section */}
-      <div className="p-3 border-t border-slate-300 bg-slate-100 text-[10px] font-mono text-slate-600 font-bold flex items-center justify-between shrink-0">
-        <span>Virtual Pipeline v2.5</span>
-        <span className="text-slate-700 flex items-center gap-1 font-bold">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-          LIVE TELEMETRY
+      {/* 1. 상단 파란색 타이틀 바 (중앙 정렬 "NIAS - CMMS" 단일 텍스트) */}
+      <div className="win-titlebar justify-center py-1">
+        <span className="text-center font-bold text-white text-xs tracking-wider">
+          NIAS - CMMS
         </span>
+      </div>
+
+      {/* 2. 로고 블록 (Branding Block) */}
+      <div className="p-1.5 shrink-0 bg-[#d4d0c8] border-b border-[#808080]">
+        <div className="flex flex-col items-center justify-center p-2 bg-white border-b-2 border-slate-300 win-panel">
+          <img
+            src="/images/bsg-lines-logo.png"
+            alt="BSG Lines Logo"
+            className="h-11 w-auto object-contain mx-auto mb-1"
+          />
+          <h1 className="text-[10px] font-bold text-slate-900 text-center uppercase tracking-tight leading-tight">
+            {COMPANY_CONFIG.companyName}
+          </h1>
+        </div>
+      </div>
+
+      {/* 3. Tree-View Well (Clean Strict Hierarchical Indentation) */}
+      <div className="win-well m-1.5 p-1 flex-1 overflow-y-auto font-sans text-xs">
+        <div className="space-y-0.5">
+          {/* Level 0: NIAS CMMS (Root) */}
+          <div
+            onClick={() => toggleNode('root')}
+            className="w-full flex items-center justify-between px-1.5 py-0.5 font-bold text-black cursor-pointer hover:bg-slate-200 transition-colors"
+          >
+            <div className="flex items-center min-w-0">
+              <TreeToggle isOpen={!!openNodes.root} />
+              <span className="text-[11px] font-extrabold uppercase tracking-wide">NIAS CMMS</span>
+            </div>
+          </div>
+
+          {openNodes.root && (
+            <div className="space-y-0.5">
+              
+              {/* ========================================================= */}
+              {/* Level 1: LNG-Process                                      */}
+              {/* ========================================================= */}
+              <div>
+                <div
+                  onClick={() => {
+                    handleItemClick('LNG_PROCESS_OVERVIEW');
+                    toggleNode('lngProcess');
+                  }}
+                  className={`w-full flex items-center justify-between pl-4 pr-2 py-0.5 font-bold cursor-pointer transition-colors ${
+                    activeKey === 'LNG_PROCESS_OVERVIEW' || activeKey === 'NIAS_TERMINAL_OVERVIEW'
+                      ? 'bg-[#0a2558] text-white'
+                      : 'text-slate-900 hover:bg-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center min-w-0">
+                    <TreeToggle isOpen={!!openNodes.lngProcess} />
+                    <span className="text-[11px] font-bold">LNG-Process</span>
+                  </div>
+                  <span
+                    className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                      activeKey === 'LNG_PROCESS_OVERVIEW' || activeKey === 'NIAS_TERMINAL_OVERVIEW'
+                        ? 'text-white font-semibold'
+                        : 'text-slate-500'
+                    }`}
+                  >
+                    {counts.totalFleet}
+                  </span>
+                </div>
+
+                {/* Level 2 & 3: Under LNG-Process */}
+                {openNodes.lngProcess && (
+                  <div className="space-y-0.5">
+                    
+                    {/* Level 2: PAGT ( Arun ) */}
+                    <div>
+                      <div
+                        onClick={() => toggleNode('arun')}
+                        className="w-full flex items-center justify-between pl-7 pr-2 py-0.5 font-bold text-slate-900 cursor-pointer hover:bg-slate-200 transition-colors"
+                      >
+                        <div className="flex items-center min-w-0">
+                          <TreeToggle isOpen={!!openNodes.arun} />
+                          <span className="text-[11px]">PAGT ( Arun )</span>
+                        </div>
+                        <span className="text-[11px] font-mono text-slate-500 ml-auto pl-2 shrink-0">
+                          {counts.arunCount}
+                        </span>
+                      </div>
+
+                      {/* Level 3: Under PAGT ( Arun ) */}
+                      {openNodes.arun && (
+                        <div className="space-y-0.5">
+                          <button
+                            onClick={() => handleItemClick('ARUN_LOADING_COQ')}
+                            className={`w-full flex items-center justify-between pl-11 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                              activeKey === 'ARUN_LOADING_COQ'
+                                ? 'bg-[#0a2558] text-white font-bold'
+                                : 'text-slate-800 hover:bg-slate-200'
+                            }`}
+                          >
+                            <span>Loading Operations</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleItemClick('ARUN_MASTER_HISTORY')}
+                            className={`w-full flex items-center justify-between pl-11 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                              activeKey === 'ARUN_MASTER_HISTORY'
+                                ? 'bg-[#0a2558] text-white font-bold'
+                                : 'text-slate-800 hover:bg-slate-200'
+                            }`}
+                          >
+                            <span>Master History Archive</span>
+                            <span
+                              className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                                activeKey === 'ARUN_MASTER_HISTORY' ? 'text-white' : 'text-slate-500'
+                              }`}
+                            >
+                              {counts.masterHistoryCount}
+                            </span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Level 2: MV. Saviour Transit */}
+                    <div>
+                      <div
+                        onClick={() => toggleNode('saviour')}
+                        className="w-full flex items-center justify-between pl-7 pr-2 py-0.5 font-bold text-slate-900 cursor-pointer hover:bg-slate-200 transition-colors"
+                      >
+                        <div className="flex items-center min-w-0">
+                          <TreeToggle isOpen={!!openNodes.saviour} />
+                          <span className="text-[11px]">MV. Saviour</span>
+                        </div>
+                        <span className="text-[11px] font-mono text-slate-500 ml-auto pl-2 shrink-0">
+                          {counts.sailingCount}
+                        </span>
+                      </div>
+
+                      {/* Level 3: Under MV. Saviour */}
+                      {openNodes.saviour && (
+                        <div className="space-y-0.5">
+                          <button
+                            onClick={() => handleItemClick('SAVIOUR_VOYAGE_MONITORING')}
+                            className={`w-full flex items-center justify-between pl-11 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                              activeKey === 'SAVIOUR_VOYAGE_MONITORING'
+                                ? 'bg-[#0a2558] text-white font-bold'
+                                : 'text-slate-800 hover:bg-slate-200'
+                            }`}
+                          >
+                            <span>Voyage Monitoring</span>
+                            <span
+                              className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                                activeKey === 'SAVIOUR_VOYAGE_MONITORING'
+                                  ? 'text-white'
+                                  : 'text-slate-500'
+                              }`}
+                            >
+                              {counts.sailingCount}
+                            </span>
+                          </button>
+
+                          <button
+                            onClick={() => handleItemClick('SAVIOUR_MARINE_PRESSURE')}
+                            className={`w-full flex items-center justify-between pl-11 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                              activeKey === 'SAVIOUR_MARINE_PRESSURE'
+                                ? 'bg-[#0a2558] text-white font-bold'
+                                : 'text-slate-800 hover:bg-slate-200'
+                            }`}
+                          >
+                            <span>Marine Pressure Log</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Level 2: Nias Regas Terminal */}
+                    <div>
+                      <div
+                        onClick={() => toggleNode('nias')}
+                        className="w-full flex items-center justify-between pl-7 pr-2 py-0.5 font-bold text-slate-900 cursor-pointer hover:bg-slate-200 transition-colors"
+                      >
+                        <div className="flex items-center min-w-0">
+                          <TreeToggle isOpen={!!openNodes.nias} />
+                          <span className="text-[11px]">Nias Regas Unit</span>
+                        </div>
+                        <span className="text-[11px] font-mono text-slate-500 ml-auto pl-2 shrink-0">
+                          {counts.laydownCount + counts.regasBayCount + counts.emptyReturnCount}
+                        </span>
+                      </div>
+
+                      {/* Level 3 & 4: Under Nias Regas Unit */}
+                      {openNodes.nias && (
+                        <div className="space-y-0.5">
+                          {/* Level 3: ISO Tank Management */}
+                          <div>
+                            <div
+                              onClick={() => toggleNode('domain1')}
+                              className="w-full flex items-center justify-between pl-11 pr-2 py-0.5 font-bold text-slate-900 cursor-pointer hover:bg-slate-200 transition-colors"
+                            >
+                              <div className="flex items-center min-w-0">
+                                <TreeToggle isOpen={!!openNodes.domain1} />
+                                <span className="text-[10px] font-bold text-blue-950">
+                                  ISO Tank Management
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Level 4: Under ISO Tank Management */}
+                            {openNodes.domain1 && (
+                              <div className="space-y-0.5">
+                                <button
+                                  onClick={() => handleItemClick('NIAS_TANK_OVERVIEW')}
+                                  className={`w-full flex items-center justify-between pl-14 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                                    activeKey === 'NIAS_TANK_OVERVIEW'
+                                      ? 'bg-[#0a2558] text-white font-bold'
+                                      : 'text-slate-800 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  <span>Overview & Yard Map</span>
+                                  <span
+                                    className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                                      activeKey === 'NIAS_TANK_OVERVIEW'
+                                        ? 'text-white'
+                                        : 'text-slate-500'
+                                    }`}
+                                  >
+                                    {counts.laydownCount +
+                                      counts.regasBayCount +
+                                      counts.emptyReturnCount}
+                                  </span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleItemClick('NIAS_LAYDOWN_1_2_LOG')}
+                                  className={`w-full flex items-center justify-between pl-14 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                                    activeKey === 'NIAS_LAYDOWN_1_2_LOG'
+                                      ? 'bg-[#0a2558] text-white font-bold'
+                                      : 'text-slate-800 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  <span>Laydown 1 Log & BOG</span>
+                                  <span
+                                    className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                                      activeKey === 'NIAS_LAYDOWN_1_2_LOG'
+                                        ? 'text-white'
+                                        : 'text-slate-500'
+                                    }`}
+                                  >
+                                    {counts.laydownCount}
+                                  </span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleItemClick('NIAS_ACTIVE_BAY_TANKS')}
+                                  className={`w-full flex items-center justify-between pl-14 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                                    activeKey === 'NIAS_ACTIVE_BAY_TANKS'
+                                      ? 'bg-[#0a2558] text-white font-bold'
+                                      : 'text-slate-800 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  <span>Active Bay Tanks</span>
+                                  <span
+                                    className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                                      activeKey === 'NIAS_ACTIVE_BAY_TANKS'
+                                        ? 'text-white'
+                                        : 'text-slate-500'
+                                    }`}
+                                  >
+                                    {counts.regasBayCount}
+                                  </span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleItemClick('NIAS_LAYDOWN_3_HEEL')}
+                                  className={`w-full flex items-center justify-between pl-14 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                                    activeKey === 'NIAS_LAYDOWN_3_HEEL'
+                                      ? 'bg-[#0a2558] text-white font-bold'
+                                      : 'text-slate-800 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  <span>Laydown 2 (Heel ~1.0 m³)</span>
+                                  <span
+                                    className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                                      activeKey === 'NIAS_LAYDOWN_3_HEEL'
+                                        ? 'text-white'
+                                        : 'text-slate-500'
+                                    }`}
+                                  >
+                                    {counts.emptyReturnCount}
+                                  </span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Level 3: Regas System & Power */}
+                          <div>
+                            <div
+                              onClick={() => toggleNode('domain2')}
+                              className="w-full flex items-center justify-between pl-11 pr-2 py-0.5 font-bold text-slate-900 cursor-pointer hover:bg-slate-200 transition-colors"
+                            >
+                              <div className="flex items-center min-w-0">
+                                <TreeToggle isOpen={!!openNodes.domain2} />
+                                <span className="text-[10px] font-bold text-amber-950">
+                                  Regas & Power
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Level 4: Under Regas System & Power */}
+                            {openNodes.domain2 && (
+                              <div className="space-y-0.5">
+                                <button
+                                  onClick={() => handleItemClick('NIAS_GAS_PROCESS_TELEMETRY')}
+                                  className={`w-full flex items-center justify-between pl-14 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                                    activeKey === 'NIAS_GAS_PROCESS_TELEMETRY'
+                                      ? 'bg-[#0a2558] text-white font-bold'
+                                      : 'text-slate-800 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  <span>Gas Process Telemetry</span>
+                                  <span
+                                    className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                                      activeKey === 'NIAS_GAS_PROCESS_TELEMETRY'
+                                        ? 'text-white'
+                                        : 'text-slate-500'
+                                    }`}
+                                  >
+                                    {counts.activeRunningBays} Run
+                                  </span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleItemClick('NIAS_GC_GAS_QUALITY')}
+                                  className={`w-full flex items-center justify-between pl-14 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                                    activeKey === 'NIAS_GC_GAS_QUALITY'
+                                      ? 'bg-[#0a2558] text-white font-bold'
+                                      : 'text-slate-800 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  <span>GC Gas Quality Stream</span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleItemClick('NIAS_PLTMG_POWER_OUTPUT')}
+                                  className={`w-full flex items-center justify-between pl-14 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                                    activeKey === 'NIAS_PLTMG_POWER_OUTPUT'
+                                      ? 'bg-[#0a2558] text-white font-bold'
+                                      : 'text-slate-800 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  <span>PLTMG Power & Output</span>
+                                  <span
+                                    className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                                      activeKey === 'NIAS_PLTMG_POWER_OUTPUT'
+                                        ? 'text-white'
+                                        : 'text-slate-500'
+                                    }`}
+                                  >
+                                    18.5MW
+                                  </span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleItemClick('NIAS_HEAT_SETTLEMENT')}
+                                  className={`w-full flex items-center justify-between pl-14 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                                    activeKey === 'NIAS_HEAT_SETTLEMENT'
+                                      ? 'bg-[#0a2558] text-white font-bold'
+                                      : 'text-slate-800 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  <span>Custody Heat Settlement</span>
+                                  {counts.disputeAlerts > 0 ? (
+                                    <span className="text-[10px] font-mono font-bold bg-red-600 text-white px-1 py-0.2 ml-auto shrink-0 leading-tight">
+                                      ! {counts.disputeAlerts}
+                                    </span>
+                                  ) : (
+                                    <span
+                                      className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                                        activeKey === 'NIAS_HEAT_SETTLEMENT'
+                                          ? 'text-white'
+                                          : 'text-emerald-700'
+                                      }`}
+                                    >
+                                      OK
+                                    </span>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Level 3: Maintenance & Depot (Leaf under Nias Regas) */}
+                          <div>
+                            <button
+                              onClick={() => handleItemClick('MAINTENANCE_MRO_HUB')}
+                              className={`w-full flex items-center justify-between pl-11 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                                activeKey === 'MAINTENANCE_MRO_HUB'
+                                  ? 'bg-[#0a2558] text-white font-bold'
+                                  : 'text-slate-800 hover:bg-slate-200'
+                              }`}
+                            >
+                              <span>Maintenance & Depot</span>
+                              {counts.mroCount > 0 && (
+                                <span
+                                  className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                                    activeKey === 'MAINTENANCE_MRO_HUB' ? 'text-white' : 'text-amber-700'
+                                  }`}
+                                >
+                                  {counts.mroCount}
+                                </span>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+                )}
+              </div>
+
+              {/* ========================================================= */}
+              {/* Level 1: Equipment & Asset Registry                       */}
+              {/* ========================================================= */}
+              <div>
+                <div
+                  onClick={() => toggleNode('equipment')}
+                  className="w-full flex items-center justify-between pl-4 pr-2 py-0.5 font-bold text-slate-900 cursor-pointer hover:bg-slate-200 transition-colors"
+                >
+                  <div className="flex items-center min-w-0">
+                    <TreeToggle isOpen={!!openNodes.equipment} />
+                    <span className="text-[11px]">Equipment & Asset Registry</span>
+                  </div>
+                </div>
+
+                {/* Level 2: Under Equipment & Asset Registry */}
+                {openNodes.equipment && (
+                  <div className="space-y-0.5">
+                    <button
+                      onClick={() => handleItemClick('EQUIPMENT_ASSET_REGISTRY')}
+                      className={`w-full flex items-center justify-between pl-7 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                        activeKey === 'EQUIPMENT_ASSET_REGISTRY'
+                          ? 'bg-[#0a2558] text-white font-bold'
+                          : 'text-slate-800 hover:bg-slate-200'
+                      }`}
+                    >
+                      <span>All Assets Directory</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleItemClick('GLOBAL_FLEET_HUB')}
+                      className={`w-full flex items-center justify-between pl-7 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                        activeKey === 'GLOBAL_FLEET_HUB'
+                          ? 'bg-[#0a2558] text-white font-bold'
+                          : 'text-slate-800 hover:bg-slate-200'
+                      }`}
+                    >
+                      <span>120-Fleet Hub</span>
+                      <span
+                        className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                          activeKey === 'GLOBAL_FLEET_HUB' ? 'text-white' : 'text-slate-500'
+                        }`}
+                      >
+                        {counts.totalFleet}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => handleItemClick('DATA_INGESTION_HUB')}
+                      className={`w-full flex items-center justify-between pl-7 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                        activeKey === 'DATA_INGESTION_HUB'
+                          ? 'bg-[#0a2558] text-white font-bold'
+                          : 'text-slate-800 hover:bg-slate-200'
+                      }`}
+                    >
+                      <span>CSV Ingestion</span>
+                      <span
+                        className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                          activeKey === 'DATA_INGESTION_HUB' ? 'text-white' : 'text-slate-500'
+                        }`}
+                      >
+                        {counts.loadedFilesCount}/7
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* ========================================================= */}
+              {/* Level 1: Work Order & Maintenance                         */}
+              {/* ========================================================= */}
+              <div>
+                <div
+                  onClick={() => toggleNode('workOrder')}
+                  className="w-full flex items-center justify-between pl-4 pr-2 py-0.5 font-bold text-slate-900 cursor-pointer hover:bg-slate-200 transition-colors"
+                >
+                  <div className="flex items-center min-w-0">
+                    <TreeToggle isOpen={!!openNodes.workOrder} />
+                    <span className="text-[11px]">Work Order & Maintenance</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-500 ml-auto pl-2 shrink-0">
+                    PMS
+                  </span>
+                </div>
+
+                {/* Level 2 & 3: Under Work Order & Maintenance */}
+                {openNodes.workOrder && (
+                  <div className="space-y-0.5">
+                    
+                    {/* Level 2: Manpower & Shift Roster */}
+                    <div>
+                      <div
+                        onClick={() => toggleNode('manpower')}
+                        className="w-full flex items-center justify-between pl-7 pr-2 py-0.5 font-bold text-slate-900 cursor-pointer hover:bg-slate-200 transition-colors"
+                      >
+                        <div className="flex items-center min-w-0">
+                          <TreeToggle isOpen={!!openNodes.manpower} />
+                          <span className="text-[10px] font-bold text-blue-950">
+                            Manpower & Shift Roster
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-mono text-slate-500 ml-auto pl-2 shrink-0">
+                          3:1
+                        </span>
+                      </div>
+
+                      {/* Level 3: Under Manpower & Shift Roster */}
+                      {openNodes.manpower && (
+                        <div className="space-y-0.5">
+                          <button
+                            onClick={() => handleItemClick('MANPOWER_DAILY_SHIFT')}
+                            className={`w-full flex items-center justify-between pl-11 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                              activeKey === 'MANPOWER_DAILY_SHIFT'
+                                ? 'bg-[#0a2558] text-white font-bold'
+                                : 'text-slate-800 hover:bg-slate-200'
+                            }`}
+                          >
+                            <span>Daily Shift Board (Alpha/Bravo/Charlie)</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleItemClick('MANPOWER_ROTATION_TRACKER')}
+                            className={`w-full flex items-center justify-between pl-11 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                              activeKey === 'MANPOWER_ROTATION_TRACKER'
+                                ? 'bg-[#0a2558] text-white font-bold'
+                                : 'text-slate-800 hover:bg-slate-200'
+                            }`}
+                          >
+                            <span>3:1 Rotation Cycle Tracker</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleItemClick('MANPOWER_MONTHLY_GRID')}
+                            className={`w-full flex items-center justify-between pl-11 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                              activeKey === 'MANPOWER_MONTHLY_GRID' ||
+                              activeKey === 'MANPOWER_SHIFT_ROSTER'
+                                ? 'bg-[#0a2558] text-white font-bold'
+                                : 'text-slate-800 hover:bg-slate-200'
+                            }`}
+                          >
+                            <span>Monthly Roster Grid (August 2026 ~)</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Level 2: Work Order Directory (Leaf) */}
+                    <button
+                      onClick={() => handleItemClick('WORK_ORDER_DIRECTORY')}
+                      className={`w-full flex items-center justify-between pl-7 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                        activeKey === 'WORK_ORDER_DIRECTORY' ||
+                        activeKey === 'WORK_ORDER_MAINTENANCE'
+                          ? 'bg-[#0a2558] text-white font-bold'
+                          : 'text-slate-800 hover:bg-slate-200'
+                      }`}
+                    >
+                      <span>Work Order Directory</span>
+                      <span
+                        className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                          activeKey === 'WORK_ORDER_DIRECTORY' ||
+                          activeKey === 'WORK_ORDER_MAINTENANCE'
+                            ? 'text-white'
+                            : 'text-slate-500'
+                        }`}
+                      >
+                        4 Active
+                      </span>
+                    </button>
+
+                    {/* Level 2: PM Schedules (Leaf) */}
+                    <button
+                      onClick={() => handleItemClick('PM_SCHEDULES')}
+                      className={`w-full flex items-center justify-between pl-7 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                        activeKey === 'PM_SCHEDULES'
+                          ? 'bg-[#0a2558] text-white font-bold'
+                          : 'text-slate-800 hover:bg-slate-200'
+                      }`}
+                    >
+                      <span>PM Schedules</span>
+                      <span
+                        className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                          activeKey === 'PM_SCHEDULES' ? 'text-white' : 'text-slate-500'
+                        }`}
+                      >
+                        PMS
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* ========================================================= */}
+              {/* Level 1: Calibration & Compliance (Leaf under Root)       */}
+              {/* ========================================================= */}
+              <div>
+                <button
+                  onClick={() => handleItemClick('CALIBRATION_COMPLIANCE')}
+                  className={`w-full flex items-center justify-between pl-4 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                    activeKey === 'CALIBRATION_COMPLIANCE'
+                      ? 'bg-[#0a2558] text-white font-bold'
+                      : 'text-slate-800 hover:bg-slate-200'
+                  }`}
+                >
+                  <span className="font-bold">Calibration & Compliance</span>
+                  <span
+                    className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
+                      activeKey === 'CALIBRATION_COMPLIANCE' ? 'text-white' : 'text-slate-500'
+                    }`}
+                  >
+                    CERT
+                  </span>
+                </button>
+              </div>
+
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 4. Windows Statusbar Footer */}
+      <div className="bg-[#d4d0c8] border-t border-[#808080] px-2 py-1 text-[10px] font-mono text-black flex items-center justify-between shrink-0">
+        <div className="win-sunken px-1.5 py-0 flex-1 truncate mr-1">BSG CMMS Online</div>
+        <div className="win-sunken px-1.5 py-0 text-blue-900 font-bold">SYS: OK</div>
       </div>
     </aside>
   );

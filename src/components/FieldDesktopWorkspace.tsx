@@ -113,7 +113,7 @@ export default function FieldDesktopWorkspace() {
     <div className="flex flex-col gap-5 sm:gap-6 w-full text-slate-100">
       {/* Toast / Save indicator */}
       {saveIndicator && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-emerald-600/90 text-white rounded-xl shadow-xl backdrop-blur-md text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-emerald-600/90 text-white rounded-none shadow-none backdrop-blur-md text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
           <Save className="w-4 h-4" />
           {saveIndicator}
         </div>
@@ -132,8 +132,8 @@ export default function FieldDesktopWorkspace() {
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs self-start sm:self-auto">
-            <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 border border-slate-800 rounded-none text-emerald-400">
+              <span className="w-2 h-2 rounded-none bg-emerald-500 animate-pulse" />
               ORU Nias Plant Online
             </span>
           </div>
@@ -148,7 +148,7 @@ export default function FieldDesktopWorkspace() {
             return (
               <div
                 key={bay.bayId}
-                className={`p-3.5 sm:p-4 rounded-xl border transition-all duration-200 relative overflow-hidden flex flex-col justify-between ${
+                className={`p-3.5 sm:p-4 rounded-none border transition-all duration-200 relative overflow-hidden flex flex-col justify-between ${
                   isRunning
                     ? 'bg-slate-900/90 border-amber-500/60 shadow-[0_0_20px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/30'
                     : isStandby
@@ -166,7 +166,7 @@ export default function FieldDesktopWorkspace() {
                       )}
                     </div>
                     <span
-                      className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border ${
+                      className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-none border ${
                         isRunning
                           ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
                           : isStandby
@@ -179,7 +179,7 @@ export default function FieldDesktopWorkspace() {
                   </div>
 
                   {/* Mounted Tank Info */}
-                  <div className="bg-slate-950/70 border border-slate-800/80 rounded-lg p-2 sm:p-2.5 mb-3 flex items-center justify-between">
+                  <div className="bg-slate-950/70 border border-slate-800/80 rounded-none p-2 sm:p-2.5 mb-3 flex items-center justify-between">
                     <div>
                       <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold block">
                         Mounted Tank
@@ -197,14 +197,14 @@ export default function FieldDesktopWorkspace() {
                       <button
                         onClick={() => unmountBay(bay.bayId)}
                         title="Unmount / Disconnect Tank"
-                        className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-md transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-none transition-colors"
                       >
                         <XCircle className="w-4 h-4" />
                       </button>
                     ) : (
                       <button
                         onClick={() => setMountModalBayId(bay.bayId)}
-                        className="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/40 text-blue-400 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-colors"
+                        className="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/40 text-blue-400 rounded-none text-[11px] font-semibold flex items-center gap-1 transition-colors"
                       >
                         <PlusCircle className="w-3.5 h-3.5" /> Mount
                       </button>
@@ -213,28 +213,28 @@ export default function FieldDesktopWorkspace() {
 
                   {/* 4 Telemetry Metrics */}
                   <div className="grid grid-cols-2 gap-2 mb-3 sm:mb-4">
-                    <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 flex flex-col items-center">
+                    <div className="bg-slate-950/60 p-2 rounded-none border border-slate-800 flex flex-col items-center">
                       <Activity className="w-3.5 h-3.5 text-emerald-400 mb-1" />
                       <span className="text-[9px] sm:text-[10px] uppercase text-slate-500 font-semibold">Pressure</span>
                       <span className="font-mono font-bold text-xs sm:text-sm text-slate-200">
                         {bay.pressure.toFixed(2)} <span className="text-[9px] font-normal text-slate-500">MPa</span>
                       </span>
                     </div>
-                    <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 flex flex-col items-center">
+                    <div className="bg-slate-950/60 p-2 rounded-none border border-slate-800 flex flex-col items-center">
                       <Thermometer className="w-3.5 h-3.5 text-red-400 mb-1" />
                       <span className="text-[9px] sm:text-[10px] uppercase text-slate-500 font-semibold">Temp</span>
                       <span className="font-mono font-bold text-xs sm:text-sm text-slate-200">
                         {bay.temp.toFixed(1)} <span className="text-[9px] font-normal text-slate-500">°C</span>
                       </span>
                     </div>
-                    <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 flex flex-col items-center">
+                    <div className="bg-slate-950/60 p-2 rounded-none border border-slate-800 flex flex-col items-center">
                       <Droplet className="w-3.5 h-3.5 text-blue-400 mb-1" />
                       <span className="text-[9px] sm:text-[10px] uppercase text-slate-500 font-semibold">Level</span>
                       <span className="font-mono font-bold text-xs sm:text-sm text-slate-200">
                         {bay.level.toFixed(0)} <span className="text-[9px] font-normal text-slate-500">%</span>
                       </span>
                     </div>
-                    <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 flex flex-col items-center">
+                    <div className="bg-slate-950/60 p-2 rounded-none border border-slate-800 flex flex-col items-center">
                       <ArrowRightCircle className="w-3.5 h-3.5 text-purple-400 mb-1" />
                       <span className="text-[9px] sm:text-[10px] uppercase text-slate-500 font-semibold">Flow</span>
                       <span className="font-mono font-bold text-xs sm:text-sm text-slate-200">
@@ -249,12 +249,12 @@ export default function FieldDesktopWorkspace() {
                   <button
                     onClick={() => toggleBayRunning(bay.bayId)}
                     disabled={!isConnected}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex justify-center items-center gap-1.5 transition-all ${
+                    className={`flex-1 py-1.5 rounded-none text-xs font-semibold flex justify-center items-center gap-1.5 transition-all ${
                       !isConnected
                         ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
                         : isRunning
-                        ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-md shadow-amber-600/20'
-                        : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20'
+                        ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-none shadow-amber-600/20'
+                        : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-none shadow-emerald-600/20'
                     }`}
                   >
                     {isRunning ? (
@@ -270,7 +270,7 @@ export default function FieldDesktopWorkspace() {
                   {isConnected && (
                     <button
                       onClick={() => unmountBay(bay.bayId)}
-                      className="px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
+                      className="px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-none text-xs font-medium transition-colors whitespace-nowrap"
                     >
                       Cycle Out
                     </button>
@@ -285,7 +285,7 @@ export default function FieldDesktopWorkspace() {
       {/* Mount Modal */}
       {mountModalBayId && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl animate-in zoom-in-95">
+          <div className="bg-slate-900 border border-slate-700 rounded-none max-w-lg w-full p-5 sm:p-6 shadow-none animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <PlusCircle className="w-5 h-5 text-blue-400" />
@@ -310,7 +310,7 @@ export default function FieldDesktopWorkspace() {
                     mountTankToBay(mountModalBayId, tank.tankNo);
                     setMountModalBayId(null);
                   }}
-                  className="p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-blue-500 hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors"
+                  className="p-3 rounded-none bg-slate-950 border border-slate-800 hover:border-blue-500 hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors"
                 >
                   <div>
                     <span className="font-mono font-bold text-sm text-blue-400">{tank.tankNo}</span>
@@ -332,7 +332,7 @@ export default function FieldDesktopWorkspace() {
 
             <button
               onClick={() => setMountModalBayId(null)}
-              className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition-colors"
+              className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-none text-xs font-semibold transition-colors"
             >
               Cancel
             </button>
@@ -341,7 +341,7 @@ export default function FieldDesktopWorkspace() {
       )}
 
       {/* Spreadsheet Batch-Entry Grid (Master DB logs) */}
-      <section className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-xl flex flex-col">
+      <section className="bg-slate-900/80 border border-slate-800 rounded-none overflow-hidden shadow-none flex flex-col">
         {/* Table Control Header */}
         <div className="p-3.5 sm:p-4 border-b border-slate-800 bg-slate-950/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
           <div>
@@ -363,13 +363,13 @@ export default function FieldDesktopWorkspace() {
                 placeholder="Search Tank..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500"
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-none text-slate-200 focus:outline-none focus:border-blue-500"
               />
             </div>
 
             {/* Quick Node Transition Buttons */}
             {selectedTanks.size > 0 && (
-              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 overflow-x-auto max-w-full">
+              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-none border border-slate-800 overflow-x-auto max-w-full">
                 <span className="text-[10px] sm:text-[11px] text-blue-400 font-semibold px-1.5 whitespace-nowrap">
                   {selectedTanks.size} Sel:
                 </span>
@@ -528,7 +528,7 @@ export default function FieldDesktopWorkspace() {
       {/* Quick MRO Modal */}
       {mroModalTankNo && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95">
+          <div className="bg-slate-900 border border-slate-700 rounded-none max-w-md w-full p-6 shadow-none animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <Wrench className="w-5 h-5 text-amber-400" />
@@ -548,7 +548,7 @@ export default function FieldDesktopWorkspace() {
                 <select
                   value={defectCat}
                   onChange={(e) => setDefectCat(e.target.value as DefectCategory)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-none px-1.5 py-0.5 text-slate-200 focus:outline-none focus:border-amber-500"
                 >
                   <option value="VALVE_LEAK">Valve Leak (Liquid/Gas valve packing)</option>
                   <option value="VACUUM_LOSS">Vacuum Loss (High BOG / Annular failure)</option>
@@ -565,7 +565,7 @@ export default function FieldDesktopWorkspace() {
                   onChange={(e) => setDefectDesc(e.target.value)}
                   placeholder="Observed leak, pressure drop, or sensor failure..."
                   rows={3}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-none px-1.5 py-0.5 text-slate-200 focus:outline-none focus:border-amber-500"
                 />
               </div>
 
@@ -573,13 +573,13 @@ export default function FieldDesktopWorkspace() {
                 <button
                   type="button"
                   onClick={() => setMroModalTankNo(null)}
-                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold"
+                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-none font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-semibold"
+                  className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-none font-semibold"
                 >
                   Route to MRO
                 </button>

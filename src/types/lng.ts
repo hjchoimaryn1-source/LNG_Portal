@@ -26,7 +26,8 @@ export type SubProcessKey =
   // MV. Saviour Transit
   | 'SAVIOUR_VOYAGE_MONITORING'
   | 'SAVIOUR_MARINE_PRESSURE'
-  // Nias Regas Terminal - Promoted Integrated Overview & 2 Domains
+  // LNG-Process Virtual Pipeline Main Overview
+  | 'LNG_PROCESS_OVERVIEW'
   | 'NIAS_TERMINAL_OVERVIEW'
   // Nias Regas Terminal - Domain 1: ISO Tank Management
   | 'NIAS_TANK_OVERVIEW'
@@ -51,7 +52,17 @@ export type SubProcessKey =
   | 'GLOBAL_FLEET_HUB'
   // Maintenance & System
   | 'MAINTENANCE_MRO_HUB'
-  | 'DATA_INGESTION_HUB';
+  | 'DATA_INGESTION_HUB'
+  // CMMS Enterprise Modules
+  | 'EQUIPMENT_ASSET_REGISTRY'
+  | 'WORK_ORDER_MAINTENANCE'
+  | 'WORK_ORDER_DIRECTORY'
+  | 'PM_SCHEDULES'
+  | 'MANPOWER_SHIFT_ROSTER'
+  | 'MANPOWER_DAILY_SHIFT'
+  | 'MANPOWER_ROTATION_TRACKER'
+  | 'MANPOWER_MONTHLY_GRID'
+  | 'CALIBRATION_COMPLIANCE';
 
 export interface OffloadHeelMetrics {
   offloadDate: string;

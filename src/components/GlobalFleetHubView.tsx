@@ -20,36 +20,36 @@ const BUCKET_CONFIG: Record<BucketKey, { title: string; node: NodeState; icon: R
   ARUN: {
     title: 'Arun PAG (Aceh)',
     node: NodeState.NODE_1_ARUN_PAG_TERMINAL,
-    icon: <Building2 className="w-4 h-4 text-white font-bold" />,
-    color: 'text-white font-bold',
+    icon: <Building2 className="w-4 h-4 text-slate-900 font-bold" />,
+    color: 'text-slate-900 font-bold',
     bg: 'bg-blue-950/30 border-blue-900/50',
   },
   SAVIOUR: {
     title: 'MV. Saviour (Transit)',
     node: NodeState.NODE_2_MV_SAVIOUR_TRANSIT,
-    icon: <Ship className="w-4 h-4 text-white font-bold" />,
-    color: 'text-white font-bold',
+    icon: <Ship className="w-4 h-4 text-slate-900 font-bold" />,
+    color: 'text-slate-900 font-bold',
     bg: 'bg-cyan-950/30 border-cyan-900/50',
   },
   NIAS_L1: {
     title: 'Nias Laydown 1',
     node: NodeState.NODE_3_NIAS_LAYDOWN_YARD,
-    icon: <MapPin className="w-4 h-4 text-white font-bold" />,
-    color: 'text-white font-bold',
-    bg: 'bg-emerald-950/30 border-emerald-900/50',
+    icon: <MapPin className="w-4 h-4 text-slate-900 font-bold" />,
+    color: 'text-slate-900 font-bold',
+    bg: 'bg-emerald-50 text-emerald-700 border-emerald-900/50',
   },
   NIAS_BAY: {
     title: 'Nias 4-Bay Vaporizer',
     node: NodeState.NODE_4_REGAS_ACTIVE_BAY,
-    icon: <Flame className="w-4 h-4 text-white font-bold" />,
-    color: 'text-white font-bold',
-    bg: 'bg-amber-950/30 border-amber-900/50',
+    icon: <Flame className="w-4 h-4 text-slate-900 font-bold" />,
+    color: 'text-slate-900 font-bold',
+    bg: 'bg-amber-50 text-amber-700 border-amber-900/50',
   },
   NIAS_L2: {
     title: 'Nias Laydown 2',
     node: NodeState.NODE_5_EMPTY_RETURN_CYCLE,
-    icon: <MapPin className="w-4 h-4 text-white font-bold" />,
-    color: 'text-white font-bold',
+    icon: <MapPin className="w-4 h-4 text-slate-900 font-bold" />,
+    color: 'text-slate-900 font-bold',
     bg: 'bg-purple-950/30 border-purple-900/50',
   }
 };
@@ -132,29 +132,29 @@ export default function GlobalFleetHubView() {
       draggable
       onDragStart={(e) => handleDragStart(e, tank.tankNo)}
       onDragEnd={() => setDraggedTank(null)}
-      className={`group relative p-3 rounded-lg border bg-slate-900 shadow-sm cursor-grab active:cursor-grabbing transition-all ${
-        draggedTank === tank.tankNo ? 'opacity-50 scale-95 border-slate-700' : 'border-slate-800 hover:border-slate-600 hover:shadow-md hover:-translate-y-0.5'
+      className={`group relative p-3 rounded-none border bg-white shadow-none shadow-none cursor-grab active:cursor-grabbing transition-all ${
+        draggedTank === tank.tankNo ? 'opacity-50 scale-95 border-slate-200' : 'border-slate-200 hover:border-slate-200 hover:shadow-none hover:-translate-y-0.5'
       }`}
     >
       <div className="flex items-start justify-between mb-2">
         <div>
-          <div className="font-mono font-bold text-white font-bold text-xs sm:text-sm">{tank.tankNo}</div>
-          <div className="text-[10px] text-white font-bold font-mono mt-0.5">{tank.serialNo || 'S-UNKNOWN'}</div>
+          <div className="font-mono font-bold text-slate-900 font-bold text-xs sm:text-sm">{tank.tankNo}</div>
+          <div className="text-[10px] text-slate-900 font-bold font-mono mt-0.5">{tank.serialNo || 'S-UNKNOWN'}</div>
         </div>
         <div className="flex items-center gap-1 text-[10px] font-bold">
-          <span className={tank.level > 20 ? 'text-white font-bold' : 'text-white font-bold'}>{tank.level}%</span>
+          <span className={tank.level > 20 ? 'text-slate-900 font-bold' : 'text-slate-900 font-bold'}>{tank.level}%</span>
         </div>
       </div>
 
       <div className="flex items-center justify-between mt-3">
-        <div className="text-[10px] text-white font-bold">
-          <span className="bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">{tank.pressureMPa.toFixed(2)} MPa</span>
+        <div className="text-[10px] text-slate-900 font-bold">
+          <span className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">{tank.pressureMPa.toFixed(2)} MPa</span>
         </div>
 
         {/* Inline Relocation Dropdown */}
         <div className="relative">
           <select
-            className="appearance-none bg-slate-800 text-white font-bold text-[10px] font-bold py-1 pl-2 pr-6 rounded border border-slate-700 hover:bg-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+            className="appearance-none bg-slate-100 text-slate-900 font-bold text-[10px] font-bold py-1 pl-2 pr-6 rounded border border-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
             value={BUCKET_CONFIG[currentBucket].node}
             onChange={(e) => handleMoveTank(tank.tankNo, e.target.value as NodeState)}
           >
@@ -162,7 +162,7 @@ export default function GlobalFleetHubView() {
               <option key={key} value={config.node}>Move ➔ {config.title}</option>
             ))}
           </select>
-          <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-white font-bold pointer-events-none" />
+          <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-900 font-bold pointer-events-none" />
         </div>
       </div>
     </div>
@@ -171,27 +171,27 @@ export default function GlobalFleetHubView() {
   return (
     <div className="space-y-6">
       {/* Top Header & Metrics */}
-      <div className="bg-slate-900/50 rounded-2xl border border-slate-800 p-5 shadow-lg backdrop-blur-md">
+      <div className="bg-white shadow-none/50 rounded-none border border-slate-200 p-5 shadow-none backdrop-blur-md">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-lg md:text-xl font-black text-white flex items-center gap-2 tracking-tight">
-              <Globe className="w-6 h-6 text-white font-bold" />
+            <h1 className="text-lg md:text-xl font-black text-slate-700 flex items-center gap-2 tracking-tight">
+              <Globe className="w-6 h-6 text-slate-900 font-bold" />
               Global Fleet Control Center
             </h1>
-            <p className="text-xs text-white font-bold mt-1">
+            <p className="text-xs text-slate-900 font-bold mt-1">
               Drag and drop ISO Tanks across the global supply chain, instantly updating telemetry systems across terminals.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-slate-950/50 p-1.5 rounded-xl border border-slate-800/80">
+          <div className="flex items-center gap-3 bg-slate-50/50 p-1.5 rounded-none border border-slate-200/80">
             {['ALL', 'ARUN', 'SAVIOUR', 'NIAS'].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter as any)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-4 py-1.5 rounded-none text-xs font-bold transition-all ${
                   activeFilter === filter
-                    ? 'bg-blue-600/20 text-white font-bold shadow-sm border border-blue-500/30'
-                    : 'text-white font-bold hover:text-white font-bold hover:bg-slate-800'
+                    ? 'bg-blue-600/20 text-white font-bold shadow-none border border-blue-200'
+                    : 'text-slate-900 font-bold hover:text-slate-900 font-bold hover:bg-slate-100'
                 }`}
               >
                 {filter}
@@ -202,13 +202,13 @@ export default function GlobalFleetHubView() {
 
         {/* Search */}
         <div className="mt-5 relative w-full md:w-96">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white font-bold" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-900 font-bold" />
           <input
             type="text"
             placeholder="Search ISO Tank No (e.g. ISOT-064)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 text-white font-bold text-sm rounded-xl py-2 pl-10 pr-4 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-slate-600"
+            className="w-full win-panel text-slate-900 font-bold text-sm rounded-none py-2 pl-10 pr-4 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-slate-600"
           />
         </div>
       </div>
@@ -220,17 +220,17 @@ export default function GlobalFleetHubView() {
             key={key}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, key)}
-            className={`flex flex-col rounded-2xl border ${config.bg} shadow-md overflow-hidden min-h-[500px] transition-colors`}
+            className={`flex flex-col rounded-none border ${config.bg} shadow-none overflow-hidden min-h-[500px] transition-colors`}
           >
             {/* Column Header */}
-            <div className="p-3 bg-slate-950/40 border-b border-slate-800/50 flex items-center justify-between">
+            <div className="p-3 bg-slate-50/40 border-b border-slate-200/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {config.icon}
                 <h3 className={`text-xs font-bold ${config.color} uppercase tracking-wider`}>
                   {config.title}
                 </h3>
               </div>
-              <span className="text-[10px] font-mono font-bold bg-slate-900 px-2 py-0.5 rounded text-white font-bold border border-slate-700">
+              <span className="text-[10px] font-mono font-bold bg-white shadow-none px-2 py-0.5 rounded text-slate-900 font-bold border border-slate-200">
                 {buckets[key].length}
               </span>
             </div>
@@ -238,7 +238,7 @@ export default function GlobalFleetHubView() {
             {/* Column Body / Drop Zone */}
             <div className="flex-1 p-2 space-y-2 overflow-y-auto custom-scrollbar">
               {buckets[key].length === 0 ? (
-                <div className="h-full flex items-center justify-center text-xs text-white font-bold font-bold border-2 border-dashed border-slate-800/50 rounded-xl m-2">
+                <div className="h-full flex items-center justify-center text-xs text-slate-900 font-bold font-bold border-2 border-dashed border-slate-200/50 rounded-none m-2">
                   Drag Tanks Here
                 </div>
               ) : (

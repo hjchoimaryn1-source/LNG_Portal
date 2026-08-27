@@ -562,28 +562,28 @@ export default function NiasGasQualityTab() {
   };
 
   return (
-    <div className="w-full space-y-4 animate-in fade-in duration-200 text-white font-bold font-sans">
+    <div className="w-full space-y-4 animate-in fade-in duration-200 text-slate-950 font-bold font-sans">
       {/* 1. Header Banner & Actions */}
-      <div className="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl">
+      <div className="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white shadow-none border border-slate-200 rounded-none p-4 shadow-none">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-white font-bold border border-emerald-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-none text-[10px] font-mono font-bold bg-emerald-500/15 text-white font-bold border border-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-none bg-emerald-400 animate-ping" />
               RS-485 Modbus TCP: ONLINE
             </span>
-            <span className="text-xs font-mono text-white font-bold bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800">
+            <span className="text-xs font-mono text-slate-950 font-bold win-panel px-2.5 py-0.5 rounded border border-slate-200">
               Analyzer: Daniel Model 700 GC (Dual M-101A / M-101B)
             </span>
-            <span className="text-xs font-mono text-white font-bold bg-slate-950 px-2.5 py-0.5 rounded border border-slate-800">
+            <span className="text-xs font-mono text-slate-950 font-bold win-panel px-2.5 py-0.5 rounded border border-slate-200">
               Database-Ready Schema (Parity v5)
             </span>
           </div>
 
-          <h3 className="text-sm sm:text-base font-bold text-white font-bold flex items-center gap-2 mt-2">
-            <FileSpreadsheet className="w-4 h-4 text-white font-bold" />
+          <h3 className="text-sm sm:text-base font-bold text-slate-950 font-bold flex items-center gap-2 mt-2">
+            <FileSpreadsheet className="w-4 h-4 text-slate-950 font-bold" />
             Station Gas Metering & Daniel GC Molecular Quality Master Ledger
           </h3>
-          <p className="text-xs text-white font-bold mt-0.5">
+          <p className="text-xs text-slate-950 font-bold mt-0.5">
             Normalized 4-section custody schema with full database parity and instantaneous synchronization.
           </p>
         </div>
@@ -593,7 +593,7 @@ export default function NiasGasQualityTab() {
           <button
             type="button"
             onClick={() => exportAllLogsToExcel()}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-none text-xs font-bold shadow-none shadow-emerald-500/20 transition-all cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>📊 Export All to Excel</span>
@@ -602,27 +602,27 @@ export default function NiasGasQualityTab() {
           <button
             type="button"
             onClick={handleExportVisibleCSV}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs font-bold border border-slate-700 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none text-xs font-bold border border-slate-200 transition-all cursor-pointer"
           >
-            <Download className="w-4 h-4 text-white font-bold" />
+            <Download className="w-4 h-4 text-slate-950 font-bold" />
             <span>Export Visible CSV</span>
           </button>
         </div>
       </div>
 
       {/* 2. [TOP] Simplified 2-Mode Filter Bar (Date Range vs Year/Month) */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 sm:p-3.5 shadow-xl flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white shadow-none border border-slate-200 rounded-none p-3 sm:p-3.5 shadow-none flex flex-wrap items-center justify-between gap-3">
         {/* Left Side: 2-Option Segment Toggle & Pickers */}
         <div className="flex items-center gap-2.5 flex-wrap text-xs font-mono">
           {/* Segment Toggle */}
-          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+          <div className="flex items-center win-panel p-1 rounded-none border border-slate-200 text-xs">
             <button
               type="button"
               onClick={() => setFilterMode('DATE_RANGE')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none font-bold transition-all cursor-pointer ${
                 filterMode === 'DATE_RANGE'
-                  ? 'bg-cyan-600/30 text-white font-bold border border-cyan-500/40 shadow-sm'
-                  : 'text-white font-bold hover:text-white font-bold'
+                  ? 'bg-cyan-600/30 text-slate-950 font-bold border border-cyan-500/40 shadow-none'
+                  : 'win-tab-inactive'
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
@@ -631,10 +631,10 @@ export default function NiasGasQualityTab() {
             <button
               type="button"
               onClick={() => setFilterMode('YEAR_MONTH')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none font-bold transition-all cursor-pointer ${
                 filterMode === 'YEAR_MONTH'
-                  ? 'bg-amber-600/30 text-white font-bold border border-amber-500/40 shadow-sm'
-                  : 'text-white font-bold hover:text-white font-bold'
+                  ? 'bg-amber-600/30 text-white font-bold border border-amber-200 shadow-none'
+                  : 'win-tab-inactive'
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -645,10 +645,10 @@ export default function NiasGasQualityTab() {
           {/* Mode 1: Date Range Calendar Inputs */}
           {filterMode === 'DATE_RANGE' ? (
             <div className="flex items-center gap-1.5 animate-in fade-in duration-150">
-              <label className="relative flex items-center gap-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/60 px-2.5 py-1.5 rounded-xl cursor-pointer transition-all shadow-inner group">
-                <span className="text-white font-bold text-[10px]">From:</span>
-                <span className="text-white font-bold font-bold text-xs">{rangeStartDate}</span>
-                <Calendar className="w-3 h-3 text-white font-bold group-hover:scale-110 transition-transform ml-0.5" />
+              <label className="relative flex items-center gap-1.5 win-panel hover:bg-white shadow-none border border-slate-200 hover:border-cyan-500/60 px-2.5 py-1.5 rounded-none cursor-pointer transition-all shadow-inner group">
+                <span className="text-slate-950 font-bold text-[10px]">From:</span>
+                <span className="text-slate-950 font-bold font-bold text-xs">{rangeStartDate}</span>
+                <Calendar className="w-3 h-3 text-slate-950 font-bold group-hover:scale-110 transition-transform ml-0.5" />
                 <input
                   type="date"
                   value={rangeStartDate}
@@ -657,12 +657,12 @@ export default function NiasGasQualityTab() {
                 />
               </label>
 
-              <span className="text-white font-bold font-bold">~</span>
+              <span className="text-slate-950 font-bold font-bold">~</span>
 
-              <label className="relative flex items-center gap-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/60 px-2.5 py-1.5 rounded-xl cursor-pointer transition-all shadow-inner group">
-                <span className="text-white font-bold text-[10px]">To:</span>
-                <span className="text-white font-bold font-bold text-xs">{rangeEndDate}</span>
-                <Calendar className="w-3 h-3 text-white font-bold group-hover:scale-110 transition-transform ml-0.5" />
+              <label className="relative flex items-center gap-1.5 win-panel hover:bg-white shadow-none border border-slate-200 hover:border-cyan-500/60 px-2.5 py-1.5 rounded-none cursor-pointer transition-all shadow-inner group">
+                <span className="text-slate-950 font-bold text-[10px]">To:</span>
+                <span className="text-slate-950 font-bold font-bold text-xs">{rangeEndDate}</span>
+                <Calendar className="w-3 h-3 text-slate-950 font-bold group-hover:scale-110 transition-transform ml-0.5" />
                 <input
                   type="date"
                   value={rangeEndDate}
@@ -674,27 +674,27 @@ export default function NiasGasQualityTab() {
           ) : (
             /* Mode 2: Year & Month Dropdowns */
             <div className="flex items-center gap-2 animate-in fade-in duration-150">
-              <div className="flex items-center gap-1 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800">
-                <span className="text-white font-bold text-[10px]">연도:</span>
+              <div className="flex items-center gap-1 win-panel px-2.5 py-1.5 rounded-none border border-slate-200">
+                <span className="text-slate-950 font-bold text-[10px]">연도:</span>
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(e.target.value)}
-                  className="bg-transparent text-white font-bold font-bold focus:outline-none cursor-pointer text-xs"
+                  className="bg-transparent text-slate-950 font-bold font-bold focus:outline-none cursor-pointer text-xs"
                 >
-                  <option value="2026" className="bg-slate-900 text-white font-bold">2026년</option>
-                  <option value="2025" className="bg-slate-900 text-white font-bold">2025년</option>
+                  <option value="2026" className="bg-white shadow-none text-slate-950 font-bold">2026년</option>
+                  <option value="2025" className="bg-white shadow-none text-slate-950 font-bold">2025년</option>
                 </select>
               </div>
 
-              <div className="flex items-center gap-1 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800">
-                <span className="text-white font-bold text-[10px]">월:</span>
+              <div className="flex items-center gap-1 win-panel px-2.5 py-1.5 rounded-none border border-slate-200">
+                <span className="text-slate-950 font-bold text-[10px]">월:</span>
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent text-white font-bold font-bold focus:outline-none cursor-pointer text-xs"
+                  className="bg-transparent text-slate-950 font-bold font-bold focus:outline-none cursor-pointer text-xs"
                 >
                   {ALL_MONTHS.map((m) => (
-                    <option key={m.value} value={m.value} className="bg-slate-900 text-white font-bold">
+                    <option key={m.value} value={m.value} className="bg-white shadow-none text-slate-950 font-bold">
                       {m.label}
                     </option>
                   ))}
@@ -706,27 +706,27 @@ export default function NiasGasQualityTab() {
 
         {/* Right Side: Search Bar & Heavy Trace Toggle */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-mono">
-            <Search className="w-3.5 h-3.5 text-white font-bold" />
+          <div className="flex items-center gap-2 win-panel px-3 py-1.5 rounded-none border border-slate-200 text-xs font-mono">
+            <Search className="w-3.5 h-3.5 text-slate-950 font-bold" />
             <input
               type="text"
               placeholder="Search date / tank / status..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-white font-bold placeholder-slate-500 focus:outline-none text-xs w-32 sm:w-44"
+              className="bg-transparent text-slate-950 font-bold placeholder-slate-400 focus:outline-none text-xs w-32 sm:w-44"
             />
           </div>
 
           <button
             type="button"
             onClick={() => setShowHeavyTrace(!showHeavyTrace)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-bold border transition-all cursor-pointer ${
               showHeavyTrace
                 ? 'bg-blue-600/30 text-white font-bold border-blue-500/40'
-                : 'bg-slate-800 hover:bg-slate-700 text-white font-bold border-slate-700'
+                : 'bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold border-slate-200'
             }`}
           >
-            <Layers className="w-3.5 h-3.5 text-white font-bold" />
+            <Layers className="w-3.5 h-3.5 text-slate-950 font-bold" />
             <span>{showHeavyTrace ? 'Hide C5-C10' : '+ Show C5-C10 Trace'}</span>
           </button>
         </div>
@@ -735,92 +735,92 @@ export default function NiasGasQualityTab() {
       {/* 3. [TOP BANNER] Selected Period Summary Aggregates (6 KPI Cards) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {/* Card 1: Period Delivered Energy */}
-        <div className="p-3.5 bg-slate-900/90 rounded-2xl border border-amber-500/30 shadow-md font-mono flex flex-col justify-between">
+        <div className="p-3.5 bg-white shadow-none rounded-none border border-amber-200 shadow-none font-mono flex flex-col justify-between">
           <div>
-            <span className="text-[10px] text-white font-bold font-bold uppercase tracking-wider block">
+            <span className="text-[10px] text-slate-950 font-bold font-bold uppercase tracking-wider block">
               Period Delivered Energy
             </span>
-            <span className="text-lg sm:text-xl font-black text-white font-bold block mt-1">
+            <span className="text-lg sm:text-xl font-black text-slate-950 font-bold block mt-1">
               {summaryMetrics.totalEnergy.toLocaleString(undefined, { maximumFractionDigits: 1 })}
             </span>
           </div>
-          <span className="text-[10px] text-white font-bold mt-1">
-            MMBTU <span className="text-white font-bold font-bold">(Station Total)</span>
+          <span className="text-[10px] text-slate-950 font-bold mt-1">
+            MMBTU <span className="text-slate-950 font-bold font-bold">(Station Total)</span>
           </span>
         </div>
 
         {/* Card 2: Period Gas Volume */}
-        <div className="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-md font-mono flex flex-col justify-between">
+        <div className="p-3.5 bg-white shadow-none rounded-none border border-slate-200 shadow-none font-mono flex flex-col justify-between">
           <div>
-            <span className="text-[10px] text-white font-bold font-bold uppercase tracking-wider block">
+            <span className="text-[10px] text-slate-950 font-bold font-bold uppercase tracking-wider block">
               Period Gas Volume
             </span>
-            <span className="text-lg sm:text-xl font-black text-white font-bold block mt-1">
+            <span className="text-lg sm:text-xl font-black text-slate-950 font-bold block mt-1">
               {summaryMetrics.totalVolMscf.toFixed(2)}
             </span>
           </div>
-          <span className="text-[10px] text-white font-bold mt-1">
-            MMCF <span className="text-white font-bold font-bold">(Station CVOL)</span>
+          <span className="text-[10px] text-slate-950 font-bold mt-1">
+            MMCF <span className="text-slate-950 font-bold font-bold">(Station CVOL)</span>
           </span>
         </div>
 
         {/* Card 3: Delivered LNG Mass */}
-        <div className="p-3.5 bg-slate-900/90 rounded-2xl border border-emerald-500/30 shadow-md font-mono flex flex-col justify-between">
+        <div className="p-3.5 bg-white shadow-none rounded-none border border-emerald-200 shadow-none font-mono flex flex-col justify-between">
           <div>
-            <span className="text-[10px] text-white font-bold font-bold uppercase tracking-wider block">
+            <span className="text-[10px] text-slate-950 font-bold font-bold uppercase tracking-wider block">
               Delivered LNG Mass
             </span>
-            <span className="text-lg sm:text-xl font-black text-white font-bold block mt-1">
+            <span className="text-lg sm:text-xl font-black text-slate-950 font-bold block mt-1">
               {summaryMetrics.totalMassTonne.toFixed(2)}
             </span>
           </div>
-          <span className="text-[10px] text-white font-bold mt-1">
-            Tonne <span className="text-white font-bold font-bold">(≈ {(summaryMetrics.totalMassTonne * 1000).toLocaleString()} kg)</span>
+          <span className="text-[10px] text-slate-950 font-bold mt-1">
+            Tonne <span className="text-slate-950 font-bold font-bold">(≈ {(summaryMetrics.totalMassTonne * 1000).toLocaleString()} kg)</span>
           </span>
         </div>
 
         {/* Card 4: Average GHV */}
-        <div className="p-3.5 bg-slate-900/90 rounded-2xl border border-cyan-500/30 shadow-md font-mono flex flex-col justify-between">
+        <div className="p-3.5 bg-white shadow-none rounded-none border border-cyan-500/30 shadow-none font-mono flex flex-col justify-between">
           <div>
-            <span className="text-[10px] text-white font-bold font-bold uppercase tracking-wider block">
+            <span className="text-[10px] text-slate-950 font-bold font-bold uppercase tracking-wider block">
               Average GHV
             </span>
-            <span className="text-lg sm:text-xl font-black text-white font-bold block mt-1">
+            <span className="text-lg sm:text-xl font-black text-slate-950 font-bold block mt-1">
               {summaryMetrics.avgGhv.toFixed(1)}
             </span>
           </div>
-          <span className="text-[10px] text-white font-bold mt-1">
-            BTU/Scf <span className="text-white font-bold font-bold">(Custody Heat)</span>
+          <span className="text-[10px] text-slate-950 font-bold mt-1">
+            BTU/Scf <span className="text-slate-950 font-bold font-bold">(Custody Heat)</span>
           </span>
         </div>
 
         {/* Card 5: Average Methane */}
-        <div className="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-md font-mono flex flex-col justify-between">
+        <div className="p-3.5 bg-white shadow-none rounded-none border border-slate-200 shadow-none font-mono flex flex-col justify-between">
           <div>
-            <span className="text-[10px] text-white font-bold font-bold uppercase tracking-wider block">
+            <span className="text-[10px] text-slate-950 font-bold font-bold uppercase tracking-wider block">
               Average Methane (CH₄)
             </span>
-            <span className="text-lg sm:text-xl font-black text-white font-bold block mt-1">
+            <span className="text-lg sm:text-xl font-black text-slate-950 font-bold block mt-1">
               {summaryMetrics.avgMethane.toFixed(2)} %
             </span>
           </div>
-          <span className="text-[10px] text-white font-bold mt-1">
-            Mol % <span className="text-white font-bold font-bold">(Primary Spec)</span>
+          <span className="text-[10px] text-slate-950 font-bold mt-1">
+            Mol % <span className="text-slate-950 font-bold font-bold">(Primary Spec)</span>
           </span>
         </div>
 
         {/* Card 6: Active Feed / Records */}
-        <div className="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-md font-mono flex flex-col justify-between">
+        <div className="p-3.5 bg-white shadow-none rounded-none border border-slate-200 shadow-none font-mono flex flex-col justify-between">
           <div>
-            <span className="text-[10px] text-white font-bold font-bold uppercase tracking-wider block">
+            <span className="text-[10px] text-slate-950 font-bold font-bold uppercase tracking-wider block">
               Active Feed / Records
             </span>
-            <span className="text-lg sm:text-xl font-black text-white font-bold block mt-1">
+            <span className="text-lg sm:text-xl font-black text-slate-950 font-bold block mt-1">
               {summaryMetrics.recordCount} Days
             </span>
           </div>
-          <span className="text-[10px] text-white font-bold mt-1 truncate">
-            {primaryActiveTank.tankNo} <span className="text-white font-bold font-bold">(@ Bay {primaryActiveTank.bayTag})</span>
+          <span className="text-[10px] text-slate-950 font-bold mt-1 truncate">
+            {primaryActiveTank.tankNo} <span className="text-slate-950 font-bold font-bold">(@ Bay {primaryActiveTank.bayTag})</span>
           </span>
         </div>
       </div>
@@ -828,10 +828,10 @@ export default function NiasGasQualityTab() {
       {/* 4. [MIDDLE] Collapsible 4-Section Daily In-Place Entry Form (Drawer) */}
       <form
         onSubmit={handleSaveDailyLog}
-        className="bg-slate-900/95 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden transition-all duration-200"
+        className="bg-white shadow-none/95 border border-slate-200 rounded-none shadow-none overflow-hidden transition-all duration-200"
       >
         {/* Accordion Toggle Header Bar */}
-        <div className="p-3.5 sm:p-4 bg-slate-950/60 border-b border-slate-800/80 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+        <div className="p-3.5 sm:p-4 win-panel/60 border-b border-slate-200/80 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
           <div className="flex items-center gap-3 flex-wrap">
             {/* Toggle Button */}
             <button
@@ -839,21 +839,21 @@ export default function NiasGasQualityTab() {
               onClick={() => setIsFormExpanded(!isFormExpanded)}
               className="flex items-center gap-2 text-left group cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
-                <FileSpreadsheet className="w-4 h-4 text-white font-bold" />
+              <div className="w-8 h-8 rounded-none bg-emerald-500/10 border border-emerald-200 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+                <FileSpreadsheet className="w-4 h-4 text-slate-950 font-bold" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="text-xs sm:text-sm font-bold text-white font-bold group-hover:text-white font-bold transition-colors">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-950 font-bold group-hover:text-slate-950 font-bold transition-colors">
                     Official 4-Section Daily Report Entry Form
                   </h4>
                   {isFormExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-white font-bold transition-transform" />
+                    <ChevronUp className="w-4 h-4 text-slate-950 font-bold transition-transform" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-white font-bold group-hover:text-white font-bold transition-transform" />
+                    <ChevronDown className="w-4 h-4 text-slate-950 font-bold group-hover:text-slate-950 font-bold transition-transform" />
                   )}
                 </div>
-                <p className="text-[11px] text-white font-bold font-mono">
+                <p className="text-[11px] text-slate-950 font-bold font-mono">
                   {isFormExpanded
                     ? 'Click to collapse entry sections'
                     : 'Click to expand 4-section Excel engineering form'}
@@ -862,10 +862,10 @@ export default function NiasGasQualityTab() {
             </button>
 
             {/* Single Active Discharge Feed Badge */}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-emerald-950/80 text-white font-bold border border-emerald-500/40 shadow-sm ml-0 lg:ml-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs font-mono font-bold bg-emerald-50 text-emerald-700 text-slate-950 font-bold border border-emerald-200 shadow-none ml-0 lg:ml-2">
+              <span className="w-2 h-2 rounded-none bg-emerald-400 animate-pulse" />
               <span>
-                🟢 Active Discharge Feed: <strong className="text-white">{primaryActiveTank.tankNo}</strong> ({primaryActiveTank.serialNo}) @ Bay <strong className="text-white font-bold">{primaryActiveTank.bayTag}</strong>
+                🟢 Active Discharge Feed: <strong className="text-slate-950">{primaryActiveTank.tankNo}</strong> ({primaryActiveTank.serialNo}) @ Bay <strong className="text-slate-950 font-bold">{primaryActiveTank.bayTag}</strong>
               </span>
             </span>
           </div>
@@ -873,12 +873,12 @@ export default function NiasGasQualityTab() {
           {/* Right Controls: Report Date Picker & Action Toggle */}
           <div className="flex items-center gap-2 flex-wrap self-start lg:self-center">
             {/* Interactive Report Date Picker */}
-            <label className="relative flex items-center gap-2 bg-slate-950 hover:bg-slate-900 border border-slate-700 hover:border-emerald-500 px-3 py-1.5 rounded-xl cursor-pointer transition-all shadow-inner group">
-              <Calendar className="w-3.5 h-3.5 text-white font-bold group-hover:scale-110 transition-transform" />
-              <span className="text-white font-bold font-mono font-black text-xs tracking-wide">
+            <label className="relative flex items-center gap-2 win-panel hover:bg-white shadow-none border border-slate-200 hover:border-emerald-500 px-3 py-1.5 rounded-none cursor-pointer transition-all shadow-inner group">
+              <Calendar className="w-3.5 h-3.5 text-slate-950 font-bold group-hover:scale-110 transition-transform" />
+              <span className="text-slate-950 font-bold font-mono font-black text-xs tracking-wide">
                 {entryDate}
               </span>
-              <span className="text-[10px] text-white font-bold font-mono">
+              <span className="text-[10px] text-slate-950 font-bold font-mono">
                 ({new Date(entryDate).toLocaleDateString('en-US', { weekday: 'short' })})
               </span>
               <input
@@ -897,7 +897,7 @@ export default function NiasGasQualityTab() {
               type="button"
               onClick={() => populateFormFromDate(entryDate)}
               title="Reset Form from Stored Date Values"
-              className="px-2.5 py-1.5 bg-slate-950 hover:bg-slate-900 text-white font-bold rounded-xl border border-slate-800 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+              className="px-2.5 py-1.5 win-panel hover:bg-white shadow-none text-slate-950 font-bold rounded-none border border-slate-200 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Reset</span>
@@ -907,7 +907,7 @@ export default function NiasGasQualityTab() {
             <button
               type="button"
               onClick={() => setIsFormExpanded(!isFormExpanded)}
-              className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 rounded-none text-xs font-black shadow-none shadow-emerald-500/20 transition-all cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>{isFormExpanded ? '✍️ Close Form' : '✍️ Enter Daily Log (Open Form)'}</span>
@@ -923,51 +923,51 @@ export default function NiasGasQualityTab() {
             {/* ========================================================================= */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-white font-bold text-[10px] font-bold font-mono border border-emerald-500/30">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-white font-bold text-[10px] font-bold font-mono border border-emerald-200">
                   SECTION 1
                 </span>
-                <h5 className="text-xs font-bold text-white font-bold flex items-center gap-1.5">
-                  <Gauge className="w-3.5 h-3.5 text-white font-bold" />
+                <h5 className="text-xs font-bold text-slate-950 font-bold flex items-center gap-1.5">
+                  <Gauge className="w-3.5 h-3.5 text-slate-950 font-bold" />
                   Common (누적 계측치 테이블 - Cumulative)
                 </h5>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/80">
+              <div className="overflow-x-auto rounded-none border border-slate-200 win-panel/80">
                 <table className="w-full text-xs text-left border-collapse font-mono">
                   <thead>
                     {/* 1st Tier Header */}
-                    <tr className="bg-emerald-950/40 text-white font-bold border-b border-slate-800 text-[10px] uppercase font-bold text-center">
-                      <th colSpan={4} className="px-3 py-1.5 border-r border-slate-800">
+                    <tr className="bg-emerald-50 text-emerald-700 text-slate-950 font-bold border-b border-slate-200 text-[10px] uppercase font-bold text-center">
+                      <th colSpan={4} className="px-3 py-1.5 border-r border-slate-200">
                         M-101A (Run 1)
                       </th>
-                      <th colSpan={4} className="px-3 py-1.5 border-r border-slate-800">
+                      <th colSpan={4} className="px-3 py-1.5 border-r border-slate-200">
                         M-101B (Run 2)
                       </th>
-                      <th colSpan={4} className="px-3 py-1.5 bg-amber-950/30 text-white font-bold">
+                      <th colSpan={4} className="px-3 py-1.5 bg-amber-50 text-amber-700 text-slate-950 font-bold">
                         STATION (Total)
                       </th>
                     </tr>
                     {/* 2nd Tier Header */}
-                    <tr className="bg-slate-900/90 text-white font-bold border-b border-slate-800 text-[9px] uppercase font-bold text-center">
+                    <tr className="bg-white shadow-none text-slate-950 font-bold border-b border-slate-200 text-[9px] uppercase font-bold text-center">
                       {/* M-101A */}
                       <th className="px-2 py-1.5">UVOL (MMCF)</th>
                       <th className="px-2 py-1.5">CVOL (MMCF)</th>
                       <th className="px-2 py-1.5">(Tonne)</th>
-                      <th className="px-2 py-1.5 border-r border-slate-800 text-white font-bold">(MMBTU)</th>
+                      <th className="px-2 py-1.5 border-r border-slate-200 text-slate-950 font-bold">(MMBTU)</th>
                       {/* M-101B */}
                       <th className="px-2 py-1.5">UVOL (MMCF)</th>
                       <th className="px-2 py-1.5">CVOL (MMCF)</th>
                       <th className="px-2 py-1.5">(Tonne)</th>
-                      <th className="px-2 py-1.5 border-r border-slate-800 text-white font-bold">(MMBTU)</th>
+                      <th className="px-2 py-1.5 border-r border-slate-200 text-slate-950 font-bold">(MMBTU)</th>
                       {/* STATION */}
                       <th className="px-2 py-1.5">UVOL (MMCF)</th>
                       <th className="px-2 py-1.5">CVOL (MMCF)</th>
-                      <th className="px-2 py-1.5 text-white font-bold">(Tonne)</th>
-                      <th className="px-2 py-1.5 text-white font-bold font-bold">(MMBTU)</th>
+                      <th className="px-2 py-1.5 text-slate-950 font-bold">(Tonne)</th>
+                      <th className="px-2 py-1.5 text-slate-950 font-bold font-bold">(MMBTU)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="bg-slate-950">
+                    <tr className="win-panel">
                       {/* M-101A Inputs */}
                       <td className="p-1.5">
                         <input
@@ -975,7 +975,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={cumMeterA.uvol}
                           onChange={(e) => setCumMeterA({ ...cumMeterA, uvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs"
                         />
                       </td>
                       <td className="p-1.5">
@@ -984,7 +984,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={cumMeterA.cvol}
                           onChange={(e) => setCumMeterA({ ...cumMeterA, cvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs"
                         />
                       </td>
                       <td className="p-1.5">
@@ -993,16 +993,16 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={cumMeterA.massTonne}
                           onChange={(e) => setCumMeterA({ ...cumMeterA, massTonne: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs"
                         />
                       </td>
-                      <td className="p-1.5 border-r border-slate-800">
+                      <td className="p-1.5 border-r border-slate-200">
                         <input
                           type="number"
                           step="0.01"
                           value={cumMeterA.mmbtu}
                           onChange={(e) => setCumMeterA({ ...cumMeterA, mmbtu: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-amber-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-amber-500 text-xs font-bold"
                         />
                       </td>
 
@@ -1013,7 +1013,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={cumMeterB.uvol}
                           onChange={(e) => setCumMeterB({ ...cumMeterB, uvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1022,7 +1022,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={cumMeterB.cvol}
                           onChange={(e) => setCumMeterB({ ...cumMeterB, cvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1031,16 +1031,16 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={cumMeterB.massTonne}
                           onChange={(e) => setCumMeterB({ ...cumMeterB, massTonne: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs"
                         />
                       </td>
-                      <td className="p-1.5 border-r border-slate-800">
+                      <td className="p-1.5 border-r border-slate-200">
                         <input
                           type="number"
                           step="0.01"
                           value={cumMeterB.mmbtu}
                           onChange={(e) => setCumMeterB({ ...cumMeterB, mmbtu: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-amber-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-amber-500 text-xs font-bold"
                         />
                       </td>
 
@@ -1051,7 +1051,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={cumStation.uvol}
                           onChange={(e) => setCumStation({ ...cumStation, uvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1060,7 +1060,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={cumStation.cvol}
                           onChange={(e) => setCumStation({ ...cumStation, cvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1069,7 +1069,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={cumStation.massTonne}
                           onChange={(e) => setCumStation({ ...cumStation, massTonne: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1078,7 +1078,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={cumStation.mmbtu}
                           onChange={(e) => setCumStation({ ...cumStation, mmbtu: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-amber-500 text-xs font-black"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-amber-500 text-xs font-black"
                         />
                       </td>
                     </tr>
@@ -1092,51 +1092,51 @@ export default function NiasGasQualityTab() {
             {/* ========================================================================= */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-white font-bold text-[10px] font-bold font-mono border border-cyan-500/30">
+                <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-slate-950 font-bold text-[10px] font-bold font-mono border border-cyan-500/30">
                   SECTION 2
                 </span>
-                <h5 className="text-xs font-bold text-white font-bold flex items-center gap-1.5">
-                  <Boxes className="w-3.5 h-3.5 text-white font-bold" />
+                <h5 className="text-xs font-bold text-slate-950 font-bold flex items-center gap-1.5">
+                  <Boxes className="w-3.5 h-3.5 text-slate-950 font-bold" />
                   Daily (일일 유량 및 에너지 테이블)
                 </h5>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/80">
+              <div className="overflow-x-auto rounded-none border border-slate-200 win-panel/80">
                 <table className="w-full text-xs text-left border-collapse font-mono">
                   <thead>
                     {/* 1st Tier Header */}
-                    <tr className="bg-cyan-950/40 text-white font-bold border-b border-slate-800 text-[10px] uppercase font-bold text-center">
-                      <th colSpan={4} className="px-3 py-1.5 border-r border-slate-800">
+                    <tr className="bg-cyan-950/40 text-slate-950 font-bold border-b border-slate-200 text-[10px] uppercase font-bold text-center">
+                      <th colSpan={4} className="px-3 py-1.5 border-r border-slate-200">
                         M-101A (Run 1)
                       </th>
-                      <th colSpan={4} className="px-3 py-1.5 border-r border-slate-800">
+                      <th colSpan={4} className="px-3 py-1.5 border-r border-slate-200">
                         M-101B (Run 2)
                       </th>
-                      <th colSpan={4} className="px-3 py-1.5 bg-amber-950/30 text-white font-bold">
+                      <th colSpan={4} className="px-3 py-1.5 bg-amber-50 text-amber-700 text-slate-950 font-bold">
                         STATION (Total)
                       </th>
                     </tr>
                     {/* 2nd Tier Header */}
-                    <tr className="bg-slate-900/90 text-white font-bold border-b border-slate-800 text-[9px] uppercase font-bold text-center">
+                    <tr className="bg-white shadow-none text-slate-950 font-bold border-b border-slate-200 text-[9px] uppercase font-bold text-center">
                       {/* M-101A */}
                       <th className="px-2 py-1.5">UVOL (MMCF)</th>
                       <th className="px-2 py-1.5">CVOL (MMCF)</th>
                       <th className="px-2 py-1.5">(Tonne)</th>
-                      <th className="px-2 py-1.5 border-r border-slate-800 text-white font-bold">(MMBTU)</th>
+                      <th className="px-2 py-1.5 border-r border-slate-200 text-slate-950 font-bold">(MMBTU)</th>
                       {/* M-101B */}
                       <th className="px-2 py-1.5">UVOL (MMCF)</th>
                       <th className="px-2 py-1.5">CVOL (MMCF)</th>
                       <th className="px-2 py-1.5">(Tonne)</th>
-                      <th className="px-2 py-1.5 border-r border-slate-800 text-white font-bold">(MMBTU)</th>
+                      <th className="px-2 py-1.5 border-r border-slate-200 text-slate-950 font-bold">(MMBTU)</th>
                       {/* STATION */}
                       <th className="px-2 py-1.5">UVOL (MMCF)</th>
                       <th className="px-2 py-1.5">CVOL (MMCF)</th>
-                      <th className="px-2 py-1.5 text-white font-bold">(Tonne)</th>
-                      <th className="px-2 py-1.5 text-white font-bold font-bold">(MMBTU)</th>
+                      <th className="px-2 py-1.5 text-slate-950 font-bold">(Tonne)</th>
+                      <th className="px-2 py-1.5 text-slate-950 font-bold font-bold">(MMBTU)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="bg-slate-950">
+                    <tr className="win-panel">
                       {/* M-101A Inputs */}
                       <td className="p-1.5">
                         <input
@@ -1144,7 +1144,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={dailyMeterA.uvol}
                           onChange={(e) => setDailyMeterA({ ...dailyMeterA, uvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-cyan-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-cyan-500 text-xs"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1153,7 +1153,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={dailyMeterA.cvol}
                           onChange={(e) => setDailyMeterA({ ...dailyMeterA, cvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-cyan-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-cyan-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1162,16 +1162,16 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={dailyMeterA.massTonne}
                           onChange={(e) => setDailyMeterA({ ...dailyMeterA, massTonne: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-cyan-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-cyan-500 text-xs"
                         />
                       </td>
-                      <td className="p-1.5 border-r border-slate-800">
+                      <td className="p-1.5 border-r border-slate-200">
                         <input
                           type="number"
                           step="0.01"
                           value={dailyMeterA.mmbtu}
                           onChange={(e) => setDailyMeterA({ ...dailyMeterA, mmbtu: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-amber-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-amber-500 text-xs font-bold"
                         />
                       </td>
 
@@ -1182,7 +1182,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={dailyMeterB.uvol}
                           onChange={(e) => setDailyMeterB({ ...dailyMeterB, uvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-cyan-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-cyan-500 text-xs"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1191,7 +1191,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={dailyMeterB.cvol}
                           onChange={(e) => setDailyMeterB({ ...dailyMeterB, cvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-cyan-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-cyan-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1200,16 +1200,16 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={dailyMeterB.massTonne}
                           onChange={(e) => setDailyMeterB({ ...dailyMeterB, massTonne: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-cyan-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-cyan-500 text-xs"
                         />
                       </td>
-                      <td className="p-1.5 border-r border-slate-800">
+                      <td className="p-1.5 border-r border-slate-200">
                         <input
                           type="number"
                           step="0.01"
                           value={dailyMeterB.mmbtu}
                           onChange={(e) => setDailyMeterB({ ...dailyMeterB, mmbtu: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-amber-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-amber-500 text-xs font-bold"
                         />
                       </td>
 
@@ -1220,7 +1220,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={dailyStation.uvol}
                           onChange={(e) => setDailyStation({ ...dailyStation, uvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-cyan-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-cyan-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1229,7 +1229,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={dailyStation.cvol}
                           onChange={(e) => setDailyStation({ ...dailyStation, cvol: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-cyan-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-cyan-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1238,7 +1238,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={dailyStation.massTonne}
                           onChange={(e) => setDailyStation({ ...dailyStation, massTonne: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1247,7 +1247,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={dailyStation.mmbtu}
                           onChange={(e) => setDailyStation({ ...dailyStation, mmbtu: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-amber-500 text-xs font-black"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-amber-500 text-xs font-black"
                         />
                       </td>
                     </tr>
@@ -1261,21 +1261,21 @@ export default function NiasGasQualityTab() {
             {/* ========================================================================= */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-white font-bold text-[10px] font-bold font-mono border border-indigo-500/30">
+                <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-slate-950 font-bold text-[10px] font-bold font-mono border border-indigo-200">
                   SECTION 3
                 </span>
-                <h5 className="text-xs font-bold text-white font-bold flex items-center gap-1.5">
-                  <Thermometer className="w-3.5 h-3.5 text-white font-bold" />
+                <h5 className="text-xs font-bold text-slate-950 font-bold flex items-center gap-1.5">
+                  <Thermometer className="w-3.5 h-3.5 text-slate-950 font-bold" />
                   Gas Condition & Physical Properties (공정 물리량 테이블)
                 </h5>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/80">
+              <div className="overflow-x-auto rounded-none border border-slate-200 win-panel/80">
                 <table className="w-full text-xs text-left border-collapse font-mono">
                   <thead>
                     {/* 1st Tier Header */}
-                    <tr className="bg-indigo-950/40 text-white font-bold border-b border-slate-800 text-[10px] uppercase font-bold text-center">
-                      <th colSpan={5} className="px-3 py-1.5 border-r border-slate-800">
+                    <tr className="bg-indigo-50 text-indigo-700 text-slate-950 font-bold border-b border-slate-200 text-[10px] uppercase font-bold text-center">
+                      <th colSpan={5} className="px-3 py-1.5 border-r border-slate-200">
                         M-101 A (Run 1)
                       </th>
                       <th colSpan={5} className="px-3 py-1.5">
@@ -1283,23 +1283,23 @@ export default function NiasGasQualityTab() {
                       </th>
                     </tr>
                     {/* 2nd Tier Header */}
-                    <tr className="bg-slate-900/90 text-white font-bold border-b border-slate-800 text-[9px] uppercase font-bold text-center">
+                    <tr className="bg-white shadow-none text-slate-950 font-bold border-b border-slate-200 text-[9px] uppercase font-bold text-center">
                       {/* M-101 A */}
                       <th className="px-2 py-1.5">Press (Barg)</th>
                       <th className="px-2 py-1.5">Temp (℃)</th>
                       <th className="px-2 py-1.5">Line Dens (kg/㎥)</th>
                       <th className="px-2 py-1.5">Line Compress (Zf)</th>
-                      <th className="px-2 py-1.5 border-r border-slate-800 text-white font-bold font-bold">GHV (BTU/SCF)</th>
+                      <th className="px-2 py-1.5 border-r border-slate-200 text-slate-950 font-bold font-bold">GHV (BTU/SCF)</th>
                       {/* M-101 B */}
                       <th className="px-2 py-1.5">Press (Barg)</th>
                       <th className="px-2 py-1.5">Temp (℃)</th>
                       <th className="px-2 py-1.5">Line Dens (kg/㎥)</th>
                       <th className="px-2 py-1.5">Line Compress (Zf)</th>
-                      <th className="px-2 py-1.5 text-white font-bold font-bold">GHV (BTU/SCF)</th>
+                      <th className="px-2 py-1.5 text-slate-950 font-bold font-bold">GHV (BTU/SCF)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="bg-slate-950">
+                    <tr className="win-panel">
                       {/* M-101 A Inputs */}
                       <td className="p-1.5">
                         <input
@@ -1307,7 +1307,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={conditionMeterA.pressBarg}
                           onChange={(e) => setConditionMeterA({ ...conditionMeterA, pressBarg: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-indigo-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-indigo-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1316,7 +1316,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={conditionMeterA.tempC}
                           onChange={(e) => setConditionMeterA({ ...conditionMeterA, tempC: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-indigo-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-indigo-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1325,7 +1325,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={conditionMeterA.lineDens}
                           onChange={(e) => setConditionMeterA({ ...conditionMeterA, lineDens: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-indigo-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-indigo-500 text-xs"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1334,16 +1334,16 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={conditionMeterA.lineZf}
                           onChange={(e) => setConditionMeterA({ ...conditionMeterA, lineZf: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-indigo-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-indigo-500 text-xs"
                         />
                       </td>
-                      <td className="p-1.5 border-r border-slate-800">
+                      <td className="p-1.5 border-r border-slate-200">
                         <input
                           type="number"
                           step="0.01"
                           value={conditionMeterA.ghv}
                           onChange={(e) => setConditionMeterA({ ...conditionMeterA, ghv: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs font-black"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs font-black"
                         />
                       </td>
 
@@ -1354,7 +1354,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={conditionMeterB.pressBarg}
                           onChange={(e) => setConditionMeterB({ ...conditionMeterB, pressBarg: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-indigo-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-indigo-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1363,7 +1363,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={conditionMeterB.tempC}
                           onChange={(e) => setConditionMeterB({ ...conditionMeterB, tempC: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-indigo-500 text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-indigo-500 text-xs font-bold"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1372,7 +1372,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={conditionMeterB.lineDens}
                           onChange={(e) => setConditionMeterB({ ...conditionMeterB, lineDens: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-indigo-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-indigo-500 text-xs"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1381,7 +1381,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={conditionMeterB.lineZf}
                           onChange={(e) => setConditionMeterB({ ...conditionMeterB, lineZf: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-indigo-500 text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-indigo-500 text-xs"
                         />
                       </td>
                       <td className="p-1.5">
@@ -1390,7 +1390,7 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={conditionMeterB.ghv}
                           onChange={(e) => setConditionMeterB({ ...conditionMeterB, ghv: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-1 rounded border border-slate-800 text-right focus:outline-none focus:border-emerald-500 text-xs font-black"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-1 rounded border border-slate-200 text-right focus:outline-none focus:border-emerald-500 text-xs font-black"
                         />
                       </td>
                     </tr>
@@ -1405,27 +1405,27 @@ export default function NiasGasQualityTab() {
             <div className="space-y-2">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded bg-purple-500/20 text-white font-bold text-[10px] font-bold font-mono border border-purple-500/30">
+                  <span className="px-2 py-0.5 rounded bg-purple-500/20 text-slate-950 font-bold text-[10px] font-bold font-mono border border-purple-500/30">
                     SECTION 4
                   </span>
-                  <h5 className="text-xs font-bold text-white font-bold flex items-center gap-1.5">
-                    <FlaskConical className="w-3.5 h-3.5 text-white font-bold" />
+                  <h5 className="text-xs font-bold text-slate-950 font-bold flex items-center gap-1.5">
+                    <FlaskConical className="w-3.5 h-3.5 text-slate-950 font-bold" />
                     Gas Chromatography Component Analysis (% Mol)
                   </h5>
                 </div>
-                <span className="text-[11px] font-mono text-white font-bold">
+                <span className="text-[11px] font-mono text-slate-950 font-bold">
                   Single Active Feed Stream (Domain 1) & Custody Discharge Header Meters
                 </span>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/80">
+              <div className="overflow-x-auto rounded-none border border-slate-200 win-panel/80">
                 <table className="w-full text-xs text-left border-collapse font-mono">
                   <thead>
-                    <tr className="bg-purple-950/40 text-white font-bold border-b border-slate-800 text-[9px] uppercase font-bold text-center">
-                      <th className="px-3 py-1.5 text-left border-r border-slate-800 min-w-[260px]">
+                    <tr className="bg-purple-950/40 text-slate-950 font-bold border-b border-slate-200 text-[9px] uppercase font-bold text-center">
+                      <th className="px-3 py-1.5 text-left border-r border-slate-200 min-w-[260px]">
                         Stream / Measurement Node
                       </th>
-                      <th className="px-2 py-1.5 text-white font-bold">CH₄ (%)</th>
+                      <th className="px-2 py-1.5 text-slate-950 font-bold">CH₄ (%)</th>
                       <th className="px-2 py-1.5">C₂H₆ (%)</th>
                       <th className="px-2 py-1.5">C₃H₈ (%)</th>
                       <th className="px-2 py-1.5">i-C₄ (%)</th>
@@ -1433,21 +1433,21 @@ export default function NiasGasQualityTab() {
                       <th className="px-2 py-1.5">i-C₅ (%)</th>
                       <th className="px-2 py-1.5">n-C₅ (%)</th>
                       <th className="px-2 py-1.5">N₂ (%)</th>
-                      <th className="px-2 py-1.5 border-r border-slate-800">CO₂ (%)</th>
-                      <th className="px-2.5 py-1.5 bg-emerald-950/30 text-white font-bold font-black">
+                      <th className="px-2 py-1.5 border-r border-slate-200">CO₂ (%)</th>
+                      <th className="px-2.5 py-1.5 bg-emerald-50 text-emerald-700 text-slate-950 font-bold font-black">
                         Total (%)
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 text-white font-bold">
+                  <tbody className="divide-y divide-slate-800/60 text-slate-950 font-bold">
                     {/* Row 1: Active Discharge Feed Tank (Domain 1 Single Discharging Tank) */}
-                    <tr className="bg-slate-950 hover:bg-slate-900/50">
-                      <td className="px-3 py-1.5 border-r border-slate-800 text-left font-bold text-white font-bold flex items-center justify-between gap-1.5">
+                    <tr className="win-panel hover:bg-white shadow-none/50">
+                      <td className="px-3 py-1.5 border-r border-slate-200 text-left font-bold text-slate-950 font-bold flex items-center justify-between gap-1.5">
                         <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                          <span>Feed Tank: <strong className="text-white">{primaryActiveTank.tankNo}</strong></span>
+                          <span className="w-2 h-2 rounded-none bg-emerald-400 animate-pulse" />
+                          <span>Feed Tank: <strong className="text-slate-950">{primaryActiveTank.tankNo}</strong></span>
                         </div>
-                        <span className="text-[9px] text-white font-bold font-mono font-bold bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                        <span className="text-[9px] text-slate-950 font-bold font-mono font-bold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
                           Arun COQ Linked
                         </span>
                       </td>
@@ -1457,28 +1457,28 @@ export default function NiasGasQualityTab() {
                           step="0.01"
                           value={gcActiveTank.ch4}
                           onChange={(e) => setGcActiveTank({ ...gcActiveTank, ch4: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs font-bold"
                         />
                       </td>
-                      <td className="px-2 py-1 text-right text-white font-bold">{gcActiveTank.c2h6.toFixed(4)}</td>
-                      <td className="px-2 py-1 text-right text-white font-bold">{gcActiveTank.c3h8.toFixed(4)}</td>
-                      <td className="px-2 py-1 text-right text-white font-bold">{gcActiveTank.iC4.toFixed(4)}</td>
-                      <td className="px-2 py-1 text-right text-white font-bold">{gcActiveTank.nC4.toFixed(4)}</td>
-                      <td className="px-2 py-1 text-right text-white font-bold">{gcActiveTank.iC5.toFixed(4)}</td>
-                      <td className="px-2 py-1 text-right text-white font-bold">{gcActiveTank.nC5.toFixed(4)}</td>
-                      <td className="px-2 py-1 text-right text-white font-bold">{gcActiveTank.n2.toFixed(4)}</td>
-                      <td className="px-2 py-1 text-right text-white font-bold border-r border-slate-800">{gcActiveTank.co2.toFixed(4)}</td>
-                      <td className="px-2.5 py-1 text-right text-white font-bold font-black bg-emerald-950/20">
+                      <td className="px-2 py-1 text-right text-slate-950 font-bold">{gcActiveTank.c2h6.toFixed(4)}</td>
+                      <td className="px-2 py-1 text-right text-slate-950 font-bold">{gcActiveTank.c3h8.toFixed(4)}</td>
+                      <td className="px-2 py-1 text-right text-slate-950 font-bold">{gcActiveTank.iC4.toFixed(4)}</td>
+                      <td className="px-2 py-1 text-right text-slate-950 font-bold">{gcActiveTank.nC4.toFixed(4)}</td>
+                      <td className="px-2 py-1 text-right text-slate-950 font-bold">{gcActiveTank.iC5.toFixed(4)}</td>
+                      <td className="px-2 py-1 text-right text-slate-950 font-bold">{gcActiveTank.nC5.toFixed(4)}</td>
+                      <td className="px-2 py-1 text-right text-slate-950 font-bold">{gcActiveTank.n2.toFixed(4)}</td>
+                      <td className="px-2 py-1 text-right text-slate-950 font-bold border-r border-slate-200">{gcActiveTank.co2.toFixed(4)}</td>
+                      <td className="px-2.5 py-1 text-right text-slate-950 font-bold font-black bg-emerald-50 text-emerald-700">
                         100.00 %
                       </td>
                     </tr>
 
                     {/* Row 2: Custody Discharge Meter M-101 A */}
-                    <tr className="bg-slate-950 hover:bg-slate-900/50">
-                      <td className="px-3 py-1.5 border-r border-slate-800 text-left font-bold text-white font-bold flex items-center gap-1.5">
-                        <Gauge className="w-3.5 h-3.5 text-white font-bold" />
+                    <tr className="win-panel hover:bg-white shadow-none/50">
+                      <td className="px-3 py-1.5 border-r border-slate-200 text-left font-bold text-slate-950 font-bold flex items-center gap-1.5">
+                        <Gauge className="w-3.5 h-3.5 text-slate-950 font-bold" />
                         <span>Discharge Header M-101 A</span>
-                        <span className="text-[10px] text-white font-bold bg-cyan-950/60 px-1.5 py-0.2 rounded border border-cyan-500/20 font-bold">
+                        <span className="text-[10px] text-slate-950 font-bold bg-cyan-950/60 px-1.5 py-0.2 rounded border border-cyan-500/20 font-bold">
                           Custody
                         </span>
                       </td>
@@ -1488,7 +1488,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterA.ch4}
                           onChange={(e) => setGcMeterA({ ...gcMeterA, ch4: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs font-bold"
                         />
                       </td>
                       <td className="p-1">
@@ -1497,7 +1497,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterA.c2h6}
                           onChange={(e) => setGcMeterA({ ...gcMeterA, c2h6: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1506,7 +1506,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterA.c3h8}
                           onChange={(e) => setGcMeterA({ ...gcMeterA, c3h8: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1515,7 +1515,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterA.iC4}
                           onChange={(e) => setGcMeterA({ ...gcMeterA, iC4: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1524,7 +1524,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterA.nC4}
                           onChange={(e) => setGcMeterA({ ...gcMeterA, nC4: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1533,7 +1533,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterA.iC5}
                           onChange={(e) => setGcMeterA({ ...gcMeterA, iC5: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1542,7 +1542,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterA.nC5}
                           onChange={(e) => setGcMeterA({ ...gcMeterA, nC5: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1551,29 +1551,29 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterA.n2}
                           onChange={(e) => setGcMeterA({ ...gcMeterA, n2: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
-                      <td className="p-1 border-r border-slate-800">
+                      <td className="p-1 border-r border-slate-200">
                         <input
                           type="number"
                           step="0.0001"
                           value={gcMeterA.co2}
                           onChange={(e) => setGcMeterA({ ...gcMeterA, co2: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
-                      <td className="px-2.5 py-1 text-right text-white font-bold font-black bg-cyan-950/20">
+                      <td className="px-2.5 py-1 text-right text-slate-950 font-bold font-black bg-cyan-950/20">
                         {(gcMeterA.ch4 + gcMeterA.c2h6 + gcMeterA.c3h8 + gcMeterA.iC4 + gcMeterA.nC4 + gcMeterA.iC5 + gcMeterA.nC5 + gcMeterA.n2 + gcMeterA.co2).toFixed(2)} %
                       </td>
                     </tr>
 
                     {/* Row 3: Redundant Discharge Meter M-101 B */}
-                    <tr className="bg-slate-950 hover:bg-slate-900/50">
-                      <td className="px-3 py-1.5 border-r border-slate-800 text-left font-bold text-white font-bold flex items-center gap-1.5">
-                        <Gauge className="w-3.5 h-3.5 text-white font-bold" />
+                    <tr className="win-panel hover:bg-white shadow-none/50">
+                      <td className="px-3 py-1.5 border-r border-slate-200 text-left font-bold text-slate-950 font-bold flex items-center gap-1.5">
+                        <Gauge className="w-3.5 h-3.5 text-slate-950 font-bold" />
                         <span>Discharge Header M-101 B</span>
-                        <span className="text-[10px] text-white font-bold bg-indigo-950/60 px-1.5 py-0.2 rounded border border-indigo-500/20 font-bold">
+                        <span className="text-[10px] text-slate-950 font-bold bg-indigo-50 text-indigo-700 px-1.5 py-0.2 rounded border border-indigo-200 font-bold">
                           Redundant
                         </span>
                       </td>
@@ -1583,7 +1583,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterB.ch4}
                           onChange={(e) => setGcMeterB({ ...gcMeterB, ch4: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs font-bold"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs font-bold"
                         />
                       </td>
                       <td className="p-1">
@@ -1592,7 +1592,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterB.c2h6}
                           onChange={(e) => setGcMeterB({ ...gcMeterB, c2h6: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1601,7 +1601,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterB.c3h8}
                           onChange={(e) => setGcMeterB({ ...gcMeterB, c3h8: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1610,7 +1610,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterB.iC4}
                           onChange={(e) => setGcMeterB({ ...gcMeterB, iC4: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1619,7 +1619,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterB.nC4}
                           onChange={(e) => setGcMeterB({ ...gcMeterB, nC4: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1628,7 +1628,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterB.iC5}
                           onChange={(e) => setGcMeterB({ ...gcMeterB, iC5: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1637,7 +1637,7 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterB.nC5}
                           onChange={(e) => setGcMeterB({ ...gcMeterB, nC5: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
                       <td className="p-1">
@@ -1646,19 +1646,19 @@ export default function NiasGasQualityTab() {
                           step="0.0001"
                           value={gcMeterB.n2}
                           onChange={(e) => setGcMeterB({ ...gcMeterB, n2: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
-                      <td className="p-1 border-r border-slate-800">
+                      <td className="p-1 border-r border-slate-200">
                         <input
                           type="number"
                           step="0.0001"
                           value={gcMeterB.co2}
                           onChange={(e) => setGcMeterB({ ...gcMeterB, co2: parseFloat(e.target.value) || 0 })}
-                          className="w-full bg-slate-900 text-white font-bold px-1.5 py-0.5 rounded border border-slate-800 text-right text-xs"
+                          className="w-full bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs"
                         />
                       </td>
-                      <td className="px-2.5 py-1 text-right text-white font-bold font-black bg-indigo-950/20">
+                      <td className="px-2.5 py-1 text-right text-slate-950 font-bold font-black bg-indigo-50 text-indigo-700">
                         {(gcMeterB.ch4 + gcMeterB.c2h6 + gcMeterB.c3h8 + gcMeterB.iC4 + gcMeterB.nC4 + gcMeterB.iC5 + gcMeterB.nC5 + gcMeterB.n2 + gcMeterB.co2).toFixed(2)} %
                       </td>
                     </tr>
@@ -1670,12 +1670,12 @@ export default function NiasGasQualityTab() {
             {/* Bottom Notifications & Save Action Inside Form */}
             <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2">
               {toastMessage ? (
-                <div className="p-2.5 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-xs font-mono text-white font-bold flex items-center gap-2 animate-in fade-in duration-150">
-                  <CheckCircle2 className="w-4 h-4 text-white font-bold shrink-0" />
+                <div className="p-2.5 bg-emerald-500/15 border border-emerald-200 rounded-none text-xs font-mono text-white font-bold flex items-center gap-2 animate-in fade-in duration-150">
+                  <CheckCircle2 className="w-4 h-4 text-slate-950 font-bold shrink-0" />
                   <span>{toastMessage}</span>
                 </div>
               ) : (
-                <span className="text-[11px] font-mono text-white font-bold">
+                <span className="text-[11px] font-mono text-slate-950 font-bold">
                   ⚡ Saving synchronizes all 4 normalized sections with local database storage.
                 </span>
               )}
@@ -1685,7 +1685,7 @@ export default function NiasGasQualityTab() {
                   type="button"
                   onClick={() => populateFormFromDate(entryDate)}
                   title="Reset Form from Stored Date Values"
-                  className="px-3.5 py-2 bg-slate-950 hover:bg-slate-900 text-white font-bold rounded-xl border border-slate-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-3.5 py-2 win-panel hover:bg-white shadow-none text-slate-950 font-bold rounded-none border border-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Reset Values</span>
@@ -1693,7 +1693,7 @@ export default function NiasGasQualityTab() {
 
                 <button
                   type="submit"
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 rounded-none text-xs font-black shadow-none shadow-emerald-500/20 transition-all cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>💾 Save / Update Daily Report</span>
@@ -1705,18 +1705,18 @@ export default function NiasGasQualityTab() {
       </form>
 
       {/* 5. [BOTTOM] Grouped Collapsible Master Grid (2-Tier Sticky Headers) */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-3.5 sm:p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/60">
+      <div className="bg-white shadow-none border border-slate-200 rounded-none shadow-none overflow-hidden">
+        <div className="p-3.5 sm:p-4 border-b border-slate-200 flex justify-between items-center win-panel/60">
           <div className="flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4 text-white font-bold" />
-            <h4 className="text-xs sm:text-sm font-bold text-white font-bold">
+            <FileSpreadsheet className="w-4 h-4 text-slate-950 font-bold" />
+            <h4 className="text-xs sm:text-sm font-bold text-slate-950 font-bold">
               NIAS G.C Report & Gas Quality Master Daily Ledger (Database-Ready)
             </h4>
-            <span className="text-xs font-mono text-white font-bold">
+            <span className="text-xs font-mono text-slate-950 font-bold">
               (Showing {filteredRecords.length} records)
             </span>
           </div>
-          <span className="text-[11px] font-mono text-white font-bold hidden sm:inline-block">
+          <span className="text-[11px] font-mono text-slate-950 font-bold hidden sm:inline-block">
             💡 Click any row to expand & edit in 4-Section official form
           </span>
         </div>
@@ -1724,91 +1724,91 @@ export default function NiasGasQualityTab() {
         <div className="overflow-x-auto max-h-[620px] scrollbar-thin scrollbar-thumb-slate-700">
           <table className="w-full text-xs text-left border-collapse font-mono">
             {/* 2-Tier Sticky Header */}
-            <thead className="bg-slate-950 text-white font-bold sticky top-0 z-30 shadow-md">
+            <thead className="win-panel text-slate-950 font-bold sticky top-0 z-30 shadow-none">
               {/* Tier 1 Group Headers */}
-              <tr className="border-b border-slate-800 text-[10px] uppercase font-bold tracking-wider">
-                <th className="px-3 py-2 bg-slate-950 sticky left-0 z-40 border-r border-slate-800 text-white font-bold text-left">
+              <tr className="border-b border-slate-200 text-[10px] uppercase font-bold tracking-wider">
+                <th className="px-1.5 py-0.5 win-panel sticky left-0 z-40 border-r border-slate-200 text-slate-950 font-bold text-left">
                   DATE
                 </th>
-                <th colSpan={5} className="px-3 py-2 bg-amber-950/40 text-white font-bold border-r border-slate-800 text-center">
+                <th colSpan={5} className="px-1.5 py-0.5 bg-amber-50 text-amber-700 text-slate-950 font-bold border-r border-slate-200 text-center">
                   STATION
                 </th>
-                <th colSpan={7} className="px-3 py-2 bg-cyan-950/40 text-white font-bold border-r border-slate-800 text-center">
+                <th colSpan={7} className="px-1.5 py-0.5 bg-cyan-950/40 text-slate-950 font-bold border-r border-slate-200 text-center">
                   METER RUN A (M-101A)
                 </th>
-                <th colSpan={7} className="px-3 py-2 bg-indigo-950/40 text-white font-bold border-r border-slate-800 text-center">
+                <th colSpan={7} className="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 text-slate-950 font-bold border-r border-slate-200 text-center">
                   METER RUN B (M-101B)
                 </th>
-                <th colSpan={7} className="px-3 py-2 bg-emerald-950/40 text-white font-bold border-r border-slate-800 text-center">
+                <th colSpan={7} className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-slate-950 font-bold border-r border-slate-200 text-center">
                   GC MOLECULAR COMPOSITION (% MOL)
                 </th>
                 {showHeavyTrace && (
-                  <th colSpan={9} className="px-3 py-2 bg-purple-950/40 text-white font-bold text-center">
+                  <th colSpan={9} className="px-1.5 py-0.5 bg-purple-950/40 text-slate-950 font-bold text-center">
                     C5+ HEAVY ALKANES & TRACE
                   </th>
                 )}
               </tr>
 
               {/* Tier 2 Column Headers & Units */}
-              <tr className="border-b border-slate-800 text-[9px] uppercase font-bold text-white font-bold bg-slate-950/90">
+              <tr className="border-b border-slate-200 text-[9px] uppercase font-bold text-slate-950 font-bold win-panel/90">
                 {/* Single Frozen Date Column */}
-                <th className="px-3 py-2 sticky left-0 z-40 bg-slate-950 min-w-[105px] text-white font-bold border-r border-slate-800 text-left">
+                <th className="px-1.5 py-0.5 sticky left-0 z-40 win-panel min-w-[105px] text-slate-950 font-bold border-r border-slate-200 text-left">
                   DATE
                 </th>
 
                 {/* Station Delivery: UVOL, CVOL, TONNE, MMBTU, CUM. MMBTU */}
                 <th className="px-2.5 py-2 text-right">UVOL (MMCF)</th>
                 <th className="px-2.5 py-2 text-right">CVOL (MMCF)</th>
-                <th className="px-2.5 py-2 text-right text-white font-bold">TONNE</th>
-                <th className="px-2.5 py-2 text-right text-white font-bold font-bold">MMBTU</th>
-                <th className="px-2.5 py-2 text-right border-r border-slate-800 text-white font-bold">CUM. MMBTU</th>
+                <th className="px-2.5 py-2 text-right text-slate-950 font-bold">TONNE</th>
+                <th className="px-2.5 py-2 text-right text-slate-950 font-bold font-bold">MMBTU</th>
+                <th className="px-2.5 py-2 text-right border-r border-slate-200 text-slate-950 font-bold">CUM. MMBTU</th>
 
                 {/* Meter A: UVOL, CVOL, TONNE, MMBTU, PRESS, TEMP, GHV */}
                 <th className="px-2.5 py-2 text-right">UVOL</th>
                 <th className="px-2.5 py-2 text-right">CVOL</th>
                 <th className="px-2.5 py-2 text-right">TONNE</th>
-                <th className="px-2.5 py-2 text-right text-white font-bold">MMBTU</th>
+                <th className="px-2.5 py-2 text-right text-slate-950 font-bold">MMBTU</th>
                 <th className="px-2.5 py-2 text-right">PRESS (Barg)</th>
                 <th className="px-2.5 py-2 text-right">TEMP (℃)</th>
-                <th className="px-2.5 py-2 text-right border-r border-slate-800">GHV (BTU/Scf)</th>
+                <th className="px-2.5 py-2 text-right border-r border-slate-200">GHV (BTU/Scf)</th>
 
                 {/* Meter B: UVOL, CVOL, TONNE, MMBTU, PRESS, TEMP, GHV */}
                 <th className="px-2.5 py-2 text-right">UVOL</th>
                 <th className="px-2.5 py-2 text-right">CVOL</th>
                 <th className="px-2.5 py-2 text-right">TONNE</th>
-                <th className="px-2.5 py-2 text-right text-white font-bold">MMBTU</th>
+                <th className="px-2.5 py-2 text-right text-slate-950 font-bold">MMBTU</th>
                 <th className="px-2.5 py-2 text-right">PRESS (Barg)</th>
                 <th className="px-2.5 py-2 text-right">TEMP (℃)</th>
-                <th className="px-2.5 py-2 text-right border-r border-slate-800">GHV (BTU/Scf)</th>
+                <th className="px-2.5 py-2 text-right border-r border-slate-200">GHV (BTU/Scf)</th>
 
                 {/* GC Molecular Fractions */}
-                <th className="px-2.5 py-2 text-right text-white font-bold">CH₄ [%]</th>
+                <th className="px-2.5 py-2 text-right text-slate-950 font-bold">CH₄ [%]</th>
                 <th className="px-2.5 py-2 text-right">C₂H₆ [%]</th>
                 <th className="px-2.5 py-2 text-right">C₃H₈ [%]</th>
                 <th className="px-2.5 py-2 text-right">i-C₄ [%]</th>
                 <th className="px-2.5 py-2 text-right">n-C₄ [%]</th>
                 <th className="px-2.5 py-2 text-right">N₂ [%]</th>
-                <th className="px-2.5 py-2 text-right border-r border-slate-800">CO₂ [%]</th>
+                <th className="px-2.5 py-2 text-right border-r border-slate-200">CO₂ [%]</th>
 
                 {/* Heavy Trace Breakdown */}
                 {showHeavyTrace && (
                   <>
-                    <th className="px-2 py-2 text-right">i-C₅ [%]</th>
-                    <th className="px-2 py-2 text-right">n-C₅ [%]</th>
-                    <th className="px-2 py-2 text-right">C₆ [%]</th>
-                    <th className="px-2 py-2 text-right">C₇ [%]</th>
-                    <th className="px-2 py-2 text-right">C₈ [%]</th>
-                    <th className="px-2 py-2 text-right">C₉ [%]</th>
-                    <th className="px-2 py-2 text-right">C₁₀ [%]</th>
-                    <th className="px-2 py-2 text-right text-white font-bold">H₂S [%]</th>
-                    <th className="px-2 py-2 text-right text-white font-bold">H₂O [%]</th>
+                    <th className="px-1.5 py-0.5 text-right">i-C₅ [%]</th>
+                    <th className="px-1.5 py-0.5 text-right">n-C₅ [%]</th>
+                    <th className="px-1.5 py-0.5 text-right">C₆ [%]</th>
+                    <th className="px-1.5 py-0.5 text-right">C₇ [%]</th>
+                    <th className="px-1.5 py-0.5 text-right">C₈ [%]</th>
+                    <th className="px-1.5 py-0.5 text-right">C₉ [%]</th>
+                    <th className="px-1.5 py-0.5 text-right">C₁₀ [%]</th>
+                    <th className="px-1.5 py-0.5 text-right text-slate-950 font-bold">H₂S [%]</th>
+                    <th className="px-1.5 py-0.5 text-right text-slate-950 font-bold">H₂O [%]</th>
                   </>
                 )}
               </tr>
             </thead>
 
             {/* Data Rows */}
-            <tbody className="divide-y divide-slate-800/60 text-white font-bold">
+            <tbody className="divide-y divide-slate-800/60 text-slate-950 font-bold">
               {filteredRecords.length > 0 ? (
                 filteredRecords.map((row, idx) => {
                   const isSelected = row.date === entryDate;
@@ -1817,30 +1817,30 @@ export default function NiasGasQualityTab() {
                     <tr
                       key={row.date}
                       onClick={() => handleRowClick(row.date)}
-                      className={`hover:bg-slate-800/60 cursor-pointer transition-colors ${
+                      className={`hover:bg-slate-100/60 cursor-pointer transition-colors ${
                         isSelected
                           ? 'bg-blue-950/40 border-l-2 border-l-cyan-400'
                           : idx % 2 === 0
-                          ? 'bg-slate-900/60'
-                          : 'bg-slate-900/30'
+                          ? 'bg-white shadow-none/60'
+                          : 'bg-white shadow-none/30'
                       }`}
                     >
                       {/* Single Frozen Date Column */}
-                      <td className="px-3 py-2.5 sticky left-0 z-20 bg-slate-950 font-bold text-white font-bold border-r border-slate-800/80">
+                      <td className="px-1.5 py-0.5 sticky left-0 z-20 win-panel font-bold text-slate-950 font-bold border-r border-slate-200/80">
                         {row.date}
                       </td>
 
                       {/* Station Deliveries: UVOL, CVOL, TONNE, MMBTU, CUM. MMBTU */}
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.dailyStation.uvol > 0 ? row.dailyStation.uvol.toFixed(2) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.dailyStation.cvol > 0 ? row.dailyStation.cvol.toFixed(2) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right font-bold text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right font-bold text-slate-950 font-bold">
                         {row.dailyStation.massTonne > 0 ? row.dailyStation.massTonne.toFixed(2) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right font-bold text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right font-bold text-slate-950 font-bold">
                         {row.dailyStation.mmbtu > 0
                           ? row.dailyStation.mmbtu.toLocaleString(undefined, {
                               minimumFractionDigits: 1,
@@ -1848,107 +1848,107 @@ export default function NiasGasQualityTab() {
                             })
                           : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold border-r border-slate-800/80">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold border-r border-slate-200/80">
                         {row.cumStation.mmbtu > 0 ? row.cumStation.mmbtu.toLocaleString() : '-'}
                       </td>
 
                       {/* Meter A: UVOL, CVOL, TONNE, MMBTU, PRESS, TEMP, GHV */}
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.dailyMeterA.uvol > 0 ? row.dailyMeterA.uvol.toFixed(2) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.dailyMeterA.cvol > 0 ? row.dailyMeterA.cvol.toFixed(2) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.dailyMeterA.massTonne > 0 ? row.dailyMeterA.massTonne.toFixed(2) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.dailyMeterA.mmbtu > 0 ? row.dailyMeterA.mmbtu.toFixed(1) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.conditionMeterA.pressBarg > 0 ? row.conditionMeterA.pressBarg.toFixed(2) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.conditionMeterA.tempC > 0 ? row.conditionMeterA.tempC.toFixed(1) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold border-r border-slate-800/80">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold border-r border-slate-200/80">
                         {row.conditionMeterA.ghv > 0 ? row.conditionMeterA.ghv.toFixed(1) : '-'}
                       </td>
 
                       {/* Meter B: UVOL, CVOL, TONNE, MMBTU, PRESS, TEMP, GHV */}
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.dailyMeterB.uvol > 0 ? row.dailyMeterB.uvol.toFixed(2) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.dailyMeterB.cvol > 0 ? row.dailyMeterB.cvol.toFixed(2) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.dailyMeterB.massTonne > 0 ? row.dailyMeterB.massTonne.toFixed(2) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.dailyMeterB.mmbtu > 0 ? row.dailyMeterB.mmbtu.toFixed(1) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.conditionMeterB.pressBarg > 0 ? row.conditionMeterB.pressBarg.toFixed(2) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.conditionMeterB.tempC > 0 ? row.conditionMeterB.tempC.toFixed(1) : '-'}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold border-r border-slate-800/80">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold border-r border-slate-200/80">
                         {row.conditionMeterB.ghv > 0 ? row.conditionMeterB.ghv.toFixed(1) : '-'}
                       </td>
 
                       {/* Key GC Fractions */}
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold font-bold">
                         {row.gcMeterA.ch4.toFixed(2)}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.gcMeterA.c2h6.toFixed(2)}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.gcMeterA.c3h8.toFixed(2)}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.gcMeterA.iC4.toFixed(2)}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.gcMeterA.nC4.toFixed(2)}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold">
                         {row.gcMeterA.n2.toFixed(2)}
                       </td>
-                      <td className="px-2.5 py-2.5 text-right text-white font-bold border-r border-slate-800/80">
+                      <td className="px-2.5 py-2.5 text-right text-slate-950 font-bold border-r border-slate-200/80">
                         {row.gcMeterA.co2.toFixed(2)}
                       </td>
 
                       {/* Heavy Trace Elements */}
                       {showHeavyTrace && (
                         <>
-                          <td className="px-2 py-2.5 text-right text-white font-bold">
+                          <td className="px-1.5 py-0.5.5 text-right text-slate-950 font-bold">
                             {row.gcMeterA.iC5.toFixed(4)}
                           </td>
-                          <td className="px-2 py-2.5 text-right text-white font-bold">
+                          <td className="px-1.5 py-0.5.5 text-right text-slate-950 font-bold">
                             {row.gcMeterA.nC5.toFixed(4)}
                           </td>
-                          <td className="px-2 py-2.5 text-right text-white font-bold">
+                          <td className="px-1.5 py-0.5.5 text-right text-slate-950 font-bold">
                             {row.heavyTrace?.hexane ? row.heavyTrace.hexane.toFixed(4) : '-'}
                           </td>
-                          <td className="px-2 py-2.5 text-right text-white font-bold">
+                          <td className="px-1.5 py-0.5.5 text-right text-slate-950 font-bold">
                             {row.heavyTrace?.heptane ? row.heavyTrace.heptane.toFixed(4) : '-'}
                           </td>
-                          <td className="px-2 py-2.5 text-right text-white font-bold">
+                          <td className="px-1.5 py-0.5.5 text-right text-slate-950 font-bold">
                             {row.heavyTrace?.octane ? row.heavyTrace.octane.toFixed(4) : '-'}
                           </td>
-                          <td className="px-2 py-2.5 text-right text-white font-bold">
+                          <td className="px-1.5 py-0.5.5 text-right text-slate-950 font-bold">
                             {row.heavyTrace?.nonane ? row.heavyTrace.nonane.toFixed(4) : '-'}
                           </td>
-                          <td className="px-2 py-2.5 text-right text-white font-bold">
+                          <td className="px-1.5 py-0.5.5 text-right text-slate-950 font-bold">
                             {row.heavyTrace?.decane ? row.heavyTrace.decane.toFixed(4) : '-'}
                           </td>
-                          <td className="px-2 py-2.5 text-right text-white font-bold">
+                          <td className="px-1.5 py-0.5.5 text-right text-slate-950 font-bold">
                             {row.heavyTrace?.h2s === 0 ? '0.0000' : '0.0000'}
                           </td>
-                          <td className="px-2 py-2.5 text-right text-white font-bold">
+                          <td className="px-1.5 py-0.5.5 text-right text-slate-950 font-bold">
                             {row.heavyTrace?.h2o === 0 ? '0.0000' : '0.0000'}
                           </td>
                         </>
@@ -1960,7 +1960,7 @@ export default function NiasGasQualityTab() {
                 <tr>
                   <td
                     colSpan={showHeavyTrace ? 36 : 27}
-                    className="px-4 py-8 text-center text-white font-bold font-mono"
+                    className="px-4 py-8 text-center text-slate-950 font-bold font-mono"
                   >
                     No database records found matching period {activeStartDate} ~ {activeEndDate}.
                   </td>
@@ -1969,78 +1969,78 @@ export default function NiasGasQualityTab() {
             </tbody>
 
             {/* Totals & Averages Footer */}
-            <tfoot className="bg-slate-950 text-white font-bold border-t-2 border-slate-800 font-bold sticky bottom-0 z-20 shadow-lg">
+            <tfoot className="win-panel text-slate-950 font-bold border-t-2 border-slate-200 font-bold sticky bottom-0 z-20 shadow-none">
               <tr>
-                <td className="px-3 py-3 sticky left-0 z-30 bg-slate-950 text-white font-bold uppercase text-[10px] border-r border-slate-800">
+                <td className="px-3 py-3 sticky left-0 z-30 win-panel text-slate-950 font-bold uppercase text-[10px] border-r border-slate-200">
                   Summary Totals
                 </td>
 
                 {/* Station Totals Sum: UVOL, CVOL, TONNE, MMBTU, CUM. MMBTU */}
-                <td className="px-2.5 py-3 text-right text-white font-bold">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">
                   {filteredRecords.reduce((a, b) => a + b.dailyStation.uvol, 0).toFixed(2)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">
                   {summaryMetrics.totalVolMscf.toFixed(2)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold text-sm">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold text-sm">
                   {summaryMetrics.totalMassTonne.toFixed(2)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold text-sm">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold text-sm">
                   {summaryMetrics.totalEnergy.toLocaleString(undefined, {
                     minimumFractionDigits: 1,
                     maximumFractionDigits: 1,
                   })}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold border-r border-slate-800">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold border-r border-slate-200">-</td>
 
                 {/* Meter A Sum */}
-                <td className="px-2.5 py-3 text-right text-white font-bold">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">
                   {filteredRecords.reduce((a, b) => a + b.dailyMeterA.uvol, 0).toFixed(2)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">
                   {filteredRecords.reduce((a, b) => a + b.dailyMeterA.cvol, 0).toFixed(2)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">
                   {filteredRecords.reduce((a, b) => a + b.dailyMeterA.massTonne, 0).toFixed(2)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">
                   {filteredRecords.reduce((a, b) => a + b.dailyMeterA.mmbtu, 0).toFixed(1)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">-</td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">-</td>
-                <td className="px-2.5 py-3 text-right text-white font-bold border-r border-slate-800">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold border-r border-slate-200">-</td>
 
                 {/* Meter B Sum */}
-                <td className="px-2.5 py-3 text-right text-white font-bold">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">
                   {filteredRecords.reduce((a, b) => a + b.dailyMeterB.uvol, 0).toFixed(2)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">
                   {filteredRecords.reduce((a, b) => a + b.dailyMeterB.cvol, 0).toFixed(2)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">
                   {filteredRecords.reduce((a, b) => a + b.dailyMeterB.massTonne, 0).toFixed(2)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">
                   {filteredRecords.reduce((a, b) => a + b.dailyMeterB.mmbtu, 0).toFixed(1)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">-</td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">-</td>
-                <td className="px-2.5 py-3 text-right text-white font-bold border-r border-slate-800">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold border-r border-slate-200">-</td>
 
                 {/* GC Averages */}
-                <td className="px-2.5 py-3 text-right text-white font-bold">
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">
                   {summaryMetrics.avgMethane.toFixed(2)}
                 </td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">-</td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">-</td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">-</td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">-</td>
-                <td className="px-2.5 py-3 text-right text-white font-bold">-</td>
-                <td className="px-2.5 py-3 text-right text-white font-bold border-r border-slate-800">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold">-</td>
+                <td className="px-2.5 py-3 text-right text-slate-950 font-bold border-r border-slate-200">-</td>
 
                 {/* Heavy Trace Placeholders */}
                 {showHeavyTrace && (
-                  <td colSpan={9} className="px-2 py-3 text-center text-[10px] text-white font-bold font-bold">
+                  <td colSpan={9} className="px-2 py-3 text-center text-[10px] text-slate-950 font-bold font-bold">
                     Heavy Hydrocarbons / Trace Range Checked
                   </td>
                 )}

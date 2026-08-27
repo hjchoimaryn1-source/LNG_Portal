@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Activity,
   Zap,
@@ -23,21 +23,36 @@ import {
   ChevronRight,
   Database,
   Table,
+  Check,
+  AlertCircle,
+  TrendingUp,
+  Radio,
+  Boxes,
 } from 'lucide-react';
 import { usePortalData } from '@/context/PortalDataContext';
+import { NodeState } from '@/types/lng';
 
 interface NiasOperationalOverviewTabProps {
   onNavigateSubTab?: (targetTab: string, domain?: 'ISO_TANK_MGMT' | 'REGAS_SYSTEM') => void;
 }
 
-type ProcessBlockId = 'BLOCK_1_ARUN' | 'BLOCK_2_SAVIOUR' | 'BLOCK_3_NIAS_YARD' | 'BLOCK_4_REGAS_PRSS' | 'BLOCK_5_PLTMG_PLANT';
+type ProcessBlockId = 'BLOCK_1_ARUN' | 'BLOCK_2_SAVIOUR' | 'BLOCK_3_NIAS_YARD' | 'BLOCK_4_REGAS_PRSS' | 'BLOCK_5_NIAS_LAYDOWN_2' | 'BLOCK_5_PLTMG_PLANT';
 
 export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOperationalOverviewTabProps) {
-  const { fleetTanks, gasCompositions } = usePortalData();
+  const { fleetTanks, gasCompositions, activeBays, settlementRecords } = usePortalData();
 
-  // Daily Report Approval Status
-  const [reportStatus, setReportStatus] = useState<'CONFIRMED' | 'REVIEW'>('CONFIRMED');
   const [activeModalBlock, setActiveModalBlock] = useState<ProcessBlockId | null>(null);
+
+  // ESC Key Listener for Modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActiveModalBlock(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Engine Spec Constants (MAN 7L 51/60 DF)
   const engineMcrKw = 7350;
@@ -69,13 +84,118 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
   const dailyGasFlowNm3 = totalGasFlowNm3h * 24;
   const dailyHeatMmbtu = (dailyGasFlowNm3 * referenceLhvKjNm3) / 1055056;
 
-  // Inventory & Autonomy Buffers
-  const onsiteLadenTanksCount = 14;
-  const onsiteLadenGasNm3 = onsiteLadenTanksCount * nominalTankVolumeNm3;
-  const activeBayRemainingNm3 = Math.round(nominalTankVolumeNm3 * 0.885); // ISOT-009 @ 88.5%
-  const activeTankAutonomyHours = totalGasFlowNm3h > 0 ? activeBayRemainingNm3 / totalGasFlowNm3h : 0;
-  const yardAutonomyHours = totalGasFlowNm3h > 0 ? onsiteLadenGasNm3 / totalGasFlowNm3h : 0;
-  const yardAutonomyDays = yardAutonomyHours / 24;
+  // Real-Time Fleet & Gas Aggregations (Single Source of Truth from 120-Fleet Hub)
+  const fleetMetrics = useMemo(() => {
+    const totalFleet = fleetTanks.length || 120;
+
+    // 1. Arun Hub (Node 1 / Aceh / Loading Terminal - Dynamic Reactive Calculation)
+    const arunTanks = fleetTanks.filter(
+      (t) =>
+        t.node === NodeState.NODE_1_ARUN_PAG_TERMINAL ||
+        t.location === 'Aceh' ||
+        t.location?.toUpperCase().includes('ARUN') ||
+        t.position?.toUpperCase().includes('ARUN')
+    );
+    const arunEmptyCount = arunTanks.length;
+    const arunBufferVolumeM3 = (arunEmptyCount * 1.0).toFixed(1);
+    const arunTotalCount = arunTanks.length;
+
+    // 2. MV Saviour Transit (Node 2 / Dedicated Marine Carrier - Dynamic Reactive Calculation)
+    const saviourTanks = fleetTanks.filter(
+      (t) =>
+        t.node === NodeState.NODE_2_MV_SAVIOUR_TRANSIT ||
+        t.node === NodeState.NODE_2_M_V_SAVIOUR ||
+        t.location === 'MV. Saviour' ||
+        t.location?.toUpperCase().includes('SAVIOUR') ||
+        t.position?.toUpperCase().includes('SAVIOUR')
+    );
+    const saviourTankCount = saviourTanks.length;
+    const saviourHeelBufferVolumeM3 = (saviourTankCount * 1.0).toFixed(1);
+    const saviourAvgPress =
+      saviourTanks.length > 0
+        ? saviourTanks.reduce((acc, t) => acc + (t.pressureMPa || 0.76), 0) / saviourTanks.length
+        : 0.76;
+
+    // 3. Active Feed Tank (Bay-mounted: ISOT-009 @ 49%)
+    const activeRunningBay =
+      activeBays.find((b) => b.status === 'RUNNING' && b.tankNo) ||
+      activeBays.find((b) => b.tankNo) ||
+      activeBays[0];
+    const activeFeedTankTag = activeRunningBay?.tankNo || 'ISOT-009';
+    const activeFeedTank = fleetTanks.find((t) => t.tankNo === activeFeedTankTag);
+    const activeFeedLevelPct = activeRunningBay?.level ?? activeFeedTank?.level ?? 49.0;
+    const activeFeedPressMPa = activeRunningBay?.pressure ?? activeFeedTank?.pressureMPa ?? 0.76;
+    const activeBayRemainingNm3 = Math.round(nominalTankVolumeNm3 * (activeFeedLevelPct / 100));
+
+    // 4. Nias Site / Yard (Nodes 3, 4, 5 / ORU Nias - Exactly 11 Units: 10 Laden + 1 Empty)
+    const niasTanks = fleetTanks.filter(
+      (t) =>
+        t.node === NodeState.NODE_3_NIAS_LAYDOWN_YARD ||
+        t.node === NodeState.NODE_4_REGAS_ACTIVE_BAY ||
+        t.node === NodeState.NODE_5_EMPTY_RETURN_CYCLE ||
+        t.location === 'ORU NIAS' ||
+        t.location?.toUpperCase().includes('NIAS')
+    );
+    const niasTotalCount = niasTanks.length;
+
+    // Ready Laden in Yard (9 Buffer Units excluding active ISOT-009)
+    const niasLadenTanks = niasTanks.filter(
+      (t) =>
+        (t.node === NodeState.NODE_3_NIAS_LAYDOWN_YARD ||
+          t.position?.toLowerCase().includes('laydown 1') ||
+          (t.level || 0) >= 50) &&
+        t.tankNo !== activeFeedTankTag &&
+        !t.isUnderMaintenance
+    );
+    const onsiteLadenCount = niasLadenTanks.length;
+    const onsiteLadenGasNm3 = onsiteLadenCount * nominalTankVolumeNm3;
+
+    // Empty / Heel stock in Yard (1 Unit: ISOT-064)
+    const niasEmptyTanks = niasTanks.filter(
+      (t) =>
+        t.node === NodeState.NODE_5_EMPTY_RETURN_CYCLE ||
+        t.position?.toLowerCase().includes('laydown 2') ||
+        t.position?.toLowerCase().includes('laydown 3') ||
+        t.tankNo === 'ISOT-064' ||
+        (t.level || 0) < 50
+    );
+    const onsiteEmptyCount = niasEmptyTanks.length;
+
+    // Distribution Percentages
+    const niasPct = totalFleet > 0 ? parseFloat(((niasTotalCount / totalFleet) * 100).toFixed(1)) : 9.2;
+    const saviourPct = totalFleet > 0 ? parseFloat(((saviourTankCount / totalFleet) * 100).toFixed(1)) : 82.5;
+    const arunPct = totalFleet > 0 ? parseFloat(((arunEmptyCount / totalFleet) * 100).toFixed(1)) : 8.3;
+
+    // Autonomy Calculations
+    const activeTankAutonomyHours = totalGasFlowNm3h > 0 ? activeBayRemainingNm3 / totalGasFlowNm3h : 0;
+    const yardAutonomyHours = totalGasFlowNm3h > 0 ? ((onsiteLadenCount + 1) * nominalTankVolumeNm3) / totalGasFlowNm3h : 0;
+    const yardAutonomyDays = yardAutonomyHours / 24;
+    const safetyMarginPct = Math.round(((onsiteLadenCount + 1) / 10) * 100);
+
+    return {
+      totalFleet,
+      arunEmptyCount,
+      arunBufferVolumeM3,
+      arunTotalCount,
+      saviourTankCount,
+      saviourHeelBufferVolumeM3,
+      saviourAvgPress,
+      activeFeedTankTag,
+      activeFeedLevelPct,
+      activeFeedPressMPa,
+      activeBayRemainingNm3,
+      onsiteLadenCount,
+      onsiteLadenGasNm3,
+      onsiteEmptyCount,
+      niasTotalCount,
+      niasPct,
+      saviourPct,
+      arunPct,
+      activeTankAutonomyHours,
+      yardAutonomyDays,
+      safetyMarginPct,
+    };
+  }, [fleetTanks, activeBays, totalGasFlowNm3h]);
 
   const handleNavigate = (tab: string, domain: 'ISO_TANK_MGMT' | 'REGAS_SYSTEM' = 'REGAS_SYSTEM') => {
     setActiveModalBlock(null);
@@ -85,650 +205,1092 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
   };
 
   return (
-    <div className="w-full space-y-3.5 font-sans text-xs text-white font-bold animate-in fade-in duration-150">
-      {/* ========================================================================= */}
-      {/* 1. 최상단 상태 알림 툴바: 운전 일보 확정 상태 및 시스템 메타데이터 바         */}
-      {/* ========================================================================= */}
-      <div className="bg-slate-900/90 border border-slate-600 rounded-lg p-2.5 px-3.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-        {/* Left Status Indicators */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold ${
-            reportStatus === 'CONFIRMED'
-              ? 'bg-emerald-600 text-white'
-              : 'bg-amber-600 text-white'
-          }`}>
-            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-            {reportStatus === 'CONFIRMED' ? 'CONFIRMED (운전 일보 확정 완료)' : 'UNDER REVIEW (일보 검토 중)'}
-          </span>
-
-          <span className="px-2.5 py-1 rounded bg-slate-950 border border-slate-600 text-white font-bold font-mono font-bold text-xs flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-white font-bold" />
-            <span>Cut-off: 2026-07-28 06:00 WIB</span>
-          </span>
-
-          <span className="px-2.5 py-1 rounded bg-slate-950 border border-slate-600 text-white font-bold font-mono font-bold text-xs flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-white font-bold" />
-            <span>Lead Shift Eng: Ahmad Fauzi</span>
-          </span>
-
-          <span className="hidden xl:inline-block text-white font-bold font-bold">
-            Nias 25MW PLTMG & Regas Terminal Integrated Process Flow & Daily Dispatch
-          </span>
+    <div className="space-y-3 pb-8 animate-in fade-in duration-200">
+      {/* 1. SCADA Header Banner */}
+      <div className="shrink-0 win-panel px-3 py-1.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 select-none">
+        <div className="flex items-center gap-2">
+          <Activity className="w-5 h-5 text-blue-900 animate-pulse" />
+          <h2 className="text-base sm:text-lg font-black text-blue-950">
+            Nias LNG Terminal - Operational Overview
+          </h2>
         </div>
-
-        {/* Right Action Controls */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => setReportStatus(reportStatus === 'CONFIRMED' ? 'REVIEW' : 'CONFIRMED')}
-            className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold border border-slate-500 text-xs font-bold cursor-pointer transition-colors"
-          >
-            Toggle: {reportStatus}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleNavigate('PLTMG_POWER_OUTPUT', 'REGAS_SYSTEM')}
-            className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold border border-blue-400 shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-            <span>일보 입력 바로가기 (Tab 3)</span>
-          </button>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-xs text-slate-600 bg-white border border-slate-300 px-2.5 py-0.5 rounded-xs">
+            2026-08-26 10:00 ~ 08-27 10:00  (24 hrs)
+          </span>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. 상단 4대 핵심 KPI 요약 카드 (Solid Gray Border + Bright Neon Figures)     */}
+      {/* 2. ISO TANK FLOW DIAGRAM (5-BLOCK PIPELINE)                               */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* KPI 1: 전력 생산 & 부하율 */}
-        <div className="bg-slate-900 border border-slate-600 rounded-lg overflow-hidden">
-          {/* Panel Title Bar */}
-          <div className="bg-slate-800/80 px-3 py-1.5 border-b border-slate-600 font-bold flex justify-between items-center text-white font-bold">
-            <span className="flex items-center gap-1.5 text-white font-bold">
-              <Zap className="w-3.5 h-3.5 text-white font-bold" />
-              1. 전력 생산 & 부하율
-            </span>
-            <span className="text-[10px] uppercase font-mono tracking-wide text-white font-bold">PLTMG Hall</span>
-          </div>
-          {/* Panel Content */}
-          <div className="p-3 space-y-2">
-            <div className="flex items-baseline justify-between">
-              <div>
-                <span className="text-2xl font-black font-mono text-white font-bold">
-                  {totalPowerMw.toFixed(2)}
-                </span>
-                <span className="text-xs font-bold text-white font-bold ml-1">MW</span>
-              </div>
-              <span className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-amber-950/80 text-white font-bold border border-amber-500/50">
-                {plantLoadPct.toFixed(1)}% MCR
-              </span>
-            </div>
-            <div className="pt-2 border-t border-slate-700/80 flex justify-between text-xs font-mono text-white font-bold">
-              <span>당일 발전량: <strong className="text-white font-bold">{dailyMwh.toFixed(1)} MWh</strong></span>
-              <span>가동 기수: <strong className="text-white font-bold font-bold">{runningEngines.length}/5 기</strong></span>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 2: 가스 소비 & 열효율 */}
-        <div className="bg-slate-900 border border-slate-600 rounded-lg overflow-hidden">
-          {/* Panel Title Bar */}
-          <div className="bg-slate-800/80 px-3 py-1.5 border-b border-slate-600 font-bold flex justify-between items-center text-white font-bold">
-            <span className="flex items-center gap-1.5 text-white font-bold">
-              <Flame className="w-3.5 h-3.5 text-white font-bold" />
-              2. 가스 소비 & 열효율
-            </span>
-            <span className="text-[10px] uppercase font-mono tracking-wide text-white font-bold">Heat Rate</span>
-          </div>
-          {/* Panel Content */}
-          <div className="p-3 space-y-2">
-            <div className="flex items-baseline justify-between">
-              <div>
-                <span className="text-2xl font-black font-mono text-white font-bold">
-                  {(dailyGasFlowNm3 / 1000).toFixed(1)}k
-                </span>
-                <span className="text-xs font-bold text-white font-bold ml-1">Nm³/day</span>
-              </div>
-              <span className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-emerald-950/80 text-white font-bold border border-emerald-500/50">
-                50.35% Eff
-              </span>
-            </div>
-            <div className="pt-2 border-t border-slate-700/80 flex justify-between text-xs font-mono text-white font-bold">
-              <span>인입 열량: <strong className="text-white font-bold">{Math.round(dailyHeatMmbtu).toLocaleString()} MMBtu</strong></span>
-              <span>Heat Rate: <strong className="text-white font-bold font-bold">7,150 kJ/kWh</strong></span>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 3: 공급망 재고 & 버퍼 */}
-        <div className="bg-slate-900 border border-slate-600 rounded-lg overflow-hidden">
-          {/* Panel Title Bar */}
-          <div className="bg-slate-800/80 px-3 py-1.5 border-b border-slate-600 font-bold flex justify-between items-center text-white font-bold">
-            <span className="flex items-center gap-1.5 text-white font-bold">
-              <Droplets className="w-3.5 h-3.5 text-white font-bold" />
-              3. 공급망 재고 & 버퍼
-            </span>
-            <span className="text-[10px] uppercase font-mono tracking-wide text-white font-bold">Autonomy</span>
-          </div>
-          {/* Panel Content */}
-          <div className="p-3 space-y-2">
-            <div className="flex items-baseline justify-between">
-              <div>
-                <span className="text-2xl font-black font-mono text-white font-bold">
-                  {yardAutonomyDays.toFixed(2)}
-                </span>
-                <span className="text-xs font-bold text-white font-bold ml-1">Days Buffer</span>
-              </div>
-              <span className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-emerald-950/80 text-white font-bold border border-emerald-500/50">
-                {onsiteLadenTanksCount} Tanks
-              </span>
-            </div>
-            <div className="pt-2 border-t border-slate-700/80 flex justify-between text-xs font-mono text-white font-bold">
-              <span>Bay 01 피드: <strong className="text-white font-bold">88.5% ({activeTankAutonomyHours.toFixed(1)}h)</strong></span>
-              <span>현장 재고: <strong className="text-white font-bold font-bold">354.7k Nm³</strong></span>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 4: 정산 수불 일치율 (Audit) */}
-        <div className="bg-slate-900 border border-slate-600 rounded-lg overflow-hidden">
-          {/* Panel Title Bar */}
-          <div className="bg-slate-800/80 px-3 py-1.5 border-b border-slate-600 font-bold flex justify-between items-center text-white font-bold">
-            <span className="flex items-center gap-1.5 text-white font-bold">
-              <Scale className="w-3.5 h-3.5 text-white font-bold" />
-              4. 정산 수불 일치율
-            </span>
-            <span className="px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-bold">
-              AUDIT PASS
-            </span>
-          </div>
-          {/* Panel Content */}
-          <div className="p-3 space-y-2">
-            <div className="flex items-baseline justify-between">
-              <div>
-                <span className="text-2xl font-black font-mono text-white font-bold">
-                  ±0.42
-                </span>
-                <span className="text-xs font-bold text-white font-bold ml-1">% Variance</span>
-              </div>
-              <span className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-indigo-950/80 text-white font-bold border border-indigo-500/50">
-                ≤ 2.0% Tol
-              </span>
-            </div>
-            <div className="pt-2 border-t border-slate-700/80 flex justify-between text-xs font-mono text-white font-bold">
-              <span>당월 누적 차액: <strong className="text-white font-bold font-bold">$5,807 USD</strong></span>
-              <span>FloBoss: <strong className="text-white font-bold">29,485 MMBtu</strong></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 3. 중앙 5-Node PFD 파이프라인 패널 (Solid Gray Grid Box & 2-Col Key-Values) */}
-      {/* ========================================================================= */}
-      <div className="bg-slate-900 border border-slate-600 rounded-lg overflow-hidden">
-        {/* Panel Header Bar */}
-        <div className="bg-slate-800/80 px-3.5 py-2 border-b border-slate-600 font-bold flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 text-white font-bold">
+      <div className="shrink-0 win-panel overflow-hidden border border-slate-300">
+        {/* Panel Header Bar (Deep Navy SCADA Theme) */}
+        <div className="bg-[#0a2558] px-3 py-1.5 flex justify-between items-center text-white select-none">
           <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-white font-bold" />
-            <h4 className="text-xs sm:text-sm font-black text-white">
-              End-to-End LNG Virtual Pipeline Process Block Flow Diagram (5-Node SCADA Flow)
+            <Layers className="w-4 h-4 text-cyan-400" />
+            <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+              ISO Tank Flow Diagram
             </h4>
           </div>
-          <span className="text-[11px] font-mono text-white font-bold">
-            💡 Click any process block to inspect engineering parameters & telemetry.
-          </span>
         </div>
 
-        {/* 5 Process Flow Node Grid */}
-        <div className="p-3 grid grid-cols-1 md:grid-cols-5 gap-2.5">
-          {/* Node 1: Arun Terminal */}
+        {/* 5 Process Flow Block Grid */}
+        <div className="p-1.5 grid grid-cols-1 md:grid-cols-5 gap-1.5">
+          {/* Block 1: 1. PAGT (Arun) */}
           <div
             onClick={() => setActiveModalBlock('BLOCK_1_ARUN')}
-            className="bg-slate-950 border border-slate-600 hover:border-amber-400 rounded-lg overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
+            className="win-panel border border-slate-300 hover:border-blue-600 rounded-none overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
-              <div className="bg-slate-800/90 px-2.5 py-1 border-b border-slate-600 font-bold flex justify-between items-center text-white font-bold">
-                <span className="font-mono text-xs">Node 1: Arun Hub</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
+                <span className="font-mono text-xs font-bold text-white uppercase tracking-wide">1. PAGT (Arun)</span>
+                <span className="w-2 h-2 rounded-none bg-emerald-400" />
               </div>
 
-              <div className="p-2.5 space-y-1.5 font-mono text-xs text-white font-bold">
-                <div className="font-bold text-white mb-1">1. Arun PAG Terminal</div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Laden Stock:</span>
-                  <span className="font-bold text-white font-bold">16 Tanks</span>
+              <div className="p-1.5 space-y-0.5 font-mono text-[11px] text-slate-900">
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Empty Return:</span>
+                  <span className="font-black text-slate-950">{fleetMetrics.arunEmptyCount} Tanks</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Empty Return:</span>
-                  <span className="font-bold text-white font-bold">32 Tanks</span>
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Buffer Volume:</span>
+                  <span className="font-black text-blue-950">{fleetMetrics.arunBufferVolumeM3} m³</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Methane (CH4):</span>
-                  <span className="font-bold text-white font-bold">90.24%</span>
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Methane (CH4):</span>
+                  <span className="font-black text-slate-950">95.5%</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white font-bold">LHV:</span>
-                  <span className="font-bold text-white">28,000 kJ/Nm³</span>
+                  <span className="text-slate-700 font-bold">LHV:</span>
+                  <span className="font-black text-slate-950">28,000 kJ/Nm³</span>
                 </div>
               </div>
             </div>
 
-            <div className="px-2.5 py-1.5 border-t border-slate-800 text-[11px] font-bold text-white font-bold bg-slate-900 flex items-center justify-between">
-              <span>Inspect Node 1</span>
-              <ChevronRight className="w-3.5 h-3.5" />
+            <div className="px-2 py-1 border-t border-slate-300 text-xs font-bold text-blue-700 bg-white hover:underline flex items-center justify-between">
+              <span>Inspect Block 1 &gt;</span>
+              <ChevronRight className="w-3.5 h-3.5 text-blue-700" />
             </div>
           </div>
 
-          {/* Node 2: MV Saviour Transit */}
+          {/* Block 2: 2. M/V Saviour */}
           <div
             onClick={() => setActiveModalBlock('BLOCK_2_SAVIOUR')}
-            className="bg-slate-950 border border-slate-600 hover:border-cyan-400 rounded-lg overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
+            className="win-panel border border-slate-300 hover:border-blue-600 rounded-none overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
-              <div className="bg-slate-800/90 px-2.5 py-1 border-b border-slate-600 font-bold flex justify-between items-center text-white font-bold">
-                <span className="font-mono text-xs">Node 2: Marine Sea</span>
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
+                <span className="font-mono text-xs font-bold text-white uppercase tracking-wide">2. M/V Saviour</span>
+                <span className="w-2 h-2 rounded-none bg-cyan-400 animate-pulse" />
               </div>
 
-              <div className="p-2.5 space-y-1.5 font-mono text-xs text-white font-bold">
-                <div className="font-bold text-white mb-1">2. MV Saviour Transit</div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Carrier Tanks:</span>
-                  <span className="font-bold text-white font-bold">48 Units</span>
+              <div className="p-1.5 space-y-0.5 font-mono text-[11px] text-slate-900">
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Carrier Tanks:</span>
+                  <span className="font-black text-slate-950">{fleetMetrics.saviourTankCount} Units</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Liquid Mass:</span>
-                  <span className="font-bold text-white">1,968 m³</span>
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Cargo State:</span>
+                  <span className="font-black text-blue-950">{fleetMetrics.saviourTankCount} Empty Units</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Speed / ETA:</span>
-                  <span className="font-bold text-white font-bold">9.8 kts (~18h)</span>
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Heel Retention:</span>
+                  <span className="font-black text-slate-950">1.0 m³ (~{fleetMetrics.saviourHeelBufferVolumeM3} m³)</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Speed / ETA:</span>
+                  <span className="font-black text-slate-950">9.8 kts (~18h)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white font-bold">Avg Pressure:</span>
-                  <span className="font-bold text-white">0.18 MPa</span>
+                  <span className="text-slate-700 font-bold">Avg Pressure:</span>
+                  <span className="font-black text-slate-950">{fleetMetrics.saviourAvgPress.toFixed(2)} MPa</span>
                 </div>
               </div>
             </div>
 
-            <div className="px-2.5 py-1.5 border-t border-slate-800 text-[11px] font-bold text-white font-bold bg-slate-900 flex items-center justify-between">
-              <span>Inspect Node 2</span>
-              <ChevronRight className="w-3.5 h-3.5" />
+            <div className="px-2 py-1 border-t border-slate-300 text-xs font-bold text-blue-700 bg-white hover:underline flex items-center justify-between">
+              <span>Inspect Block 2 &gt;</span>
+              <ChevronRight className="w-3.5 h-3.5 text-blue-700" />
             </div>
           </div>
 
-          {/* Node 3: Nias Yard & Bays */}
+          {/* Block 3: 3. NIAS (Laydown 1) */}
           <div
             onClick={() => setActiveModalBlock('BLOCK_3_NIAS_YARD')}
-            className="bg-slate-950 border border-slate-600 hover:border-emerald-400 rounded-lg overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
+            className="win-panel border border-slate-300 hover:border-blue-600 rounded-none overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
-              <div className="bg-slate-800/90 px-2.5 py-1 border-b border-slate-600 font-bold flex justify-between items-center text-white font-bold">
-                <span className="font-mono text-xs">Node 3 & 4: Yard</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
+                <span className="font-mono text-xs font-bold text-white uppercase tracking-wide">3. NIAS (Laydown 1)</span>
+                <span className="w-2 h-2 rounded-none bg-emerald-400" />
               </div>
 
-              <div className="p-2.5 space-y-1.5 font-mono text-xs text-white font-bold">
-                <div className="font-bold text-white mb-1">3. Nias Yard & Bays</div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Active Feed:</span>
-                  <span className="font-bold text-white font-bold">ISOT-009</span>
+              <div className="p-1.5 space-y-0.5 font-mono text-[11px] text-slate-900">
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Full Stock:</span>
+                  <span className="font-black text-slate-950">{fleetMetrics.onsiteLadenCount} Tanks</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Feed Level:</span>
-                  <span className="font-bold text-white font-bold">88.5% (22.4k Nm³)</span>
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Buffer Autonomy:</span>
+                  <span className="font-black text-slate-950">{fleetMetrics.yardAutonomyDays.toFixed(2)} Days</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Yard Ready:</span>
-                  <span className="font-bold text-white font-bold">14 Tanks</span>
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Safety Margin:</span>
+                  <span className="font-black text-emerald-700">{fleetMetrics.safetyMarginPct}% SAFE</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white font-bold">Autonomy:</span>
-                  <span className="font-bold text-white font-bold">{yardAutonomyDays.toFixed(2)} Days</span>
+                  <span className="text-slate-700 font-bold">Avg Press:</span>
+                  <span className="font-black text-slate-950">0.22 MPa</span>
                 </div>
               </div>
             </div>
 
-            <div className="px-2.5 py-1.5 border-t border-slate-800 text-[11px] font-bold text-white font-bold bg-slate-900 flex items-center justify-between">
-              <span>Inspect Node 3</span>
-              <ChevronRight className="w-3.5 h-3.5" />
+            <div className="px-2 py-1 border-t border-slate-300 text-xs font-bold text-blue-700 bg-white hover:underline flex items-center justify-between">
+              <span>Inspect Block 3 &gt;</span>
+              <ChevronRight className="w-3.5 h-3.5 text-blue-700" />
             </div>
           </div>
 
-          {/* Node 4: Re-Gas & PRSS / GC */}
+          {/* Block 4: 4. Regas & PRSS */}
           <div
             onClick={() => setActiveModalBlock('BLOCK_4_REGAS_PRSS')}
-            className="bg-slate-950 border border-slate-600 hover:border-cyan-400 rounded-lg overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
+            className="win-panel border border-slate-300 hover:border-blue-600 rounded-none overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
-              <div className="bg-slate-800/90 px-2.5 py-1 border-b border-slate-600 font-bold flex justify-between items-center text-white font-bold">
-                <span className="font-mono text-xs">Node 4: Regas Skid</span>
-                <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
+                <span className="font-mono text-xs font-bold text-white uppercase tracking-wide">4. Regas & PRSS</span>
+                <span className="w-2 h-2 rounded-none bg-cyan-400" />
               </div>
 
-              <div className="p-2.5 space-y-1.5 font-mono text-xs text-white font-bold">
-                <div className="font-bold text-white mb-1">4. Re-Gas & PRSS / GC</div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Discharge Press:</span>
-                  <span className="font-bold text-white font-bold">2.18 Barg</span>
+              <div className="p-1.5 space-y-0.5 font-mono text-[11px] text-slate-900">
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Active Feed:</span>
+                  <span className="font-black text-slate-950">{fleetMetrics.activeFeedTankTag} ({fleetMetrics.activeFeedLevelPct.toFixed(1)}%)</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Gas Temp:</span>
-                  <span className="font-bold text-white">+24.5 °C</span>
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Discharge Press:</span>
+                  <span className="font-black text-slate-950">2.18 Barg</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">GC-01 CH4:</span>
-                  <span className="font-bold text-white font-bold">90.80%</span>
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Gas Temp:</span>
+                  <span className="font-black text-slate-950">+24.5 °C</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white font-bold">Metering Delta:</span>
-                  <span className="font-bold text-white font-bold">-0.04%</span>
+                  <span className="text-slate-700 font-bold">Metering Delta:</span>
+                  <span className="font-black text-slate-950">-0.04%</span>
                 </div>
               </div>
             </div>
 
-            <div className="px-2.5 py-1.5 border-t border-slate-800 text-[11px] font-bold text-white font-bold bg-slate-900 flex items-center justify-between">
-              <span>Inspect Node 4</span>
-              <ChevronRight className="w-3.5 h-3.5" />
+            <div className="px-2 py-1 border-t border-slate-300 text-xs font-bold text-blue-700 bg-white hover:underline flex items-center justify-between">
+              <span>Inspect Block 4 &gt;</span>
+              <ChevronRight className="w-3.5 h-3.5 text-blue-700" />
             </div>
           </div>
 
-          {/* Node 5: 25MW PLTMG Plant */}
+          {/* Block 5: 5. NIAS (Laydown 2) */}
           <div
-            onClick={() => setActiveModalBlock('BLOCK_5_PLTMG_PLANT')}
-            className="bg-slate-950 border border-slate-600 hover:border-amber-400 rounded-lg overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
+            onClick={() => setActiveModalBlock('BLOCK_5_NIAS_LAYDOWN_2')}
+            className="win-panel border border-slate-300 hover:border-blue-600 rounded-none overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
-              <div className="bg-slate-800/90 px-2.5 py-1 border-b border-slate-600 font-bold flex justify-between items-center text-white font-bold">
-                <span className="font-mono text-xs">Node 5: PLTMG</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
+                <span className="font-mono text-xs font-bold text-white uppercase tracking-wide">5. NIAS (Laydown 2)</span>
+                <span className="w-2 h-2 rounded-none bg-emerald-400 animate-pulse" />
               </div>
 
-              <div className="p-2.5 space-y-1.5 font-mono text-xs text-white font-bold">
-                <div className="font-bold text-white mb-1">5. PLTMG 5 × MAN 7L</div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Active Output:</span>
-                  <span className="font-bold text-white font-bold">{totalPowerMw.toFixed(2)} MW</span>
+              <div className="p-1.5 space-y-0.5 font-mono text-[11px] text-slate-900">
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Empty Tanks:</span>
+                  <span className="font-black text-slate-950">{fleetMetrics.onsiteEmptyCount} Tanks</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Running Units:</span>
-                  <span className="font-bold text-white font-bold">4 / 5 Units</span>
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Heel Retention:</span>
+                  <span className="font-black text-slate-950">4.2% (1.0 m³ / 445 kg)</span>
                 </div>
-                <div className="flex justify-between border-b border-slate-800 pb-1">
-                  <span className="text-white font-bold">Gas Demand:</span>
-                  <span className="font-bold text-white font-bold">4,505 Nm³/h</span>
+                <div className="flex justify-between border-b border-slate-200 pb-1">
+                  <span className="text-slate-700 font-bold">Holding Press:</span>
+                  <span className="font-black text-slate-950">0.21 MPa</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white font-bold">Heat Rate:</span>
-                  <span className="font-bold text-white">7,150 kJ/kWh</span>
+                  <span className="text-slate-700 font-bold">Dispatch:</span>
+                  <span className="font-black text-blue-950">Awaiting Backhaul</span>
                 </div>
               </div>
             </div>
 
-            <div className="px-2.5 py-1.5 border-t border-slate-800 text-[11px] font-bold text-white font-bold bg-slate-900 flex items-center justify-between">
-              <span>Inspect Node 5</span>
-              <ChevronRight className="w-3.5 h-3.5" />
+            <div className="px-2 py-1 border-t border-slate-300 text-xs font-bold text-blue-700 bg-white hover:underline flex items-center justify-between">
+              <span>Inspect Block 5 &gt;</span>
+              <ChevronRight className="w-3.5 h-3.5 text-blue-700" />
             </div>
           </div>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 4. 하단 2열 엔지니어링 데이터 그리드 (Spreadsheet Matrix & Stock Bar)        */}
+      {/* 3. DUAL-PANEL LOWER SCADA REDESIGN & BASELINE 1-UNIT AUTONOMY SIMULATOR   */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* 좌측 패널: MAN 7L 51/60 DF Generator Dispatch Summary (GEN-01 ~ GEN-05) */}
-        <div className="bg-slate-900 border border-slate-600 rounded-lg overflow-hidden flex flex-col justify-between">
-          <div>
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-1.5 overflow-hidden">
+        {/* ======================================================================= */}
+        {/* PANEL A (Left 50%): CUSTODY ENERGY & GAS CONVERSION                     */}
+        {/* ======================================================================= */}
+        <div className="win-panel overflow-hidden flex flex-col justify-between h-full min-h-0">
+          <div className="flex flex-col h-full min-h-0 space-y-1 p-1">
             {/* Panel Title Bar */}
-            <div className="bg-slate-800/80 px-3 py-1.5 border-b border-slate-600 font-bold flex justify-between items-center text-white font-bold">
-              <span className="flex items-center gap-1.5 text-white font-bold">
-                <Cpu className="w-3.5 h-3.5 text-white font-bold" />
-                MAN 7L 51/60 DF Generator Dispatch Summary (GEN-01 ~ GEN-05)
-              </span>
-              <button
-                type="button"
-                onClick={() => handleNavigate('PLTMG_POWER_OUTPUT', 'REGAS_SYSTEM')}
-                className="text-xs font-bold text-white font-bold hover:text-white font-bold flex items-center gap-1 cursor-pointer"
-              >
-                <span>Full Tab 3</span>
-                <ExternalLink className="w-3 h-3" />
-              </button>
-            </div>
-
-            {/* Classic Engineering Spreadsheet Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse font-mono text-xs">
-                <thead>
-                  <tr className="bg-slate-800 border-b border-slate-600 text-white font-bold text-[11px] font-bold">
-                    <th className="py-1.5 px-3 border-r border-slate-700">Unit</th>
-                    <th className="py-1.5 px-2 text-center border-r border-slate-700">Status</th>
-                    <th className="py-1.5 px-2 text-right border-r border-slate-700">Power (kW)</th>
-                    <th className="py-1.5 px-2 text-right border-r border-slate-700">Load %</th>
-                    <th className="py-1.5 px-2 text-right border-r border-slate-700">Press (bar)</th>
-                    <th className="py-1.5 px-3 text-right">Gas Flow (Nm³/h)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700/80 text-white font-bold">
-                  {engines.map((eng, idx) => (
-                    <tr
-                      key={eng.id}
-                      className={idx % 2 === 0 ? 'bg-slate-900 hover:bg-slate-800/80' : 'bg-slate-950 hover:bg-slate-800/80'}
-                    >
-                      <td className="py-1.5 px-3 font-bold border-r border-slate-700 text-white font-bold">{eng.tag}</td>
-                      <td className="py-1.5 px-2 text-center border-r border-slate-700">
-                        <span
-                          className={`px-2 py-0.5 rounded-sm text-[10px] font-bold ${
-                            eng.status === 'RUN'
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-slate-700 text-white font-bold'
-                          }`}
-                        >
-                          {eng.status}
-                        </span>
-                      </td>
-                      <td className="py-1.5 px-2 text-right font-black border-r border-slate-700 text-white font-bold">{eng.powerKw.toLocaleString()}</td>
-                      <td className="py-1.5 px-2 text-right font-bold text-white font-bold border-r border-slate-700">{eng.loadPct.toFixed(0)}%</td>
-                      <td className="py-1.5 px-2 text-right border-r border-slate-700 text-white font-bold">{eng.pressBar > 0 ? eng.pressBar.toFixed(2) : '-'}</td>
-                      <td className="py-1.5 px-3 text-right font-bold text-white font-bold">{eng.flowNm3h > 0 ? eng.flowNm3h.toFixed(0) : '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="px-3 py-2 bg-slate-950 border-t border-slate-600 flex justify-between items-center text-xs font-mono font-bold text-white font-bold">
-            <span>Total Engine MCR: <strong className="text-white">36.75 MW</strong></span>
-            <span>Total Fuel Gas Demand: <strong className="text-white font-bold">{totalGasFlowNm3h.toFixed(0)} Nm³/h</strong></span>
-          </div>
-        </div>
-
-        {/* 우측 패널: 120-Fleet ISO Tank Global Supply Distribution & Safety Margin */}
-        <div className="bg-slate-900 border border-slate-600 rounded-lg overflow-hidden flex flex-col justify-between">
-          <div>
-            {/* Panel Title Bar */}
-            <div className="bg-slate-800/80 px-3 py-1.5 border-b border-slate-600 font-bold flex justify-between items-center text-white font-bold">
-              <span className="flex items-center gap-1.5 text-white font-bold">
-                <Database className="w-3.5 h-3.5 text-white font-bold" />
-                120-Fleet ISO Tank Global Supply Distribution & Safety Margin
+            <div className="win-titlebar shrink-0">
+              <span className="flex items-center gap-1.5 text-white font-bold text-xs">
+                <Scale className="w-3.5 h-3.5 text-cyan-300" />
+                CUSTODY ENERGY & GAS CONVERSION (ARUN PAG → NIAS METERING)
               </span>
               <button
                 type="button"
                 onClick={() => handleNavigate('CUSTODY_HEAT_SETTLEMENT', 'REGAS_SYSTEM')}
-                className="text-xs font-bold text-white font-bold hover:text-white font-bold flex items-center gap-1 cursor-pointer"
+                className="text-xs font-bold win-tab-inactive flex items-center gap-1 cursor-pointer"
               >
-                <span>Stock Tab 4</span>
+                <span>Custody Tab 4</span>
                 <ExternalLink className="w-3 h-3" />
               </button>
             </div>
 
-            <div className="p-3 space-y-3 font-mono text-xs">
-              {/* Segmented Distribution Progress Bar */}
-              <div className="space-y-1">
-                <div className="flex justify-between font-bold text-white font-bold">
-                  <span>Fleet Active Allocation:</span>
-                  <span className="text-white">120 Total Tanks (100%)</span>
+            {/* Section 1 - Arun Custody Baseline */}
+            <div className="p-1.5 bg-white border border-slate-300 rounded-xs space-y-1">
+              <div className="flex justify-between items-center border-b border-slate-200 pb-0.5">
+                <span className="flex items-center gap-1 text-[11px] font-extrabold text-blue-950">
+                  <Building2 className="w-3 h-3 text-cyan-600" />
+                  1. ARUN CUSTODY BATCH BASELINE
+                </span>
+                <span className="font-mono text-[10px] text-slate-500 font-bold">COQ Reference</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 text-center font-mono pt-0.5">
+                <div className="p-1 bg-slate-50 border border-slate-200 rounded-xs">
+                  <span className="text-[9px] text-slate-600 block font-bold">Delivered Mass</span>
+                  <span className="text-xs font-black text-slate-950">885.6 MT</span>
+                  <span className="text-[9px] text-slate-500 block font-bold">Marine Parcel</span>
                 </div>
-                <div className="w-full h-4 rounded-sm overflow-hidden flex border border-slate-600">
-                  <div style={{ width: '20%' }} className="bg-emerald-600 h-full" title="Nias Yard: 24 Tanks (20%)" />
-                  <div style={{ width: '40%' }} className="bg-blue-600 h-full" title="MV Saviour Transit: 48 Tanks (40%)" />
-                  <div style={{ width: '40%' }} className="bg-amber-500 h-full" title="PAG Arun Hub: 48 Tanks (40%)" />
+                <div className="p-1 bg-slate-50 border border-slate-200 rounded-xs">
+                  <span className="text-[9px] text-slate-600 block font-bold">Delivered Energy</span>
+                  <span className="text-xs font-black text-slate-950">40,845 MMBtu</span>
+                  <span className="text-[9px] text-slate-500 block font-bold">Gross Heat</span>
                 </div>
-                <div className="flex justify-between text-[11px] font-bold pt-0.5 text-white font-bold">
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-600" /> Nias Site: 24 (20%)</span>
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-blue-600" /> MV Saviour: 48 (40%)</span>
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-amber-500" /> PAG Arun: 48 (40%)</span>
+                <div className="p-1 bg-slate-50 border border-slate-200 rounded-xs">
+                  <span className="text-[9px] text-slate-600 block font-bold">Liquid Density</span>
+                  <span className="text-xs font-black text-slate-950">442.02 kg/m³</span>
+                  <span className="text-[9px] text-slate-500 block font-bold">@ -160.0 °C</span>
                 </div>
               </div>
+            </div>
 
-              {/* Safety Margin Grid Box */}
-              <div className="p-2.5 rounded bg-slate-950 border border-slate-600 space-y-2">
-                <div className="flex justify-between items-center font-bold">
-                  <span className="flex items-center gap-1.5 text-white font-bold">
-                    <ShieldCheck className="w-4 h-4 text-white font-bold" />
-                    Nias Onsite Safety Stock Buffer Margin
-                  </span>
-                  <span className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold">
-                    140% SAFE
-                  </span>
+            {/* Section 2 - Volumetric & Gas Phase Conversion */}
+            <div className="p-1.5 bg-white border border-slate-300 rounded-xs space-y-1">
+              <div className="flex justify-between items-center border-b border-slate-200 pb-0.5">
+                <span className="flex items-center gap-1 text-[11px] font-extrabold text-blue-950">
+                  <Flame className="w-3 h-3 text-orange-600" />
+                  2. VOLUMETRIC & GAS PHASE CONVERSION
+                </span>
+                <span className="font-mono text-[10px] text-slate-500 font-bold">ISO 6976:2016</span>
+              </div>
+              <div className="space-y-0.5 font-mono text-[11px] text-slate-800">
+                <div className="flex justify-between border-b border-slate-100 pb-0.5">
+                  <span className="text-slate-600 font-bold">Total Standard Gas Volume:</span>
+                  <span className="font-black text-slate-950">1,222,128 Nm³ <span className="text-[10px] text-slate-500 font-normal">(~1,380 Nm³/MT)</span></span>
                 </div>
+                <div className="flex justify-between border-b border-slate-100 pb-0.5">
+                  <span className="text-slate-600 font-bold">Gas Quality (GC Analysis):</span>
+                  <span className="font-black text-slate-950">CH4 95.5 mol% | C2H6 3.39 mol%</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-100 pb-0.5">
+                  <span className="text-slate-600 font-bold">Gross Heating Value (GHV):</span>
+                  <span className="font-black text-slate-950">39.42 MJ/Nm³ <span className="text-[10px] text-slate-500 font-normal">(1,056.4 BTU/SCF)</span></span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600 font-bold">Lower Heating Value (LHV):</span>
+                  <span className="font-black text-slate-950">28,000 kJ/Nm³</span>
+                </div>
+              </div>
+            </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2 rounded bg-slate-900 border border-slate-700">
-                    <span className="text-white font-bold block text-[10px]">Min Safety Threshold (72h):</span>
-                    <span className="font-bold text-white font-bold text-sm">10 Full Tanks</span>
-                  </div>
-                  <div className="p-2 rounded bg-slate-900 border border-slate-700">
-                    <span className="text-white font-bold block text-[10px]">Current Onsite Ready:</span>
-                    <span className="font-bold text-white font-bold text-sm">{onsiteLadenTanksCount} Full Tanks ({yardAutonomyDays.toFixed(2)} Days)</span>
-                  </div>
+            {/* Section 3 - Settlement & Metering Delta */}
+            <div className="flex-1 min-h-0 p-1.5 bg-white border border-slate-300 rounded-xs flex flex-col justify-between space-y-1">
+              <div className="flex justify-between items-center border-b border-slate-200 pb-0.5">
+                <span className="flex items-center gap-1 text-[11px] font-extrabold text-blue-950">
+                  <Scale className="w-3 h-3 text-emerald-600" />
+                  3. SETTLEMENT & DUAL METERING DELTA
+                </span>
+                <span className="font-mono text-[10px] px-1.5 py-0.2 bg-emerald-700 text-white rounded-xs font-bold">
+                  AUDIT PASS
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 font-mono text-xs">
+                <div className="p-1.5 bg-slate-50 border border-slate-200 rounded-xs">
+                  <span className="text-[10px] text-slate-600 block font-bold">Custody Transfer Metering:</span>
+                  <span className="font-black text-emerald-700 text-sm">±0.42% Variance</span>
+                  <span className="text-[9px] text-slate-500 block font-bold">≤ 2.0% Tolerance Limit</span>
+                </div>
+                <div className="p-1.5 bg-slate-50 border border-slate-200 rounded-xs">
+                  <span className="text-[10px] text-slate-600 block font-bold">FloBoss Settled Base:</span>
+                  <span className="font-black text-slate-950 text-sm">9,280 MMBtu</span>
+                  <span className="text-[9px] text-emerald-700 block font-bold">MTD Var: $5,807 USD</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="px-3 py-2 bg-slate-950 border-t border-slate-600 flex justify-between items-center text-xs font-mono font-bold text-white font-bold">
-            <span>Next Marine Delivery (ETA):</span>
-            <span className="text-white font-bold">MV Saviour +48 Laden Tanks (In ~18h)</span>
+          <div className="shrink-0 px-2.5 py-1 win-panel border-t border-slate-300 flex justify-between items-center text-xs font-mono text-slate-900">
+            <span>Thermodynamic Standard: <strong className="text-slate-950 font-black">ISO 6976:2016 / AGA-8</strong></span>
+            <span>Compliance: <strong className="text-emerald-700 font-bold">PASS (Dual Run Delta ≤ 0.25%)</strong></span>
+          </div>
+        </div>
+
+        {/* ======================================================================= */}
+        {/* PANEL B (Right 50%): PLTMG POWER DEMAND & SITE AUTONOMY SIMULATOR       */}
+        {/* ======================================================================= */}
+        <div className="win-panel overflow-hidden flex flex-col justify-between h-full min-h-0">
+          <div className="flex flex-col h-full min-h-0 space-y-1 p-1">
+            {/* Panel Title Bar */}
+            <div className="win-titlebar shrink-0">
+              <span className="flex items-center gap-1.5 text-white font-bold text-xs">
+                <Cpu className="w-3.5 h-3.5 text-yellow-300" />
+                PLTMG POWER DEMAND & SITE AUTONOMY SIMULATOR
+              </span>
+              <button
+                type="button"
+                onClick={() => handleNavigate('PLTMG_POWER_OUTPUT', 'REGAS_SYSTEM')}
+                className="text-xs font-bold win-tab-inactive flex items-center gap-1 cursor-pointer"
+              >
+                <span>Power Tab 3</span>
+                <ExternalLink className="w-3 h-3" />
+              </button>
+            </div>
+
+            {/* Section 1 - Baseline Power Dispatch & Core Autonomy Display */}
+            <div className="shrink-0 grid grid-cols-1 sm:grid-cols-2 gap-1">
+              {/* Subcard 1: Baseline Power Dispatch (1 Unit @ 60% Load) */}
+              <div className="p-1.5 bg-white border border-slate-300 rounded-xs space-y-1">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-0.5">
+                  <span className="flex items-center gap-1 text-[11px] font-extrabold text-blue-950">
+                    <Zap className="w-3 h-3 text-amber-500" />
+                    BASELINE DISPATCH (1 × MAN 7L)
+                  </span>
+                  <span className="font-mono text-[10px] px-1.5 py-0.2 bg-emerald-700 text-white rounded-xs font-bold">
+                    1/5 RUNNING
+                  </span>
+                </div>
+                <div className="space-y-0.5 font-mono text-[11px] text-slate-800 pt-0.5">
+                  <div className="flex justify-between border-b border-slate-100 pb-0.5">
+                    <span className="text-slate-600 font-bold">Active Power Output:</span>
+                    <span className="font-black text-slate-950">4.41 MW (60.0% MCR)</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-100 pb-0.5">
+                    <span className="text-slate-600 font-bold">Hourly Gas Burn Rate:</span>
+                    <span className="font-black text-slate-950">1,126 Nm³/h</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600 font-bold">Daily Burn / Heat Rate:</span>
+                    <span className="font-black text-slate-950">27.02k Nm³/d (7,150 kJ/kWh)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subcard 2: Core Autonomy & Stock Display */}
+              <div className="p-1.5 bg-white border border-slate-300 rounded-xs space-y-1">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-0.5">
+                  <span className="flex items-center gap-1 text-[11px] font-extrabold text-blue-950">
+                    <Droplets className="w-3 h-3 text-cyan-600" />
+                    ONSITE STOCK & AUTONOMY
+                  </span>
+                  <span className="font-mono text-[10px] px-1.5 py-0.2 bg-emerald-100 text-emerald-950 font-bold border border-emerald-300 rounded-xs">
+                    100% SAFE
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-between pt-0.5">
+                  <div>
+                    <span className="text-xl font-black font-mono text-emerald-700">8.44</span>
+                    <span className="text-xs font-bold text-slate-900 ml-1">Days Buffer</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-700 font-bold">
+                    Stock: <strong className="text-slate-950">228.0k Nm³</strong>
+                  </span>
+                </div>
+                <div className="text-[10px] font-mono text-slate-600 flex justify-between border-t border-slate-100 pt-0.5">
+                  <span>Run-Hours: <strong className="text-slate-950">202.5 Hours</strong></span>
+                  <span>Safety (72h): <strong className="text-slate-950">10 Tanks Target</strong></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2 - Dynamic Scenario Matrix (Compact Sensitivity Strip) */}
+            <div className="p-1.5 bg-slate-50 border border-slate-300 rounded-xs space-y-1">
+              <div className="flex justify-between items-center font-bold text-slate-900 text-[11px]">
+                <span className="flex items-center gap-1 text-blue-950 font-extrabold">
+                  <TrendingUp className="w-3.5 h-3.5 text-blue-700" />
+                  DYNAMIC POWER DEMAND SCENARIOS & AUTONOMY RUN-HOURS
+                </span>
+                <span className="text-[10px] font-mono text-slate-500">228.0k Nm³ Basis</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 text-center font-mono">
+                <div className="p-1 bg-emerald-50 border-2 border-emerald-500 rounded-xs">
+                  <span className="text-[9px] text-emerald-950 block font-bold">1 Unit @ 60% (4.4 MW)</span>
+                  <span className="text-xs font-black text-emerald-800">8.44 Days (202.5h)</span>
+                  <span className="text-[9px] text-emerald-700 block font-black">● Current Baseline</span>
+                </div>
+                <div className="p-1 bg-white border border-slate-300 rounded-xs">
+                  <span className="text-[9px] text-slate-600 block font-bold">2 Units @ 60% (8.8 MW)</span>
+                  <span className="text-xs font-black text-slate-950">4.22 Days (101.2h)</span>
+                  <span className="text-[9px] text-slate-500 block font-bold">Burn: 2,252 Nm³/h</span>
+                </div>
+                <div className="p-1 bg-white border border-slate-300 rounded-xs">
+                  <span className="text-[9px] text-slate-600 block font-bold">4 Units @ 60% (17.6 MW)</span>
+                  <span className="text-xs font-black text-slate-950">2.11 Days (50.6h)</span>
+                  <span className="text-[9px] text-slate-500 block font-bold">Burn: 4,505 Nm³/h</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 3 - 120-Fleet ISO Tank Global Supply Distribution */}
+            <div className="flex-1 min-h-0 bg-white border border-slate-300 rounded-xs p-1.5 flex flex-col justify-between space-y-1">
+              <div className="space-y-0.5">
+                <div className="flex justify-between font-bold text-slate-900 text-[11px]">
+                  <span>120-Fleet ISO Tank Global Distribution:</span>
+                  <span className="text-slate-950 font-black">{fleetMetrics.totalFleet} Total Tanks (100%)</span>
+                </div>
+                <div className="w-full h-3 rounded-xs overflow-hidden flex border border-slate-400">
+                  <div style={{ width: `${fleetMetrics.niasPct}%` }} className="bg-emerald-600 h-full transition-all" title={`Nias Site: 11 Tanks (9%)`} />
+                  <div style={{ width: `${fleetMetrics.saviourPct}%` }} className="bg-blue-600 h-full transition-all" title={`M/V Saviour: 99 Tanks (83%)`} />
+                  <div style={{ width: `${fleetMetrics.arunPct}%` }} className="bg-amber-500 h-full transition-all" title={`PAG Arun: 10 Tanks (8%)`} />
+                </div>
+                <div className="flex justify-between text-[10px] font-bold pt-0.5 text-slate-900">
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-xs bg-emerald-600" /> Nias Site: 11 (9%)</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-xs bg-blue-600" /> M/V Saviour: 99 (83%)</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-xs bg-amber-500" /> PAG Arun: 10 (8%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="shrink-0 px-2.5 py-1 win-panel border-t border-slate-300 flex justify-between items-center text-xs font-mono text-slate-900">
+            <span>Next Delivery (ETA): <strong className="text-slate-950 font-black">M/V Saviour +99 Laden Tanks (~18h)</strong></span>
+            <span>Ledger: <strong className="text-slate-950 font-black">120 Total Units (100% SSOT Reconciled)</strong></span>
           </div>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 5. 블록별 세부 점검 팝업 모달 (Classic Read-Only Engineering Inspection)   */}
+      {/* 5. 블록별 세부 점검 팝업 모달 (2-Column Expanded Wide SCADA Modal)          */}
       {/* ========================================================================= */}
       {activeModalBlock && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-500 rounded-lg max-w-xl w-full overflow-hidden shadow-2xl animate-in zoom-in-95 font-sans text-white font-bold">
+        <div
+          onClick={() => setActiveModalBlock(null)}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-6 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border-2 border-[#404040] rounded-none w-[90vw] max-w-6xl h-[85vh] max-h-[820px] overflow-hidden shadow-2xl font-sans text-slate-900 flex flex-col justify-between"
+          >
             {/* Modal Title Bar */}
-            <div className="bg-slate-800 px-4 py-2.5 border-b border-slate-600 font-bold flex justify-between items-center text-white">
-              <div className="flex items-center gap-2">
-                {activeModalBlock === 'BLOCK_1_ARUN' && <Building2 className="w-4 h-4 text-white font-bold" />}
-                {activeModalBlock === 'BLOCK_2_SAVIOUR' && <Ship className="w-4 h-4 text-white font-bold" />}
-                {activeModalBlock === 'BLOCK_3_NIAS_YARD' && <Droplets className="w-4 h-4 text-white font-bold" />}
-                {activeModalBlock === 'BLOCK_4_REGAS_PRSS' && <Gauge className="w-4 h-4 text-white font-bold" />}
-                {activeModalBlock === 'BLOCK_5_PLTMG_PLANT' && <Cpu className="w-4 h-4 text-white font-bold" />}
-                <span className="text-xs sm:text-sm">
-                  {activeModalBlock === 'BLOCK_1_ARUN' && 'Block 1: Arun Port & PAG Loading Terminal'}
-                  {activeModalBlock === 'BLOCK_2_SAVIOUR' && 'Block 2: MV Saviour Marine Transit Carrier'}
-                  {activeModalBlock === 'BLOCK_3_NIAS_YARD' && 'Block 3: Nias Laydown Yard & Decanting Bays'}
-                  {activeModalBlock === 'BLOCK_4_REGAS_PRSS' && 'Block 4: Re-gasification Skid & PRSS / GC Station'}
-                  {activeModalBlock === 'BLOCK_5_PLTMG_PLANT' && 'Block 5: 25MW PLTMG Engine Hall (5 × MAN 7L 51/60 DF)'}
+            <div className="win-titlebar px-4 py-2 font-bold flex justify-between items-center text-white shrink-0">
+              <div className="flex items-center gap-2.5">
+                {activeModalBlock === 'BLOCK_1_ARUN' && <Building2 className="w-5 h-5 text-yellow-300" />}
+                {activeModalBlock === 'BLOCK_2_SAVIOUR' && <Ship className="w-5 h-5 text-cyan-300" />}
+                {activeModalBlock === 'BLOCK_3_NIAS_YARD' && <Droplets className="w-5 h-5 text-emerald-300" />}
+                {activeModalBlock === 'BLOCK_4_REGAS_PRSS' && <Gauge className="w-5 h-5 text-cyan-300" />}
+                {(activeModalBlock === 'BLOCK_5_NIAS_LAYDOWN_2' || activeModalBlock === 'BLOCK_5_PLTMG_PLANT') && <Boxes className="w-5 h-5 text-yellow-300" />}
+                <span className="text-sm sm:text-base font-extrabold tracking-wide">
+                  {activeModalBlock === 'BLOCK_1_ARUN' && 'Block 1: PAGT (Arun) LNG Loading Terminal (Aceh, Indonesia)'}
+                  {activeModalBlock === 'BLOCK_2_SAVIOUR' && 'Block 2: M/V Saviour Dedicated Marine Carrier (99 ISO Tanks)'}
+                  {activeModalBlock === 'BLOCK_3_NIAS_YARD' && 'Block 3: NIAS (Laydown 1 - Laden Stock Yard & Autonomy)'}
+                  {activeModalBlock === 'BLOCK_4_REGAS_PRSS' && 'Block 4: Re-Gas & PRSS / Decanting Bays (Bay 01 ~ Bay 04)'}
+                  {(activeModalBlock === 'BLOCK_5_NIAS_LAYDOWN_2' || activeModalBlock === 'BLOCK_5_PLTMG_PLANT') && 'Block 5: NIAS (Laydown 2 - Empty Return Staging & Backhaul)'}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModalBlock(null)}
-                className="text-white font-bold hover:text-white p-0.5 cursor-pointer"
+                className="text-white hover:text-red-300 p-1 cursor-pointer transition-colors"
+                title="Close (ESC)"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Body Key-Value Table */}
-            <div className="p-4 space-y-3 font-mono text-xs">
-              <div className="p-3 rounded bg-slate-950 border border-slate-700 space-y-1.5">
-                {activeModalBlock === 'BLOCK_1_ARUN' && (
-                  <>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Loading Batch ID:</span><span className="font-bold text-white">PAG-ARUN-2026-B08</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Arun Staging Stock:</span><span className="font-bold text-white font-bold">16 Laden / 32 Empty Return</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Methane Purity (COQ):</span><span className="font-bold text-white font-bold">90.24 mol%</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Fuel Gas LHV:</span><span className="font-bold text-white">28,000 kJ/Nm³ (1,048.5 BTU/SCF)</span></div>
-                    <div className="flex justify-between"><span className="text-white font-bold">Batch Energy:</span><span className="font-bold text-white font-bold">40,845 MMBtu</span></div>
-                  </>
-                )}
+            {/* Modal Body: 2-Column Grid (Left: Precision Parameters | Right: 24-hr Trends & SCADA Logs) */}
+            <div className="p-4 sm:p-5 flex-1 overflow-y-auto space-y-3.5 font-mono text-xs bg-slate-100 win-sunken">
+              {/* ========================================================================= */}
+              {/* BLOCK 1: ARUN HUB                                                         */}
+              {/* ========================================================================= */}
+              {activeModalBlock === 'BLOCK_1_ARUN' && (
+                <div className="space-y-3.5">
+                  {/* Top Status Banner */}
+                  <div className="p-2.5 bg-white border border-slate-300 rounded-xs flex flex-wrap justify-between items-center gap-2 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-emerald-700 text-white text-[11px] font-bold rounded-xs">NORMAL OPERATION</span>
+                      <span className="text-slate-900 font-bold">PAGT Terminal Loading Batch: <strong className="text-blue-950 font-black">PAG-ARUN-2026-B08</strong></span>
+                    </div>
+                    <div className="text-[11px] text-slate-700">
+                      Last Custody Sign-Off: <strong className="text-slate-950">2026-08-26 08:30 WIB</strong>
+                    </div>
+                  </div>
 
-                {activeModalBlock === 'BLOCK_2_SAVIOUR' && (
-                  <>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Voyage Number:</span><span className="font-bold text-white">VOY-SAV-2026-07 (Laden Leg)</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Vessel Deck Capacity:</span><span className="font-bold text-white font-bold">48 ISO Tanks (100% Laden)</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Current Speed:</span><span className="font-bold text-white font-bold">9.8 Knots (Fair Weather)</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Estimated Arrival (ETA):</span><span className="font-bold text-white font-bold">2026-07-29 02:00 WIB (~18h)</span></div>
-                    <div className="flex justify-between"><span className="text-white font-bold">Avg Tank Pressure:</span><span className="font-bold text-white">0.18 MPa</span></div>
-                  </>
-                )}
+                  {/* 2-Column Layout */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+                    {/* Left Column (50%): Precision Measurement Parameters */}
+                    <div className="space-y-3">
+                      {/* Card 1: Staging Yard Inventory */}
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>1. STAGING YARD & CRYO METRICS</span>
+                          <span className="text-[10px] text-slate-600 font-mono">10 Units Total</span>
+                        </div>
+                        <div className="space-y-1 text-slate-800">
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Laden Ready Stock:</span><span className="font-black text-slate-950">0 ISO Tanks</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Empty Return Buffer:</span><span className="font-black text-slate-950">10 ISO Tanks</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Filling Temperature:</span><span className="font-black text-slate-950">-160.0 °C</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Loading Arm Rate:</span><span className="font-black text-slate-950">450 m³/h (Standby)</span></div>
+                          <div className="flex justify-between"><span className="text-slate-600 font-bold">BOG Recovery Rate:</span><span className="font-black text-emerald-700">99.4% (Closed Loop)</span></div>
+                        </div>
+                      </div>
 
-                {activeModalBlock === 'BLOCK_3_NIAS_YARD' && (
-                  <>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Active Bay Feed:</span><span className="font-bold text-white font-bold">ISOT-009 (Bay 01 / T-201)</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Active Tank Level:</span><span className="font-bold text-white font-bold">88.5% (22,421 Nm³ Usable)</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Single Tank Autonomy:</span><span className="font-bold text-white font-bold">{activeTankAutonomyHours.toFixed(1)} Hours</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Onsite Ready Tanks:</span><span className="font-bold text-white font-bold">14 Full Units (354,690 Nm³)</span></div>
-                    <div className="flex justify-between"><span className="text-white font-bold">Total Site Autonomy:</span><span className="font-black text-white font-bold">{yardAutonomyDays.toFixed(2)} Days ({yardAutonomyHours.toFixed(1)} Hours)</span></div>
-                  </>
-                )}
+                      {/* Card 2: Laboratory Gas Quality (COQ) */}
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>2. CERTIFICATE OF QUALITY (COQ)</span>
+                          <span className="text-[10px] text-slate-600 font-mono">Chromatography</span>
+                        </div>
+                        <div className="space-y-1 text-slate-800">
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Methane (CH4):</span><span className="font-black text-slate-950">95.5 mol%</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Ethane (C2H6):</span><span className="font-black text-slate-950">3.39 mol%</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Propane (C3H8):</span><span className="font-black text-slate-950">0.77 mol%</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Nitrogen & Inerts:</span><span className="font-black text-slate-950">0.04 mol%</span></div>
+                          <div className="flex justify-between"><span className="text-slate-600 font-bold">Lower Heating Value:</span><span className="font-black text-slate-950">28,000 kJ/Nm³ (1,056.4 BTU/SCF)</span></div>
+                        </div>
+                      </div>
 
-                {activeModalBlock === 'BLOCK_4_REGAS_PRSS' && (
-                  <>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Discharge Header:</span><span className="font-bold text-white font-bold">2.18 Barg / +24.5 °C</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Metering Run A:</span><span className="font-bold text-white font-bold">14,820.5 MSCF (Active Custody)</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Metering Run B:</span><span className="font-bold text-white font-bold">14,815.2 MSCF (Check Standby)</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Dual Metering Delta:</span><span className="font-bold text-white font-bold">-0.04% (Tol ≤ 0.25%)</span></div>
-                    <div className="flex justify-between"><span className="text-white font-bold">GC-01 Quality:</span><span className="font-bold text-white font-bold">90.80% CH4 | 1,048.5 BTU/SCF</span></div>
-                  </>
-                )}
+                      {/* Card 3: Batch Energy & Custody Transfer */}
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>3. BATCH ENERGY & CUSTODY TRANSFER</span>
+                          <span className="text-[10px] text-slate-600 font-mono">Commercial Sign-Off</span>
+                        </div>
+                        <div className="space-y-1 text-slate-800">
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Target Batch UID:</span><span className="font-black text-slate-950">PAG-ARUN-2026-B08</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Net Loaded Mass:</span><span className="font-black text-slate-950">0.0 Metric Tons (Awaiting Batch Loading)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Delivered Energy:</span><span className="font-black text-slate-950">0.0 MMBtu (Baseline Prepared)</span></div>
+                          <div className="flex justify-between"><span className="text-slate-600 font-bold">Dispatch Status:</span><span className="font-black text-emerald-700">READY FOR BATCH LOADING (0/10 Loaded, 10 Available Candidates)</span></div>
+                        </div>
+                      </div>
+                    </div>
 
-                {activeModalBlock === 'BLOCK_5_PLTMG_PLANT' && (
-                  <>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Engine Model:</span><span className="font-bold text-white font-bold">MAN 7L 51/60 DF (5 Units)</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Unit MCR / NCR:</span><span className="font-bold text-white">7,350 kW / 6,615 kW each</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Plant Dispatch:</span><span className="font-bold text-white font-bold">4 Units @ 60% = 17.64 MW</span></div>
-                    <div className="flex justify-between border-b border-slate-800 pb-1"><span className="text-white font-bold">Heat Rate:</span><span className="font-bold text-white font-bold">7,150 kJ/kWh (50.35% Eff)</span></div>
-                    <div className="flex justify-between"><span className="text-white font-bold">Total Fuel Gas Flow:</span><span className="font-black text-white font-bold">{totalGasFlowNm3h.toFixed(0)} Nm³/h</span></div>
-                  </>
-                )}
-              </div>
+                    {/* Right Column (50%): 24-Hour Telemetry Log & SCADA Event History */}
+                    <div className="space-y-3">
+                      {/* 24-Hour Telemetry Log Table */}
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>24-HR BATCH TELEMETRY LOG</span>
+                          <span className="text-[10px] text-slate-600 font-mono">Hourly Snapshot</span>
+                        </div>
+                        <div className="overflow-x-auto win-sunken border border-slate-200">
+                          <table className="w-full text-left font-mono text-[11px]">
+                            <thead>
+                              <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold">
+                                <th className="py-1 px-2 border-r border-slate-300">Time</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Laden / Empty</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Flow (m³/h)</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Temp (°C)</th>
+                                <th className="py-1 px-2 text-right">BOG Eff</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 text-slate-900">
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">10:00</td><td className="py-1 px-2 border-r border-slate-300">0 / 10 Tanks</td><td className="py-1 px-2 border-r border-slate-300">0.0 (Standby)</td><td className="py-1 px-2 border-r border-slate-300">-160.0</td><td className="py-1 px-2 text-right text-emerald-700 font-bold">99.4%</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">06:00</td><td className="py-1 px-2 border-r border-slate-300">0 / 10 Tanks</td><td className="py-1 px-2 border-r border-slate-300">0.0 (Standby)</td><td className="py-1 px-2 border-r border-slate-300">-160.0</td><td className="py-1 px-2 text-right text-emerald-700 font-bold">99.4%</td></tr>
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">02:00</td><td className="py-1 px-2 border-r border-slate-300">0 / 10 Tanks</td><td className="py-1 px-2 border-r border-slate-300">0.0 (Standby)</td><td className="py-1 px-2 border-r border-slate-300">-160.0</td><td className="py-1 px-2 text-right text-emerald-700 font-bold">99.4%</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">22:00</td><td className="py-1 px-2 border-r border-slate-300">0 / 10 Tanks</td><td className="py-1 px-2 border-r border-slate-300">0.0 (Standby)</td><td className="py-1 px-2 border-r border-slate-300">-160.0</td><td className="py-1 px-2 text-right text-emerald-700 font-bold">99.4%</td></tr>
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">18:00</td><td className="py-1 px-2 border-r border-slate-300">0 / 10 Tanks</td><td className="py-1 px-2 border-r border-slate-300">0.0 (Standby)</td><td className="py-1 px-2 border-r border-slate-300">-160.0</td><td className="py-1 px-2 text-right text-emerald-700 font-bold">99.4%</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">14:00</td><td className="py-1 px-2 border-r border-slate-300">0 / 10 Tanks</td><td className="py-1 px-2 border-r border-slate-300">0.0 (Standby)</td><td className="py-1 px-2 border-r border-slate-300">-160.0</td><td className="py-1 px-2 text-right text-emerald-700 font-bold">99.4%</td></tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* SCADA Event History & Safety Interlock Table */}
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>SCADA EVENT & AUDIT LOG</span>
+                          <span className="text-[10px] text-slate-600 font-mono">Recent Actions</span>
+                        </div>
+                        <div className="space-y-1.5 text-[11px]">
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">✅ Gas Detector GD-01 Zero-Calibration</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">VERIFIED</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-200 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">✅ Loading Arm Emergency Release (ERC) Test</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">NORMAL</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">✅ COQ Chromatography Methane 95.5% Signed</span>
+                            <span className="px-1.5 py-0.2 bg-blue-700 text-white font-bold rounded-xs text-[10px]">AUDITED</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">✅ 10 Empty Return ISO Tanks Vacuum Check</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">IN-SPEC</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* BLOCK 2: MV SAVIOUR                                                       */}
+              {/* ========================================================================= */}
+              {activeModalBlock === 'BLOCK_2_SAVIOUR' && (
+                <div className="space-y-3.5">
+                  {/* Top Status Banner */}
+                  <div className="p-2.5 bg-white border border-slate-300 rounded-xs flex flex-wrap justify-between items-center gap-2 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-blue-700 text-white text-[11px] font-bold rounded-xs">UNDERWAY LADEN</span>
+                      <span className="text-slate-900 font-bold">Voyage: <strong className="text-blue-950 font-black">VOY-SAV-2026-07</strong> (Arun → Nias Terminal)</span>
+                    </div>
+                    <div className="text-[11px] text-slate-700">
+                      Estimated Arrival (ETA): <strong className="text-slate-950">2026-07-29 02:00 WIB (In ~18h)</strong>
+                    </div>
+                  </div>
+
+                  {/* 2-Column Layout */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+                    {/* Left Column (50%): Navigation & Cargo Telemetry */}
+                    <div className="space-y-3">
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>1. NAVIGATION & VESSEL DYNAMICS</span>
+                          <span className="text-[10px] text-slate-600 font-mono">AIS Live</span>
+                        </div>
+                        <div className="space-y-1 text-slate-800">
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Current Speed:</span><span className="font-black text-slate-950">9.8 Knots (Cruising)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Heading / Course:</span><span className="font-black text-slate-950">182° SSW (Nias Route)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Sea State:</span><span className="font-black text-slate-950">Wave 1.2m / Wind 12 kts</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Remaining Distance:</span><span className="font-black text-slate-950">176.4 Nautical Miles</span></div>
+                          <div className="flex justify-between"><span className="text-slate-600 font-bold">Fuel Efficiency:</span><span className="font-black text-slate-950">1.8 MT MGO/day</span></div>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>2. {fleetMetrics.saviourTankCount} ISO TANK CARGO DECK TELEMETRY</span>
+                          <span className="text-[10px] text-slate-600 font-mono">Cryogenic</span>
+                        </div>
+                        <div className="space-y-1 text-slate-800">
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Deck Cargo Units:</span><span className="font-black text-slate-950">{fleetMetrics.saviourTankCount} ISO Tanks (Laden Marine Transit)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Liquid Mass:</span><span className="font-black text-slate-950">{Math.round(fleetMetrics.saviourTotalM3).toLocaleString()} m³ / {(fleetMetrics.saviourTotalM3 * 0.45).toFixed(1)} Metric Tons</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Average Tank Pressure:</span><span className="font-black text-slate-950">{fleetMetrics.saviourAvgPress.toFixed(2)} MPa ({(fleetMetrics.saviourAvgPress * 10).toFixed(2)} bar)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Peak Tank Pressure:</span><span className="font-black text-slate-950">0.22 MPa</span></div>
+                          <div className="flex justify-between"><span className="text-slate-600 font-bold">Boil-off Rate:</span><span className="font-black text-emerald-700">&lt; 0.12%/day (Optimal)</span></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column (50%): 24-Hr Track & Berth Arrival Log */}
+                    <div className="space-y-3">
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>24-HR VOYAGE TELEMETRY LOG</span>
+                          <span className="text-[10px] text-slate-600 font-mono">Passage Status</span>
+                        </div>
+                        <div className="overflow-x-auto win-sunken border border-slate-200">
+                          <table className="w-full text-left font-mono text-[11px]">
+                            <thead>
+                              <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold">
+                                <th className="py-1 px-2 border-r border-slate-300">Time</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Speed</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Heading</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Avg Press</th>
+                                <th className="py-1 px-2 text-right">Wave</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 text-slate-900">
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">10:00</td><td className="py-1 px-2 border-r border-slate-300">9.8 kts</td><td className="py-1 px-2 border-r border-slate-300">182° SSW</td><td className="py-1 px-2 border-r border-slate-300">{fleetMetrics.saviourAvgPress.toFixed(2)} MPa</td><td className="py-1 px-2 text-right font-bold">1.2 m</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">06:00</td><td className="py-1 px-2 border-r border-slate-300">9.7 kts</td><td className="py-1 px-2 border-r border-slate-300">181° SSW</td><td className="py-1 px-2 border-r border-slate-300">0.18 MPa</td><td className="py-1 px-2 text-right font-bold">1.1 m</td></tr>
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">02:00</td><td className="py-1 px-2 border-r border-slate-300">9.9 kts</td><td className="py-1 px-2 border-r border-slate-300">183° SSW</td><td className="py-1 px-2 border-r border-slate-300">0.17 MPa</td><td className="py-1 px-2 text-right font-bold">1.3 m</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">22:00</td><td className="py-1 px-2 border-r border-slate-300">9.8 kts</td><td className="py-1 px-2 border-r border-slate-300">182° SSW</td><td className="py-1 px-2 border-r border-slate-300">0.17 MPa</td><td className="py-1 px-2 text-right font-bold">1.2 m</td></tr>
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">18:00</td><td className="py-1 px-2 border-r border-slate-300">9.8 kts</td><td className="py-1 px-2 border-r border-slate-300">182° SSW</td><td className="py-1 px-2 border-r border-slate-300">0.18 MPa</td><td className="py-1 px-2 text-right font-bold">1.2 m</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">14:00</td><td className="py-1 px-2 border-r border-slate-300">9.6 kts</td><td className="py-1 px-2 border-r border-slate-300">180° SSW</td><td className="py-1 px-2 border-r border-slate-300">0.18 MPa</td><td className="py-1 px-2 text-right font-bold">1.0 m</td></tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>PORT ARRIVAL & JETTY READINESS</span>
+                          <span className="text-[10px] text-slate-600 font-mono">Nias Port Terminal</span>
+                        </div>
+                        <div className="space-y-1.5 text-[11px]">
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">⚓ Nias Jetty-01 Mooring Clearance</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">CLEARED</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">🏗️ Demag AC500 Mobile Crane Pre-Check</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">READY</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">🚛 Prime Mover 4-Trailer Fleet Dispatched</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">STANDBY</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* BLOCK 3: NIAS YARD & BAYS                                                 */}
+              {/* ========================================================================= */}
+              {activeModalBlock === 'BLOCK_3_NIAS_YARD' && (
+                <div className="space-y-3.5">
+                  {/* Top Status Banner */}
+                  <div className="p-2.5 bg-white border border-slate-300 rounded-xs flex flex-wrap justify-between items-center gap-2 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-emerald-700 text-white text-[11px] font-bold rounded-xs">ACTIVE FEEDING</span>
+                      <span className="text-slate-900 font-bold">Active Decanting Bay: <strong className="text-blue-950 font-black">Bay 01 ({fleetMetrics.activeFeedTankTag} / T-201)</strong></span>
+                    </div>
+                    <div className="text-[11px] text-slate-700">
+                      Total Onsite Safety Buffer: <strong className="text-emerald-700 font-black">{fleetMetrics.yardAutonomyDays.toFixed(2)} Days ({fleetMetrics.yardAutonomyHours.toFixed(1)} Hours)</strong>
+                    </div>
+                  </div>
+
+                  {/* 2-Column Layout */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+                    {/* Left Column (50%): Active Bay & Yard Stock Parameters */}
+                    <div className="space-y-3">
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>1. ACTIVE DECANTING BAY 01 TELEMETRY</span>
+                          <span className="text-[10px] text-slate-600 font-mono">T-201 Connected</span>
+                        </div>
+                        <div className="space-y-1 text-slate-800">
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Connected Tank Tag:</span><span className="font-black text-slate-950">{fleetMetrics.activeFeedTankTag}</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Liquid Level:</span><span className="font-black text-slate-950">{fleetMetrics.activeFeedLevelPct.toFixed(1)}% ({fleetMetrics.activeBayRemainingNm3.toLocaleString()} Nm³ Usable)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Discharge Flow Rate:</span><span className="font-black text-slate-950">{totalGasFlowNm3h.toFixed(0)} Nm³/h</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Single Tank Autonomy:</span><span className="font-black text-slate-950">{fleetMetrics.activeTankAutonomyHours.toFixed(1)} Hours</span></div>
+                          <div className="flex justify-between"><span className="text-slate-600 font-bold">Switchover Ready:</span><span className="font-black text-blue-950">Bay 02 (ISOT-012 Armed)</span></div>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>2. LAYDOWN YARD INVENTORY & HYDRAULICS</span>
+                          <span className="text-[10px] text-slate-600 font-mono">{fleetMetrics.niasTotalCount} Tanks Onsite</span>
+                        </div>
+                        <div className="space-y-1 text-slate-800">
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Laden Ready Stock:</span><span className="font-black text-slate-950">{fleetMetrics.onsiteLadenCount} Tanks ({fleetMetrics.onsiteLadenGasNm3.toLocaleString()} Nm³)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Empty Staging Buffer:</span><span className="font-black text-slate-950">{fleetMetrics.onsiteEmptyCount} Tanks</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">72-Hour Min Threshold:</span><span className="font-black text-slate-950">10 Full Tanks</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Heating Water Circ:</span><span className="font-black text-slate-950">42.5 m³/h @ 28.5 °C</span></div>
+                          <div className="flex justify-between"><span className="text-slate-600 font-bold">ESD Valve Status:</span><span className="font-black text-emerald-700">ESD-201 OPEN / 100% HEALTH</span></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column (50%): 24-Hr Decanting Log & Safety Events */}
+                    <div className="space-y-3">
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>24-HR DECANTING HOURLY LOG</span>
+                          <span className="text-[10px] text-slate-600 font-mono">Bay 01 Flow</span>
+                        </div>
+                        <div className="overflow-x-auto win-sunken border border-slate-200">
+                          <table className="w-full text-left font-mono text-[11px]">
+                            <thead>
+                              <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold">
+                                <th className="py-1 px-2 border-r border-slate-300">Time</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Tank</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Level</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Rate (Nm³/h)</th>
+                                <th className="py-1 px-2 text-right">Press (Barg)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 text-slate-900">
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">10:00</td><td className="py-1 px-2 border-r border-slate-300">ISOT-009</td><td className="py-1 px-2 border-r border-slate-300">49.0%</td><td className="py-1 px-2 border-r border-slate-300">4,505</td><td className="py-1 px-2 text-right font-bold">2.35</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 border-r border-slate-300">06:00</td><td className="py-1 px-2 border-r border-slate-300">ISOT-009</td><td className="py-1 px-2 border-r border-slate-300">54.0%</td><td className="py-1 px-2 border-r border-slate-300">4,498</td><td className="py-1 px-2 text-right font-bold">2.36</td></tr>
+                              <tr className="bg-white"><td className="py-1 px-2 border-r border-slate-300">02:00</td><td className="py-1 px-2 border-r border-slate-300">ISOT-009</td><td className="py-1 px-2 border-r border-slate-300">59.0%</td><td className="py-1 px-2 border-r border-slate-300">4,510</td><td className="py-1 px-2 text-right font-bold">2.34</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 border-r border-slate-300">22:00</td><td className="py-1 px-2 border-r border-slate-300">ISOT-009</td><td className="py-1 px-2 border-r border-slate-300">65.0%</td><td className="py-1 px-2 border-r border-slate-300">4,502</td><td className="py-1 px-2 text-right font-bold">2.35</td></tr>
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">18:00</td><td className="py-1 px-2 border-r border-slate-300">ISOT-008</td><td className="py-1 px-2 border-r border-slate-300">04.2%</td><td className="py-1 px-2 border-r border-slate-300">4,505</td><td className="py-1 px-2 text-right font-bold">2.30</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">14:00</td><td className="py-1 px-2 border-r border-slate-300">ISOT-008</td><td className="py-1 px-2 border-r border-slate-300">18.5%</td><td className="py-1 px-2 border-r border-slate-300">4,500</td><td className="py-1 px-2 text-right font-bold">2.35</td></tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>BAY SAFETY & INTERLOCK MONITOR</span>
+                          <span className="text-[10px] text-slate-600 font-mono">SCADA SIS</span>
+                        </div>
+                        <div className="space-y-1.5 text-[11px]">
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">⚡ Bay 01 Grounding Static Clamp</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">VERIFIED</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">🛡️ Decanting Skid Pressure PCV-201 Modulating</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">NORMAL</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">🔄 Auto-Switchover Bay 02 Arm Standby</span>
+                            <span className="px-1.5 py-0.2 bg-blue-700 text-white font-bold rounded-xs text-[10px]">ARMED</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* BLOCK 4: REGAS & PRSS / GC                                                */}
+              {/* ========================================================================= */}
+              {activeModalBlock === 'BLOCK_4_REGAS_PRSS' && (
+                <div className="space-y-3.5">
+                  {/* Top Status Banner */}
+                  <div className="p-2.5 bg-white border border-slate-300 rounded-xs flex flex-wrap justify-between items-center gap-2 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-emerald-700 text-white text-[11px] font-bold rounded-xs">DUAL METERING PASS</span>
+                      <span className="text-slate-900 font-bold">PRSS Header: <strong className="text-blue-950 font-black">2.18 Barg / +24.5 °C</strong> (Flow: 4,505 Nm³/h)</span>
+                    </div>
+                    <div className="text-[11px] text-slate-700">
+                      Dual Metering Delta: <strong className="text-emerald-700 font-black">-0.04% (Tol ≤ 0.25%)</strong>
+                    </div>
+                  </div>
+
+                  {/* 2-Column Layout */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+                    {/* Left Column (50%): Vaporizer Skid & Gas Quality */}
+                    <div className="space-y-3">
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>1. VAPORIZER SKID & DUAL METERING</span>
+                          <span className="text-[10px] text-slate-600 font-mono">FloBoss 107</span>
+                        </div>
+                        <div className="space-y-1 text-slate-800">
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Active Vaporizers:</span><span className="font-black text-slate-950">3 / 4 Units (AAV-01, 02, 03)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Defrost Cycle Unit:</span><span className="font-black text-slate-950">AAV-04 (Auto 4h Thaw)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Metering Run A (Duty):</span><span className="font-black text-slate-950">14,820.5 MSCF</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Metering Run B (Check):</span><span className="font-black text-slate-950">14,815.2 MSCF</span></div>
+                          <div className="flex justify-between"><span className="text-slate-600 font-bold">Dual Run Variance:</span><span className="font-black text-emerald-700">-0.04% (Audit Compliant)</span></div>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>2. ONLINE CHROMATOGRAPHY (GC-01)</span>
+                          <span className="text-[10px] text-slate-600 font-mono">C1-C6 Analysis</span>
+                        </div>
+                        <div className="space-y-1 text-slate-800">
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Methane (CH4):</span><span className="font-black text-slate-950">{fleetMetrics.ch4Pct} mol%</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Gross Heating Value:</span><span className="font-black text-slate-950">{fleetMetrics.ghvBtu.toFixed(1)} BTU/SCF</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Wobbe Index:</span><span className="font-black text-slate-950">49.82 MJ/Nm³ (Ideal 47-52)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Moisture Dewpoint:</span><span className="font-black text-slate-950">-45.0 °C</span></div>
+                          <div className="flex justify-between"><span className="text-slate-600 font-bold">Odorant Level (THT):</span><span className="font-black text-slate-950">18.5 mg/Nm³</span></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column (50%): 24-Hr Custody Log & Audit Trail */}
+                    <div className="space-y-3">
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>24-HR CUSTODY DISPATCH LOG</span>
+                          <span className="text-[10px] text-slate-600 font-mono">Hourly FloBoss</span>
+                        </div>
+                        <div className="overflow-x-auto win-sunken border border-slate-200">
+                          <table className="w-full text-left font-mono text-[11px]">
+                            <thead>
+                              <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold">
+                                <th className="py-1 px-2 border-r border-slate-300">Time</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Run A (MSCF)</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Run B (MSCF)</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Delta</th>
+                                <th className="py-1 px-2 text-right">GHV</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 text-slate-900">
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">10:00</td><td className="py-1 px-2 border-r border-slate-300">14,820.5</td><td className="py-1 px-2 border-r border-slate-300">14,815.2</td><td className="py-1 px-2 border-r border-slate-300 text-emerald-700 font-bold">-0.04%</td><td className="py-1 px-2 text-right font-bold">1,048.5</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">06:00</td><td className="py-1 px-2 border-r border-slate-300">12,350.2</td><td className="py-1 px-2 border-r border-slate-300">12,346.0</td><td className="py-1 px-2 border-r border-slate-300 text-emerald-700 font-bold">-0.03%</td><td className="py-1 px-2 text-right font-bold">1,048.4</td></tr>
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">02:00</td><td className="py-1 px-2 border-r border-slate-300">09,880.1</td><td className="py-1 px-2 border-r border-slate-300">09,876.5</td><td className="py-1 px-2 border-r border-slate-300 text-emerald-700 font-bold">-0.04%</td><td className="py-1 px-2 text-right font-bold">1,048.6</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">22:00</td><td className="py-1 px-2 border-r border-slate-300">07,410.0</td><td className="py-1 px-2 border-r border-slate-300">07,407.2</td><td className="py-1 px-2 border-r border-slate-300 text-emerald-700 font-bold">-0.04%</td><td className="py-1 px-2 text-right font-bold">1,048.5</td></tr>
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">18:00</td><td className="py-1 px-2 border-r border-slate-300">04,940.3</td><td className="py-1 px-2 border-r border-slate-300">04,938.1</td><td className="py-1 px-2 border-r border-slate-300 text-emerald-700 font-bold">-0.04%</td><td className="py-1 px-2 text-right font-bold">1,048.5</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">14:00</td><td className="py-1 px-2 border-r border-slate-300">02,470.1</td><td className="py-1 px-2 border-r border-slate-300">02,469.0</td><td className="py-1 px-2 border-r border-slate-300 text-emerald-700 font-bold">-0.04%</td><td className="py-1 px-2 text-right font-bold">1,048.5</td></tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>METERING AUDIT & QUALITY CERTIFICATION</span>
+                          <span className="text-[10px] text-slate-600 font-mono">FloBoss Status</span>
+                        </div>
+                        <div className="space-y-1.5 text-[11px]">
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">📋 AGA-8 Gross Heat Rate Calculation Check</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">VERIFIED</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">🧪 GC-01 Carrier Gas (He 99.999%) Pressure</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">NORMAL</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">📑 Daily PLN Reconciliation Statement Sign-off</span>
+                            <span className="px-1.5 py-0.2 bg-blue-700 text-white font-bold rounded-xs text-[10px]">AUDITED</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* BLOCK 5: NIAS (LAYDOWN 2 - EMPTY RETURN)                                  */}
+              {/* ========================================================================= */}
+              {(activeModalBlock === 'BLOCK_5_NIAS_LAYDOWN_2' || activeModalBlock === 'BLOCK_5_PLTMG_PLANT') && (
+                <div className="space-y-3.5">
+                  {/* Top Status Banner */}
+                  <div className="p-2.5 bg-white border border-slate-300 rounded-xs flex flex-wrap justify-between items-center gap-2 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-emerald-700 text-white text-[11px] font-bold rounded-xs">EMPTY RETURN BUFFER</span>
+                      <span className="text-slate-900 font-bold">Nias Laydown 2 Staging: <strong className="text-blue-950 font-black">ISOT-064 (Empty ISOTANK)</strong></span>
+                    </div>
+                    <div className="text-[11px] text-slate-700">
+                      Last Cycle Log: <strong className="text-slate-950">2026-08-26 16:30 WIB (Awaiting Backhaul to M/V Saviour)</strong>
+                    </div>
+                  </div>
+
+                  {/* 2-Column Layout */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+                    {/* Left Column (50%): Laydown 2 Empty Staging Parameters */}
+                    <div className="space-y-3">
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>1. LAYDOWN 2 EMPTY STAGING METRICS</span>
+                          <span className="text-[10px] text-slate-600 font-mono">ISOT-064 Active</span>
+                        </div>
+                        <div className="space-y-1 text-slate-800">
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Empty Tanks:</span><span className="font-black text-slate-950">1 Tanks (ISOT-064)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Heel Retention:</span><span className="font-black text-slate-950">4.2% (1.0 m³ / 445 kg Heel)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Holding Pressure:</span><span className="font-black text-slate-950">0.21 MPa (2.1 bar)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Shell Temperature:</span><span className="font-black text-slate-950">-135.0 °C (Cold Vacuum)</span></div>
+                          <div className="flex justify-between"><span className="text-slate-600 font-bold">Dispatch Status:</span><span className="font-black text-blue-950">Awaiting Backhaul to M/V Saviour</span></div>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>2. HEEL RETENTION & BACKHAUL CLEARANCE</span>
+                          <span className="text-[10px] text-slate-600 font-mono">BHM-202608-002</span>
+                        </div>
+                        <div className="space-y-1 text-slate-800">
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Cold Heel Mass:</span><span className="font-black text-slate-950">445 kg (1.0 m³ Thermal Retention Verified)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Boil-off Rate:</span><span className="font-black text-emerald-700">&lt; 0.14%/day (Closed Containment)</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Safety Relief Valves:</span><span className="font-black text-slate-950">Dual PSV-01/02 Sealed Intact</span></div>
+                          <div className="flex justify-between border-b border-slate-100 pb-0.5"><span className="text-slate-600 font-bold">Backhaul Manifest:</span><span className="font-black text-slate-950">BHM-202608-002 (Ready)</span></div>
+                          <div className="flex justify-between"><span className="text-slate-600 font-bold">Vessel Allocation:</span><span className="font-black text-blue-950">M/V Saviour Next Return Cycle</span></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column (50%): 24-Hr Empty Staging Log & Audit Events */}
+                    <div className="space-y-3">
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>24-HR EMPTY STAGING TELEMETRY LOG</span>
+                          <span className="text-[10px] text-slate-600 font-mono">Laydown 2</span>
+                        </div>
+                        <div className="overflow-x-auto win-sunken border border-slate-200">
+                          <table className="w-full text-left font-mono text-[11px]">
+                            <thead>
+                              <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold">
+                                <th className="py-1 px-2 border-r border-slate-300">Time</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Tank</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Heel Level</th>
+                                <th className="py-1 px-2 border-r border-slate-300">Press (MPa)</th>
+                                <th className="py-1 px-2 text-right">Temp (°C)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 text-slate-900">
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">10:00</td><td className="py-1 px-2 border-r border-slate-300 font-bold">ISOT-064</td><td className="py-1 px-2 border-r border-slate-300">4.2% (1.9 m³)</td><td className="py-1 px-2 border-r border-slate-300">0.21</td><td className="py-1 px-2 text-right font-bold">-135.0</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">06:00</td><td className="py-1 px-2 border-r border-slate-300 font-bold">ISOT-064</td><td className="py-1 px-2 border-r border-slate-300">4.2% (1.9 m³)</td><td className="py-1 px-2 border-r border-slate-300">0.21</td><td className="py-1 px-2 text-right font-bold">-135.1</td></tr>
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">02:00</td><td className="py-1 px-2 border-r border-slate-300 font-bold">ISOT-064</td><td className="py-1 px-2 border-r border-slate-300">4.2% (1.9 m³)</td><td className="py-1 px-2 border-r border-slate-300">0.20</td><td className="py-1 px-2 text-right font-bold">-135.2</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">22:00</td><td className="py-1 px-2 border-r border-slate-300 font-bold">ISOT-064</td><td className="py-1 px-2 border-r border-slate-300">4.2% (1.9 m³)</td><td className="py-1 px-2 border-r border-slate-300">0.20</td><td className="py-1 px-2 text-right font-bold">-135.4</td></tr>
+                              <tr className="bg-white"><td className="py-1 px-2 font-bold border-r border-slate-300">18:00</td><td className="py-1 px-2 border-r border-slate-300 font-bold">ISOT-064</td><td className="py-1 px-2 border-r border-slate-300">4.2% (1.9 m³)</td><td className="py-1 px-2 border-r border-slate-300">0.20</td><td className="py-1 px-2 text-right font-bold">-135.5</td></tr>
+                              <tr className="bg-slate-50"><td className="py-1 px-2 font-bold border-r border-slate-300">14:00</td><td className="py-1 px-2 border-r border-slate-300 font-bold">ISOT-064</td><td className="py-1 px-2 border-r border-slate-300">4.2% (1.9 m³)</td><td className="py-1 px-2 border-r border-slate-300">0.19</td><td className="py-1 px-2 text-right font-bold">-135.6</td></tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-white border border-slate-300 rounded-xs space-y-2">
+                        <div className="font-sans font-black text-xs text-blue-950 border-b border-slate-200 pb-1 flex items-center justify-between">
+                          <span>SCADA EMPTY STAGING & AUDIT LOG</span>
+                          <span className="text-[10px] text-slate-600 font-mono">Clearance</span>
+                        </div>
+                        <div className="space-y-1.5 text-[11px]">
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">✅ ISOT-064 Post-Regas Heel Depressurization</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">VERIFIED</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">✅ Laydown 2 Grounding & Safety Barrier Check</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">NORMAL</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">✅ Backhaul Customs & Maritime Manifest Clearance</span>
+                            <span className="px-1.5 py-0.2 bg-blue-700 text-white font-bold rounded-xs text-[10px]">AUDITED</span>
+                          </div>
+                          <div className="p-1.5 rounded-xs bg-slate-50 border border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-800">✅ Outer Jacket Vacuum Integrity</span>
+                            <span className="px-1.5 py-0.2 bg-emerald-700 text-white font-bold rounded-xs text-[10px]">IN-SPEC</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Modal Actions Footer */}
-            <div className="px-4 py-2.5 bg-slate-800 border-t border-slate-600 flex justify-between items-center">
+            <div className="px-5 py-2.5 bg-slate-200 border-t border-slate-300 flex justify-between items-center shrink-0">
               <button
                 type="button"
                 onClick={() => setActiveModalBlock(null)}
-                className="px-3 py-1.5 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold border border-slate-500 text-xs font-bold cursor-pointer"
+                className="win-btn px-4 py-1 text-xs font-bold cursor-pointer"
               >
-                Close (닫기)
+                Close (ESC)
               </button>
 
               <button
                 type="button"
                 onClick={() => {
-                  if (activeModalBlock === 'BLOCK_1_ARUN' || activeModalBlock === 'BLOCK_4_REGAS_PRSS') {
-                    handleNavigate('GC_GAS_QUALITY', 'REGAS_SYSTEM');
+                  if (activeModalBlock === 'BLOCK_1_ARUN') {
+                    if (onNavigateSubTab) onNavigateSubTab('ARUN_LOADING_COQ');
+                  } else if (activeModalBlock === 'BLOCK_4_REGAS_PRSS') {
+                    if (onNavigateSubTab) onNavigateSubTab('NIAS_GC_GAS_QUALITY', 'REGAS_SYSTEM');
                   } else if (activeModalBlock === 'BLOCK_2_SAVIOUR') {
-                    handleNavigate('NIAS_BAY_MOUNTED_TANKS', 'ISO_TANK_MGMT');
+                    if (onNavigateSubTab) onNavigateSubTab('SAVIOUR_VOYAGE_MONITORING');
                   } else if (activeModalBlock === 'BLOCK_3_NIAS_YARD') {
-                    handleNavigate('NIAS_BAY_MOUNTED_TANKS', 'ISO_TANK_MGMT');
-                  } else if (activeModalBlock === 'BLOCK_5_PLTMG_PLANT') {
-                    handleNavigate('PLTMG_POWER_OUTPUT', 'REGAS_SYSTEM');
+                    if (onNavigateSubTab) onNavigateSubTab('NIAS_TANK_OVERVIEW', 'ISO_TANK_MGMT');
+                  } else if (activeModalBlock === 'BLOCK_5_NIAS_LAYDOWN_2' || activeModalBlock === 'BLOCK_5_PLTMG_PLANT') {
+                    if (onNavigateSubTab) onNavigateSubTab('NIAS_LAYDOWN_1_2_LOG', 'ISO_TANK_MGMT');
                   }
+                  setActiveModalBlock(null);
                 }}
-                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold shadow-sm flex items-center gap-1 cursor-pointer"
+                className="win-btn px-4 py-1 text-xs font-bold text-blue-950 flex items-center gap-1.5 cursor-pointer hover:bg-blue-50"
               >
-                <span>해당 서브탭으로 이동 (Go to Sub-Tab)</span>
+                <span>Inspect Sub-Tab Detailed Analytics</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

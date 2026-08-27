@@ -17,13 +17,13 @@ export const metadata: Metadata = {
   description: "LNG Virtual Pipeline Integrated Operations & Heat Settlement Portal",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-screen w-screen overflow-hidden antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="h-screen w-screen overflow-hidden flex flex-col bg-[#d4d0c8]">{children}</body>
     </html>
   );
 }

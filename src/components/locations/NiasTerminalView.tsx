@@ -340,28 +340,28 @@ export default function NiasTerminalView({
       time: '11:45',
       text: '[ISOT-017] Standby hookup verified on Bay 03 (0.78 MPa holding pressure)',
       tag: 'STANDBY',
-      tagColor: 'text-white font-bold',
+      tagColor: 'text-slate-950 font-bold',
     },
     {
       id: 'ev-2',
       time: '09:30',
       text: '[ISOT-009] Controlled BOG depressurization completed (0.80 ➔ 0.73 MPa, loss: 426 kg)',
       tag: 'DEPRESS',
-      tagColor: 'text-white font-bold',
+      tagColor: 'text-slate-950 font-bold',
     },
     {
       id: 'ev-3',
       time: '08:15',
       text: '[ISOT-086] Reallocated from Laydown 1 Buffer to Laydown 2 for venting',
       tag: 'TRANSFER',
-      tagColor: 'text-white font-bold',
+      tagColor: 'text-slate-950 font-bold',
     },
     {
       id: 'ev-4',
       time: '07:40',
       text: '[ISOT-064] Depleted heel tank staged for Empty Return cycle (4% residual)',
       tag: 'HEEL',
-      tagColor: 'text-white font-bold',
+      tagColor: 'text-slate-950 font-bold',
     },
   ]);
   const [isEventStreamExpanded, setIsEventStreamExpanded] = useState<boolean>(false);
@@ -843,7 +843,7 @@ export default function NiasTerminalView({
         time: nowTime,
         text: `[${tankNo}] Drag & drop relocated to ${targetZone}${slotNumber ? ` (Slot ${slotNumber})` : ''}`,
         tag: 'DND_MOVE',
-        tagColor: 'text-white font-bold',
+        tagColor: 'text-slate-950 font-bold',
       },
       ...prev,
     ]);
@@ -901,7 +901,7 @@ export default function NiasTerminalView({
         time: nowTime,
         text: `[${tankNo}] Relocated from ${origin} ➔ ${relocateTargetZone} (Slot ${relocateSlotNumber})`,
         tag: 'RELOCATED',
-        tagColor: 'text-white font-bold',
+        tagColor: 'text-slate-950 font-bold',
       },
       ...prev,
     ]);
@@ -1310,58 +1310,41 @@ export default function NiasTerminalView({
   const handleExportDailyReportCSV = handleExportDailyMasterCSV;
 
   return (
-    <div className="flex flex-col gap-6 w-full text-white font-bold font-sans">
+    <div className="h-full flex flex-col min-h-0 gap-1.5 w-full text-slate-950 font-bold font-sans overflow-hidden">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 px-4 py-3 bg-emerald-500/20 border border-emerald-500/50 text-white font-bold rounded-xl shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-4">
-          <CheckCircle2 className="w-5 h-5 text-white font-bold" />
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-200 text-white font-bold rounded-none shadow-none backdrop-blur-md animate-in fade-in slide-in-from-top-4">
+          <CheckCircle2 className="w-5 h-5 text-slate-950 font-bold" />
           <span className="text-sm font-bold">{toastMessage}</span>
         </div>
       )}
 
       {/* Top Header & 2-Domain Switcher Navigation */}
-      <section className="bg-slate-900/90 border border-slate-600 rounded-lg p-4 sm:p-5 shadow-lg flex flex-col gap-3.5 transition-colors duration-200">
+      <section className="shrink-0 win-panel p-1.5 flex flex-col gap-1 select-none">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <MapPin className="w-5 h-5 text-white font-bold" />
-              <h2 className="text-base sm:text-lg font-black text-white">
-                Nias Regasification Terminal (ORU Nias, Gunungsitoli)
+              <MapPin className="w-5 h-5 text-slate-950 font-bold" />
+              <h2 className="text-base sm:text-lg font-black text-slate-950">
+                Nias Regas Unit (ORU Nias, Gunungsitoli)
               </h2>
             </div>
-            <p className="text-xs text-white font-bold">
+            <p className="text-xs text-slate-950 font-bold">
               Clean 2-domain architecture separating physical ISO Tank Lifecycle from the Gas-to-Power Process.
             </p>
           </div>
 
-          {/* Core 3-Level Switcher (Integrated Overview + 2 Major Operational Domains) */}
-          <div className="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-600 gap-1 flex-wrap">
-            <button
-              onClick={() => setActiveDomain('TERMINAL_OVERVIEW')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded text-xs font-bold transition-all cursor-pointer ${
-                activeDomain === 'TERMINAL_OVERVIEW'
-                  ? 'bg-emerald-600 text-white border border-emerald-400 shadow-sm'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <Activity className="w-4 h-4 text-white font-bold" />
-              <span>🌐 Terminal Integrated Overview</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-950 text-white font-bold ml-1 border border-emerald-500/40">
-                PFD
-              </span>
-            </button>
-
+          {/* Core 2-Level Switcher (2 Major Operational Domains) */}
+          <div className="flex items-center win-panel p-0.5 rounded-none border border-slate-300 gap-1 flex-wrap">
             <button
               onClick={() => setActiveDomain('ISO_TANK_MGMT')}
               className={`flex items-center gap-2 px-3.5 py-2 rounded text-xs font-bold transition-all cursor-pointer ${
-                activeDomain === 'ISO_TANK_MGMT'
-                  ? 'bg-blue-600 text-white border border-blue-400 shadow-sm'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                activeDomain === 'ISO_TANK_MGMT' ? 'win-tab-active' : 'win-tab-inactive'
               }`}
             >
-              <Box className="w-4 h-4 text-white font-bold" />
-              <span>📦 Domain 1: ISO Tank Management</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-blue-950 text-white font-bold ml-1 border border-blue-500/40">
+              <Box className="w-4 h-4 text-slate-950 font-bold" />
+              <span>ISO Tank Management</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-blue-950 text-slate-950 font-bold ml-1 border border-blue-500/40">
                 {fleetTanks.length} Tanks
               </span>
             </button>
@@ -1369,14 +1352,12 @@ export default function NiasTerminalView({
             <button
               onClick={() => setActiveDomain('REGAS_SYSTEM')}
               className={`flex items-center gap-2 px-3.5 py-2 rounded text-xs font-bold transition-all cursor-pointer ${
-                activeDomain === 'REGAS_SYSTEM'
-                  ? 'bg-amber-600 text-white border border-amber-400 shadow-sm'
-                  : 'text-white font-bold hover:text-white hover:bg-slate-800'
+                activeDomain === 'REGAS_SYSTEM' ? 'win-tab-active' : 'win-tab-inactive'
               }`}
             >
-              <Zap className="w-4 h-4 text-white font-bold" />
-              <span>⚡ Domain 2: Regas System & Power</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-950 text-white font-bold ml-1 border border-amber-500/40">
+              <Zap className="w-4 h-4 text-slate-950 font-bold" />
+              <span>Regas & Power</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-950 text-slate-950 font-bold ml-1 border border-amber-200">
                 17.64 MW
               </span>
             </button>
@@ -1384,174 +1365,121 @@ export default function NiasTerminalView({
         </div>
 
         {/* Sub-Tab Navigation Bar (Contextual to the Selected Domain) */}
-        <div className={`flex items-center justify-between border-t pt-3 overflow-x-auto ${
-          isDark ? 'border-slate-800/80' : 'border-slate-200'
+        <div className={`shrink-0 flex items-center justify-between border-t border-[#808080] pt-1 overflow-x-auto ${
+          isDark ? 'border-slate-200/80' : 'border-slate-200'
         }`}>
-          {activeDomain === 'TERMINAL_OVERVIEW' ? (
-            <div className={`flex items-center p-1.5 px-3 rounded-xl border text-xs font-bold flex-wrap gap-2 ${
-              isDark ? 'bg-slate-950/80 border-slate-800 text-white font-bold' : 'bg-slate-100/90 border-slate-200 text-white font-bold'
-            }`}>
-              <span className={`flex items-center gap-1.5 font-bold ${isDark ? 'text-white font-bold' : 'text-white font-bold'}`}>
-                <Activity className="w-4 h-4" />
-                Virtual Pipeline 5-Node Process Flow Diagram & Daily Confirmed Operational KPI Suite
-              </span>
-              <span className="text-white font-bold">|</span>
-              <span className={`text-[11px] font-mono ${isDark ? 'text-white font-bold' : 'text-white font-bold'}`}>
-                Arun Loading ➔ Sea Transit ➔ Nias Decanting ➔ Vaporizer/PRSS ➔ PLTMG Hall
-              </span>
-            </div>
-          ) : activeDomain === 'ISO_TANK_MGMT' ? (
-            <div className={`flex items-center p-1 rounded-xl border text-xs font-bold whitespace-nowrap gap-1 ${
-              isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-100 border-slate-200'
+          {activeDomain === 'ISO_TANK_MGMT' ? (
+            <div className={`flex items-center p-1 rounded-none border text-xs font-bold whitespace-nowrap gap-1 ${
+              isDark ? 'win-panel/80 border-slate-200' : 'bg-slate-100 border-slate-200'
             }`}>
               <button
                 onClick={() => setTankSubTab('TANK_OVERVIEW')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
                   tankSubTab === 'TANK_OVERVIEW'
-                    ? isDark
-                      ? 'bg-blue-600/25 text-white font-bold border border-blue-500/40 shadow-sm'
-                      : 'bg-white text-white font-bold font-bold border border-blue-200 shadow-sm'
-                    : isDark
-                    ? 'text-white font-bold hover:text-white font-bold'
-                    : 'text-white font-bold hover:text-white font-bold'
+                    ? 'win-tab-active' : 'win-tab-inactive'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5 text-white font-bold" />
-                <span>🌐 1. Overview & Visual Yard Map</span>
+                <Layers className="w-3.5 h-3.5 text-slate-950 font-bold" />
+                <span>Overview & Visual Yard Map</span>
               </button>
 
               <button
                 onClick={() => setTankSubTab('LAYDOWN_1_2_LOG')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
                   tankSubTab === 'LAYDOWN_1_2_LOG'
-                    ? isDark
-                      ? 'bg-blue-600/25 text-white font-bold border border-blue-500/40 shadow-sm'
-                      : 'bg-white text-white font-bold font-bold border border-blue-200 shadow-sm'
-                    : isDark
-                    ? 'text-white font-bold hover:text-white font-bold'
-                    : 'text-white font-bold hover:text-white font-bold'
+                    ? 'win-tab-active' : 'win-tab-inactive'
                 }`}
               >
-                <FileText className="w-3.5 h-3.5 text-white font-bold" />
-                <span>📥 2. Laydown 1 Condition & BOG Log ({masterInspectionList.length})</span>
+                <FileText className="w-3.5 h-3.5 text-slate-950 font-bold" />
+                <span>Laydown 1 Condition & BOG Log ({masterInspectionList.length})</span>
               </button>
 
               <button
                 onClick={() => setTankSubTab('ACTIVE_BAY_TANKS')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
                   tankSubTab === 'ACTIVE_BAY_TANKS'
-                    ? isDark
-                      ? 'bg-blue-600/25 text-white font-bold border border-blue-500/40 shadow-sm'
-                      : 'bg-white text-white font-bold font-bold border border-blue-200 shadow-sm'
-                    : isDark
-                    ? 'text-white font-bold hover:text-white font-bold'
-                    : 'text-white font-bold hover:text-white font-bold'
+                    ? 'win-tab-active' : 'win-tab-inactive'
                 }`}
               >
-                <Tag className="w-3.5 h-3.5 text-white font-bold" />
-                <span>🏷️ 3. Active Bay Mounted Tanks ({zoneStats.activeBaysCount}/4)</span>
+                <Tag className="w-3.5 h-3.5 text-slate-950 font-bold" />
+                <span>Active Bay Mounted Tanks ({zoneStats.activeBaysCount}/4)</span>
               </button>
 
               <button
                 onClick={() => setTankSubTab('LAYDOWN_3_HEEL')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
                   tankSubTab === 'LAYDOWN_3_HEEL'
-                    ? isDark
-                      ? 'bg-purple-600/25 text-white font-bold border border-purple-500/40 shadow-sm'
-                      : 'bg-white text-white font-bold font-bold border border-purple-200 shadow-sm'
-                    : isDark
-                    ? 'text-white font-bold hover:text-white font-bold'
-                    : 'text-white font-bold hover:text-white font-bold'
+                    ? 'win-tab-active' : 'win-tab-inactive'
                 }`}
               >
-                <RotateCcw className="w-3.5 h-3.5 text-white font-bold" />
-                <span>🔄 4. Laydown 2 (Heel 4% Staging) ({zoneStats.yard2.count})</span>
+                <RotateCcw className="w-3.5 h-3.5 text-slate-950 font-bold" />
+                <span>Laydown 2 (Heel ~1.0 m³) ({zoneStats.yard2.count})</span>
               </button>
 
               <button
                 onClick={() => setTankSubTab('TANK_MASS_BALANCE')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
                   tankSubTab === 'TANK_MASS_BALANCE'
-                    ? isDark
-                      ? 'bg-blue-600/25 text-white font-bold border border-blue-500/40 shadow-sm'
-                      : 'bg-white text-white font-bold font-bold border border-blue-200 shadow-sm'
-                    : isDark
-                    ? 'text-white font-bold hover:text-white font-bold'
-                    : 'text-white font-bold hover:text-white font-bold'
+                    ? 'win-tab-active' : 'win-tab-inactive'
                 }`}
               >
-                <Scale className="w-3.5 h-3.5 text-white font-bold" />
-                <span>⚖️ 5. ISO Tank Mass Balance & Depressurization Log</span>
+                <Scale className="w-3.5 h-3.5 text-slate-950 font-bold" />
+                <span>ISO Tank Mass Balance & Depressurization Log</span>
               </button>
             </div>
           ) : (
-            <div className={`flex items-center p-1 rounded-xl border text-xs font-bold whitespace-nowrap gap-1 ${
-              isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-100 border-slate-200'
+            <div className={`flex items-center p-1 rounded-none border text-xs font-bold whitespace-nowrap gap-1 ${
+              isDark ? 'win-panel/80 border-slate-200' : 'bg-slate-100 border-slate-200'
             }`}>
               <button
                 onClick={() => setRegasSubTab('GAS_PROCESS_TELEMETRY')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
                   regasSubTab === 'GAS_PROCESS_TELEMETRY'
-                    ? isDark
-                      ? 'bg-amber-600/25 text-white font-bold border border-amber-500/40 shadow-sm'
-                      : 'bg-white text-white font-bold font-bold border border-amber-200 shadow-sm'
-                    : isDark
-                    ? 'text-white font-bold hover:text-white font-bold'
-                    : 'text-white font-bold hover:text-white font-bold'
+                    ? 'win-tab-active' : 'win-tab-inactive'
                 }`}
               >
-                <Activity className="w-3.5 h-3.5 text-white font-bold" />
-                <span>📊 1. Gas Process & State Telemetry</span>
+                <Activity className="w-3.5 h-3.5 text-slate-950 font-bold" />
+                <span>Gas Process & State Telemetry</span>
               </button>
 
               <button
                 onClick={() => setRegasSubTab('GC_GAS_QUALITY')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
                   regasSubTab === 'GC_GAS_QUALITY'
-                    ? isDark
-                      ? 'bg-amber-600/25 text-white font-bold border border-amber-500/40 shadow-sm'
-                      : 'bg-white text-white font-bold font-bold border border-amber-200 shadow-sm'
-                    : isDark
-                    ? 'text-white font-bold hover:text-white font-bold'
-                    : 'text-white font-bold hover:text-white font-bold'
+                    ? 'win-tab-active' : 'win-tab-inactive'
                 }`}
               >
-                <FlaskConical className="w-3.5 h-3.5 text-white font-bold" />
-                <span>🔬 2. GC & Gas Quality Stream</span>
+                <FlaskConical className="w-3.5 h-3.5 text-slate-950 font-bold" />
+                <span>GC & Gas Quality Stream</span>
               </button>
 
               <button
                 onClick={() => setRegasSubTab('PLTMG_POWER_OUTPUT')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
                   regasSubTab === 'PLTMG_POWER_OUTPUT'
-                    ? isDark
-                      ? 'bg-amber-600/25 text-white font-bold border border-amber-500/40 shadow-sm'
-                      : 'bg-white text-white font-bold font-bold border border-amber-200 shadow-sm'
-                    : isDark
-                    ? 'text-white font-bold hover:text-white font-bold'
-                    : 'text-white font-bold hover:text-white font-bold'
+                    ? 'win-tab-active' : 'win-tab-inactive'
                 }`}
               >
-                <Zap className="w-3.5 h-3.5 text-white font-bold" />
-                <span>⚡ 3. PLTMG Power & Thermal Output</span>
+                <Zap className="w-3.5 h-3.5 text-slate-950 font-bold" />
+                <span>PLTMG Power & Thermal Output</span>
               </button>
 
               <button
                 onClick={() => setRegasSubTab('CUSTODY_HEAT_SETTLEMENT')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
                   regasSubTab === 'CUSTODY_HEAT_SETTLEMENT'
                     ? isDark
-                      ? 'bg-indigo-600/25 text-white font-bold border border-indigo-500/40 shadow-sm'
-                      : 'bg-white text-white font-bold font-bold border border-indigo-200 shadow-sm'
+                      ? 'bg-indigo-600/25 text-slate-950 font-bold border border-indigo-200 shadow-none'
+                      : 'bg-white text-slate-950 font-bold font-bold border border-indigo-200 shadow-none'
                     : isDark
-                    ? 'text-white font-bold hover:text-white font-bold'
-                    : 'text-white font-bold hover:text-white font-bold'
+                    ? 'win-tab-inactive'
+                    : 'win-tab-inactive'
                 }`}
               >
-                <Scale className="w-3.5 h-3.5 text-white font-bold" />
-                <span>⚖️ 4. Custody Heat Settlement</span>
+                <Scale className="w-3.5 h-3.5 text-slate-950 font-bold" />
+                <span>Custody Heat Settlement</span>
                 {disputeCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full bg-red-500/20 text-white font-bold text-[9px] font-bold">
+                  <span className="px-1.5 py-0.2 rounded-none bg-red-500/20 text-white font-bold text-[9px] font-bold">
                     {disputeCount} Alert
                   </span>
                 )}
@@ -1560,36 +1488,18 @@ export default function NiasTerminalView({
           )}
 
           {/* Quick Domain Tag Indicator */}
-          <div className="hidden xl:flex items-center gap-2 text-xs font-mono text-white font-bold">
+          <div className="hidden xl:flex items-center gap-2 text-xs font-mono text-slate-950 font-bold">
             <span>Active View:</span>
-            <span className={`px-2.5 py-1 rounded-full font-bold uppercase text-[10px] border ${
-              activeDomain === 'TERMINAL_OVERVIEW'
-                ? 'bg-emerald-950 text-white font-bold border-emerald-500/40'
-                : activeDomain === 'ISO_TANK_MGMT'
-                ? 'bg-blue-950 text-white font-bold border-blue-500/40'
-                : 'bg-amber-950 text-white font-bold border-amber-500/40'
+            <span className={`px-2.5 py-1 rounded-none font-bold uppercase text-[10px] border ${
+              activeDomain === 'ISO_TANK_MGMT'
+                ? 'bg-blue-950 text-slate-950 font-bold border-blue-500/40'
+                : 'bg-amber-950 text-slate-950 font-bold border-amber-200'
             }`}>
-              {activeDomain === 'TERMINAL_OVERVIEW' ? 'Integrated PFD' : activeDomain === 'ISO_TANK_MGMT' ? 'ISO Tank Mgmt' : 'Regas & Power'}
+              {activeDomain === 'ISO_TANK_MGMT' ? 'ISO Tank Mgmt' : 'Regas & Power'}
             </span>
           </div>
         </div>
       </section>
-
-      {/* ==================================================================== */}
-      {/* TERMINAL OVERVIEW - PROMOTED 5-NODE PFD DASHBOARD                    */}
-      {/* ==================================================================== */}
-      {activeDomain === 'TERMINAL_OVERVIEW' && (
-        <NiasOperationalOverviewTab
-          onNavigateSubTab={(targetTab, domain) => {
-            if (domain) setActiveDomain(domain);
-            if (domain === 'ISO_TANK_MGMT') {
-              setTankSubTab(targetTab as NiasTankSubTab);
-            } else if (domain === 'REGAS_SYSTEM') {
-              setRegasSubTab(targetTab as NiasRegasSubTab);
-            }
-          }}
-        />
-      )}
 
       {/* ==================================================================== */}
       {/* DOMAIN 1 - SUB-TAB 1: 🌐 PURE 3-COLUMN VISUAL YARD MAP (DRAG & DROP)  */}
@@ -1625,85 +1535,85 @@ export default function NiasTerminalView({
             {/* 1. Top 3 Zone Metric Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Card 1: Laydown Yard 1 (Receiving & BOG) */}
-              <div className="bg-slate-900/90 border border-blue-500/40 rounded-xl p-4 flex flex-col justify-between shadow-lg">
+              <div className="bg-white shadow-none border border-blue-500/40 rounded-none p-4 flex flex-col justify-between shadow-none">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-white font-bold flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5" />
                     📍 Laydown Yard 1
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-white font-bold border border-blue-500/30">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-white font-bold border border-blue-200">
                     Receiving & BOG
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1.5 mb-1">
-                  <span className="text-2xl font-bold font-mono text-white font-bold">{yard1TanksList.length}</span>
-                  <span className="text-xs font-mono text-white font-bold">/ 12 Slots</span>
+                  <span className="text-2xl font-bold font-mono text-slate-950 font-bold">{yard1TanksList.length}</span>
+                  <span className="text-xs font-mono text-slate-950 font-bold">/ 12 Slots</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px] font-mono text-white font-bold pt-2 border-t border-slate-800/80">
+                <div className="flex justify-between items-center text-[11px] font-mono text-slate-950 font-bold pt-2 border-t border-slate-200/80">
                   <span>Avg: {yard1AvgPress.toFixed(2)} MPa</span>
-                  <span className={yard1HighPressCount > 0 ? 'text-white font-bold font-bold' : 'text-white font-bold'}>
+                  <span className={yard1HighPressCount > 0 ? 'text-slate-950 font-bold font-bold' : 'text-slate-950 font-bold'}>
                     {yard1HighPressCount} Overpress / Vent
                   </span>
                 </div>
               </div>
 
               {/* Card 2: 4-Bay Vaporizer Station */}
-              <div className="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-4 flex flex-col justify-between shadow-lg">
+              <div className="bg-white shadow-none border border-emerald-200 rounded-none p-4 flex flex-col justify-between shadow-none">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-white font-bold flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
                     <Flame className="w-3.5 h-3.5" />
                     🔥 4-Bay Vaporizer Station
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-white font-bold border border-emerald-500/30">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                     Active Sendout
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1.5 mb-1">
-                  <span className="text-2xl font-bold font-mono text-white font-bold">{mountedCount} / 4</span>
-                  <span className="text-xs font-mono text-white font-bold">Bays Online</span>
+                  <span className="text-2xl font-bold font-mono text-slate-950 font-bold">{mountedCount} / 4</span>
+                  <span className="text-xs font-mono text-slate-950 font-bold">Bays Online</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px] font-mono text-white font-bold pt-2 border-t border-slate-800/80">
+                <div className="flex justify-between items-center text-[11px] font-mono text-slate-950 font-bold pt-2 border-t border-slate-200/80">
                   <span>Sendout: {totalActiveFlow.toFixed(0)} Nm³/h</span>
-                  <span className="text-white font-bold">0.35 MPa Header</span>
+                  <span className="text-slate-950 font-bold">0.35 MPa Header</span>
                 </div>
               </div>
 
               {/* Card 3: Laydown Yard 2 (Empty Heel 4% Staging) */}
-              <div className="bg-slate-900/90 border border-purple-500/40 rounded-xl p-4 flex flex-col justify-between shadow-lg">
+              <div className="bg-white shadow-none border border-purple-500/40 rounded-none p-4 flex flex-col justify-between shadow-none">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-white font-bold flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
                     <RotateCcw className="w-3.5 h-3.5" />
                     🔄 Laydown Yard 2
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-white font-bold border border-purple-500/30">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-slate-950 font-bold border border-purple-500/30">
                     Empty Heel 4%
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1.5 mb-1">
-                  <span className="text-2xl font-bold font-mono text-white font-bold">{yard2TanksList.length}</span>
-                  <span className="text-xs font-mono text-white font-bold">/ 12 Slots</span>
+                  <span className="text-2xl font-bold font-mono text-slate-950 font-bold">{yard2TanksList.length}</span>
+                  <span className="text-xs font-mono text-slate-950 font-bold">/ 12 Slots</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px] font-mono text-white font-bold pt-2 border-t border-slate-800/80">
+                <div className="flex justify-between items-center text-[11px] font-mono text-slate-950 font-bold pt-2 border-t border-slate-200/80">
                   <span>4.0% Heel (~350 kg)</span>
-                  <span className="text-white font-bold">Ready for MV. Saviour</span>
+                  <span className="text-slate-950 font-bold">Ready for MV. Saviour</span>
                 </div>
               </div>
             </div>
 
             {/* Drag & Drop Guidance Banner */}
-            <div className="flex items-center justify-between bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-bold">
+            <div className="flex items-center justify-between win-panel/80 border border-slate-200 rounded-none px-4 py-2.5 text-xs text-slate-950 font-bold">
               <div className="flex items-center gap-2">
-                <GripVertical className="w-4 h-4 text-white font-bold" />
-                <span className="font-bold text-white font-bold">
+                <GripVertical className="w-4 h-4 text-slate-950 font-bold" />
+                <span className="font-bold text-slate-950 font-bold">
                   Interactive 3-Zone Physical Drag & Drop Terminal
                 </span>
-                <span className="hidden sm:inline text-white font-bold">—</span>
-                <span className="hidden sm:inline text-white font-bold">
+                <span className="hidden sm:inline text-slate-950 font-bold">—</span>
+                <span className="hidden sm:inline text-slate-950 font-bold">
                   Drag ISO Tanks: <strong>Laydown 1 (Receiving)</strong> ➔ <strong>4-Bay (Vaporize)</strong> ➔ <strong>Laydown 2 (4% Heel Staging)</strong>
                 </span>
               </div>
               {draggingTankNo && (
-                <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-white font-bold bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-800/60 animate-pulse">
+                <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-950 font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-none border border-emerald-800/60 animate-pulse">
                   <span>Moving: {draggingTankNo}</span>
                 </div>
               )}
@@ -1714,18 +1624,18 @@ export default function NiasTerminalView({
               {/* ================================================================= */}
               {/* COLUMN 1: LAYDOWN YARD 1 (RECEIVING & BOG BUFFER - 12 SLOTS)      */}
               {/* ================================================================= */}
-              <div className="bg-slate-900/90 border border-blue-500/30 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="bg-white shadow-none border border-blue-200 rounded-none p-4 sm:p-5 shadow-none space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/40 flex items-center justify-center font-bold text-white font-bold text-xs">
+                    <div className="w-8 h-8 rounded-none bg-blue-500/20 border border-blue-500/40 flex items-center justify-center font-bold text-white font-bold text-xs">
                       Y1
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-white font-bold">Laydown Yard 1</h4>
-                      <p className="text-[10px] text-white font-bold">Receiving & BOG Venting Station</p>
+                      <h4 className="font-bold text-sm text-slate-950 font-bold">Laydown Yard 1</h4>
+                      <p className="text-[10px] text-slate-950 font-bold">Receiving & BOG Venting Station</p>
                     </div>
                   </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-blue-500/15 text-white font-bold border border-blue-500/30">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-none bg-blue-500/15 text-white font-bold border border-blue-200">
                     {yard1TanksList.length} / 12
                   </span>
                 </div>
@@ -1748,33 +1658,33 @@ export default function NiasTerminalView({
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, tank.id, 'LAYDOWN_1')}
                           onDragEnd={handleDragEnd}
-                          className={`p-2.5 rounded-xl border bg-slate-950/90 transition-all duration-200 cursor-grab active:cursor-grabbing relative flex flex-col justify-between gap-1.5 shadow-md ${
+                          className={`p-2.5 rounded-none border win-panel/90 transition-all duration-200 cursor-grab active:cursor-grabbing relative flex flex-col justify-between gap-1.5 shadow-none ${
                             isDragging
                               ? 'opacity-40 scale-95 ring-2 ring-blue-400 border-blue-400'
                               : isHighPress
-                              ? 'border-amber-500/50 hover:border-amber-400 shadow-amber-500/10'
-                              : 'border-blue-500/30 hover:border-blue-400/70 hover:shadow-blue-500/10'
+                              ? 'border-amber-200 hover:border-blue-400 shadow-amber-500/10'
+                              : 'border-blue-200 hover:border-blue-400/70 hover:shadow-blue-500/10'
                           }`}
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex items-center gap-1">
-                              <GripVertical className="w-3 h-3 text-white font-bold group-hover:text-white font-bold" />
-                              <span className="font-bold font-mono text-white font-bold text-xs">{tank.id}</span>
+                              <GripVertical className="w-3 h-3 text-slate-950 font-bold group-hover:text-slate-950 font-bold" />
+                              <span className="font-bold font-mono text-slate-950 font-bold text-xs">{tank.id}</span>
                             </div>
-                            <span className="text-[9px] font-mono text-white font-bold bg-slate-900 px-1 py-0.2 rounded">
+                            <span className="text-[9px] font-mono text-slate-950 font-bold bg-white shadow-none px-1 py-0.2 rounded">
                               #{slotNum < 10 ? `0${slotNum}` : slotNum}
                             </span>
                           </div>
 
                           {/* Level Progress */}
                           <div className="space-y-0.5">
-                            <div className="flex justify-between text-[10px] font-mono text-white font-bold">
+                            <div className="flex justify-between text-[10px] font-mono text-slate-950 font-bold">
                               <span>Level:</span>
-                              <span className="font-bold text-white font-bold">{tank.levelPercent}%</span>
+                              <span className="font-bold text-slate-950 font-bold">{tank.levelPercent}%</span>
                             </div>
-                            <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
+                            <div className="w-full bg-white shadow-none h-1 rounded-none overflow-hidden">
                               <div
-                                className="h-full bg-blue-500 rounded-full"
+                                className="h-full bg-blue-500 rounded-none"
                                 style={{ width: `${Math.min(100, tank.levelPercent || 50)}%` }}
                               />
                             </div>
@@ -1782,19 +1692,19 @@ export default function NiasTerminalView({
 
                           {/* Pressure & Depress */}
                           <div className="flex justify-between items-center text-[10px] font-mono pt-1 border-t border-slate-900">
-                            <span className={isHighPress ? 'text-white font-bold font-bold' : 'text-white font-bold font-bold'}>
+                            <span className={isHighPress ? 'text-slate-950 font-bold font-bold' : 'text-slate-950 font-bold font-bold'}>
                               {(tank.pressureMpa || 0).toFixed(2)} MPa
                             </span>
                             {isHighPress ? (
                               <button
                                 type="button"
                                 onClick={() => handleQuickDepress(tank.id)}
-                                className="text-[9px] px-1.5 py-0.5 bg-amber-500/20 hover:bg-amber-500/40 text-white font-bold rounded border border-amber-500/30 cursor-pointer"
+                                className="text-[9px] px-1.5 py-0.5 bg-amber-500/20 hover:bg-amber-500/40 text-white font-bold rounded border border-amber-200 cursor-pointer"
                               >
                                 Vent
                               </button>
                             ) : (
-                              <span className="text-white font-bold">{tank.tempC?.toFixed(1)} °C</span>
+                              <span className="text-slate-950 font-bold">{tank.tempC?.toFixed(1)} °C</span>
                             )}
                           </div>
                         </div>
@@ -1807,16 +1717,16 @@ export default function NiasTerminalView({
                         onDragOver={(e) => handleDragOver(e, slotTargetId)}
                         onDragLeave={() => handleDragLeave(slotTargetId)}
                         onDrop={(e) => handleDrop(e, 'LAYDOWN_1', slotNum)}
-                        className={`h-24 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-all duration-200 text-center p-2 cursor-pointer ${
+                        className={`h-24 rounded-none border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-all duration-200 text-center p-2 cursor-pointer ${
                           isDragOver
                             ? 'border-emerald-400 bg-emerald-500/20 shadow-[0_0_15px_rgba(52,211,153,0.3)] ring-2 ring-emerald-400 scale-[1.02]'
-                            : 'border-slate-800 hover:border-slate-700 bg-slate-950/40 text-white font-bold'
+                            : 'border-slate-200 hover:border-slate-200 win-panel/40 text-slate-950 font-bold'
                         }`}
                       >
-                        <span className="text-[10px] font-mono font-bold text-white font-bold">
+                        <span className="text-[10px] font-mono font-bold text-slate-950 font-bold">
                           #{slotNum < 10 ? `0${slotNum}` : slotNum}
                         </span>
-                        <span className="text-[9px] font-bold text-white font-bold">
+                        <span className="text-[9px] font-bold text-slate-950 font-bold">
                           {isDragOver ? '📥 Drop Arrived Tank' : '+ Slot Empty'}
                         </span>
                       </div>
@@ -1828,18 +1738,18 @@ export default function NiasTerminalView({
               {/* ================================================================= */}
               {/* COLUMN 2: 4-BAY VAPORIZER STATION (PLTMG ACTIVE SENDOUT - 4 BAYS) */}
               {/* ================================================================= */}
-              <div className="bg-slate-900/90 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="bg-white shadow-none border border-emerald-200 rounded-none p-4 sm:p-5 shadow-none space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center font-bold text-white font-bold text-xs">
-                      <Flame className="w-4 h-4 text-white font-bold" />
+                    <div className="w-8 h-8 rounded-none bg-emerald-500/20 border border-emerald-200 flex items-center justify-center font-bold text-white font-bold text-xs">
+                      <Flame className="w-4 h-4 text-slate-950 font-bold" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-white font-bold">4-Bay Vaporizer</h4>
-                      <p className="text-[10px] text-white font-bold">PLTMG Active Sendout Racks</p>
+                      <h4 className="font-bold text-sm text-slate-950 font-bold">4-Bay Vaporizer</h4>
+                      <p className="text-[10px] text-slate-950 font-bold">PLTMG Active Sendout Racks</p>
                     </div>
                   </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-white font-bold border border-emerald-500/30">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-none bg-emerald-500/15 text-white font-bold border border-emerald-200">
                     {totalActiveFlow.toFixed(0)} Nm³/h
                   </span>
                 </div>
@@ -1858,34 +1768,34 @@ export default function NiasTerminalView({
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, bay.tankNo!, bay.bayId)}
                           onDragEnd={handleDragEnd}
-                          className="bg-slate-950/95 border border-emerald-500/40 rounded-xl p-3 space-y-2.5 shadow-lg relative group cursor-grab active:cursor-grabbing"
+                          className="win-panel/95 border border-emerald-200 rounded-none p-3 space-y-2.5 shadow-none relative group cursor-grab active:cursor-grabbing"
                         >
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-1.5">
-                              <GripVertical className="w-3.5 h-3.5 text-white font-bold" />
-                              <span className="font-bold text-xs text-white font-bold font-mono">{bay.bayId}</span>
+                              <GripVertical className="w-3.5 h-3.5 text-slate-950 font-bold" />
+                              <span className="font-bold text-xs text-slate-950 font-bold font-mono">{bay.bayId}</span>
                             </div>
                             <span
-                              className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 border ${
+                              className={`text-[9px] font-bold px-2 py-0.5 rounded-none uppercase tracking-wider flex items-center gap-1 border ${
                                 isRunning
-                                  ? 'bg-emerald-500/20 text-white font-bold border-emerald-500/40 animate-pulse'
-                                  : 'bg-amber-500/20 text-white font-bold border-amber-500/40'
+                                  ? 'bg-emerald-500/20 text-white font-bold border-emerald-200 animate-pulse'
+                                  : 'bg-amber-500/20 text-white font-bold border-amber-200'
                               }`}
                             >
-                              <span className={`w-1.5 h-1.5 rounded-full ${isRunning ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                              <span className={`w-1.5 h-1.5 rounded-none ${isRunning ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                               {isRunning ? `RUNNING (${bay.flowRate || 400} Nm³/h)` : 'STANDBY'}
                             </span>
                           </div>
 
                           {/* Mounted Tank Specs */}
-                          <div className="p-2 bg-slate-900/90 rounded-lg border border-slate-800 flex justify-between items-center text-xs font-mono">
+                          <div className="p-2 bg-white shadow-none rounded-none border border-slate-200 flex justify-between items-center text-xs font-mono">
                             <div>
-                              <span className="font-bold text-white font-bold text-sm block">{bay.tankNo}</span>
-                              <span className="text-[10px] text-white font-bold">{tank?.serialNo || 'SIMU-ACTIVE'}</span>
+                              <span className="font-bold text-slate-950 font-bold text-sm block">{bay.tankNo}</span>
+                              <span className="text-[10px] text-slate-950 font-bold">{tank?.serialNo || 'SIMU-ACTIVE'}</span>
                             </div>
                             <div className="text-right">
-                              <span className="font-bold text-white font-bold">{bay.level || tank?.level || 45}% Level</span>
-                              <span className="text-[10px] text-white font-bold block">{bay.pressure || 0.35} MPa • {bay.temp || -132}°C</span>
+                              <span className="font-bold text-slate-950 font-bold">{bay.level || tank?.level || 45}% Level</span>
+                              <span className="text-[10px] text-slate-950 font-bold block">{bay.pressure || 0.35} MPa • {bay.temp || -132}°C</span>
                             </div>
                           </div>
 
@@ -1894,10 +1804,10 @@ export default function NiasTerminalView({
                             <button
                               type="button"
                               onClick={() => toggleBayRunning(bay.bayId)}
-                              className={`py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                              className={`py-1 rounded-none text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
                                 isRunning
-                                  ? 'bg-amber-600/30 hover:bg-amber-600/50 text-white font-bold border border-amber-500/40'
-                                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
+                                  ? 'bg-amber-600/30 hover:bg-amber-600/50 text-white font-bold border border-amber-200'
+                                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-none'
                               }`}
                             >
                               {isRunning ? '⏸ Pause' : '▶ Start'}
@@ -1914,7 +1824,7 @@ export default function NiasTerminalView({
                                   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                                 }
                               }}
-                              className="py-1 bg-purple-600/30 hover:bg-purple-600/50 text-white font-bold border border-purple-500/40 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
+                              className="py-1 bg-purple-600/30 hover:bg-purple-600/50 text-slate-950 font-bold border border-purple-500/40 rounded-none text-[10px] font-bold transition-all cursor-pointer"
                               title="Finish Regasification & preserve 4% heel into Laydown 2"
                             >
                               ⏹️ Heel 4%
@@ -1935,7 +1845,7 @@ export default function NiasTerminalView({
                                 }
                                 unmountBay(bay.bayId);
                               }}
-                              className="py-1 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+                              className="py-1 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none text-[10px] font-bold transition-colors cursor-pointer"
                             >
                               ⏏️ Unmount
                             </button>
@@ -1950,17 +1860,17 @@ export default function NiasTerminalView({
                         onDragOver={(e) => handleDragOver(e, bay.bayId)}
                         onDragLeave={() => handleDragLeave(bay.bayId)}
                         onDrop={(e) => handleDrop(e, 'FOUR_BAY_REGAS', undefined, bay.bayId)}
-                        className={`p-4 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-all duration-200 text-center cursor-pointer min-h-[110px] ${
+                        className={`p-4 rounded-none border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-all duration-200 text-center cursor-pointer min-h-[110px] ${
                           isDragOver
                             ? 'border-emerald-400 bg-emerald-500/20 shadow-[0_0_15px_rgba(52,211,153,0.3)] ring-2 ring-emerald-400 scale-[1.02]'
-                            : 'border-slate-800 hover:border-slate-700 bg-slate-950/40 text-white font-bold'
+                            : 'border-slate-200 hover:border-slate-200 win-panel/40 text-slate-950 font-bold'
                         }`}
                       >
-                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-white font-bold">
-                          <Flame className="w-3.5 h-3.5 text-white font-bold" />
+                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-950 font-bold">
+                          <Flame className="w-3.5 h-3.5 text-slate-950 font-bold" />
                           <span>{bay.bayId} (Standby Rack)</span>
                         </div>
-                        <span className="text-[10px] font-bold text-white font-bold">
+                        <span className="text-[10px] font-bold text-slate-950 font-bold">
                           {isDragOver ? '🔥 Drop Tank to Mount & Vaporize' : '+ Drop ISO Tank Here to Mount'}
                         </span>
                       </div>
@@ -1972,21 +1882,21 @@ export default function NiasTerminalView({
               {/* ================================================================= */}
               {/* COLUMN 3: LAYDOWN YARD 2 (EMPTY HEEL 4% STAGING - 12 SLOTS)       */}
               {/* ================================================================= */}
-              <div className="bg-slate-900/90 border border-purple-500/30 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="bg-white shadow-none border border-purple-500/30 rounded-none p-4 sm:p-5 shadow-none space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center font-bold text-white font-bold text-xs">
+                    <div className="w-8 h-8 rounded-none bg-purple-500/20 border border-purple-500/40 flex items-center justify-center font-bold text-slate-950 font-bold text-xs">
                       Y2
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-white font-bold">Laydown Yard 2</h4>
-                      <p className="text-[10px] text-white font-bold">Empty Heel 4% Staging Buffer</p>
+                      <h4 className="font-bold text-sm text-slate-950 font-bold">Laydown Yard 2</h4>
+                      <p className="text-[10px] text-slate-950 font-bold">Empty Heel 4% Staging Buffer</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={handleAuthorizeBackhaul}
-                    className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-600/20 transition-all cursor-pointer"
+                    className="text-[11px] font-bold px-2.5 py-1 rounded-none bg-purple-600 hover:bg-purple-500 text-slate-950 shadow-none shadow-purple-600/20 transition-all cursor-pointer"
                   >
                     Backhaul ({selectedBackhaulTanks.size})
                   </button>
@@ -2010,7 +1920,7 @@ export default function NiasTerminalView({
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, tank.id, 'LAYDOWN_2')}
                           onDragEnd={handleDragEnd}
-                          className={`p-2.5 rounded-xl border bg-slate-950/90 transition-all duration-200 cursor-grab active:cursor-grabbing relative flex flex-col justify-between gap-1.5 shadow-md ${
+                          className={`p-2.5 rounded-none border win-panel/90 transition-all duration-200 cursor-grab active:cursor-grabbing relative flex flex-col justify-between gap-1.5 shadow-none ${
                             isDragging
                               ? 'opacity-40 scale-95 ring-2 ring-purple-400 border-purple-400'
                               : isSelectedForBackhaul
@@ -2024,30 +1934,30 @@ export default function NiasTerminalView({
                                 type="checkbox"
                                 checked={isSelectedForBackhaul}
                                 onChange={() => toggleSelectBackhaulTank(tank.id)}
-                                className="rounded border-slate-700 bg-slate-950 text-white font-bold accent-purple-500 cursor-pointer"
+                                className="rounded border-slate-200 win-panel text-slate-950 font-bold accent-purple-500 cursor-pointer"
                               />
-                              <span className="font-bold font-mono text-white font-bold text-xs">{tank.id}</span>
+                              <span className="font-bold font-mono text-slate-950 font-bold text-xs">{tank.id}</span>
                             </div>
-                            <span className="text-[9px] font-mono text-white font-bold bg-slate-900 px-1 py-0.2 rounded">
+                            <span className="text-[9px] font-mono text-slate-950 font-bold bg-white shadow-none px-1 py-0.2 rounded">
                               #{slotNum < 10 ? `0${slotNum}` : slotNum}
                             </span>
                           </div>
 
                           {/* Preserved Heel Specs */}
                           <div className="space-y-0.5">
-                            <div className="flex justify-between text-[10px] font-mono text-white font-bold">
-                              <span className="text-white font-bold font-bold">4.0% Heel:</span>
-                              <span className="font-bold text-white font-bold">~350 kg</span>
+                            <div className="flex justify-between text-[10px] font-mono text-slate-950 font-bold">
+                              <span className="text-slate-950 font-bold font-bold">4.0% Heel:</span>
+                              <span className="font-bold text-slate-950 font-bold">~350 kg</span>
                             </div>
-                            <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
-                              <div className="h-full bg-purple-500 rounded-full" style={{ width: '4%' }} />
+                            <div className="w-full bg-white shadow-none h-1 rounded-none overflow-hidden">
+                              <div className="h-full bg-purple-500 rounded-none" style={{ width: '4%' }} />
                             </div>
                           </div>
 
                           {/* Holding Pressure & Temp */}
                           <div className="flex justify-between items-center text-[10px] font-mono pt-1 border-t border-slate-900">
-                            <span className="text-white font-bold font-bold">{(tank.pressureMpa || 0.22).toFixed(2)} MPa</span>
-                            <span className="text-white font-bold">{(tank.tempC || -135.0).toFixed(1)} °C</span>
+                            <span className="text-slate-950 font-bold font-bold">{(tank.pressureMpa || 0.22).toFixed(2)} MPa</span>
+                            <span className="text-slate-950 font-bold">{(tank.tempC || -135.0).toFixed(1)} °C</span>
                           </div>
                         </div>
                       );
@@ -2059,16 +1969,16 @@ export default function NiasTerminalView({
                         onDragOver={(e) => handleDragOver(e, slotTargetId)}
                         onDragLeave={() => handleDragLeave(slotTargetId)}
                         onDrop={(e) => handleDrop(e, 'LAYDOWN_2', slotNum)}
-                        className={`h-24 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-all duration-200 text-center p-2 cursor-pointer ${
+                        className={`h-24 rounded-none border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-all duration-200 text-center p-2 cursor-pointer ${
                           isDragOver
                             ? 'border-emerald-400 bg-emerald-500/20 shadow-[0_0_15px_rgba(52,211,153,0.3)] ring-2 ring-emerald-400 scale-[1.02]'
-                            : 'border-slate-800 hover:border-slate-700 bg-slate-950/40 text-white font-bold'
+                            : 'border-slate-200 hover:border-slate-200 win-panel/40 text-slate-950 font-bold'
                         }`}
                       >
-                        <span className="text-[10px] font-mono font-bold text-white font-bold">
+                        <span className="text-[10px] font-mono font-bold text-slate-950 font-bold">
                           #{slotNum < 10 ? `0${slotNum}` : slotNum}
                         </span>
-                        <span className="text-[9px] font-bold text-white font-bold">
+                        <span className="text-[9px] font-bold text-slate-950 font-bold">
                           {isDragOver ? '📥 Drop Heel Tank' : '+ Slot Empty'}
                         </span>
                       </div>
@@ -2087,18 +1997,18 @@ export default function NiasTerminalView({
       {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'LAYDOWN_1_2_LOG' && (
         <div className="space-y-6 animate-in fade-in duration-200">
           {/* Top Date & Operations Toolbar */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+          <div className="bg-white shadow-none border border-slate-200 rounded-none p-4 sm:p-5 shadow-none flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
             {/* Left: Date Controls & Search */}
             <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
               {/* Date Filter Mode Toggle */}
-              <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-bold">
+              <div className="flex items-center win-panel p-1 rounded-none border border-slate-200 text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => setDateFilterMode('SELECTED_DATE')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-none transition-all cursor-pointer ${
                     dateFilterMode === 'SELECTED_DATE'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-white font-bold hover:text-white font-bold'
+                      ? 'win-tab-active shadow-none'
+                      : 'win-tab-inactive'
                   }`}
                 >
                   Specific Date
@@ -2106,10 +2016,10 @@ export default function NiasTerminalView({
                 <button
                   type="button"
                   onClick={() => setDateFilterMode('ALL_DATES')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-none transition-all cursor-pointer ${
                     dateFilterMode === 'ALL_DATES'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-white font-bold hover:text-white font-bold'
+                      ? 'win-tab-active shadow-none'
+                      : 'win-tab-inactive'
                   }`}
                 >
                   All Master Logs ({dailyMasterRecords.length})
@@ -2118,27 +2028,27 @@ export default function NiasTerminalView({
 
               {/* Date Picker (enabled in SELECTED_DATE mode) */}
               {dateFilterMode === 'SELECTED_DATE' && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs">
-                  <Calendar className="w-3.5 h-3.5 text-white font-bold" />
-                  <span className="text-white font-bold font-bold">Report Date:</span>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 win-panel border border-slate-200 rounded-none text-xs">
+                  <Calendar className="w-3.5 h-3.5 text-slate-950 font-bold" />
+                  <span className="text-slate-950 font-bold font-bold">Report Date:</span>
                   <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="bg-transparent text-white font-bold font-mono text-xs focus:outline-none cursor-pointer"
+                    className="bg-transparent text-slate-950 font-bold font-mono text-xs focus:outline-none cursor-pointer"
                   />
                 </div>
               )}
 
               {/* Search Bar */}
               <div className="relative flex-1 sm:w-64">
-                <Search className="w-3.5 h-3.5 text-white font-bold absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-slate-950 font-bold absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search Tank / Serial / Remarks..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white font-bold focus:outline-none focus:border-blue-500"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs win-panel border border-slate-200 rounded-none text-slate-950 font-bold focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -2146,25 +2056,25 @@ export default function NiasTerminalView({
             {/* Right: Quick Actions & CSV Export */}
             <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto justify-end">
               {selectedTanks.size > 0 && (
-                <div className="flex items-center gap-1.5 p-1 bg-slate-950 border border-slate-800 rounded-xl">
-                  <span className="text-[10px] text-white font-bold font-bold px-2">
+                <div className="flex items-center gap-1.5 p-1 win-panel border border-slate-200 rounded-none">
+                  <span className="text-[10px] text-slate-950 font-bold font-bold px-2">
                     Move ({selectedTanks.size}) to:
                   </span>
                   <button
                     onClick={() => handleBatchAllocateZone('Laydown 1')}
-                    className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-white font-bold border border-blue-500/40 cursor-pointer"
+                    className="px-2.5 py-1 text-[11px] font-bold rounded-none bg-blue-600/20 hover:bg-blue-600/30 text-white font-bold border border-blue-500/40 cursor-pointer"
                   >
                     Laydown 1
                   </button>
                   <button
                     onClick={() => handleBatchAllocateZone('Laydown 2')}
-                    className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-white font-bold border border-amber-500/40 cursor-pointer"
+                    className="px-2.5 py-1 text-[11px] font-bold rounded-none bg-amber-600/20 hover:bg-amber-600/30 text-white font-bold border border-amber-200 cursor-pointer"
                   >
                     Laydown 2
                   </button>
                   <button
                     onClick={() => handleBatchAllocateZone('Laydown 3')}
-                    className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-white font-bold border border-blue-500/40 cursor-pointer"
+                    className="px-2.5 py-1 text-[11px] font-bold rounded-none bg-cyan-600/20 hover:bg-cyan-600/30 text-slate-950 font-bold border border-blue-500/40 cursor-pointer"
                   >
                     Laydown 3
                   </button>
@@ -2174,18 +2084,18 @@ export default function NiasTerminalView({
               <button
                 type="button"
                 onClick={() => setIsWorkstationCollapsed(!isWorkstationCollapsed)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-950 hover:bg-slate-800 border border-slate-800 text-white font-bold transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-none text-xs font-bold win-panel hover:bg-slate-100 border border-slate-200 text-slate-950 font-bold transition-all cursor-pointer"
               >
-                <SlidersHorizontal className="w-3.5 h-3.5 text-white font-bold" />
+                <SlidersHorizontal className="w-3.5 h-3.5 text-slate-950 font-bold" />
                 <span>{isWorkstationCollapsed ? 'Expand Workstation' : 'Collapse Workstation'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleExportDailyMasterCSV}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-white font-bold rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 win-panel hover:bg-slate-100 border border-slate-200 text-slate-950 font-bold rounded-none text-xs font-bold transition-colors cursor-pointer"
               >
-                <Download className="w-4 h-4 text-white font-bold" />
+                <Download className="w-4 h-4 text-slate-950 font-bold" />
                 <span>📥 Export Daily CSV (14-Col)</span>
               </button>
             </div>
@@ -2197,24 +2107,24 @@ export default function NiasTerminalView({
           {!isWorkstationCollapsed && (
             <div
               id="daily-log-workstation-panel"
-              className="bg-slate-900/95 border border-blue-500/40 rounded-2xl p-5 sm:p-6 shadow-2xl animate-in slide-in-from-top-3 duration-200 space-y-5"
+              className="bg-white shadow-none/95 border border-blue-500/40 rounded-none p-5 sm:p-6 shadow-none animate-in slide-in-from-top-3 duration-200 space-y-5"
             >
               {/* Workstation Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-3">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center shrink-0">
-                    <FileText className="w-5 h-5 text-white font-bold" />
+                  <div className="w-10 h-10 rounded-none bg-blue-500/20 border border-blue-500/40 flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5 text-slate-950 font-bold" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-base font-bold text-white font-bold">
+                      <h3 className="text-base font-bold text-slate-950 font-bold">
                         Nias Daily Inspection & BOG Depressurization Workstation
                       </h3>
-                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-blue-500/20 text-white font-bold border border-blue-500/40">
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-none bg-blue-500/20 text-white font-bold border border-blue-500/40">
                         14-Column Master DB Direct Entry
                       </span>
                     </div>
-                    <p className="text-xs text-white font-bold">
+                    <p className="text-xs text-slate-950 font-bold">
                       Edit telemetry parameters, convert cryogenic volume/mmH₂O, simulate BOG losses, and commit to Master DB
                     </p>
                   </div>
@@ -2224,7 +2134,7 @@ export default function NiasTerminalView({
                   <button
                     type="button"
                     onClick={handleResetWorkstation}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-white font-bold hover:text-white font-bold text-xs font-bold cursor-pointer transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-none win-panel hover:bg-slate-100 border border-slate-200 win-tab-inactive text-xs font-bold cursor-pointer transition-colors"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     <span>Reset</span>
@@ -2232,7 +2142,7 @@ export default function NiasTerminalView({
                   <button
                     type="button"
                     onClick={() => setIsWorkstationCollapsed(true)}
-                    className="p-1.5 text-white font-bold hover:text-white font-bold rounded-lg hover:bg-slate-800"
+                    className="p-1.5 win-tab-inactive rounded-none hover:bg-slate-100"
                     title="Minimize Workstation"
                   >
                     <Minimize2 className="w-4 h-4" />
@@ -2246,13 +2156,13 @@ export default function NiasTerminalView({
                   {/* ============================================================ */}
                   {/* COLUMN 1: TANK & ASSET IDENTITY                             */}
                   {/* ============================================================ */}
-                  <div className="lg:col-span-4 bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-3.5 flex flex-col justify-between">
+                  <div className="lg:col-span-4 win-panel p-2 rounded-none border border-slate-200/80 space-y-3.5 flex flex-col justify-between">
                     <div>
-                      <div className="flex justify-between items-center border-b border-slate-800/80 pb-2 mb-3">
-                        <span className="text-xs font-bold uppercase tracking-wider text-white font-bold flex items-center gap-1.5">
+                      <div className="flex justify-between items-center border-b border-slate-200/80 pb-2 mb-3">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
                           <span>1. Tank & Asset Identity</span>
                         </span>
-                        <span className="text-[10px] font-mono text-white font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                        <span className="text-[10px] font-mono text-slate-950 font-bold bg-white shadow-none px-2 py-0.5 rounded border border-slate-200">
                           Col 1~5
                         </span>
                       </div>
@@ -2261,18 +2171,18 @@ export default function NiasTerminalView({
                         {/* Row 1: Report Date & Zone Selector */}
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-[11px] text-white font-bold mb-1 font-bold">
+                            <label className="block text-[11px] text-slate-950 font-bold mb-1 font-bold">
                               1. Report Date:
                             </label>
                             <input
                               type="date"
                               value={wsReportDate}
                               onChange={(e) => setWsReportDate(e.target.value)}
-                              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-white font-bold focus:border-blue-500 outline-none cursor-pointer"
+                              className="w-full bg-white shadow-none border border-slate-200 rounded-none px-1.5 py-0.5 text-xs font-mono text-slate-950 font-bold focus:border-blue-500 outline-none cursor-pointer"
                             />
                           </div>
                           <div>
-                            <label className="block text-[11px] text-white font-bold mb-1 font-bold">
+                            <label className="block text-[11px] text-slate-950 font-bold mb-1 font-bold">
                               Location / Zone Filter:
                             </label>
                             <select
@@ -2285,7 +2195,7 @@ export default function NiasTerminalView({
                                   handleSelectTankForWorkstation(firstTank.id);
                                 }
                               }}
-                              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-white font-bold focus:border-blue-500 outline-none cursor-pointer"
+                              className="w-full bg-white shadow-none border border-slate-200 rounded-none px-1.5 py-0.5 text-xs font-mono text-slate-950 font-bold focus:border-blue-500 outline-none cursor-pointer"
                             >
                               <option value="LAYDOWN_1">Laydown Yard 1</option>
                               <option value="LAYDOWN_2">Laydown Yard 2</option>
@@ -2295,13 +2205,13 @@ export default function NiasTerminalView({
 
                         {/* Row 2: Compact ISO Tank Selector */}
                         <div>
-                          <label className="block text-[11px] text-white font-bold mb-1 font-bold">
+                          <label className="block text-[11px] text-slate-950 font-bold mb-1 font-bold">
                             2. Select ISO Tank:
                           </label>
                           <select
                             value={wsTankNo}
                             onChange={(e) => handleSelectTankForWorkstation(e.target.value)}
-                            className="w-full bg-slate-900 border border-blue-500/50 rounded-lg px-3 py-2 text-xs font-mono font-bold text-white font-bold focus:border-blue-400 outline-none cursor-pointer"
+                            className="w-full bg-white shadow-none border border-blue-500/50 rounded-none px-1.5 py-0.5 text-xs font-mono font-bold text-slate-950 font-bold focus:border-blue-400 outline-none cursor-pointer"
                           >
                             {filteredWorkstationTanks.map((t) => (
                               <option key={t.id} value={t.id}>
@@ -2314,7 +2224,7 @@ export default function NiasTerminalView({
                         {/* Serial No. & Shipment Dual Chips */}
                         <div className="grid grid-cols-2 gap-2.5">
                           <div>
-                            <label className="block text-[10px] text-white font-bold mb-1 font-bold">
+                            <label className="block text-[10px] text-slate-950 font-bold mb-1 font-bold">
                               3. Serial No.:
                             </label>
                             <input
@@ -2322,12 +2232,12 @@ export default function NiasTerminalView({
                               value={wsSerialNo}
                               readOnly
                               disabled
-                              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-white font-bold outline-none opacity-70 cursor-not-allowed"
+                              className="w-full bg-white shadow-none border border-slate-200 rounded-none px-2.5 py-1.5 text-xs font-mono font-bold text-slate-950 font-bold outline-none opacity-70 cursor-not-allowed"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-[10px] text-white font-bold mb-1 font-bold">
+                            <label className="block text-[10px] text-slate-950 font-bold mb-1 font-bold">
                               4. Shipment:
                             </label>
                             <input
@@ -2335,13 +2245,13 @@ export default function NiasTerminalView({
                               value={wsShipment}
                               readOnly
                               disabled
-                              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-white font-bold outline-none opacity-70 cursor-not-allowed"
+                              className="w-full bg-white shadow-none border border-slate-200 rounded-none px-2.5 py-1.5 text-xs font-mono font-bold text-slate-950 font-bold outline-none opacity-70 cursor-not-allowed"
                             />
                           </div>
                         </div>
 
                         {/* 5. Dwell & Storage Status Card */}
-                        <div className="flex-1 min-h-[70px] bg-slate-900/50 border border-slate-800 rounded-lg p-3 flex flex-col justify-center relative overflow-hidden mt-1">
+                        <div className="flex-1 min-h-[70px] bg-white shadow-none/50 border border-slate-200 rounded-none p-3 flex flex-col justify-center relative overflow-hidden mt-1">
                           {(() => {
                             const arrDate = wsActiveTank?.arrivalHeelMetrics?.arrivalDate || '2026-08-10';
                             const dwellDays = Math.max(0, Math.floor((new Date(wsReportDate).getTime() - new Date(arrDate).getTime()) / 86400000));
@@ -2351,32 +2261,32 @@ export default function NiasTerminalView({
                             return (
                               <>
                                 <div className="flex items-center justify-between mb-2">
-                                  <label className="text-[11px] text-white font-bold font-bold">
+                                  <label className="text-[11px] text-slate-950 font-bold font-bold">
                                     5. Dwell & Storage Status:
                                   </label>
-                                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-white font-bold border border-blue-500/30 font-mono">
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-50 text-slate-950 font-bold border border-blue-200 font-mono">
                                     LNG Density: {wsTankDensity.toFixed(2)} kg/m³
                                   </span>
                                 </div>
                                 <div className="space-y-1.5">
                                   <div className="flex items-center justify-between font-mono text-xs">
-                                    <span className="text-white font-bold flex items-center gap-1.5">
-                                      <Clock className="w-3.5 h-3.5 text-white font-bold" />
+                                    <span className="text-slate-950 font-bold flex items-center gap-1.5">
+                                      <Clock className="w-3.5 h-3.5 text-slate-950 font-bold" />
                                       Time in Yard
                                     </span>
-                                    <span className="text-white font-bold font-bold">⏱️ {dwellDays}-Day Dwell</span>
+                                    <span className="text-slate-950 font-bold font-bold">⏱️ {dwellDays}-Day Dwell</span>
                                   </div>
                                   <div className="flex items-center justify-between font-mono text-xs">
-                                    <span className="text-white font-bold flex items-center gap-1.5">
-                                      <TrendingUp className="w-3.5 h-3.5 text-white font-bold" />
+                                    <span className="text-slate-950 font-bold flex items-center gap-1.5">
+                                      <TrendingUp className="w-3.5 h-3.5 text-slate-950 font-bold" />
                                       Pressure Drift
                                     </span>
                                     {isHighPress ? (
-                                      <span className="text-white font-bold font-bold animate-pulse flex items-center gap-1" title="BOG Venting Warning">
+                                      <span className="text-slate-950 font-bold font-bold animate-pulse flex items-center gap-1" title="BOG Venting Warning">
                                         📈 {arrivalPress.toFixed(2)} ➔ {wsPressureMPa.toFixed(2)} MPa <Flame className="w-3 h-3" />
                                       </span>
                                     ) : (
-                                      <span className="text-white font-bold font-bold">
+                                      <span className="text-slate-950 font-bold font-bold">
                                         📈 {arrivalPress.toFixed(2)} ➔ {wsPressureMPa.toFixed(2)} MPa
                                       </span>
                                     )}
@@ -2393,115 +2303,115 @@ export default function NiasTerminalView({
                   {/* ============================================================ */}
                   {/* COLUMN 2: TELEMETRY, CALIBRATION & BOG WORKBENCH             */}
                   {/* ============================================================ */}
-                  <div className="lg:col-span-8 bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-4 flex flex-col justify-between">
+                  <div className="lg:col-span-8 win-panel p-2 rounded-none border border-slate-200/80 space-y-4 flex flex-col justify-between">
                     <div>
-                      <div className="flex justify-between items-center border-b border-slate-800/80 pb-2 mb-3">
-                        <span className="text-xs font-bold uppercase tracking-wider text-white font-bold flex items-center gap-1.5">
+                      <div className="flex justify-between items-center border-b border-slate-200/80 pb-2 mb-3">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
                           <span>2. Telemetry, Calibration & BOG Workbench</span>
                         </span>
-                        <span className="text-[10px] font-mono text-white font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                        <span className="text-[10px] font-mono text-slate-950 font-bold bg-white shadow-none px-2 py-0.5 rounded border border-slate-200">
                           Col 6~14
                         </span>
                       </div>
 
                       <div className="space-y-4">
                         {/* A. Telemetry Cross-Validation Matrix */}
-                        <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/60 space-y-3">
-                          <h4 className="text-[10px] uppercase text-white font-bold font-bold flex items-center justify-between gap-1.5">
+                        <div className="bg-white shadow-none/60 p-3 rounded-none border border-slate-200/60 space-y-3">
+                          <h4 className="text-[10px] uppercase text-slate-950 font-bold font-bold flex items-center justify-between gap-1.5">
                             <span className="flex items-center gap-1.5">
-                              <span className="bg-slate-800 px-1.5 rounded text-white font-bold">A</span> 
+                              <span className="bg-slate-100 px-1.5 rounded text-slate-950 font-bold">A</span> 
                               Dual-Track Direct Comparison (Analog vs. SMT Digital)
                             </span>
                           </h4>
                           
-                          <div className="w-full text-left border-collapse border border-slate-800/60 rounded overflow-x-auto">
+                          <div className="w-full text-left border-collapse border border-slate-200/60 rounded overflow-x-auto">
                             <div className="min-w-[700px]">
                               {/* Header Row */}
-                              <div className="grid grid-cols-8 bg-slate-800/40 text-[9px] uppercase font-bold text-white font-bold border-b border-slate-700 text-center items-center leading-tight">
-                                <div className="p-2 border-r border-slate-700 text-left">Data Source</div>
-                                <div className="p-2 border-r border-slate-700">Level <br /><span className="text-[9px] text-white font-bold font-bold normal-case">(mmH₂O)</span></div>
-                                <div className="p-2 border-r border-slate-700">Pressure <br /><span className="text-[9px] text-white font-bold font-bold normal-case">(MPa)</span></div>
-                                <div className="p-2 border-r border-slate-700">Level <br /><span className="text-[9px] text-white font-bold font-bold normal-case">(%)</span></div>
-                                <div className="p-2 border-r border-slate-700">Volume <br /><span className="text-[9px] text-white font-bold font-bold normal-case">(m³)</span></div>
-                                <div className="p-2 border-r border-slate-700">Mass <br /><span className="text-[9px] text-white font-bold font-bold normal-case">(kg)</span></div>
-                                <div className="p-2 border-r border-slate-700">Battery <br /><span className="text-[9px] text-white font-bold font-bold normal-case">(%)</span></div>
-                                <div className="p-2">Temperature <br /><span className="text-[9px] text-white font-bold font-bold normal-case">(°C)</span></div>
+                              <div className="grid grid-cols-8 bg-slate-100/40 text-[9px] uppercase font-bold text-slate-950 font-bold border-b border-slate-200 text-center items-center leading-tight">
+                                <div className="p-2 border-r border-slate-200 text-left">Data Source</div>
+                                <div className="p-2 border-r border-slate-200">Level <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(mmH₂O)</span></div>
+                                <div className="p-2 border-r border-slate-200">Pressure <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(MPa)</span></div>
+                                <div className="p-2 border-r border-slate-200">Level <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(%)</span></div>
+                                <div className="p-2 border-r border-slate-200">Volume <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(m³)</span></div>
+                                <div className="p-2 border-r border-slate-200">Mass <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(kg)</span></div>
+                                <div className="p-2 border-r border-slate-200">Battery <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(%)</span></div>
+                                <div className="p-2">Temperature <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(°C)</span></div>
                               </div>
                               
                               {/* Row 1: Analog */}
-                              <div className="grid grid-cols-8 border-b border-slate-800 text-center items-stretch bg-emerald-950/10">
-                                <div className="p-2 border-r border-slate-800 text-[10px] font-bold text-white font-bold flex items-center justify-start">
+                              <div className="grid grid-cols-8 border-b border-slate-200 text-center items-stretch bg-emerald-50 text-emerald-700">
+                                <div className="p-2 border-r border-slate-200 text-[10px] font-bold text-slate-950 font-bold flex items-center justify-start">
                                   🅰️ Analog Dial
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
                                   <input
                                     type="number" min="0" max="1000"
                                     value={wsLevelMmH2O}
                                     onChange={(e) => handleMmH2OChange(parseFloat(e.target.value) || 0)}
-                                    className="w-full bg-slate-950 border border-emerald-500/60 rounded px-1.5 py-1 text-xs font-mono font-bold text-white font-bold outline-none text-center"
+                                    className="w-full win-panel border border-emerald-200 rounded px-1.5 py-1 text-xs font-mono font-bold text-slate-950 font-bold outline-none text-center"
                                   />
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
                                   <input
                                     type="number" step="0.01"
                                     value={wsPressureMPa}
                                     onChange={(e) => setWsPressureMPa(parseFloat(e.target.value) || 0)}
-                                    className={`w-full bg-slate-950 border rounded px-1.5 py-1 text-xs font-mono font-bold outline-none text-center ${wsPressureMPa >= 0.76 ? 'border-red-500/60 text-white font-bold' : 'border-emerald-500/40 text-white font-bold'}`}
+                                    className={`w-full win-panel border rounded px-1.5 py-1 text-xs font-mono font-bold outline-none text-center ${wsPressureMPa >= 0.76 ? 'border-red-200 text-slate-950 font-bold' : 'border-emerald-200 text-slate-950 font-bold'}`}
                                   />
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center text-xs font-mono font-bold text-white font-bold bg-slate-950/30">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-950 font-bold win-panel/30">
                                   {wsLevelPct.toFixed(1)}
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center text-xs font-mono font-bold text-white font-bold bg-slate-950/30">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-950 font-bold win-panel/30">
                                   {wsLevelM3.toFixed(2)}
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center text-xs font-mono font-bold text-white font-bold bg-slate-950/30">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-950 font-bold win-panel/30">
                                   {!isNaN(wsLevelM3) && wsLevelM3 > 0 ? (wsLevelM3 * wsTankDensity).toFixed(0) : '0'}
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center text-[10px] text-white font-bold italic bg-slate-900/40">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-[10px] text-slate-950 font-bold italic bg-white shadow-none/40">
                                   N/A
                                 </div>
-                                <div className="p-2 flex items-center justify-center text-[10px] text-white font-bold italic bg-slate-900/40">
+                                <div className="p-2 flex items-center justify-center text-[10px] text-slate-950 font-bold italic bg-white shadow-none/40">
                                   N/A
                                 </div>
                               </div>
                               
                               {/* Row 2: SMT */}
-                              <div className="grid grid-cols-8 border-b border-slate-800 text-center items-stretch bg-blue-950/10">
-                                <div className="p-2 border-r border-slate-800 text-[10px] font-bold text-white font-bold flex items-center justify-start">
+                              <div className="grid grid-cols-8 border-b border-slate-200 text-center items-stretch bg-blue-950/10">
+                                <div className="p-2 border-r border-slate-200 text-[10px] font-bold text-slate-950 font-bold flex items-center justify-start">
                                   🅱️ SMT Digital
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center text-[10px] text-white font-bold italic bg-slate-900/40">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-[10px] text-slate-950 font-bold italic bg-white shadow-none/40">
                                   N/A
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
                                   <input
                                     type="number" step="0.01"
                                     value={wsSmtPress}
                                     onChange={(e) => setWsSmtPress(parseFloat(e.target.value) || 0)}
-                                    className="w-full bg-slate-950 border border-blue-500/40 rounded px-1.5 py-1 text-xs font-mono font-bold text-white font-bold outline-none text-center"
+                                    className="w-full win-panel border border-blue-500/40 rounded px-1.5 py-1 text-xs font-mono font-bold text-slate-950 font-bold outline-none text-center"
                                   />
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
                                   <input
                                     type="number" step="0.1"
                                     value={wsSmtLevel}
                                     onChange={(e) => setWsSmtLevel(parseFloat(e.target.value) || 0)}
-                                    className="w-full bg-slate-950 border border-blue-500/60 rounded px-1.5 py-1 text-xs font-mono font-bold text-white font-bold outline-none text-center"
+                                    className="w-full win-panel border border-blue-500/60 rounded px-1.5 py-1 text-xs font-mono font-bold text-slate-950 font-bold outline-none text-center"
                                   />
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center text-xs font-mono font-bold text-white font-bold bg-slate-950/30">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-950 font-bold win-panel/30">
                                   {((wsSmtLevel / 100) * 45).toFixed(2)}
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center text-xs font-mono font-bold text-white font-bold bg-slate-950/30">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-950 font-bold win-panel/30">
                                   {(((wsSmtLevel / 100) * 45) * wsTankDensity).toFixed(0)}
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
                                   <input
                                     type="number"
                                     value={wsSmtBattery}
                                     onChange={(e) => setWsSmtBattery(parseFloat(e.target.value) || 0)}
-                                    className="w-full bg-slate-950 border border-blue-500/40 rounded px-1.5 py-1 text-xs font-mono font-bold text-white font-bold outline-none text-center"
+                                    className="w-full win-panel border border-blue-500/40 rounded px-1.5 py-1 text-xs font-mono font-bold text-slate-950 font-bold outline-none text-center"
                                   />
                                 </div>
                                 <div className="p-2 flex items-center justify-center">
@@ -2509,34 +2419,34 @@ export default function NiasTerminalView({
                                     type="number" step="0.1"
                                     value={wsSmtTemp}
                                     onChange={(e) => setWsSmtTemp(parseFloat(e.target.value) || 0)}
-                                    className="w-full bg-slate-950 border border-blue-500/40 rounded px-1.5 py-1 text-xs font-mono font-bold text-white font-bold outline-none text-center"
+                                    className="w-full win-panel border border-blue-500/40 rounded px-1.5 py-1 text-xs font-mono font-bold text-slate-950 font-bold outline-none text-center"
                                   />
                                 </div>
                               </div>
                               
                               {/* Row 3: Discrepancy Checks */}
-                              <div className="grid grid-cols-8 text-center items-stretch bg-slate-900/40">
-                                <div className="p-2 border-r border-slate-800 text-[9px] uppercase font-bold text-white font-bold flex items-center justify-start">
+                              <div className="grid grid-cols-8 text-center items-stretch bg-white shadow-none/40">
+                                <div className="p-2 border-r border-slate-200 text-[9px] uppercase font-bold text-slate-950 font-bold flex items-center justify-start">
                                   Integrity Delta
                                 </div>
-                                <div className="p-2 border-r border-slate-800"></div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center">
+                                <div className="p-2 border-r border-slate-200"></div>
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
                                   {(() => {
                                     const deltaP = Math.abs(wsPressureMPa - wsSmtPress);
                                     return deltaP <= 0.05 ? (
-                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-white font-bold border border-emerald-500/30 font-bold whitespace-nowrap">✅ ±{deltaP.toFixed(2)}</span>
+                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-white font-bold border border-emerald-200 font-bold whitespace-nowrap">✅ ±{deltaP.toFixed(2)}</span>
                                     ) : (
-                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-white font-bold border border-amber-500/40 font-bold whitespace-nowrap animate-pulse">⚠️ {deltaP.toFixed(2)} MPa Diff</span>
+                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-white font-bold border border-amber-200 font-bold whitespace-nowrap animate-pulse">⚠️ {deltaP.toFixed(2)} MPa Diff</span>
                                     );
                                   })()}
                                 </div>
-                                <div className="p-2 border-r border-slate-800 flex items-center justify-center">
+                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
                                   {(() => {
                                     const delta = Math.abs(wsSmtLevel - wsLevelPct);
                                     return delta <= 2 ? (
-                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-white font-bold border border-emerald-500/30 font-bold whitespace-nowrap">✅ Verified Match</span>
+                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-white font-bold border border-emerald-200 font-bold whitespace-nowrap">✅ Verified Match</span>
                                     ) : (
-                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-white font-bold border border-amber-500/40 font-bold whitespace-nowrap animate-pulse">⚠️ Discrepancy Alert</span>
+                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-white font-bold border border-amber-200 font-bold whitespace-nowrap animate-pulse">⚠️ Discrepancy Alert</span>
                                     );
                                   })()}
                                 </div>
@@ -2547,12 +2457,12 @@ export default function NiasTerminalView({
                         </div>
 
                         {/* B. Integrated BOG Venting & Loss Card */}
-                        <div className={`p-3 rounded-lg border transition-all ${wsEnableDepress ? 'bg-slate-900/60 border-amber-500/30' : 'bg-slate-900/30 border-slate-700/30 opacity-80'} space-y-3`}>
+                        <div className={`p-3 rounded-none border transition-all ${wsEnableDepress ? 'bg-white shadow-none/60 border-amber-200' : 'bg-white shadow-none/30 border-slate-200/30 opacity-80'} space-y-3`}>
                           <h4 className="text-[10px] uppercase font-bold flex items-center justify-between gap-1.5">
-                            <div className={`flex items-center gap-1.5 ${wsEnableDepress ? 'text-white font-bold' : 'text-white font-bold'}`}>
-                              <span className={`${wsEnableDepress ? 'bg-amber-500/20 text-white font-bold' : 'bg-slate-800 text-white font-bold'} px-1.5 rounded`}>B</span> BOG Venting & Loss Card
+                            <div className={`flex items-center gap-1.5 ${wsEnableDepress ? 'text-slate-950 font-bold' : 'text-slate-950 font-bold'}`}>
+                              <span className={`${wsEnableDepress ? 'bg-amber-500/20 text-white font-bold' : 'bg-slate-100 text-slate-950 font-bold'} px-1.5 rounded`}>B</span> BOG Venting & Loss Card
                             </div>
-                            <label className="flex items-center gap-1.5 cursor-pointer text-white font-bold">
+                            <label className="flex items-center gap-1.5 cursor-pointer text-slate-950 font-bold">
                               <input 
                                 type="checkbox"
                                 checked={wsEnableDepress}
@@ -2564,7 +2474,7 @@ export default function NiasTerminalView({
                           </h4>
                           <div className={`grid grid-cols-12 gap-3 items-center transition-opacity ${wsEnableDepress ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
                             <div className="col-span-3">
-                              <label className="block text-[10px] text-white font-bold mb-1 font-bold">
+                              <label className="block text-[10px] text-slate-950 font-bold mb-1 font-bold">
                                 Press Before:
                               </label>
                               <input
@@ -2573,11 +2483,11 @@ export default function NiasTerminalView({
                                 value={wsPressBefore}
                                 onChange={(e) => setWsPressBefore(parseFloat(e.target.value) || 0)}
                                 disabled={!wsEnableDepress}
-                                className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs font-mono text-white font-bold outline-none focus:border-amber-500 disabled:bg-slate-900 disabled:text-white font-bold"
+                                className="w-full win-panel border border-slate-200 rounded px-2 py-1.5 text-xs font-mono text-slate-950 font-bold outline-none focus:border-amber-500 disabled:bg-white shadow-none disabled:text-slate-950 font-bold"
                               />
                             </div>
                             <div className="col-span-3">
-                              <label className="block text-[10px] text-white font-bold mb-1 font-bold">
+                              <label className="block text-[10px] text-slate-950 font-bold mb-1 font-bold">
                                 Press After:
                               </label>
                               <input
@@ -2586,18 +2496,18 @@ export default function NiasTerminalView({
                                 value={wsPressAfter}
                                 onChange={(e) => setWsPressAfter(parseFloat(e.target.value) || 0)}
                                 disabled={!wsEnableDepress}
-                                className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs font-mono text-white font-bold outline-none focus:border-amber-500 disabled:bg-slate-900 disabled:text-white font-bold"
+                                className="w-full win-panel border border-slate-200 rounded px-2 py-1.5 text-xs font-mono text-slate-950 font-bold outline-none focus:border-amber-500 disabled:bg-white shadow-none disabled:text-slate-950 font-bold"
                               />
                             </div>
                             <div className="col-span-6 flex flex-col gap-1">
-                              <div className="p-2 bg-amber-950/30 border border-amber-500/40 rounded h-full flex items-center justify-between">
-                                <div className="text-[12px] text-white font-bold font-bold">ΔP = {wsDeltaP.toFixed(2)} MPa</div>
+                              <div className="p-2 bg-amber-50 text-amber-700 border border-amber-200 rounded h-full flex items-center justify-between">
+                                <div className="text-[12px] text-slate-950 font-bold font-bold">ΔP = {wsDeltaP.toFixed(2)} MPa</div>
                                 <div className="text-right">
-                                  <div className="text-sm font-bold font-mono text-white font-bold">{wsCalculatedLossKg.toLocaleString()} Kg</div>
-                                  <div className="text-[10px] text-white font-bold">{wsCalculatedLossPct.toFixed(2)}% Net Loss</div>
+                                  <div className="text-sm font-bold font-mono text-slate-950 font-bold">{wsCalculatedLossKg.toLocaleString()} Kg</div>
+                                  <div className="text-[10px] text-slate-950 font-bold">{wsCalculatedLossPct.toFixed(2)}% Net Loss</div>
                                 </div>
                               </div>
-                              <div className="text-[9px] text-white font-bold italic text-right px-1">
+                              <div className="text-[9px] text-slate-950 font-bold italic text-right px-1">
                                 * BOG Loss calculation derived using inherited ρ = {wsTankDensity.toFixed(2)} kg/m³
                                 <br />
                                 * Loss rate based on Arun Initial Loaded Mass ({wsInitialLoadedMass.toLocaleString()} kg)
@@ -2609,7 +2519,7 @@ export default function NiasTerminalView({
                     </div>
 
                     {/* Bottom Action Bar */}
-                    <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-4">
+                    <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-4">
                       {/* Remarks Input */}
                       <div className="flex-1 max-w-sm">
                         <input
@@ -2617,7 +2527,7 @@ export default function NiasTerminalView({
                           value={wsRemarks}
                           onChange={(e) => setWsRemarks(e.target.value)}
                           placeholder="Remarks / Observations..."
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-bold focus:border-amber-500 outline-none"
+                          className="w-full bg-white shadow-none border border-slate-200 rounded-none px-3 py-1.5 text-xs text-slate-950 font-bold focus:border-amber-500 outline-none"
                         />
                       </div>
 
@@ -2626,13 +2536,13 @@ export default function NiasTerminalView({
                         <button
                           type="button"
                           onClick={handleResetWorkstation}
-                          className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none text-xs font-bold transition-colors cursor-pointer"
                         >
                           Reset
                         </button>
                         <button
                           type="submit"
-                          className="flex items-center justify-center gap-1.5 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
+                          className="flex items-center justify-center gap-1.5 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-none text-xs font-bold shadow-none shadow-emerald-600/20 transition-all cursor-pointer"
                         >
                           <Check className="w-4 h-4" />
                           <span>💾 Save & Commit Log</span>
@@ -2648,18 +2558,18 @@ export default function NiasTerminalView({
           {/* ==================================================================== */}
           {/* COMPREHENSIVE MASTER INSPECTION TABLE (FULL MASTER DB GRID)          */}
           {/* ==================================================================== */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div className="bg-white shadow-none/80 border border-slate-200 rounded-none overflow-hidden shadow-none">
             {/* Table Header Bar with Zone Filters */}
-            <div className="p-4 sm:p-5 border-b border-slate-800 bg-slate-950/80 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-3">
+            <div className="p-4 sm:p-5 border-b border-slate-200 win-panel/80 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-3">
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-white font-bold flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-white font-bold shrink-0" />
+                <h3 className="text-sm sm:text-base font-bold text-slate-950 font-bold flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-slate-950 font-bold shrink-0" />
                   Nias Laydown Yard Telemetry & Inspection Master Grid (14-Column Master DB)
-                  <span className="text-xs font-mono font-bold text-white font-bold">
+                  <span className="text-xs font-mono font-bold text-slate-950 font-bold">
                     ({masterInspectionList.length} Records for {dateFilterMode === 'SELECTED_DATE' ? selectedDate : 'All Dates'})
                   </span>
                 </h3>
-                <p className="text-xs text-white font-bold">
+                <p className="text-xs text-slate-950 font-bold">
                   Direct data entry matching operational schema with inline editing, quick depressurization, and instant CSV export
                 </p>
               </div>
@@ -2676,10 +2586,10 @@ export default function NiasTerminalView({
                   <button
                     key={z.id}
                     onClick={() => setZoneFilter(z.id)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-none text-xs font-bold transition-colors cursor-pointer ${
                       zoneFilter === z.id
                         ? 'bg-blue-600 text-white'
-                        : 'bg-slate-900 hover:bg-slate-850 text-white font-bold hover:text-white font-bold border border-slate-800'
+                        : 'bg-white shadow-none hover:bg-slate-850 win-tab-inactive border border-slate-200'
                     }`}
                   >
                     {z.label}
@@ -2689,38 +2599,38 @@ export default function NiasTerminalView({
             </div>
 
             {/* Scrollable Master Table */}
-            <div className="overflow-x-auto max-h-[650px] overflow-y-auto border border-slate-600 rounded-lg">
+            <div className="overflow-x-auto max-h-[650px] overflow-y-auto border border-slate-200 rounded-none">
               <table className="w-full text-left border-collapse min-w-[1450px]">
-                <thead className="sticky top-0 z-10 bg-slate-800 border-b border-slate-600 text-white font-bold text-[11px] uppercase tracking-wider font-bold">
-                  <tr className="border-b border-slate-600">
+                <thead className="sticky top-0 z-10 bg-slate-100 border-b border-slate-200 text-slate-950 font-bold text-[11px] uppercase tracking-wider font-bold">
+                  <tr className="border-b border-slate-200">
                     <th className="p-3">Report Date</th>
                     <th className="p-3">ISO Tank No.</th>
                     <th className="p-3">Serial No.</th>
                     <th className="p-3 text-center">Shipment</th>
                     <th className="p-3">Yard Position</th>
                     <th className="p-3 text-right">
-                      Level<br /><span className="text-[9px] text-white font-bold font-bold">(%)</span>
+                      Level<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(%)</span>
                     </th>
                     <th className="p-3 text-right">
-                      Level<br /><span className="text-[9px] text-white font-bold font-bold">(mmH₂O)</span>
+                      Level<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(mmH₂O)</span>
                     </th>
                     <th className="p-3 text-right">
-                      Volume<br /><span className="text-[9px] text-white font-bold font-bold">(m³)</span>
+                      Volume<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(m³)</span>
                     </th>
                     <th className="p-3 text-right">
-                      Mass<br /><span className="text-[9px] text-white font-bold font-bold">(Ton)</span>
+                      Mass<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(Ton)</span>
                     </th>
                     <th className="p-3 text-center">
-                      Battery<br /><span className="text-[9px] text-white font-bold font-bold">(%)</span>
+                      Battery<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(%)</span>
                     </th>
                     <th className="p-3 text-right">
-                      Pressure<br /><span className="text-[9px] text-white font-bold font-bold">(MPa)</span>
+                      Pressure<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(MPa)</span>
                     </th>
                     <th className="p-3 text-right">
-                      Temperature<br /><span className="text-[9px] text-white font-bold font-bold">(°C)</span>
+                      Temperature<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(°C)</span>
                     </th>
                     <th className="p-3 text-center">
-                      Depress Status<br /><span className="text-[9px] text-white font-bold font-bold">(ΔP / Loss)</span>
+                      Depress Status<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(ΔP / Loss)</span>
                     </th>
                     <th className="p-3">Remarks</th>
                   </tr>
@@ -2744,68 +2654,68 @@ export default function NiasTerminalView({
                     return (
                       <tr
                         key={rec.id || `${rec.reportDate}-${rec.tankNo}`}
-                        className={`hover:bg-slate-800/50 transition-colors ${
-                          isSelected ? 'bg-emerald-950/20' : 'bg-transparent'
+                        className={`hover:bg-slate-100/50 transition-colors ${
+                          isSelected ? 'bg-emerald-50 text-emerald-700' : 'bg-transparent'
                         }`}
                       >
                         {/* 1. Report Date */}
-                        <td className="p-3 text-white font-bold font-sans whitespace-nowrap">
+                        <td className="p-3 text-slate-950 font-bold font-sans whitespace-nowrap">
                           {rec.reportDate}
                         </td>
 
                         {/* 2. ISO Tk No. */}
-                        <td className="p-3 font-bold text-white font-bold">
+                        <td className="p-3 font-bold text-slate-950 font-bold">
                           {rec.tankNo}
                         </td>
 
                         {/* 3. Serial No. */}
-                        <td className="p-3 text-white font-bold">
+                        <td className="p-3 text-slate-950 font-bold">
                           {rec.serialNo}
                         </td>
 
                         {/* 4. Shipment */}
                         <td className="p-3 text-center">
-                          <span className="px-1.5 py-0.5 rounded bg-slate-800 text-white font-bold border border-slate-700 text-[10px] font-bold">
+                          <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-950 font-bold border border-slate-200 text-[10px] font-bold">
                             {rec.shipment}
                           </span>
                         </td>
 
                         {/* 5. Yard Position (Read-only) */}
                         <td className="p-3 font-sans">
-                          <span className="px-2 py-0.5 rounded text-xs bg-slate-800 text-white font-bold border border-slate-700 font-bold">
+                          <span className="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-950 font-bold border border-slate-200 font-bold">
                             {positionLabel}
                           </span>
                         </td>
 
                         {/* 6. Level (%) */}
-                        <td className="p-3 text-right font-bold text-white font-bold">
+                        <td className="p-3 text-right font-bold text-slate-950 font-bold">
                           {rec.level}%
                         </td>
 
                         {/* 7. Level (mmH2O) */}
-                        <td className="p-3 text-right text-white font-bold">
+                        <td className="p-3 text-right text-slate-950 font-bold">
                           {rec.levelMmH2O}
                         </td>
 
                         {/* 8. Volume (m³) */}
-                        <td className="p-3 text-right text-white font-bold">
+                        <td className="p-3 text-right text-slate-950 font-bold">
                           {rec.levelM3.toFixed(1)}
                         </td>
 
                         {/* 9. Mass (Ton) */}
-                        <td className="p-3 text-right text-white font-bold">
+                        <td className="p-3 text-right text-slate-950 font-bold">
                           {((rec.levelM3 || 0) * 0.426).toFixed(2)}
                         </td>
 
                         {/* 9. Battery (%) */}
                         <td className="p-3 text-center">
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${
+                            className={`px-2 py-0.5 rounded-none text-[10px] font-bold inline-flex items-center gap-1 ${
                               (rec.battery || 75) > 50
-                                ? 'bg-emerald-500/15 text-white font-bold border border-emerald-500/30'
+                                ? 'bg-emerald-500/15 text-white font-bold border border-emerald-200'
                                 : (rec.battery || 75) > 20
-                                ? 'bg-amber-500/15 text-white font-bold border border-amber-500/30'
-                                : 'bg-red-500/15 text-white font-bold border border-red-500/30'
+                                ? 'bg-amber-500/15 text-white font-bold border border-amber-200'
+                                : 'bg-red-500/15 text-white font-bold border border-red-200'
                             }`}
                           >
                             <Battery className="w-3 h-3" />
@@ -2815,28 +2725,28 @@ export default function NiasTerminalView({
 
                         {/* 10. Pressure (MPa) with Safety Badges */}
                         <td className="p-3 text-right">
-                          <span className="font-bold text-white font-bold block">
+                          <span className="font-bold text-slate-950 font-bold block">
                             {(rec.pressureMPa || 0).toFixed(2)} MPa
                           </span>
                           {isHighPress && (
-                            <span className="px-1.5 py-0.2 rounded bg-red-500/20 text-white font-bold border border-red-500/30 text-[9px] font-bold inline-block animate-pulse">
+                            <span className="px-1.5 py-0.2 rounded bg-red-500/20 text-white font-bold border border-red-200 text-[9px] font-bold inline-block animate-pulse">
                               High (Vent Req)
                             </span>
                           )}
                           {isElevatedPress && (
-                            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-white font-bold border border-amber-500/30 text-[9px] font-bold inline-block">
+                            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-white font-bold border border-amber-200 text-[9px] font-bold inline-block">
                               Elevated
                             </span>
                           )}
                           {isNormalPress && (
-                            <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-white font-bold border border-emerald-500/30 text-[9px] font-bold inline-block">
+                            <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[9px] font-bold inline-block">
                               Normal
                             </span>
                           )}
                         </td>
 
                         {/* 11. Temp (°C) */}
-                        <td className="p-3 text-right text-white font-bold font-bold">
+                        <td className="p-3 text-right text-slate-950 font-bold font-bold">
                           {(rec.tempC || -126.5).toFixed(1)} °C
                         </td>
 
@@ -2845,16 +2755,16 @@ export default function NiasTerminalView({
                           <div className="flex flex-col items-center justify-center gap-1">
                             {(rec.depress || '').toLowerCase().includes('depress') ? (
                               <>
-                                <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-500/20 text-white font-bold border border-amber-500/40">
+                                <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-500/20 text-white font-bold border border-amber-200">
                                   {rec.depress || 'Depressurized'}
                                 </span>
                                 <div className="flex flex-col items-center">
-                                  <div className="text-[9px] text-white font-bold flex items-center gap-0.5">
+                                  <div className="text-[9px] text-slate-950 font-bold flex items-center gap-0.5">
                                     <span>{(rec.pressBeforeMPa || 0).toFixed(2)}</span>
-                                    <span className="text-white font-bold text-[8px]">➔</span>
-                                    <span className="text-white font-bold">{(rec.pressAfterMPa || 0).toFixed(2)}</span>
+                                    <span className="text-slate-950 font-bold text-[8px]">➔</span>
+                                    <span className="text-slate-950 font-bold">{(rec.pressAfterMPa || 0).toFixed(2)}</span>
                                   </div>
-                                  <span className="text-[9px] text-white font-bold font-bold">{rec.lossesKg || 0} kg</span>
+                                  <span className="text-[9px] text-slate-950 font-bold font-bold">{rec.lossesKg || 0} kg</span>
                                 </div>
                               </>
                             ) : (rec.depress || '').toLowerCase().includes('pending') ? (
@@ -2862,13 +2772,13 @@ export default function NiasTerminalView({
                                 Pending
                               </span>
                             ) : (
-                              <span className="text-white font-bold font-bold">-</span>
+                              <span className="text-slate-950 font-bold font-bold">-</span>
                             )}
                           </div>
                         </td>
 
                         {/* 14. Remarks */}
-                        <td className="p-3 font-sans text-white font-bold max-w-[180px] truncate" title={rec.remarks}>
+                        <td className="p-3 font-sans text-slate-950 font-bold max-w-[180px] truncate" title={rec.remarks}>
                           {rec.remarks || '-'}
                         </td>
 
@@ -2908,14 +2818,14 @@ export default function NiasTerminalView({
         return (
         <div className="space-y-6 animate-in fade-in duration-200">
           {/* Top Control Bar */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white shadow-none/80 border border-slate-200 rounded-none p-4 sm:p-5">
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-white font-bold flex items-center gap-2">
-                <RotateCcw className="w-4 h-4 text-white font-bold" />
-                Laydown Yard 2: Heel 4% Staging & MV. Saviour Backhaul Clearance
+              <h3 className="text-sm sm:text-base font-bold text-slate-950 font-bold flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-slate-950 font-bold" />
+                Laydown Yard 2: Heel ~1.0 m³ Staging & MV. Saviour Backhaul Clearance
               </h3>
-              <p className="text-xs text-white font-bold">
-                Exclusively collects depleted tanks from bays retaining ~350 kg cold heel (0.22 MPa, -135°C) for Arun return voyage
+              <p className="text-xs text-slate-950 font-bold">
+                Exclusively collects depleted tanks from bays retaining ~445 kg (1.0 m³) cold heel (0.22 MPa, -135°C) for Arun return voyage
               </p>
             </div>
 
@@ -2923,10 +2833,10 @@ export default function NiasTerminalView({
               type="button"
               onClick={handleAuthorizeBackhaul}
               disabled={selectedBackhaulTanks.size === 0}
-              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-none text-xs font-bold transition-all ${
                 selectedBackhaulTanks.size > 0
-                  ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/25 cursor-pointer'
-                  : 'bg-slate-800 text-white font-bold border border-slate-700 cursor-not-allowed'
+                  ? 'bg-purple-600 hover:bg-purple-500 text-slate-950 shadow-none shadow-purple-600/25 cursor-pointer'
+                  : 'bg-slate-100 text-slate-950 font-bold border border-slate-200 cursor-not-allowed'
               }`}
             >
               <Ship className="w-4 h-4" />
@@ -2936,48 +2846,48 @@ export default function NiasTerminalView({
 
           {/* Staging Summary Metric Strip */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl">
-              <span className="text-white font-bold text-xs font-bold block mb-1">Empty Heel Tanks Staged</span>
+            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
+              <span className="text-slate-950 font-bold text-xs font-bold block mb-1">Empty Heel Tanks Staged</span>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-white font-bold">{yard2TanksList.length}</span>
-                <span className="text-xs text-white font-bold">Tanks</span>
+                <span className="font-mono text-2xl font-black text-slate-950 font-bold">{yard2TanksList.length}</span>
+                <span className="text-xs text-slate-950 font-bold">Tanks</span>
               </div>
-              <span className="text-[10px] text-white font-bold">Depleted & Ready for Return</span>
+              <span className="text-[10px] text-slate-950 font-bold">Depleted & Ready for Return</span>
             </div>
 
-            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl">
-              <span className="text-white font-bold text-xs font-bold block mb-1">Avg Residual Heel Level</span>
+            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
+              <span className="text-slate-950 font-bold text-xs font-bold block mb-1">Avg Residual Heel Level</span>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-white font-bold">{avgHeelPct}%</span>
-                <span className="text-xs text-white font-bold">(~350 kg)</span>
+                <span className="font-mono text-2xl font-black text-slate-950 font-bold">1.0 m³</span>
+                <span className="text-xs text-slate-950 font-bold">(~445 kg / {avgHeelPct}%)</span>
               </div>
-              <span className="text-[10px] text-white font-bold">Cold heel preserved</span>
+              <span className="text-[10px] text-slate-950 font-bold">Cold heel preserved</span>
             </div>
 
-            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl">
-              <span className="text-white font-bold text-xs font-bold block mb-1">Avg Heel Holding Pressure</span>
+            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
+              <span className="text-slate-950 font-bold text-xs font-bold block mb-1">Avg Heel Holding Pressure</span>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-white font-bold">{zoneStats.yard2.avgPress.toFixed(2)}</span>
-                <span className="text-xs text-white font-bold">MPa</span>
+                <span className="font-mono text-2xl font-black text-slate-950 font-bold">{zoneStats.yard2.avgPress.toFixed(2)}</span>
+                <span className="text-xs text-slate-950 font-bold">MPa</span>
               </div>
-              <span className="text-[10px] text-white font-bold">Safe marine transit margin</span>
+              <span className="text-[10px] text-slate-950 font-bold">Safe marine transit margin</span>
             </div>
 
-            <div className="p-4 bg-slate-900/80 border border-purple-500/40 bg-purple-950/20 rounded-xl">
-              <span className="text-white font-bold text-xs font-bold block mb-1">Selected for Backhaul</span>
+            <div className="p-4 bg-white shadow-none/80 border border-purple-500/40 bg-purple-950/20 rounded-none">
+              <span className="text-slate-950 font-bold text-xs font-bold block mb-1">Selected for Backhaul</span>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-white font-bold">{selectedBackhaulTanks.size}</span>
-                <span className="text-xs text-white font-bold">of {yard2TanksList.length}</span>
+                <span className="font-mono text-2xl font-black text-slate-950 font-bold">{selectedBackhaulTanks.size}</span>
+                <span className="text-xs text-slate-950 font-bold">of {yard2TanksList.length}</span>
               </div>
-              <span className="text-[10px] text-white font-bold">Target: MV. Saviour (Voyage 02)</span>
+              <span className="text-[10px] text-slate-950 font-bold">Target: MV. Saviour (Voyage 02)</span>
             </div>
           </div>
 
           {/* 12-Slot Visual Return Staging Buffer */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h4 className="text-sm font-bold text-white font-bold flex items-center gap-2">
-                <RotateCcw className="w-4 h-4 text-white font-bold" />
+          <div className="bg-white shadow-none border border-slate-200 rounded-none p-5 shadow-none space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+              <h4 className="text-sm font-bold text-slate-950 font-bold flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-slate-950 font-bold" />
                 Laydown Yard 2: 12-Slot Return Buffer
               </h4>
               <div className="flex items-center gap-2">
@@ -2990,7 +2900,7 @@ export default function NiasTerminalView({
                       setSelectedBackhaulTanks(new Set(yard2TanksList.map((t) => t.id)));
                     }
                   }}
-                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-100 border border-slate-200 text-slate-950 font-bold rounded-none text-xs font-bold transition-colors cursor-pointer"
                 >
                   {selectedBackhaulTanks.size === yard2TanksList.length && yard2TanksList.length > 0 ? 'Deselect All' : 'Select All for Backhaul'}
                 </button>
@@ -2998,7 +2908,7 @@ export default function NiasTerminalView({
             </div>
 
             {yard2TanksList.length === 0 ? (
-              <div className="py-12 text-center text-white font-bold text-xs">
+              <div className="py-12 text-center text-slate-950 font-bold text-xs">
                 No empty tanks currently staged in Laydown Yard 2. Tanks will auto-cycle here as regas vaporization depletes them to ≤ 4%.
               </div>
             ) : (
@@ -3010,10 +2920,10 @@ export default function NiasTerminalView({
                     <div
                       key={tank.id}
                       onClick={() => toggleSelectBackhaulTank(tank.id)}
-                      className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                      className={`p-3.5 rounded-none border transition-all cursor-pointer flex flex-col justify-between ${
                         isSelected
-                          ? 'bg-purple-950/40 border-purple-500 ring-2 ring-purple-500/40 shadow-lg shadow-purple-500/10'
-                          : 'bg-slate-950/70 border-slate-800 hover:border-purple-500/50'
+                          ? 'bg-purple-950/40 border-purple-500 ring-2 ring-purple-500/40 shadow-none shadow-purple-500/10'
+                          : 'win-panel/70 border-slate-200 hover:border-purple-500/50'
                       }`}
                     >
                       <div>
@@ -3023,32 +2933,32 @@ export default function NiasTerminalView({
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => {}}
-                              className="rounded bg-slate-900 border-slate-700 text-white font-bold focus:ring-purple-500"
+                              className="rounded bg-white shadow-none border-slate-200 text-slate-950 font-bold focus:ring-purple-500"
                             />
-                            <span className="font-mono font-bold text-sm text-white font-bold">{tank.id}</span>
+                            <span className="font-mono font-bold text-sm text-slate-950 font-bold">{tank.id}</span>
                           </div>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-white font-bold border border-purple-500/40">
-                            HEEL 4% READY
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-slate-950 font-bold border border-purple-500/40">
+                            1.0 m³ / 445 kg
                           </span>
                         </div>
 
-                        <span className="text-[10px] font-mono text-white font-bold block mb-2">{tank.serialNo}</span>
+                        <span className="text-[10px] font-mono text-slate-950 font-bold block mb-2">{tank.serialNo}</span>
 
                         <div className="grid grid-cols-2 gap-2 text-xs font-mono mb-2">
-                          <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-                            <span className="text-[10px] text-white font-bold block">Pressure</span>
-                            <span className="text-white font-bold font-bold">{(tank.pressureMpa || 0).toFixed(2)} MPa</span>
+                          <div className="bg-white shadow-none/80 p-2 rounded border border-slate-200">
+                            <span className="text-[10px] text-slate-950 font-bold block">Pressure</span>
+                            <span className="text-slate-950 font-bold font-bold">{(tank.pressureMpa || 0).toFixed(2)} MPa</span>
                           </div>
-                          <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-                            <span className="text-[10px] text-white font-bold block">Preserved Heel</span>
-                            <span className="text-white font-bold font-bold">{tank.levelPercent}% (~350kg)</span>
+                          <div className="bg-white shadow-none/80 p-2 rounded border border-slate-200">
+                            <span className="text-[10px] text-slate-950 font-bold block">Preserved Heel</span>
+                            <span className="text-slate-950 font-bold font-bold">1.0 m³ (~445 kg)</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="text-[10px] text-white font-bold flex justify-between items-center pt-2 border-t border-slate-800/80">
+                      <div className="text-[10px] text-slate-950 font-bold flex justify-between items-center pt-2 border-t border-slate-200/80">
                         <span>Voyage: Backhaul Return</span>
-                        <span className="text-white font-bold font-bold">{isSelected ? 'Selected' : 'Click to Select'}</span>
+                        <span className="text-slate-950 font-bold font-bold">{isSelected ? 'Selected' : 'Click to Select'}</span>
                       </div>
                     </div>
                   );
@@ -3073,20 +2983,20 @@ export default function NiasTerminalView({
       {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_PROCESS_TELEMETRY' && (
         <div className="space-y-6 animate-in fade-in duration-200">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white shadow-none/80 border border-slate-200 rounded-none p-4 sm:p-5">
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-white font-bold flex items-center gap-2">
-                <Activity className="w-4 h-4 text-white font-bold" />
+              <h3 className="text-sm sm:text-base font-bold text-slate-950 font-bold flex items-center gap-2">
+                <Activity className="w-4 h-4 text-slate-950 font-bold" />
                 End-to-End Gas Process & Cryogenic State Transformation Telemetry
               </h3>
-              <p className="text-xs text-white font-bold">
+              <p className="text-xs text-slate-950 font-bold">
                 Continuous physical state tracking: HP Cryo Liquid (-126°C, 0.81 MPa) ➔ Ambient Phase Change ➔ Regulated Header (28°C, 0.35 MPa) ➔ PLTMG Turbines
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/15 text-white font-bold border border-emerald-500/30">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-bold bg-emerald-500/15 text-white font-bold border border-emerald-200">
+                <span className="w-2 h-2 rounded-none bg-emerald-400 animate-ping" />
                 Continuous Vaporization Active
               </span>
             </div>
@@ -3097,40 +3007,40 @@ export default function NiasTerminalView({
 
           {/* Detailed Sendout Gauges */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl">
-              <span className="text-[11px] text-white font-bold font-bold block mb-1">Total Daily Sendout</span>
+            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
+              <span className="text-[11px] text-slate-950 font-bold font-bold block mb-1">Total Daily Sendout</span>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-white font-bold">108,000</span>
-                <span className="text-xs text-white font-bold">Nm³/day</span>
+                <span className="font-mono text-2xl font-black text-slate-950 font-bold">108,000</span>
+                <span className="text-xs text-slate-950 font-bold">Nm³/day</span>
               </div>
-              <span className="text-[10px] text-white font-bold">Mass: 54.0 Tons LNG</span>
+              <span className="text-[10px] text-slate-950 font-bold">Mass: 54.0 Tons LNG</span>
             </div>
 
-            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl">
-              <span className="text-[11px] text-white font-bold font-bold block mb-1">Sendout Header Pressure</span>
+            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
+              <span className="text-[11px] text-slate-950 font-bold font-bold block mb-1">Sendout Header Pressure</span>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-white font-bold">0.35</span>
-                <span className="text-xs text-white font-bold">MPa (50.8 PSI)</span>
+                <span className="font-mono text-2xl font-black text-slate-950 font-bold">0.35</span>
+                <span className="text-xs text-slate-950 font-bold">MPa (50.8 PSI)</span>
               </div>
-              <span className="text-[10px] text-white font-bold">Target Turbine Regulator</span>
+              <span className="text-[10px] text-slate-950 font-bold">Target Turbine Regulator</span>
             </div>
 
-            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl">
-              <span className="text-[11px] text-white font-bold font-bold block mb-1">Sendout Gas Temperature</span>
+            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
+              <span className="text-[11px] text-slate-950 font-bold font-bold block mb-1">Sendout Gas Temperature</span>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-white font-bold">+28.4</span>
-                <span className="text-xs text-white font-bold">°C</span>
+                <span className="font-mono text-2xl font-black text-slate-950 font-bold">+28.4</span>
+                <span className="text-xs text-slate-950 font-bold">°C</span>
               </div>
-              <span className="text-[10px] text-white font-bold">Ambient Superheat Margin</span>
+              <span className="text-[10px] text-slate-950 font-bold">Ambient Superheat Margin</span>
             </div>
 
-            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl">
-              <span className="text-[11px] text-white font-bold font-bold block mb-1">Pressure Drop Across Skid</span>
+            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
+              <span className="text-[11px] text-slate-950 font-bold font-bold block mb-1">Pressure Drop Across Skid</span>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-white font-bold">0.44</span>
-                <span className="text-xs text-white font-bold">MPa ΔP</span>
+                <span className="font-mono text-2xl font-black text-slate-950 font-bold">0.44</span>
+                <span className="text-xs text-slate-950 font-bold">MPa ΔP</span>
               </div>
-              <span className="text-[10px] text-white font-bold">From 0.79 MPa Bay Inlet</span>
+              <span className="text-[10px] text-slate-950 font-bold">From 0.79 MPa Bay Inlet</span>
             </div>
           </div>
         </div>
@@ -3159,18 +3069,18 @@ export default function NiasTerminalView({
 
       {/* Quick Mount from Table Action Modal */}
       {quickMountTankNo && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 win-panel/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white shadow-none border border-slate-200 rounded-none max-w-md w-full p-6 shadow-none animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
-                <Flame className="w-5 h-5 text-white font-bold" />
+              <h3 className="text-base font-bold text-slate-950 font-bold flex items-center gap-2">
+                <Flame className="w-5 h-5 text-slate-950 font-bold" />
                 Mount {quickMountTankNo} to Vaporizer Bay
               </h3>
-              <button onClick={() => setQuickMountTankNo(null)} className="text-white font-bold hover:text-white">
+              <button onClick={() => setQuickMountTankNo(null)} className="text-slate-950 font-bold hover:text-slate-950">
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-xs text-white font-bold mb-4">
+            <p className="text-xs text-slate-950 font-bold mb-4">
               Choose which vaporizer bay to hook up {quickMountTankNo}:
             </p>
 
@@ -3184,19 +3094,19 @@ export default function NiasTerminalView({
                     setToastMessage(`Mounted ${quickMountTankNo} to ${bay.bayId}`);
                     setTimeout(() => setToastMessage(null), 3000);
                   }}
-                  className="p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500 hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors"
+                  className="p-3 rounded-none win-panel border border-slate-200 hover:border-amber-500 hover:bg-slate-100 cursor-pointer flex items-center justify-between transition-colors"
                 >
                   <div>
-                    <span className="font-bold text-sm text-white font-bold block">{bay.bayId}</span>
-                    <span className="text-[10px] text-white font-bold">
+                    <span className="font-bold text-sm text-slate-950 font-bold block">{bay.bayId}</span>
+                    <span className="text-[10px] text-slate-950 font-bold">
                       {bay.tankNo ? `Current: ${bay.tankNo} (${bay.status})` : 'Available (Empty)'}
                     </span>
                   </div>
                   <span
                     className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
                       bay.status === 'RUNNING'
-                        ? 'bg-amber-500/20 text-white font-bold border-amber-500/30'
-                        : 'bg-emerald-500/20 text-white font-bold border-emerald-500/30'
+                        ? 'bg-amber-500/20 text-white font-bold border-amber-200'
+                        : 'bg-emerald-500/20 text-white font-bold border-emerald-200'
                     }`}
                   >
                     {bay.status === 'RUNNING' ? 'In Use' : 'Ready'}
@@ -3207,7 +3117,7 @@ export default function NiasTerminalView({
 
             <button
               onClick={() => setQuickMountTankNo(null)}
-              className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-xs font-bold"
+              className="w-full py-2 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none text-xs font-bold"
             >
               Cancel
             </button>
@@ -3217,21 +3127,21 @@ export default function NiasTerminalView({
 
       {/* Mount Modal (From Bay card) */}
       {mountModalBayId && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 win-panel/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white shadow-none border border-slate-200 rounded-none max-w-lg w-full p-6 shadow-none animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
-                <PlusCircle className="w-5 h-5 text-white font-bold" />
+              <h3 className="text-base font-bold text-slate-950 font-bold flex items-center gap-2">
+                <PlusCircle className="w-5 h-5 text-slate-950 font-bold" />
                 Mount ISO Tank to {mountModalBayId}
               </h3>
               <button
                 onClick={() => setMountModalBayId(null)}
-                className="text-white font-bold hover:text-white"
+                className="text-slate-950 font-bold hover:text-slate-950"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-xs text-white font-bold mb-4">
+            <p className="text-xs text-slate-950 font-bold mb-4">
               Select an available ISO Tank from Nias Laydown Yard (Ready for Mount) or Yard 1/2:
             </p>
 
@@ -3243,16 +3153,16 @@ export default function NiasTerminalView({
                     mountTankToBay(mountModalBayId, tank.id);
                     setMountModalBayId(null);
                   }}
-                  className="p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-blue-500 hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors"
+                  className="p-3 rounded-none win-panel border border-slate-200 hover:border-blue-500 hover:bg-slate-100 cursor-pointer flex items-center justify-between transition-colors"
                 >
                   <div>
-                    <span className="font-mono font-bold text-sm text-white font-bold">{tank.id}</span>
-                    <span className="text-xs text-white font-bold font-mono ml-2">({tank.serialNo})</span>
-                    <span className="text-[10px] text-white font-bold block">{tank.currentZone}</span>
+                    <span className="font-mono font-bold text-sm text-slate-950 font-bold">{tank.id}</span>
+                    <span className="text-xs text-slate-950 font-bold font-mono ml-2">({tank.serialNo})</span>
+                    <span className="text-[10px] text-slate-950 font-bold block">{tank.currentZone}</span>
                   </div>
                   <div className="text-right text-xs font-mono">
-                    <span className="text-white font-bold font-bold block">{tank.levelPercent}% Level</span>
-                    <span className="text-white font-bold">{(tank.pressureMpa || 0).toFixed(2)} MPa</span>
+                    <span className="text-slate-950 font-bold font-bold block">{tank.levelPercent}% Level</span>
+                    <span className="text-slate-950 font-bold">{(tank.pressureMpa || 0).toFixed(2)} MPa</span>
                   </div>
                 </div>
               ))}
@@ -3260,7 +3170,7 @@ export default function NiasTerminalView({
 
             <button
               onClick={() => setMountModalBayId(null)}
-              className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-xs font-bold transition-colors"
+              className="w-full py-2 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none text-xs font-bold transition-colors"
             >
               Cancel
             </button>
@@ -3270,14 +3180,14 @@ export default function NiasTerminalView({
 
       {/* Log Bay Consumption Modal */}
       {isConsumptionModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl animate-in zoom-in-95 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 win-panel/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white shadow-none border border-slate-200 rounded-none max-w-2xl w-full p-6 shadow-none animate-in zoom-in-95 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
-                <Flame className="w-5 h-5 text-white font-bold" />
+              <h3 className="text-base font-bold text-slate-950 font-bold flex items-center gap-2">
+                <Flame className="w-5 h-5 text-slate-950 font-bold" />
                 Log PLTMG Vaporization Consumption (Arun COQ Inherited)
               </h3>
-              <button onClick={() => setIsConsumptionModalOpen(false)} className="text-white font-bold hover:text-white">
+              <button onClick={() => setIsConsumptionModalOpen(false)} className="text-slate-950 font-bold hover:text-slate-950">
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
@@ -3285,11 +3195,11 @@ export default function NiasTerminalView({
             <form onSubmit={handleConsumptionSubmit} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-white font-bold mb-1 font-bold">Active Regas Bay:</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-bold">Active Regas Bay:</label>
                   <select
                     value={conBayId}
                     onChange={(e) => setConBayId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-bold cursor-pointer"
+                    className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-bold cursor-pointer"
                   >
                     <option value="Bay 01">Bay 01</option>
                     <option value="Bay 02">Bay 02</option>
@@ -3299,11 +3209,11 @@ export default function NiasTerminalView({
                 </div>
 
                 <div>
-                  <label className="block text-white font-bold mb-1 font-bold">ISO Tank No (Mounted):</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-bold">ISO Tank No (Mounted):</label>
                   <select
                     value={conTankNo}
                     onChange={(e) => setConTankNo(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold cursor-pointer"
+                    className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-mono font-bold cursor-pointer"
                   >
                     {fleetTanks.map((t) => (
                       <option key={t.tankNo} value={t.tankNo}>
@@ -3315,97 +3225,97 @@ export default function NiasTerminalView({
               </div>
 
               {/* Inherited Arun Lab Baseline Badge Card */}
-              <div className="p-3.5 bg-slate-950 rounded-xl border border-blue-500/40 space-y-2">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
-                  <div className="flex items-center gap-1.5 text-white font-bold font-bold">
+              <div className="p-3.5 win-panel rounded-none border border-blue-500/40 space-y-2">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                  <div className="flex items-center gap-1.5 text-slate-950 font-bold font-bold">
                     <FlaskConical className="w-4 h-4" />
                     <span>Inherited Arun Lab Baseline ({conTankNo})</span>
                   </div>
-                  <span className="text-[10px] font-mono bg-blue-950 text-white font-bold px-2 py-0.5 rounded border border-blue-800">
+                  <span className="text-[10px] font-mono bg-blue-950 text-slate-950 font-bold px-2 py-0.5 rounded border border-blue-800">
                     Shipment: {linkedArunBaseline.shipment}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[11px]">
                   <div>
-                    <span className="text-white font-bold text-[10px] block">Arun Lab GHV:</span>
-                    <span className="font-bold text-white font-bold">{linkedArunBaseline.ghvBtuKg.toLocaleString()} BTU/Kg</span>
+                    <span className="text-slate-950 font-bold text-[10px] block">Arun Lab GHV:</span>
+                    <span className="font-bold text-slate-950 font-bold">{linkedArunBaseline.ghvBtuKg.toLocaleString()} BTU/Kg</span>
                   </div>
                   <div>
-                    <span className="text-white font-bold text-[10px] block">Methane (CH₄):</span>
-                    <span className="font-bold text-white font-bold">{linkedArunBaseline.methaneMolPct}% Mol</span>
+                    <span className="text-slate-950 font-bold text-[10px] block">Methane (CH₄):</span>
+                    <span className="font-bold text-slate-950 font-bold">{linkedArunBaseline.methaneMolPct}% Mol</span>
                   </div>
                   <div>
-                    <span className="text-white font-bold text-[10px] block">Delivered MMBtu:</span>
-                    <span className="font-bold text-white font-bold">{linkedArunBaseline.deliveredMMBtu.toFixed(2)} MMBtu</span>
+                    <span className="text-slate-950 font-bold text-[10px] block">Delivered MMBtu:</span>
+                    <span className="font-bold text-slate-950 font-bold">{linkedArunBaseline.deliveredMMBtu.toFixed(2)} MMBtu</span>
                   </div>
                   <div>
-                    <span className="text-white font-bold text-[10px] block">Delivered Weight:</span>
-                    <span className="font-bold text-white font-bold">{linkedArunBaseline.deliveredWeightKg.toLocaleString()} Kg</span>
+                    <span className="text-slate-950 font-bold text-[10px] block">Delivered Weight:</span>
+                    <span className="font-bold text-slate-950 font-bold">{linkedArunBaseline.deliveredWeightKg.toLocaleString()} Kg</span>
                   </div>
                 </div>
               </div>
 
               {/* Physical Consumption Measurements */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 win-panel rounded-none border border-slate-200">
                 <div>
-                  <label className="block text-white font-bold mb-1 font-sans">Consumed Weight (Kg):</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-sans">Consumed Weight (Kg):</label>
                   <input
                     type="number"
                     value={conWeightKg}
                     onChange={(e) => setConWeightKg(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white font-bold font-mono font-bold"
+                    className="w-full bg-white shadow-none border border-slate-200 rounded px-2.5 py-1.5 text-slate-950 font-bold font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-white font-bold mb-1 font-sans">Consumed Volume (m³):</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-sans">Consumed Volume (m³):</label>
                   <input
                     type="number"
                     step="0.1"
                     value={conVolumeM3}
                     onChange={(e) => setConVolumeM3(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white font-bold font-mono"
+                    className="w-full bg-white shadow-none border border-slate-200 rounded px-2.5 py-1.5 text-slate-950 font-bold font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-white font-bold mb-1 font-sans">Density (Kg/m³):</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-sans">Density (Kg/m³):</label>
                   <input
                     type="number"
                     step="0.1"
                     value={conDensity}
                     onChange={(e) => setConDensity(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white font-bold font-mono"
+                    className="w-full bg-white shadow-none border border-slate-200 rounded px-2.5 py-1.5 text-slate-950 font-bold font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-white font-bold mb-1 font-sans">BOG Losses (Kg):</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-sans">BOG Losses (Kg):</label>
                   <input
                     type="number"
                     value={conLossKg}
                     onChange={(e) => setConLossKg(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white font-bold font-mono"
+                    className="w-full bg-white shadow-none border border-slate-200 rounded px-2.5 py-1.5 text-slate-950 font-bold font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-white font-bold mb-1 font-sans">BOG Loss Rate (%):</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-sans">BOG Loss Rate (%):</label>
                   <input
                     type="number"
                     disabled
                     value={calculatedLossPct}
-                    className="w-full bg-slate-900/50 border border-slate-800 rounded px-2.5 py-1.5 text-white font-bold font-mono font-bold"
+                    className="w-full bg-white shadow-none/50 border border-slate-200 rounded px-2.5 py-1.5 text-slate-950 font-bold font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-white font-bold mb-1 font-sans">Calculated Consumed:</label>
-                  <div className="px-2.5 py-1.5 bg-slate-900 border border-amber-500/50 rounded font-mono font-bold text-white font-bold text-sm">
+                  <label className="block text-slate-950 font-bold mb-1 font-sans">Calculated Consumed:</label>
+                  <div className="px-2.5 py-1.5 bg-white shadow-none border border-amber-200 rounded font-mono font-bold text-slate-950 font-bold text-sm">
                     {calculatedConsumedMMBtu} MMBtu
                   </div>
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between text-xs font-mono">
-                <span className="text-white font-bold">Formula: (Consumed Kg × Arun GHV) / 1,000,000</span>
-                <span className="text-white font-bold font-bold">
+              <div className="p-3 bg-white shadow-none rounded-none border border-slate-200 flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-950 font-bold">Formula: (Consumed Kg × Arun GHV) / 1,000,000</span>
+                <span className="text-slate-950 font-bold font-bold">
                   ({conWeightKg.toLocaleString()} × {linkedArunBaseline.ghvBtuKg.toLocaleString()}) / 10⁶ = {calculatedConsumedMMBtu} MMBtu
                 </span>
               </div>
@@ -3414,13 +3324,13 @@ export default function NiasTerminalView({
                 <button
                   type="button"
                   onClick={() => setIsConsumptionModalOpen(false)}
-                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg font-bold"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold shadow-md shadow-amber-500/20"
+                  className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-none font-bold shadow-none shadow-amber-500/20"
                 >
                   Certify Regas & Auto-Register Settlement ({calculatedConsumedMMBtu} MMBtu)
                 </button>
@@ -3432,16 +3342,16 @@ export default function NiasTerminalView({
 
       {/* Quick MRO Modal */}
       {mroModalTankNo && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 win-panel/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white shadow-none border border-slate-200 rounded-none max-w-md w-full p-6 shadow-none animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
-                <Wrench className="w-5 h-5 text-white font-bold" />
+              <h3 className="text-base font-bold text-slate-950 font-bold flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-slate-950 font-bold" />
                 Send {mroModalTankNo} to Nias MRO Bay
               </h3>
               <button
                 onClick={() => setMroModalTankNo(null)}
-                className="text-white font-bold hover:text-white"
+                className="text-slate-950 font-bold hover:text-slate-950"
               >
                 <XCircle className="w-5 h-5" />
               </button>
@@ -3449,11 +3359,11 @@ export default function NiasTerminalView({
 
             <form onSubmit={handleMroSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-white font-bold mb-1 font-bold">Defect Classification:</label>
+                <label className="block text-slate-950 font-bold mb-1 font-bold">Defect Classification:</label>
                 <select
                   value={defectCat}
                   onChange={(e) => setDefectCat(e.target.value as DefectCategory)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500 cursor-pointer"
+                  className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold focus:outline-none focus:border-amber-500 cursor-pointer"
                 >
                   <option value="VALVE_LEAK">Valve Leak (Liquid/Gas valve packing)</option>
                   <option value="VACUUM_LOSS">Vacuum Loss (High BOG / Annular failure)</option>
@@ -3464,13 +3374,13 @@ export default function NiasTerminalView({
               </div>
 
               <div>
-                <label className="block text-white font-bold mb-1 font-bold">Defect Description:</label>
+                <label className="block text-slate-950 font-bold mb-1 font-bold">Defect Description:</label>
                 <textarea
                   value={defectDesc}
                   onChange={(e) => setDefectDesc(e.target.value)}
                   placeholder="Observed leak, pressure rise, or sensor failure..."
                   rows={3}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold focus:outline-none focus:border-amber-500"
+                  className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold focus:outline-none focus:border-amber-500"
                 />
               </div>
 
@@ -3478,13 +3388,13 @@ export default function NiasTerminalView({
                 <button
                   type="button"
                   onClick={() => setMroModalTankNo(null)}
-                  className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg font-bold"
+                  className="flex-1 py-2 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold"
+                  className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-none font-bold"
                 >
                   Route to MRO Bay
                 </button>
@@ -3496,18 +3406,18 @@ export default function NiasTerminalView({
 
       {/* Quick Slot Move Pick Modal */}
       {slotMoveModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 win-panel/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white shadow-none border border-slate-200 rounded-none max-w-md w-full p-6 shadow-none animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-white font-bold" />
+              <h3 className="text-base font-bold text-slate-950 font-bold flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-slate-950 font-bold" />
                 Allocate Tank to {slotMoveModal.targetYard} (Slot {slotMoveModal.slotIndex})
               </h3>
-              <button onClick={() => setSlotMoveModal(null)} className="text-white font-bold hover:text-white">
+              <button onClick={() => setSlotMoveModal(null)} className="text-slate-950 font-bold hover:text-slate-950">
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-xs text-white font-bold mb-4">
+            <p className="text-xs text-slate-950 font-bold mb-4">
               Select an available tank from Nias fleet to move into this slot:
             </p>
 
@@ -3521,16 +3431,16 @@ export default function NiasTerminalView({
                     setSlotMoveModal(null);
                     setTimeout(() => setToastMessage(null), 3000);
                   }}
-                  className="p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-emerald-500 hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors"
+                  className="p-3 rounded-none win-panel border border-slate-200 hover:border-emerald-500 hover:bg-slate-100 cursor-pointer flex items-center justify-between transition-colors"
                 >
                   <div>
-                    <span className="font-mono font-bold text-sm text-white font-bold">{t.id}</span>
-                    <span className="text-xs text-white font-bold font-mono ml-2">({t.serialNo})</span>
-                    <span className="text-[10px] text-white font-bold block">Current: {t.currentZone}</span>
+                    <span className="font-mono font-bold text-sm text-slate-950 font-bold">{t.id}</span>
+                    <span className="text-xs text-slate-950 font-bold font-mono ml-2">({t.serialNo})</span>
+                    <span className="text-[10px] text-slate-950 font-bold block">Current: {t.currentZone}</span>
                   </div>
                   <div className="text-right text-xs font-mono">
-                    <span className="text-white font-bold font-bold block">{(t.pressureMpa || 0).toFixed(2)} MPa</span>
-                    <span className="text-white font-bold">{t.levelPercent}% Level</span>
+                    <span className="text-slate-950 font-bold font-bold block">{(t.pressureMpa || 0).toFixed(2)} MPa</span>
+                    <span className="text-slate-950 font-bold">{t.levelPercent}% Level</span>
                   </div>
                 </div>
               ))}
@@ -3538,7 +3448,7 @@ export default function NiasTerminalView({
 
             <button
               onClick={() => setSlotMoveModal(null)}
-              className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-xs font-bold"
+              className="w-full py-2 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none text-xs font-bold"
             >
               Cancel
             </button>
@@ -3552,36 +3462,36 @@ export default function NiasTerminalView({
       {/* STAGE 2: PRE-BACKHAUL DEPARTURE INSPECTION MODAL (Laydown 3 -> Ship) */}
       {/* ==================================================================== */}
       {isBackhaulModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-xl w-full p-6 shadow-2xl animate-in zoom-in-95 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 win-panel/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white shadow-none border border-slate-200 rounded-none max-w-xl w-full p-6 shadow-none animate-in zoom-in-95 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
-                <Ship className="w-5 h-5 text-white font-bold" />
+              <h3 className="text-base font-bold text-slate-950 font-bold flex items-center gap-2">
+                <Ship className="w-5 h-5 text-slate-950 font-bold" />
                 Stage 2: Pre-Backhaul Inspection & Marine Manifest
               </h3>
               <button
                 onClick={() => setIsBackhaulModalOpen(false)}
-                className="text-white font-bold hover:text-white"
+                className="text-slate-950 font-bold hover:text-slate-950"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-white font-bold mb-4">
-              Pre-departure inspection for <span className="font-bold text-white font-bold">{selectedBackhaulTanks.size} selected heel tanks</span> before loading aboard <span className="font-bold text-white font-bold">{stage2VesselName}</span>:
+            <p className="text-xs text-slate-950 font-bold mb-4">
+              Pre-departure inspection for <span className="font-bold text-slate-950 font-bold">{selectedBackhaulTanks.size} selected heel tanks</span> before loading aboard <span className="font-bold text-slate-950 font-bold">{stage2VesselName}</span>:
             </p>
 
             <form onSubmit={handleBackhaulModalSubmit} className="space-y-4 text-xs">
               {/* Selected Tanks Pill List */}
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-white font-bold uppercase block font-bold mb-1.5">
+              <div className="p-3 win-panel rounded-none border border-slate-200">
+                <span className="text-[10px] text-slate-950 font-bold uppercase block font-bold mb-1.5">
                   Selected Tanks for Backhaul ({selectedBackhaulTanks.size})
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {Array.from(selectedBackhaulTanks).map((tNo) => (
                     <span
                       key={tNo}
-                      className="px-2 py-0.5 rounded bg-purple-950/80 border border-purple-800 text-white font-bold font-mono text-[11px] font-bold"
+                      className="px-2 py-0.5 rounded bg-purple-950/80 border border-purple-800 text-slate-950 font-bold font-mono text-[11px] font-bold"
                     >
                       {tNo}
                     </span>
@@ -3592,21 +3502,21 @@ export default function NiasTerminalView({
               {/* Manifest Metadata */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-white font-bold mb-1 font-bold">Backhaul Manifest No:</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-bold">Backhaul Manifest No:</label>
                   <input
                     type="text"
                     value={stage2ManifestNo}
                     onChange={(e) => setStage2ManifestNo(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold"
+                    className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-white font-bold mb-1 font-bold">Vessel Assignment:</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-bold">Vessel Assignment:</label>
                   <input
                     type="text"
                     value={stage2VesselName}
                     onChange={(e) => setStage2VesselName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold"
+                    className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-mono font-bold"
                   />
                 </div>
               </div>
@@ -3614,78 +3524,78 @@ export default function NiasTerminalView({
               {/* Departure Inspection Metrics */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-white font-bold mb-1 font-bold">Departure Date & Time:</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-bold">Departure Date & Time:</label>
                   <input
                     type="text"
                     value={stage2Date}
                     onChange={(e) => setStage2Date(e.target.value)}
                     placeholder="YYYY-MM-DD HH:mm"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono"
+                    className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-white font-bold mb-1 font-bold">Departure Heel Mass (Kg):</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-bold">Departure Heel Mass (Kg):</label>
                   <input
                     type="number"
                     value={stage2MassKg}
                     onChange={(e) => setStage2MassKg(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold"
+                    className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-mono font-bold"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-white font-bold mb-1 font-bold">Departure Pressure (MPa):</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-bold">Departure Pressure (MPa):</label>
                   <input
                     type="number"
                     step="0.01"
                     value={stage2PressureMPa}
                     onChange={(e) => setStage2PressureMPa(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold"
+                    className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-white font-bold mb-1 font-bold">Departure Temperature (°C):</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-bold">Departure Temperature (°C):</label>
                   <input
                     type="number"
                     step="0.5"
                     value={stage2TempC}
                     onChange={(e) => setStage2TempC(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold"
+                    className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-mono font-bold"
                   />
                 </div>
               </div>
 
               {/* Safety Clearance Checklist */}
-              <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800 space-y-2">
-                <span className="text-[10px] text-white font-bold uppercase font-bold block flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-white font-bold" /> Marine Safety Clearance Checklist (IMDG 2.1)
+              <div className="p-3.5 win-panel/80 rounded-none border border-slate-200 space-y-2">
+                <span className="text-[10px] text-slate-950 font-bold uppercase font-bold block flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-slate-950 font-bold" /> Marine Safety Clearance Checklist (IMDG 2.1)
                 </span>
-                <label className="flex items-center gap-2 text-white font-bold cursor-pointer">
+                <label className="flex items-center gap-2 text-slate-950 font-bold cursor-pointer">
                   <input
                     type="checkbox"
                     checked={stage2ValvesSealed}
                     onChange={(e) => setStage2ValvesSealed(e.target.checked)}
-                    className="rounded bg-slate-900 border-slate-700 text-white font-bold focus:ring-purple-500"
+                    className="rounded bg-white shadow-none border-slate-200 text-slate-950 font-bold focus:ring-purple-500"
                   />
                   <span>Primary liquid & vapor valves closed, capped, and blind flanges tightened</span>
                 </label>
-                <label className="flex items-center gap-2 text-white font-bold cursor-pointer">
+                <label className="flex items-center gap-2 text-slate-950 font-bold cursor-pointer">
                   <input
                     type="checkbox"
                     checked={stage2PressureWithinLimit}
                     onChange={(e) => setStage2PressureWithinLimit(e.target.checked)}
-                    className="rounded bg-slate-900 border-slate-700 text-white font-bold focus:ring-purple-500"
+                    className="rounded bg-white shadow-none border-slate-200 text-slate-950 font-bold focus:ring-purple-500"
                   />
                   <span>Holding pressure &lt; 0.40 MPa (adequate voyage safety holding margin)</span>
                 </label>
-                <label className="flex items-center gap-2 text-white font-bold cursor-pointer">
+                <label className="flex items-center gap-2 text-slate-950 font-bold cursor-pointer">
                   <input
                     type="checkbox"
                     checked={stage2VacuumIntact}
                     onChange={(e) => setStage2VacuumIntact(e.target.checked)}
-                    className="rounded bg-slate-900 border-slate-700 text-white font-bold focus:ring-purple-500"
+                    className="rounded bg-white shadow-none border-slate-200 text-slate-950 font-bold focus:ring-purple-500"
                   />
                   <span>Outer jacket vacuum insulation intact (no shell condensation / frost observed)</span>
                 </label>
@@ -3693,12 +3603,12 @@ export default function NiasTerminalView({
 
               {/* Remarks */}
               <div>
-                <label className="block text-white font-bold mb-1 font-bold">Clearance Remarks:</label>
+                <label className="block text-slate-950 font-bold mb-1 font-bold">Clearance Remarks:</label>
                 <input
                   type="text"
                   value={stage2Remarks}
                   onChange={(e) => setStage2Remarks(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold text-xs"
+                  className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold text-xs"
                 />
               </div>
 
@@ -3706,17 +3616,17 @@ export default function NiasTerminalView({
                 <button
                   type="button"
                   onClick={() => setIsBackhaulModalOpen(false)}
-                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl font-bold transition-colors"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none font-bold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!stage2ValvesSealed || !stage2PressureWithinLimit || !stage2VacuumIntact}
-                  className={`flex-1 py-2.5 rounded-xl font-bold transition-all ${
+                  className={`flex-1 py-2.5 rounded-none font-bold transition-all ${
                     stage2ValvesSealed && stage2PressureWithinLimit && stage2VacuumIntact
-                      ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/25 cursor-pointer'
-                      : 'bg-slate-800 text-white font-bold cursor-not-allowed'
+                      ? 'bg-purple-600 hover:bg-purple-500 text-slate-950 shadow-none shadow-purple-600/25 cursor-pointer'
+                      : 'bg-slate-100 text-slate-950 font-bold cursor-not-allowed'
                   }`}
                 >
                   Certify Manifest & Dispatch to Saviour
@@ -3731,37 +3641,37 @@ export default function NiasTerminalView({
       {/* METHOD A: INTERACTIVE TANK RELOCATION MODAL / DRAWER (Move Tank)     */}
       {/* ==================================================================== */}
       {relocateModalTank && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 win-panel/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white shadow-none border border-slate-200 rounded-none max-w-lg w-full p-6 shadow-none animate-in zoom-in-95 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-white font-bold flex items-center gap-2">
-                <Repeat className="w-5 h-5 text-white font-bold" />
+              <h3 className="text-base font-bold text-slate-950 font-bold flex items-center gap-2">
+                <Repeat className="w-5 h-5 text-slate-950 font-bold" />
                 <span>Relocate ISO Tank {relocateModalTank.tankNo}</span>
               </h3>
               <button
                 onClick={() => setRelocateModalTank(null)}
-                className="text-white font-bold hover:text-white"
+                className="text-slate-950 font-bold hover:text-slate-950"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-white font-bold mb-4">
-              Seamlessly reassign vessel <span className="font-bold text-white font-bold font-mono">{relocateModalTank.tankNo}</span> ({relocateModalTank.serialNo}) across physical terminal lifecycle zones:
+            <p className="text-xs text-slate-950 font-bold mb-4">
+              Seamlessly reassign vessel <span className="font-bold text-slate-950 font-bold font-mono">{relocateModalTank.tankNo}</span> ({relocateModalTank.serialNo}) across physical terminal lifecycle zones:
             </p>
 
             <form onSubmit={handleConfirmRelocation} className="space-y-4 text-xs">
               {/* Origin vs Target Preview */}
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 grid grid-cols-2 gap-3 font-mono">
+              <div className="p-3 win-panel rounded-none border border-slate-200 grid grid-cols-2 gap-3 font-mono">
                 <div>
-                  <span className="text-[10px] text-white font-bold uppercase block font-bold">Current Origin</span>
-                  <span className="font-bold text-white font-bold text-xs truncate block">
+                  <span className="text-[10px] text-slate-950 font-bold uppercase block font-bold">Current Origin</span>
+                  <span className="font-bold text-slate-950 font-bold text-xs truncate block">
                     {relocateModalTank.position || 'Nias Yard'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-white font-bold uppercase block font-bold">Target Destination</span>
-                  <span className="font-bold text-white font-bold text-xs truncate block">
+                  <span className="text-[10px] text-slate-950 font-bold uppercase block font-bold">Target Destination</span>
+                  <span className="font-bold text-slate-950 font-bold text-xs truncate block">
                     {relocateTargetZone} {relocateTargetZone.startsWith('Laydown') ? `(Slot ${relocateSlotNumber})` : ''}
                   </span>
                 </div>
@@ -3769,11 +3679,11 @@ export default function NiasTerminalView({
 
               {/* Target Destination Selector */}
               <div>
-                <label className="block text-white font-bold mb-1 font-bold">Select Destination Zone / Rack:</label>
+                <label className="block text-slate-950 font-bold mb-1 font-bold">Select Destination Zone / Rack:</label>
                 <select
                   value={relocateTargetZone}
                   onChange={(e) => setRelocateTargetZone(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-white font-bold font-bold cursor-pointer"
+                  className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-bold cursor-pointer"
                 >
                   <optgroup label="Laydown Yards (Terminal Buffer)">
                     <option value="Laydown 1">📥 Laydown Yard 1 (Receiving & BOG Buffer)</option>
@@ -3791,11 +3701,11 @@ export default function NiasTerminalView({
               {/* Slot Selector (If target is a Yard) */}
               {relocateTargetZone.startsWith('Laydown') && (
                 <div>
-                  <label className="block text-white font-bold mb-1 font-bold">Assign Slot Position (1 ~ 12):</label>
+                  <label className="block text-slate-950 font-bold mb-1 font-bold">Assign Slot Position (1 ~ 12):</label>
                   <select
                     value={relocateSlotNumber}
                     onChange={(e) => setRelocateSlotNumber(parseInt(e.target.value) || 1)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-mono font-bold cursor-pointer"
+                    className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-mono font-bold cursor-pointer"
                   >
                     {Array.from({ length: 12 }).map((_, idx) => (
                       <option key={idx + 1} value={idx + 1}>
@@ -3808,53 +3718,53 @@ export default function NiasTerminalView({
 
               {/* Laydown Yard 2 Heel Preservation Parameters */}
               {(relocateTargetZone === 'Laydown 2' || relocateTargetZone === 'Laydown 3') && (
-                <div className="p-3.5 bg-purple-950/30 border border-purple-500/40 rounded-xl space-y-3">
-                  <div className="flex items-center gap-2 text-white font-bold font-bold border-b border-purple-800/60 pb-1.5">
-                    <RotateCcw className="w-4 h-4 text-white font-bold" />
+                <div className="p-3.5 bg-purple-950/30 border border-purple-500/40 rounded-none space-y-3">
+                  <div className="flex items-center gap-2 text-slate-950 font-bold font-bold border-b border-purple-800/60 pb-1.5">
+                    <RotateCcw className="w-4 h-4 text-slate-950 font-bold" />
                     <span>Cold Heel 4% Preservation Parameters</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-white font-bold mb-1 font-bold">Preserved Heel Level (%):</label>
+                      <label className="block text-slate-950 font-bold mb-1 font-bold">Preserved Heel Level (%):</label>
                       <input
                         type="number"
                         step="0.1"
                         value={relocateHeelPct}
                         onChange={(e) => setRelocateHeelPct(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white font-bold font-mono font-bold"
+                        className="w-full bg-white shadow-none border border-slate-200 rounded-none px-3 py-1.5 text-slate-950 font-bold font-mono font-bold"
                       />
                     </div>
                     <div>
-                      <label className="block text-white font-bold mb-1 font-bold">Residual Pressure (MPa):</label>
+                      <label className="block text-slate-950 font-bold mb-1 font-bold">Residual Pressure (MPa):</label>
                       <input
                         type="number"
                         step="0.01"
                         value={relocateHeelPressMPa}
                         onChange={(e) => setRelocateHeelPressMPa(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white font-bold font-mono font-bold"
+                        className="w-full bg-white shadow-none border border-slate-200 rounded-none px-3 py-1.5 text-slate-950 font-bold font-mono font-bold"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-white font-bold mb-1 font-bold">Cryo Temp (°C):</label>
+                      <label className="block text-slate-950 font-bold mb-1 font-bold">Cryo Temp (°C):</label>
                       <input
                         type="number"
                         step="0.5"
                         value={relocateHeelTempC}
                         onChange={(e) => setRelocateHeelTempC(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white font-bold font-mono font-bold"
+                        className="w-full bg-white shadow-none border border-slate-200 rounded-none px-3 py-1.5 text-slate-950 font-bold font-mono font-bold"
                       />
                     </div>
                     <div>
-                      <label className="block text-white font-bold mb-1 font-bold">Heel Mass (Kg):</label>
+                      <label className="block text-slate-950 font-bold mb-1 font-bold">Heel Mass (Kg):</label>
                       <input
                         type="number"
                         value={relocateHeelWeightKg}
                         onChange={(e) => setRelocateHeelWeightKg(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white font-bold font-mono font-bold"
+                        className="w-full bg-white shadow-none border border-slate-200 rounded-none px-3 py-1.5 text-slate-950 font-bold font-mono font-bold"
                       />
                     </div>
                   </div>
@@ -3863,13 +3773,13 @@ export default function NiasTerminalView({
 
               {/* Remarks Input */}
               <div>
-                <label className="block text-white font-bold mb-1 font-bold">Relocation Remarks / Reason:</label>
+                <label className="block text-slate-950 font-bold mb-1 font-bold">Relocation Remarks / Reason:</label>
                 <input
                   type="text"
                   placeholder="e.g. Staged for peak evening load / Venting boil-off gas"
                   value={relocateRemarks}
                   onChange={(e) => setRelocateRemarks(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-bold font-sans"
+                  className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-sans"
                 />
               </div>
 
@@ -3878,13 +3788,13 @@ export default function NiasTerminalView({
                 <button
                   type="button"
                   onClick={() => setRelocateModalTank(null)}
-                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl font-bold transition-colors"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none font-bold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-md shadow-blue-600/25 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-none font-bold shadow-none shadow-blue-600/25 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Check className="w-4 h-4" />
                   <span>Confirm Relocation</span>

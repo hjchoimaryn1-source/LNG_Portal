@@ -26,10 +26,10 @@ export default function JakartaHQDashboard() {
         <h2 className="text-xl font-bold mb-4 text-slate-200">120 ISO Tank Fleet Status (5-Node FSM)</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {mockNodes.map((node) => (
-            <div key={node.id} className="bg-slate-900 border border-slate-700 rounded-xl p-5 flex flex-col items-center shadow-lg hover:border-slate-500 transition-colors relative overflow-hidden">
+            <div key={node.id} className="bg-slate-900 border border-slate-700 rounded-none p-5 flex flex-col items-center shadow-none hover:border-slate-500 transition-colors relative overflow-hidden">
               {/* Subtle background glow */}
               <div className="absolute inset-0 bg-gradient-to-br from-slate-800/50 to-transparent pointer-events-none" />
-              <div className="bg-slate-950/80 p-3 rounded-full mb-3 shadow-inner border border-slate-800 z-10">
+              <div className="bg-slate-950/80 p-3 rounded-none mb-3 shadow-inner border border-slate-800 z-10">
                 {node.icon}
               </div>
               <span className="text-3xl font-bold text-slate-100 mb-1 z-10">{node.count}</span>
@@ -44,8 +44,8 @@ export default function JakartaHQDashboard() {
         {/* KPI Cards */}
         <section className="flex flex-col gap-4 lg:col-span-1">
           <h2 className="text-xl font-bold mb-0 text-slate-200">Energy Reconciliation</h2>
-          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 shadow-lg flex flex-col gap-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-32 bg-blue-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+          <div className="bg-slate-900 border border-slate-700 rounded-none p-6 shadow-none flex flex-col gap-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-32 bg-blue-500/5 rounded-none blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
             
             <div>
               <h3 className="text-xs text-slate-400 uppercase tracking-wider mb-2 font-semibold">Total Delivered (Arun)</h3>
@@ -74,7 +74,7 @@ export default function JakartaHQDashboard() {
         {/* Settlement & Losses Audit Table */}
         <section className="lg:col-span-2">
           <h2 className="text-xl font-bold mb-4 text-slate-200">Settlement Ledger & Dispute Audit</h2>
-          <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-lg h-[calc(100%-2.5rem)]">
+          <div className="bg-slate-900 border border-slate-700 rounded-none overflow-hidden shadow-none h-[calc(100%-2.5rem)]">
             <div className="overflow-x-auto h-full">
               <table className="w-full text-left border-collapse min-w-max">
                 <thead>
@@ -101,11 +101,11 @@ export default function JakartaHQDashboard() {
                       </td>
                       <td className="p-4 flex justify-center">
                         {row.status === 'VERIFIED' ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wide">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wide">
                             <CheckCircle className="w-3.5 h-3.5" /> Verified
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold uppercase tracking-wide shadow-[0_0_10px_rgba(239,68,68,0.1)]">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold uppercase tracking-wide shadow-[0_0_10px_rgba(239,68,68,0.1)]">
                             <AlertTriangle className="w-3.5 h-3.5" /> Dispute Alert
                           </span>
                         )}

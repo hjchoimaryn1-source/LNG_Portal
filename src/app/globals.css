@@ -1,45 +1,258 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FFFFFF;
-  --foreground: #0f172a;
+  --background: #d4d0c8;
+  --foreground: #000000;
+  --win-gray: #d4d0c8;
+  --win-light: #ffffff;
+  --win-dark: #808080;
+  --win-darker: #404040;
+  --win-blue-start: #000080;
+  --win-blue-end: #1084d0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: 'Segoe UI', Tahoma, Arial, sans-serif;
+  --font-mono: 'Consolas', 'Courier New', ui-monospace, monospace;
 }
 
 html, body {
   min-height: 100%;
-  background-color: #FFFFFF;
-  color: #0f172a;
+  background-color: #d4d0c8;
+  color: #000000;
+  font-family: 'Segoe UI', Tahoma, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  font-size: 12px;
   overflow-x: hidden;
 }
 
-/* Custom Sleek Scrollbar for High-Density Grid & Dashboards */
+/* Classic Windows 3D Bevel Utilities */
+.win-window, .win-panel {
+  background-color: #d4d0c8;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  border-radius: 0px !important;
+}
+
+.win-panel-sunken, .win-sunken {
+  background-color: #ffffff;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  border-radius: 0px !important;
+}
+
+.win-well {
+  background-color: #e0ded8;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  border-radius: 0px !important;
+}
+
+.win-titlebar {
+  background: linear-gradient(90deg, #000080 0%, #1084d0 100%);
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 11px;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  letter-spacing: 0.3px;
+  border-radius: 0px !important;
+}
+
+.win-titlebar-inactive {
+  background: linear-gradient(90deg, #808080 0%, #b0b0b0 100%);
+  color: #d4d0c8;
+}
+
+.win-btn {
+  background-color: #d4d0c8;
+  color: #000000;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  box-shadow: inset 1px 1px 0px #ece9d8, inset -1px -1px 0px #808080;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  border-radius: 0px !important;
+  user-select: none;
+}
+
+.win-btn:active, .win-btn-pressed, .win-btn-active {
+  border-top: 2px solid #404040 !important;
+  border-left: 2px solid #404040 !important;
+  border-right: 2px solid #ffffff !important;
+  border-bottom: 2px solid #ffffff !important;
+  box-shadow: inset 1px 1px 0px #808080 !important;
+  background-color: #d0ccc4 !important;
+}
+
+.win-tab-active {
+  background-color: #d4d0c8 !important;
+  color: #000000 !important;
+  border-top: 2px solid #ffffff !important;
+  border-left: 2px solid #ffffff !important;
+  border-right: 2px solid #404040 !important;
+  border-bottom: 2px solid #d4d0c8 !important;
+  margin-bottom: -2px !important;
+  z-index: 10 !important;
+  font-weight: bold !important;
+  padding: 3px 10px !important;
+  font-size: 11px !important;
+  border-radius: 2px 2px 0 0 !important;
+}
+
+.win-tab-inactive {
+  background-color: #c4c0b8 !important;
+  color: #444444 !important;
+  border-top: 2px solid #e8e6e0 !important;
+  border-left: 2px solid #e8e6e0 !important;
+  border-right: 2px solid #808080 !important;
+  border-bottom: 2px solid #808080 !important;
+  padding: 3px 8px !important;
+  font-size: 11px !important;
+  cursor: pointer !important;
+  border-radius: 2px 2px 0 0 !important;
+}
+
+.win-tab-inactive:hover {
+  background-color: #d0ccc4 !important;
+  color: #000000 !important;
+}
+
+/* High-Density Data Grid */
+.win-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #808080;
+}
+
+.win-grid th {
+  background: #d4d0c8;
+  color: #000000;
+  border-top: 1px solid #ffffff;
+  border-left: 1px solid #ffffff;
+  border-right: 1px solid #808080;
+  border-bottom: 1px solid #808080;
+  padding: 2px 5px;
+  font-weight: bold;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  text-align: left;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.win-grid td {
+  border: 1px solid #808080;
+  padding: 1px 4px;
+  white-space: nowrap;
+}
+
+.win-grid tr:hover {
+  background-color: #000080 !important;
+  color: #ffffff !important;
+}
+.win-grid tr:hover td {
+  color: #ffffff !important;
+}
+
+.win-input {
+  background-color: #ffffff;
+  color: #000000;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  padding: 1px 4px;
+  border-radius: 0px !important;
+  outline: none;
+}
+
+.win-input:focus {
+  background-color: #ffffdd;
+}
+
+.win-input-required {
+  background-color: #fffde0 !important;
+}
+
+/* Status cell block fills */
+.win-status-ok {
+  background-color: #1b5e20 !important;
+  color: #ffffff !important;
+  font-weight: bold;
+  text-align: center;
+}
+
+.win-status-warn {
+  background-color: #f57f17 !important;
+  color: #000000 !important;
+  font-weight: bold;
+  text-align: center;
+}
+
+.win-status-alert {
+  background-color: #b71c1c !important;
+  color: #ffffff !important;
+  font-weight: bold;
+  text-align: center;
+}
+
+.win-status-info {
+  background-color: #0d47a1 !important;
+  color: #ffffff !important;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Classic Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 14px;
+  height: 14px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
-  border-radius: 4px;
+  background: #ece9d8;
+  border: 1px solid #808080;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(51, 65, 85, 0.8);
-  border-radius: 4px;
+  background: #d4d0c8;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(71, 85, 105, 1);
+::-webkit-scrollbar-thumb:active {
+  border-top: 2px solid #404040;
+  border-left: 2px solid #404040;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
 }
 
-/* Smooth transitions */
 * {
   box-sizing: border-box;
 }
