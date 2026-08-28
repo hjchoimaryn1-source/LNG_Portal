@@ -518,7 +518,7 @@ export default function ManpowerRosterView({
       Contact: m.contactNo,
       Radio: m.radioChannel,
     }));
-    exportToCSV(csvData, `NIAS_CMMS_Manpower_Roster_August_2026.csv`);
+    exportToCSV(`NIAS_CMMS_Manpower_Roster_August_2026.csv`, csvData);
   };
 
   return (

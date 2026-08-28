@@ -8,6 +8,7 @@ import { SubProcessKey } from '../types/lng';
 import { COMPANY_CONFIG, CMMS_MODULES } from '../config/siteConfig';
 import SidebarNav from './SidebarNav';
 import ArunTerminalView from './locations/ArunTerminalView';
+import ArunHeelBogLossView from './locations/arun/ArunHeelBogLossView';
 import MvSaviourView from './locations/MvSaviourView';
 import NiasTerminalView from './locations/NiasTerminalView';
 import NiasOperationalOverviewTab from './locations/nias/NiasOperationalOverviewTab';
@@ -99,6 +100,12 @@ const SUBPROCESS_TITLES: Record<
   ARUN_MASTER_HISTORY: {
     location: 'LNG-Process',
     process: 'PAGT ( Arun ) > Master History Archive',
+    icon: <Building2 className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  ARUN_HEEL_BOG_LOSS: {
+    location: 'LNG-Process',
+    process: 'PAGT ( Arun ) > Heel & BOG Loss',
     icon: <Building2 className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
@@ -729,10 +736,19 @@ function LNGPortalInner() {
 
               {/* Arun PAG Terminal */}
               {activeKey === 'ARUN_LOADING_COQ' && (
-                <ArunTerminalView initialSubTab="OPERATIONS_YARD" />
+                <ArunTerminalView
+                  initialSubTab="OPERATIONS_YARD"
+                  onNavigateToSaviourModule={() => handleSelectSubProcess('SAVIOUR_VOYAGE_MONITORING')}
+                />
               )}
               {activeKey === 'ARUN_MASTER_HISTORY' && (
-                <ArunTerminalView initialSubTab="MASTER_HISTORY_SHEET" />
+                <ArunTerminalView
+                  initialSubTab="MASTER_HISTORY_SHEET"
+                  onNavigateToSaviourModule={() => handleSelectSubProcess('SAVIOUR_VOYAGE_MONITORING')}
+                />
+              )}
+              {activeKey === 'ARUN_HEEL_BOG_LOSS' && (
+                <ArunHeelBogLossView />
               )}
 
               {/* MV. Saviour Transit */}

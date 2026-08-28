@@ -19,10 +19,26 @@ export interface KpiMetrics {
 }
 
 interface KpiSummaryStripProps {
-  kpis: KpiMetrics;
+  kpis?: KpiMetrics;
 }
 
-export default function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
+const DEFAULT_KPIS: KpiMetrics = {
+  unitCountLabel: '0 / 0 Units',
+  selectedCount: 0,
+  totalCount: 0,
+  totalPreLoadMassTon: '0.00 t',
+  totalBufferVolumeM3: '0.0 m³',
+  avgHeelVolumeM3: '0.00 m³',
+  avgHeelLevelPct: '0.0%',
+  avgHeelMassKg: '0 kg',
+  avgTempC: '-160.0 °C',
+  avgPressureMPa: '0.00 MPa',
+  pressureRange: '0.00 ~ 0.00 MPa',
+  isSelectionActive: false,
+};
+
+export default function KpiSummaryStrip({ kpis = DEFAULT_KPIS }: KpiSummaryStripProps) {
+  const safeKpis = kpis || DEFAULT_KPIS;
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
       {/* Card 1: 1. EMPTY STAGED */}
@@ -33,24 +49,24 @@ export default function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
           </span>
           <span
             className={`w-2 h-2 rounded-full inline-block ${
-              kpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'
+              safeKpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'
             }`}
           />
         </div>
         <div className="p-2.5 space-y-1.5 font-mono text-[11px] text-slate-800 bg-white">
           <div className="flex justify-between border-b border-slate-100 pb-0.5">
             <span className="text-slate-600 font-bold">
-              {kpis.isSelectionActive ? 'Selected Units:' : 'Yard Inventory:'}
+              {safeKpis.isSelectionActive ? 'Selected Units:' : 'Yard Inventory:'}
             </span>
-            <strong className="text-slate-950 font-black">{kpis.unitCountLabel}</strong>
+            <strong className="text-slate-950 font-black">{safeKpis.unitCountLabel}</strong>
           </div>
           <div className="flex justify-between border-b border-slate-100 pb-0.5">
             <span className="text-slate-600 font-bold">Total Pre-Load Mass:</span>
-            <strong className="text-blue-900 font-black">{kpis.totalPreLoadMassTon}</strong>
+            <strong className="text-blue-900 font-black">{safeKpis.totalPreLoadMassTon}</strong>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-600 font-bold">Heel Buffer Volume:</span>
-            <strong className="text-emerald-700 font-bold">{kpis.totalBufferVolumeM3 || '0.0 m³'}</strong>
+            <strong className="text-emerald-700 font-bold">{safeKpis.totalBufferVolumeM3 || '0.0 m³'}</strong>
           </div>
         </div>
       </div>
@@ -63,7 +79,7 @@ export default function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
           </span>
           <span
             className={`w-2 h-2 rounded-full inline-block ${
-              kpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'
+              safeKpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'
             }`}
           />
         </div>
@@ -71,13 +87,13 @@ export default function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
           <div className="flex justify-between border-b border-slate-100 pb-0.5">
             <span className="text-slate-600 font-bold">Avg Heel Level:</span>
             <strong className="text-slate-950 font-black">
-              {kpis.avgHeelVolumeM3 || '1.00 m³'} (~{kpis.avgHeelMassKg})
+              {safeKpis.avgHeelVolumeM3 || '1.00 m³'} (~{safeKpis.avgHeelMassKg})
             </strong>
           </div>
           <div className="flex justify-between border-b border-slate-100 pb-0.5">
             <span className="text-slate-600 font-bold">Holding Temp:</span>
             <strong className="text-slate-950 font-bold">
-              {kpis.avgTempC} (Cryo Intact)
+              {safeKpis.avgTempC} (Cryo Intact)
             </strong>
           </div>
           <div className="flex justify-between">
@@ -95,18 +111,18 @@ export default function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
           </span>
           <span
             className={`w-2 h-2 rounded-full inline-block ${
-              kpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'
+              safeKpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'
             }`}
           />
         </div>
         <div className="p-2.5 space-y-1.5 font-mono text-[11px] text-slate-800 bg-white">
           <div className="flex justify-between border-b border-slate-100 pb-0.5">
             <span className="text-slate-600 font-bold">Avg Pressure:</span>
-            <strong className="text-slate-950 font-black">{kpis.avgPressureMPa}</strong>
+            <strong className="text-slate-950 font-black">{safeKpis.avgPressureMPa}</strong>
           </div>
           <div className="flex justify-between border-b border-slate-100 pb-0.5">
             <span className="text-slate-600 font-bold">Pressure Range:</span>
-            <strong className="text-slate-950 font-bold">{kpis.pressureRange}</strong>
+            <strong className="text-slate-950 font-bold">{safeKpis.pressureRange}</strong>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-600 font-bold">Venting Status:</span>
@@ -123,7 +139,7 @@ export default function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
           </span>
           <span
             className={`w-2 h-2 rounded-full inline-block ${
-              kpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'
+              safeKpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'
             }`}
           />
         </div>
@@ -131,9 +147,9 @@ export default function KpiSummaryStrip({ kpis }: KpiSummaryStripProps) {
           <div className="flex justify-between border-b border-slate-100 pb-0.5">
             <span className="text-slate-600 font-bold">Ready Units:</span>
             <strong className="text-emerald-700 font-black">
-              {kpis.selectedCount > 0
-                ? `${kpis.selectedCount} / ${kpis.totalCount} Selected`
-                : `${kpis.totalCount} / ${kpis.totalCount} Tanks Ready`}
+              {safeKpis.selectedCount > 0
+                ? `${safeKpis.selectedCount} / ${safeKpis.totalCount} Selected`
+                : `${safeKpis.totalCount} / ${safeKpis.totalCount} Tanks Ready`}
             </strong>
           </div>
           <div className="flex justify-between border-b border-slate-100 pb-0.5">

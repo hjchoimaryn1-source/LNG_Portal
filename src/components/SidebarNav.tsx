@@ -198,17 +198,17 @@ export default function SidebarNav({
                           </button>
 
                           <button
-                            onClick={() => handleItemClick('ARUN_MASTER_HISTORY')}
+                            onClick={() => handleItemClick('ARUN_HEEL_BOG_LOSS')}
                             className={`w-full flex items-center justify-between pl-11 pr-2 py-0.5 text-[11px] text-left transition-colors ${
-                              activeKey === 'ARUN_MASTER_HISTORY'
+                              activeKey === 'ARUN_HEEL_BOG_LOSS'
                                 ? 'bg-[#0a2558] text-white font-bold'
                                 : 'text-slate-800 hover:bg-slate-200'
                             }`}
                           >
-                            <span>Master History Archive</span>
+                            <span>Heel &amp; BOG Loss</span>
                             <span
                               className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
-                                activeKey === 'ARUN_MASTER_HISTORY' ? 'text-white' : 'text-slate-500'
+                                activeKey === 'ARUN_HEEL_BOG_LOSS' ? 'text-white' : 'text-slate-500'
                               }`}
                             >
                               {counts.masterHistoryCount}

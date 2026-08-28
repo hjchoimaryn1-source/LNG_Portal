@@ -7,21 +7,23 @@ import HeaderNavigation, { ArunSubTab } from '../HeaderNavigation';
 import KpiSummaryStrip from '../KpiSummaryStrip';
 import ArunFieldTable from '../ArunFieldTable';
 import AuditModal from '../AuditModal';
-import ArunLoadingCoqTab from './arun/ArunLoadingCoqTab';
-import ArunLabSpecTab from './arun/ArunLabSpecTab';
+import ArunCustodyCoqTab from './arun/ArunCustodyCoqTab';
+import ArunLoadingTab from './arun/ArunLoadingTab';
 import ArunMasterHistoryTab from './arun/ArunMasterHistoryTab';
 import { useArunLogistics } from '../../hooks/useArunLogistics';
 
 interface ArunTerminalViewProps {
   initialSubTab?: ArunSubTab | 'LOADING_COQ' | 'STAGING_YARD';
+  onNavigateToSaviourModule?: () => void;
 }
 
 export default function ArunTerminalView({
   initialSubTab = 'OPERATIONS_YARD',
+  onNavigateToSaviourModule,
 }: ArunTerminalViewProps) {
   const normalizedInitialTab: ArunSubTab =
     initialSubTab === 'LOADING_COQ'
-      ? 'LOADING_COQ_ENTRY'
+      ? 'CUSTODY_COQ'
       : initialSubTab === 'STAGING_YARD'
       ? 'OPERATIONS_YARD'
       : initialSubTab;
@@ -30,6 +32,10 @@ export default function ArunTerminalView({
     fleetTanks = [],
     certificateRecords = [],
     activeBatchRecords = [],
+    setActiveBatchRecords,
+    tab3LoadingRecords = [],
+    setTab3LoadingRecords,
+    handleTransferTab2ToTab3,
     activeTab,
     setActiveTab,
     logisticsMode,
@@ -48,53 +54,43 @@ export default function ArunTerminalView({
     selectAllSaviour,
     handleDischargeToArunYard,
     handleProceedToLoad,
-    addDeliveredMeasurement,
-    stagedForLoadingTankNos,
-    activeCandidateTankNo,
     selectedHeelAuditTankNo,
     setSelectedHeelAuditTankNo,
-    toastMessage,
     triggerToast,
+    stagedForLoadingTankNos,
+    activeCandidateTankNo,
+    addDeliveredMeasurement,
     tab1ReactiveKPIs,
   } = useArunLogistics(normalizedInitialTab);
 
   return (
-    <div className="flex flex-col gap-4 w-full text-slate-900 font-bold pb-8">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 px-3 py-1.5 bg-[#0a2558] border border-blue-400 text-white font-bold rounded-none shadow-xl animate-in fade-in slide-in-from-top-4">
-          <CheckCircle2 className="w-4 h-4 text-cyan-400" />
-          <span className="text-xs font-mono">{toastMessage}</span>
-        </div>
-      )}
-
-      {/* Main Header & 4 Sub-Tabs Navigation */}
+    <div className="h-full flex flex-col min-h-0 gap-2 w-full text-slate-900 font-bold overflow-hidden select-none">
+      {/* Sub-Tab Navigation Strip */}
       <HeaderNavigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        certificateCount={certificateRecords?.length || 0}
+        certificateCount={certificateRecords.length + activeBatchRecords.length}
       />
 
+      {/* KPI Summary Strip: field-only heel metrics */}
+      {activeTab === 'OPERATIONS_YARD' && <KpiSummaryStrip kpis={tab1ReactiveKPIs} />}
+
       {/* ==================================================================== */}
-      {/* TAB 1: FIELD & HEEL (M/V Saviour Offload & Field Heel Staging Hub)    */}
+      {/* TAB 1: FIELD & HEEL YARD MANAGEMENT                                  */}
       {/* ==================================================================== */}
       {activeTab === 'OPERATIONS_YARD' && (
-        <div className="space-y-4 animate-in fade-in duration-200">
-          {/* Top 4 SCADA KPI Cards (Deep Blue Header Strip & Soft Blue/White Text) - 100% Reactive */}
-          <KpiSummaryStrip kpis={tab1ReactiveKPIs} />
-
-          {/* Arun ISO Tank Condition Fleet Table */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <ArunFieldTable
             logisticsMode={logisticsMode}
             setLogisticsMode={setLogisticsMode}
             yardSearch={yardSearch}
             setYardSearch={setYardSearch}
-            saviourCandidateTanks={saviourCandidateTanks || []}
-            arunYardTanks={arunYardTanks || []}
-            filteredYardTanks={filteredYardTanks || []}
-            filteredSaviourTanks={filteredSaviourTanks || []}
-            selectedYardTanks={selectedYardTanks || new Set()}
-            selectedSaviourTanks={selectedSaviourTanks || new Set()}
+            saviourCandidateTanks={saviourCandidateTanks}
+            arunYardTanks={arunYardTanks}
+            filteredYardTanks={filteredYardTanks}
+            filteredSaviourTanks={filteredSaviourTanks}
+            selectedYardTanks={selectedYardTanks}
+            selectedSaviourTanks={selectedSaviourTanks}
             toggleSelectYardTank={toggleSelectYardTank}
             toggleSelectSaviourTank={toggleSelectSaviourTank}
             selectAllYard={selectAllYard}
@@ -108,22 +104,37 @@ export default function ArunTerminalView({
       )}
 
       {/* ==================================================================== */}
-      {/* TAB 2: LOADING & COQ CONSOLE (FULL-PAGE INTEGRATED CONSOLE)          */}
+      {/* TAB 2: CUSTODY & COQ CONSOLE (WEIGHBRIDGE & LAB GC CERTIFICATION)    */}
       {/* ==================================================================== */}
-      {activeTab === 'LOADING_COQ_ENTRY' && (
-        <ArunLoadingCoqTab
+      {(activeTab === 'CUSTODY_COQ' || activeTab === 'LOADING_COQ_ENTRY') && (
+        <ArunCustodyCoqTab
           onSuccessToast={triggerToast}
           activeBatchRecords={activeBatchRecords || []}
+          setActiveBatchRecords={setActiveBatchRecords}
           addDeliveredMeasurement={addDeliveredMeasurement}
           activeCandidateTankNo={activeCandidateTankNo}
           stagedForLoadingTankNos={stagedForLoadingTankNos}
+          onProceedToLoading={handleTransferTab2ToTab3}
+          onProceedToVesselStowage={handleTransferTab2ToTab3}
         />
       )}
 
       {/* ==================================================================== */}
-      {/* TAB 3: LAB GAS SPECIFICATION (Quality & Molecular Archive)           */}
+      {/* TAB 3: LOADING (MV. SAVIOUR VESSEL DECK LOADING & MANIFEST CONSOLE)  */}
       {/* ==================================================================== */}
-      {activeTab === 'LAB_COQ_SPEC' && <ArunLabSpecTab />}
+      {(activeTab === 'VESSEL_LOADING' ||
+        activeTab === 'SAVIOR_STOWAGE' ||
+        activeTab === 'ARUN_DISPATCH' ||
+        activeTab === 'LAB_COQ_SPEC') && (
+        <ArunLoadingTab
+          activeBatchRecords={tab3LoadingRecords || []}
+          setActiveBatchRecords={setTab3LoadingRecords}
+          onSuccessToast={triggerToast}
+          onNavigateToLedger={() => {
+            setActiveTab('MASTER_HISTORY_SHEET');
+          }}
+        />
+      )}
 
       {/* ==================================================================== */}
       {/* TAB 4: MASTER CUSTODY LEDGER (Dual-Mode: Custody Energy / Calib)      */}

@@ -5,16 +5,18 @@ import { useState, useMemo, useCallback } from 'react';
 import { usePortalData } from '../context/PortalDataContext';
 import { NodeState } from '../types/lng';
 import { ArunSubTab } from '../components/HeaderNavigation';
-import { FleetTankItem } from '../data/mockTankData';
+import { FleetTankItem, getTankPhysicalMetrics } from '../data/mockTankData';
 import { computeTab1ReactiveKPIs, sortTanksNaturally } from '../utils/scadaCalculations';
 
 export function useArunLogistics(initialSubTab: ArunSubTab = 'OPERATIONS_YARD') {
   const portalData = usePortalData() || {};
   const fleetTanks: FleetTankItem[] = sortTanksNaturally(portalData.fleetTanks || []);
   const batchTransitionTanks = portalData.batchTransitionTanks || (() => {});
-  const certificateRecords = portalData.certificateRecords || [];
-  // Active Batch Certified Records
+  const certificateRecords = (portalData as any).certificateRecords || portalData.settlementRecords || [];
+  // Active Batch Certified Records (Tab 2)
   const [activeBatchRecords, setActiveBatchRecords] = useState<any[]>([]);
+  // Tab 3 Vessel Deck Loading Manifest Records (Tab 3)
+  const [tab3LoadingRecords, setTab3LoadingRecords] = useState<any[]>([]);
 
   const addDeliveredMeasurement = useCallback((record: any, coq?: any) => {
     setActiveBatchRecords((prev) => {
@@ -80,7 +82,7 @@ export function useArunLogistics(initialSubTab: ArunSubTab = 'OPERATIONS_YARD') 
     if (!Array.isArray(fleetTanks)) return [];
     const list = fleetTanks.filter(
       (t) =>
-        t.node === NodeState.NODE_2_M_V_SAVIOUR ||
+        t.node === NodeState.NODE_2_MV_SAVIOUR_TRANSIT ||
         (t.location && t.location.includes('Saviour')) ||
         (t.position && t.position.includes('M/V Saviour'))
     );
@@ -98,12 +100,13 @@ export function useArunLogistics(initialSubTab: ArunSubTab = 'OPERATIONS_YARD') 
       const isStagedOrCertified =
         stagedForLoadingTankNos.has(t.tankNo) ||
         activeBatchRecords.some((r) => r.tankNo === t.tankNo) ||
+        tab3LoadingRecords.some((r) => r.tankNo === t.tankNo) ||
         t.position === 'ARUN_STAGED_FOR_DEPARTURE';
 
       return isArun && !isStagedOrCertified;
     });
     return sortTanksNaturally(list);
-  }, [fleetTanks, stagedForLoadingTankNos, activeBatchRecords]);
+  }, [fleetTanks, stagedForLoadingTankNos, activeBatchRecords, tab3LoadingRecords]);
 
   // Quick Filtered Tank Lists (Strict Natural Sort)
   const filteredYardTanks = useMemo<FleetTankItem[]>(() => {
@@ -184,24 +187,144 @@ export function useArunLogistics(initialSubTab: ArunSubTab = 'OPERATIONS_YARD') 
     setLogisticsMode('STAGED_ARUN');
   }, [selectedSaviourTanks, batchTransitionTanks, triggerToast]);
 
-  const handleProceedToLoad = useCallback(() => {
-    if (selectedYardTanks.size === 0) return;
-    const selectedArray = Array.from(selectedYardTanks);
+  const handleProceedToLoad = useCallback(
+    (tankStatusMap?: Record<string, string>) => {
+      if (selectedYardTanks.size === 0) return;
+      const selectedArray = Array.from(selectedYardTanks);
+      const readyTankNos = selectedArray.filter((tankNo) => (tankStatusMap?.[tankNo] || 'READY') === 'READY');
+      const repairTankNos = selectedArray.filter((tankNo) => tankStatusMap?.[tankNo] === 'REPAIR');
 
-    setStagedForLoadingTankNos((prev) => {
-      const next = new Set(prev);
-      selectedArray.forEach((t) => next.add(t));
-      return next;
-    });
+      const hasReady = readyTankNos.length > 0;
+      const hasRepair = repairTankNos.length > 0;
 
-    if (selectedArray.length > 0) {
-      setActiveCandidateTankNo(selectedArray[0]);
-    }
+      // 1. Ready 탱크들: Tab 2 (Custody & COQ) 충전/인증 대기열(stagedForLoadingTanks)로 등록
+      if (hasReady) {
+        setStagedForLoadingTankNos((prev) => {
+          const next = new Set(prev);
+          readyTankNos.forEach((t) => next.add(t));
+          return next;
+        });
+        setActiveCandidateTankNo(readyTankNos[0]);
+      }
 
-    triggerToast(`Staged ${selectedArray.length} ISO tanks for Batch Loading in Console.`);
-    setSelectedYardTanks(new Set());
-    setActiveTab('LOADING_COQ_ENTRY');
-  }, [selectedYardTanks, triggerToast]);
+      // 2. Repair 탱크들: Tab 2를 건너뛰고 Tab 3 (Loading) 선적 목록에 직접 주입
+      // (Gross = PreLoadTare, Net Mass = 0 kg, Energy = 0.00 MMBtu, Status = Repair)
+      if (hasRepair) {
+        const repairRecords = repairTankNos.map((tankNo) => {
+          const tank = fleetTanks.find((item) => item.tankNo === tankNo);
+          const metrics = getTankPhysicalMetrics(tankNo, tank?.serialNo || '');
+          const dryTare = tank?.arrivalHeelMetrics?.tareWeightKg || metrics.dryTareKg;
+          const heelMass = tank?.arrivalHeelMetrics?.arrivalMassKg || metrics.heelMassKg;
+          const preLoadTare = dryTare + heelMass;
+
+          return {
+            tankNo,
+            serialNo: tank?.serialNo || 'N/A',
+            cargoNo: tank?.cargoNo || `REPAIR-${tankNo}`,
+            tareKg: preLoadTare,
+            grossKg: preLoadTare, // Gross = PreLoadTare
+            netMassKg: 0,        // Net Mass = 0 kg
+            deliveredWeightKg: 0,
+            deliveredVolumeM3: 0,
+            netVolM3: 0,
+            deliveredMmbtu: 0,  // Energy = 0.00 MMBtu
+            deliveredMMBtu: 0,
+            energyMMBtu: 0,
+            densityKgM3: 0,
+            liquidTempC: tank?.tempC || metrics.tempC || 0,
+            pressureMPa: tank?.pressureMPa || metrics.pressureMPa || 0,
+            status: 'Repair',   // Status = Repair
+            repairStatus: 'EMPTY / REPAIR',
+            source: 'DIRECT_REPAIR_ROUTE',
+            batchId: 'Batch N-2',
+            shipment: 'N-2',
+            ghvBtuScf: 0,
+            deliveredGHV: 0,
+          };
+        });
+
+        setTab3LoadingRecords((prev) => {
+          const merged = [...prev];
+          repairRecords.forEach((record) => {
+            const existingIndex = merged.findIndex((item) => item.tankNo === record.tankNo);
+            if (existingIndex >= 0) {
+              merged[existingIndex] = { ...merged[existingIndex], ...record };
+            } else {
+              merged.push(record);
+            }
+          });
+          return merged;
+        });
+      }
+
+      // 3. 전송 후: Tab 1 야드 목록에서 전송된 탱크 제거 / 선택 해제
+      setSelectedYardTanks(new Set());
+
+      // 4. 라우팅 & Toast 알림 로직
+      if (hasReady && hasRepair) {
+        // 둘 다 섞여 있을 경우 알림 토스트 표시 후 기본 Tab 2로 이동
+        triggerToast(
+          `Transferred ${readyTankNos.length} Ready tank(s) to Tab 2 (Custody & COQ) & ${repairTankNos.length} Repair tank(s) to Tab 3 (Loading).`
+        );
+        setActiveTab('CUSTODY_COQ');
+      } else if (hasReady) {
+        // Ready 탱크가 포함되어 있다면 Tab 2 (Custody & COQ)로 화면 이동
+        triggerToast(`Staged ${readyTankNos.length} Ready ISO tank(s) for Custody & COQ.`);
+        setActiveTab('CUSTODY_COQ');
+      } else if (hasRepair) {
+        // Repair 탱크만 있다면 Tab 3 (Loading)으로 화면 이동
+        triggerToast(`Injected ${repairTankNos.length} Repair ISO tank(s) directly to Loading (Tab 3).`);
+        setActiveTab('VESSEL_LOADING');
+      }
+    },
+    [selectedYardTanks, fleetTanks, triggerToast, setActiveTab]
+  );
+
+  // Tab 2 -> Tab 3 Selective FIFO Pipeline Transfer & Tab 2 Ledger Cleanup
+  const handleTransferTab2ToTab3 = useCallback(
+    (recordsToTransfer?: any[]) => {
+      const targets = Array.isArray(recordsToTransfer) && recordsToTransfer.length > 0
+        ? recordsToTransfer
+        : activeBatchRecords;
+
+      if (!targets || targets.length === 0) return;
+
+      const transferredTankNos = new Set(targets.map((r) => r.tankNo));
+
+      // 1. Append selected tanks to Tab 3 manifest queue
+      setTab3LoadingRecords((prev) => {
+        const merged = [...prev];
+        targets.forEach((record) => {
+          const existingIndex = merged.findIndex((item) => item.tankNo === record.tankNo);
+          if (existingIndex >= 0) {
+            merged[existingIndex] = { ...merged[existingIndex], ...record };
+          } else {
+            merged.push(record);
+          }
+        });
+        return merged;
+      });
+
+      // 2. Remove ONLY transferred tanks from Tab 2 activeBatchRecords (unselected tanks remain in Tab 2)
+      setActiveBatchRecords((prev) => prev.filter((r) => !transferredTankNos.has(r.tankNo)));
+
+      // 3. Clear transferred tanks from Tab 2 candidate queue (stagedForLoadingTankNos)
+      setStagedForLoadingTankNos((prev) => {
+        const next = new Set(prev);
+        transferredTankNos.forEach((tankNo) => next.delete(tankNo));
+        return next;
+      });
+
+      setActiveCandidateTankNo(null);
+
+      // 4. Toast notification & switch to Tab 3
+      triggerToast(
+        `Transferred ${targets.length} selected tank(s) to Tab 3 (Loading).`
+      );
+      setActiveTab('VESSEL_LOADING');
+    },
+    [activeBatchRecords, triggerToast, setActiveTab]
+  );
 
   // Reactive KPI Calculations for Tab 1
   const tab1ReactiveKPIs = useMemo(() => {
@@ -277,8 +400,12 @@ export function useArunLogistics(initialSubTab: ArunSubTab = 'OPERATIONS_YARD') 
     // Actions
     handleDischargeToArunYard,
     handleProceedToLoad,
+    handleSend: handleProceedToLoad,
+    handleTransferTab2ToTab3,
     addDeliveredMeasurement,
     setActiveBatchRecords,
+    tab3LoadingRecords,
+    setTab3LoadingRecords,
     // Staged Loading Queue
     stagedForLoadingTankNos,
     activeCandidateTankNo,

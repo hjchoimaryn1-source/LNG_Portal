@@ -98,8 +98,8 @@ export default function ArunLabSpecTab() {
 
   const handleExportCOQ = () => {
     exportToCSV(
-      filteredCOQRecords,
-      `PAGT_Arun_COQ_Lab_Specification_${coqShipmentFilter}_${new Date().toISOString().split('T')[0]}`
+      `PAGT_Arun_COQ_Lab_Specification_${coqShipmentFilter}_${new Date().toISOString().split('T')[0]}`,
+      filteredCOQRecords
     );
   };
 

@@ -17,17 +17,18 @@ import {
   Compass,
   Battery,
   Wrench,
-  XCircle,
-  RotateCcw,
   PlusCircle,
   Download,
+  RotateCcw,
+  XCircle,
 } from 'lucide-react';
+import SaviorStowageTab from './saviour/SaviorStowageTab';
 
 interface MvSaviourViewProps {
-  initialSubTab?: 'VOYAGE_MONITORING' | 'MARINE_PRESSURE';
+  initialSubTab?: 'DECK_STOWAGE' | 'VOYAGE_MONITORING' | 'MARINE_PRESSURE';
 }
 
-export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: MvSaviourViewProps) {
+export default function MvSaviourView({ initialSubTab = 'DECK_STOWAGE' }: MvSaviourViewProps) {
   const {
     fleetTanks,
     batchTransitionTanks,
@@ -37,7 +38,7 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
     addDailyMasterLog,
   } = usePortalData();
 
-  const [subTab, setSubTab] = useState<'VOYAGE_MONITORING' | 'MARINE_PRESSURE'>(initialSubTab);
+  const [subTab, setSubTab] = useState<'DECK_STOWAGE' | 'VOYAGE_MONITORING' | 'MARINE_PRESSURE'>(initialSubTab);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTanks, setSelectedTanks] = useState<Set<string>>(new Set());
   const [mroModalTankNo, setMroModalTankNo] = useState<string | null>(null);
@@ -215,10 +216,19 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
           </button>
 
           {/* Sub-Tabs Selector */}
-          <div className="flex items-center bg-slate-50 p-1 rounded-none border border-slate-200 text-xs font-bold">
+          <div className="flex items-center bg-slate-50 p-1 rounded-none border border-slate-200 text-xs font-bold overflow-x-auto">
+            <button
+              onClick={() => setSubTab('DECK_STOWAGE')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none transition-all cursor-pointer ${
+                subTab === 'DECK_STOWAGE' ? 'win-tab-active' : 'win-tab-inactive'
+              }`}
+            >
+              <Ship className="w-4 h-4" />
+              <span>Deck Stowage &amp; Manifest</span>
+            </button>
             <button
               onClick={() => setSubTab('VOYAGE_MONITORING')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none transition-all cursor-pointer ${
                 subTab === 'VOYAGE_MONITORING' ? 'win-tab-active' : 'win-tab-inactive'
               }`}
             >
@@ -227,7 +237,7 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
             </button>
             <button
               onClick={() => setSubTab('MARINE_PRESSURE')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none transition-all cursor-pointer ${
                 subTab === 'MARINE_PRESSURE' ? 'win-tab-active' : 'win-tab-inactive'
               }`}
             >
@@ -238,102 +248,118 @@ export default function MvSaviourView({ initialSubTab = 'VOYAGE_MONITORING' }: M
         </div>
       </section>
 
-      {/* Voyage Telemetry Status Card */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white shadow-none/70 border border-slate-200 rounded-none p-4 sm:p-5 shadow-none">
-          <span className="text-[11px] font-bold uppercase text-slate-900 font-bold block mb-1">
-            Vessel & Route
-          </span>
-          <span className="text-lg font-bold text-slate-900 font-bold block mb-1">MV. SAVIOUR (LCT)</span>
-          <span className="text-xs text-slate-900 font-bold">Arun PAG ➔ Nias Island Jetty</span>
-        </div>
+      {/* Voyage Telemetry Status Cards (Shown only for Voyage Monitoring & Marine Pressure tabs) */}
+      {subTab !== 'DECK_STOWAGE' && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white shadow-none/70 border border-slate-200 rounded-none p-4 sm:p-5 shadow-none">
+              <span className="text-[11px] font-bold uppercase text-slate-900 font-bold block mb-1">
+                Vessel & Route
+              </span>
+              <span className="text-lg font-bold text-slate-900 font-bold block mb-1">MV. SAVIOUR (LCT)</span>
+              <span className="text-xs text-slate-900 font-bold">Arun PAG ➔ Nias Island Jetty</span>
+            </div>
 
-        <div className="bg-white shadow-none/70 border border-slate-200 rounded-none p-4 sm:p-5 shadow-none">
-          <span className="text-[11px] font-bold uppercase text-slate-900 font-bold block mb-1">
-            Sailing Cargo Volume
-          </span>
-          <div className="flex items-baseline gap-1.5 mb-1">
-            <span className="text-2xl font-bold font-mono text-slate-900 font-bold">{sailingTanks.length}</span>
-            <span className="text-xs text-slate-900 font-bold font-mono">ISO Tanks On Deck</span>
+            <div className="bg-white shadow-none/70 border border-slate-200 rounded-none p-4 sm:p-5 shadow-none">
+              <span className="text-[11px] font-bold uppercase text-slate-900 font-bold block mb-1">
+                Sailing Cargo Volume
+              </span>
+              <div className="flex items-baseline gap-1.5 mb-1">
+                <span className="text-2xl font-bold font-mono text-slate-900 font-bold">{sailingTanks.length}</span>
+                <span className="text-xs text-slate-900 font-bold font-mono">ISO Tanks On Deck</span>
+              </div>
+              <span className="text-xs text-slate-900 font-bold font-mono">~{(sailingTanks.length * 850).toLocaleString()} MMBtu Equivalent</span>
+            </div>
+
+            <div className="bg-white shadow-none/70 border border-slate-200 rounded-none p-4 sm:p-5 shadow-none">
+              <span className="text-[11px] font-bold uppercase text-slate-900 font-bold block mb-1">
+                Average Marine Pressure
+              </span>
+              <div className="flex items-baseline gap-1.5 mb-1">
+                <span className="text-2xl font-bold font-mono text-slate-900 font-bold">0.77</span>
+                <span className="text-xs text-slate-900 font-bold font-mono">MPa (Stable)</span>
+              </div>
+              <span className="text-xs text-slate-900 font-bold">BOG Containment: Normal</span>
+            </div>
+
+            <div className="bg-white shadow-none/70 border border-slate-200 rounded-none p-4 sm:p-5 shadow-none">
+              <span className="text-[11px] font-bold uppercase text-slate-900 font-bold block mb-1">
+                Voyage State
+              </span>
+              <div className="flex items-center gap-2 mb-1">
+                <Navigation className="w-4 h-4 text-slate-900 font-bold animate-pulse" />
+                <span className="text-base font-bold text-slate-900 font-bold">Underway Sailing</span>
+              </div>
+              <span className="text-xs text-slate-900 font-bold">Shipment Code: N1</span>
+            </div>
           </div>
-          <span className="text-xs text-slate-900 font-bold font-mono">~{(sailingTanks.length * 850).toLocaleString()} MMBtu Equivalent</span>
-        </div>
 
-        <div className="bg-white shadow-none/70 border border-slate-200 rounded-none p-4 sm:p-5 shadow-none">
-          <span className="text-[11px] font-bold uppercase text-slate-900 font-bold block mb-1">
-            Average Marine Pressure
-          </span>
-          <div className="flex items-baseline gap-1.5 mb-1">
-            <span className="text-2xl font-bold font-mono text-slate-900 font-bold">0.77</span>
-            <span className="text-xs text-slate-900 font-bold font-mono">MPa (Stable)</span>
-          </div>
-          <span className="text-xs text-slate-900 font-bold">BOG Containment: Normal</span>
-        </div>
+          {/* Control Action Bar with Discharge & Closed Return Actions */}
+          <section className="bg-white shadow-none/80 border border-slate-200 rounded-none p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="relative flex-1 max-w-xs">
+              <Search className="w-3.5 h-3.5 text-slate-900 font-bold absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search Sailing Tanks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 text-xs win-panel rounded-none text-slate-900 font-bold focus:outline-none focus:border-cyan-500"
+              />
+            </div>
 
-        <div className="bg-white shadow-none/70 border border-slate-200 rounded-none p-4 sm:p-5 shadow-none">
-          <span className="text-[11px] font-bold uppercase text-slate-900 font-bold block mb-1">
-            Voyage State
-          </span>
-          <div className="flex items-center gap-2 mb-1">
-            <Navigation className="w-4 h-4 text-slate-900 font-bold animate-pulse" />
-            <span className="text-base font-bold text-slate-900 font-bold">Underway Sailing</span>
-          </div>
-          <span className="text-xs text-slate-900 font-bold">Shipment Code: N1</span>
-        </div>
-      </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={selectAll}
+                className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-none text-xs text-slate-900 font-bold font-bold transition-colors"
+              >
+                {selectedTanks.size > 0 && selectedTanks.size === filteredTanks.length
+                  ? 'Deselect All'
+                  : 'Select All'}
+              </button>
 
-      {/* Control Action Bar with Discharge & Closed Return Actions */}
-      <section className="bg-white shadow-none/80 border border-slate-200 rounded-none p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="w-3.5 h-3.5 text-slate-900 font-bold absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search Sailing Tanks..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs win-panel rounded-none text-slate-900 font-bold focus:outline-none focus:border-cyan-500"
-          />
-        </div>
+              {/* Discharge to Nias */}
+              <button
+                onClick={handleDischargeToNias}
+                disabled={selectedTanks.size === 0}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none text-xs font-bold transition-all ${
+                  selectedTanks.size > 0
+                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-none shadow-emerald-500/20 cursor-pointer'
+                    : 'bg-slate-100 text-slate-900 font-bold border border-slate-200/50 cursor-not-allowed'
+                }`}
+              >
+                <Anchor className="w-3.5 h-3.5" />
+                <span>Discharge to Nias ({selectedTanks.size})</span>
+              </button>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={selectAll}
-            className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-none text-xs text-slate-900 font-bold font-bold transition-colors"
-          >
-            {selectedTanks.size > 0 && selectedTanks.size === filteredTanks.length
-              ? 'Deselect All'
-              : 'Select All'}
-          </button>
+              {/* Complete Return Cycle to Arun */}
+              <button
+                onClick={handleCompleteReturnCycle}
+                disabled={selectedTanks.size === 0}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none text-xs font-bold transition-all ${
+                  selectedTanks.size > 0
+                    ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-none shadow-blue-500/20 cursor-pointer'
+                    : 'bg-slate-100 text-slate-900 font-bold border border-slate-200/50 cursor-not-allowed'
+                }`}
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Arrived at Arun (Complete Return)</span>
+              </button>
+            </div>
+          </section>
+        </>
+      )}
 
-          {/* Discharge to Nias */}
-          <button
-            onClick={handleDischargeToNias}
-            disabled={selectedTanks.size === 0}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none text-xs font-bold transition-all ${
-              selectedTanks.size > 0
-                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-none shadow-emerald-500/20 cursor-pointer'
-                : 'bg-slate-100 text-slate-900 font-bold border border-slate-200/50 cursor-not-allowed'
-            }`}
-          >
-            <Anchor className="w-3.5 h-3.5" />
-            <span>Discharge to Nias ({selectedTanks.size})</span>
-          </button>
-
-          {/* Complete Return Cycle to Arun */}
-          <button
-            onClick={handleCompleteReturnCycle}
-            disabled={selectedTanks.size === 0}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none text-xs font-bold transition-all ${
-              selectedTanks.size > 0
-                ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-none shadow-blue-500/20 cursor-pointer'
-                : 'bg-slate-100 text-slate-900 font-bold border border-slate-200/50 cursor-not-allowed'
-            }`}
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Arrived at Arun (Complete Return)</span>
-          </button>
-        </div>
-      </section>
+      {/* ==================================================================== */}
+      {/* 0. DECK STOWAGE & MANIFEST MATRIX TAB                                */}
+      {/* ==================================================================== */}
+      {subTab === 'DECK_STOWAGE' && (
+        <SaviorStowageTab
+          onSuccessToast={(msg) => {
+            setToastMessage(msg);
+            setTimeout(() => setToastMessage(null), 3500);
+          }}
+        />
+      )}
 
       {/* ==================================================================== */}
       {/* 1. VOYAGE MONITORING FLEET CARDS */}

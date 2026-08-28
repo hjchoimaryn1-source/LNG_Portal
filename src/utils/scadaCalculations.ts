@@ -128,7 +128,7 @@ export function computeTab1ReactiveKPIs(
     const dryTare = tank.arrivalHeelMetrics?.tareWeightKg || metrics.dryTareKg;
     const heelMass = tank.arrivalHeelMetrics?.arrivalMassKg || metrics.heelMassKg;
     const heelVol = metrics.heelVolumeM3 || parseFloat((heelMass / LNG_LIQUID_DENSITY_KG_M3).toFixed(2));
-    const heelLevel = tank.arrivalHeelMetrics?.heelLevelPct || metrics.heelLevelPct;
+    const heelLevel = tank.arrivalHeelMetrics?.heelLevelPct ?? metrics.heelLevelPct;
     const press = tank.pressureMPa || metrics.pressureMPa;
     const temp = tank.tempC || metrics.tempC;
     const preLoad = dryTare + heelMass;

@@ -22,6 +22,7 @@ export type SubProcessKey =
   // Arun PAG Terminal
   | 'ARUN_LOADING_COQ'
   | 'ARUN_MASTER_HISTORY'
+  | 'ARUN_HEEL_BOG_LOSS'
   | 'ARUN_STAGING_YARD'
   // MV. Saviour Transit
   | 'SAVIOUR_VOYAGE_MONITORING'
@@ -93,6 +94,7 @@ export interface ArrivalHeelMetrics {
   arrivalMassKg: number;
   arrivalPressureMPa: number;
   arrivalTempC: number;
+  heelLevelPct?: number;
   tareWeightKg?: number;
   grossWeightKg?: number;
   inspectorRemarks?: string;
@@ -110,6 +112,7 @@ export interface FleetTankItem {
   tankNo: string; // e.g. "ISOT-001"
   rawTankNo: string;
   serialNo: string;
+  cargoNo?: string;
   location: string;
   position: string;
   node: NodeState;

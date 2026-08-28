@@ -4,10 +4,13 @@
  * Utility to export an array of JavaScript objects to a CSV file download in the browser
  */
 export function exportToCSV<T extends Record<string, unknown>>(
-  filename: string,
-  rows: T[],
+  filenameOrRows: string | T[],
+  rowsOrFilename?: T[] | string,
   customHeaders?: { key: keyof T; label: string }[]
 ) {
+  const filename = typeof filenameOrRows === 'string' ? filenameOrRows : typeof rowsOrFilename === 'string' ? rowsOrFilename : 'export';
+  const rows = Array.isArray(filenameOrRows) ? filenameOrRows : Array.isArray(rowsOrFilename) ? rowsOrFilename : [];
+
   if (!rows || rows.length === 0) {
     alert('No data available to export.');
     return;

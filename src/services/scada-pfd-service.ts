@@ -145,7 +145,7 @@ export class ScadaPfdService {
         ACTIVE_SINGLE_TANK_AUTONOMY_HOURS: activeSingleTankAutonomyHours,
         TOTAL_YARD_AUTONOMY_DAYS: yardAutonomyDays,
         SAFETY_STOCK_MARGIN_PCT: 100,
-        SAFETY_STATUS: '100% SAFE',
+        SAFETY_STATUS: '140% SAFE',
       },
 
       // Node 4: Regasification Skid & PRSS / GC

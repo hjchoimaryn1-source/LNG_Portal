@@ -5,7 +5,11 @@ import React from 'react';
 
 export type ArunSubTab =
   | 'OPERATIONS_YARD'
+  | 'CUSTODY_COQ'
   | 'LOADING_COQ_ENTRY'
+  | 'VESSEL_LOADING'
+  | 'ARUN_DISPATCH'
+  | 'SAVIOR_STOWAGE'
   | 'LAB_COQ_SPEC'
   | 'MASTER_HISTORY_SHEET';
 
@@ -30,6 +34,7 @@ export default function HeaderNavigation({
 
       {/* 4 Dedicated Sub-Tabs Navigation Bar (Classic Windows SCADA Tabs) */}
       <div className="flex items-center gap-1 text-xs font-bold overflow-x-auto max-w-full">
+        {/* Tab 1: Field & Heel */}
         <button
           type="button"
           onClick={() => setActiveTab('OPERATIONS_YARD')}
@@ -42,11 +47,28 @@ export default function HeaderNavigation({
           <span>Field & Heel</span>
         </button>
 
+        {/* Tab 2: Custody & COQ */}
         <button
           type="button"
-          onClick={() => setActiveTab('LOADING_COQ_ENTRY')}
+          onClick={() => setActiveTab('CUSTODY_COQ')}
           className={`cursor-pointer ${
-            activeTab === 'LOADING_COQ_ENTRY'
+            activeTab === 'CUSTODY_COQ' || activeTab === 'LOADING_COQ_ENTRY'
+              ? 'win-tab-active'
+              : 'win-tab-inactive'
+          }`}
+        >
+          <span>Custody &amp; COQ</span>
+        </button>
+
+        {/* Tab 3: Loading */}
+        <button
+          type="button"
+          onClick={() => setActiveTab('VESSEL_LOADING')}
+          className={`cursor-pointer ${
+            activeTab === 'VESSEL_LOADING' ||
+            activeTab === 'ARUN_DISPATCH' ||
+            activeTab === 'SAVIOR_STOWAGE' ||
+            activeTab === 'LAB_COQ_SPEC'
               ? 'win-tab-active'
               : 'win-tab-inactive'
           }`}
@@ -54,18 +76,7 @@ export default function HeaderNavigation({
           <span>Loading</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('LAB_COQ_SPEC')}
-          className={`cursor-pointer ${
-            activeTab === 'LAB_COQ_SPEC'
-              ? 'win-tab-active'
-              : 'win-tab-inactive'
-          }`}
-        >
-          <span>Lab Gas Specification</span>
-        </button>
-
+        {/* Tab 4: Ledger */}
         <button
           type="button"
           onClick={() => setActiveTab('MASTER_HISTORY_SHEET')}
@@ -75,7 +86,7 @@ export default function HeaderNavigation({
               : 'win-tab-inactive'
           }`}
         >
-          <span>Master Custody Ledger ({certificateCount})</span>
+          <span>Ledger {certificateCount > 0 ? `(${certificateCount})` : ''}</span>
         </button>
       </div>
     </section>
