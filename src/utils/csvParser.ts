@@ -185,14 +185,40 @@ export function transformRawToDomainData(
   const gcReportRows = rawDataMap['gc_report'] || rawDataMap['floboss'] || [];
   const gcRows = rawDataMap['gc_composition'] || [];
 
-  // Group latest master db logs by normalized tank number
+  // Official 120-Fleet Ledger Exact Node Allocation
+  const ARUN_10_EMPTY_TANKS = new Set([
+    'ISOT-007', 'ISOT-018', 'ISOT-052', 'ISOT-053', 'ISOT-060',
+    'ISOT-074', 'ISOT-081', 'ISOT-083', 'ISOT-097', 'ISOT-110'
+  ]);
+
+  const NIAS_9_LADEN_TANKS: Record<string, number> = {
+    'ISOT-014': 54.0,
+    'ISOT-017': 63.0,
+    'ISOT-026': 62.0,
+    'ISOT-031': 55.0,
+    'ISOT-036': 56.0,
+    'ISOT-086': 74.0,
+    'ISOT-088': 62.0,
+    'ISOT-103': 59.0,
+    'ISOT-120': 66.0,
+  };
+
+  // Group latest master db logs by normalized tank number (sorted by latest report date)
+  const sortedMasterDbRows = [...masterDbRows].sort((a, b) => {
+    const dateA = getRowValue(a, 'Report Date', 'Date');
+    const dateB = getRowValue(b, 'Report Date', 'Date');
+    return dateB.localeCompare(dateA);
+  });
+
   const latestMasterMap = new Map<string, Record<string, string>>();
-  masterDbRows.forEach((row) => {
+  sortedMasterDbRows.forEach((row) => {
     const tNo = normalizeTankNo(
       getRowValue(row, 'ISO Tk No.', 'ISO Tank No', 'Tank No', 'Serial No.')
     );
-    if (getRowValue(row, 'Pressure', 'Level') || !latestMasterMap.has(tNo)) {
-      latestMasterMap.set(tNo, row);
+    if (tNo && (!latestMasterMap.has(tNo) || getRowValue(row, 'Pressure', 'Level'))) {
+      if (!latestMasterMap.has(tNo)) {
+        latestMasterMap.set(tNo, row);
+      }
     }
   });
 
@@ -234,12 +260,14 @@ export function transformRawToDomainData(
     const rawPressAfter = getRowValue(row, 'Press_After (MPa)', 'Press_After', 'Press After');
     const rawRemarks = getRowValue(row, 'Remarks', 'REMARKS');
 
-    const levelMmH2O = cleanNumber(rawLevelMm);
-    const level = cleanNumber(rawLevel) || (levelMmH2O > 0 ? Math.round(levelMmH2O / 10) : 51);
-    const levelM3 = cleanNumber(rawLevelM3) || (levelMmH2O > 0 ? parseFloat(((levelMmH2O / 1000) * 45).toFixed(1)) : 23.0);
+    const rawLevelNum = cleanNumber(rawLevel);
+    const fallbackLevel = tankNo === 'ISOT-009' ? 49.0 : NIAS_9_LADEN_TANKS[tankNo] || (tankNo === 'ISOT-064' ? 4.0 : 85.0);
+    const levelMmH2O = cleanNumber(rawLevelMm) || (rawLevelNum > 0 ? Math.round(rawLevelNum * 10) : Math.round(fallbackLevel * 10));
+    const level = rawLevelNum > 0 ? rawLevelNum : (levelMmH2O > 0 ? Math.round(levelMmH2O / 10) : fallbackLevel);
+    const levelM3 = cleanNumber(rawLevelM3) || parseFloat(((level / 100) * 45).toFixed(1));
     const battery = cleanNumber(rawBattery) || 75;
-    const pressureMPa = cleanNumber(rawPressure) || 0.76;
-    const tempC = rawTemp && rawTemp !== '-' ? cleanNumber(rawTemp) : (rawPressure ? -126.7 : 0);
+    const pressureMPa = cleanNumber(rawPressure) || (tankNo === 'ISOT-064' ? 0.22 : 0.76);
+    const tempC = rawTemp && rawTemp !== '-' ? cleanNumber(rawTemp) : (tankNo === 'ISOT-064' ? -135.0 : -126.7);
     const depress = rawDepress && rawDepress !== '-' ? rawDepress : (pressureMPa < 0.74 ? 'Depressurized' : 'None');
     const pressBeforeMPa = cleanNumber(rawPressBefore) || (depress.toLowerCase().includes('depress') ? 0.80 : pressureMPa);
     const pressAfterMPa = cleanNumber(rawPressAfter) || (depress.toLowerCase().includes('depress') ? 0.73 : pressureMPa);
@@ -258,7 +286,7 @@ export function transformRawToDomainData(
       position,
       level,
       levelM3,
-      levelMmH2O: levelMmH2O || 465,
+      levelMmH2O,
       battery,
       pressureMPa,
       tempC,
@@ -281,55 +309,29 @@ export function transformRawToDomainData(
     const remarks = (getRowValue(row, 'REMARKS', 'Remarks') || '').trim();
 
     const master = latestMasterMap.get(tankNo) || {};
-    const level =
-      cleanNumber(getRowValue(master, 'Level (%)', 'Level')) ||
-      (remarks.includes('49%')
-        ? 49
-        : remarks.includes('54%')
-        ? 54
-        : remarks.includes('63%')
-        ? 63
-        : remarks.includes('62%')
-        ? 62
-        : remarks.includes('55%')
-        ? 55
-        : remarks.includes('56%')
-        ? 56
-        : remarks.includes('74%')
-        ? 74
-        : remarks.includes('59%')
-        ? 59
-        : remarks.includes('66%')
-        ? 66
-        : 85);
-    const pressureMPa = cleanNumber(getRowValue(master, 'Pressure (MPa)', 'Pressure')) || 0.76;
-    const tempC = cleanNumber(getRowValue(master, 'Temp (C)', 'Temp (°C)', 'Temp')) || -126.5;
-    const depress =
-      getRowValue(master, 'Depress') || (remarks.includes('Depress') ? 'Depressurized' : '-');
-    const pressBeforeMPa = cleanNumber(getRowValue(master, 'Press_Before', 'Press Before')) || 0.8;
-    const pressAfterMPa = cleanNumber(getRowValue(master, 'Press_After', 'Press After')) || 0.73;
-    const battery = cleanNumber(getRowValue(master, 'Battery (%)', 'Battery')) || 75;
-    const levelM3 = cleanNumber(getRowValue(master, 'Level (m)', 'Level (m³)', 'Level (m')) || 24;
-    const levelMmH2O = cleanNumber(getRowValue(master, 'Level (mmH2O)')) || 500;
-    const lastReportDate = getRowValue(master, 'Report Date', 'Date') || '2026-08-13';
+    const masterLevel = cleanNumber(getRowValue(master, 'Level (%)', 'Level'));
+    const masterLevelM3 = cleanNumber(getRowValue(master, 'Level (m³)', 'Level (m)', 'Level (m'));
+    const masterLevelMm = cleanNumber(getRowValue(master, 'Level (mmH2O)'));
+    const masterPress = cleanNumber(getRowValue(master, 'Pressure (MPa)', 'Pressure'));
+    const masterTemp = cleanNumber(getRowValue(master, 'Temp (°C)', 'Temp (C)', 'Temp'));
+    const masterBattery = cleanNumber(getRowValue(master, 'Battery (%)', 'Battery'));
+    const masterRemarks = getRowValue(master, 'Remarks', 'REMARKS');
+    const masterDate = getRowValue(master, 'Report Date', 'Date') || '2026-08-13';
+    const masterPressBefore = cleanNumber(getRowValue(master, 'Press_Before (MPa)', 'Press_Before', 'Press Before')) || 0.80;
+    const masterPressAfter = cleanNumber(getRowValue(master, 'Press_After (MPa)', 'Press_After', 'Press After')) || 0.73;
+    const masterDepress = getRowValue(master, 'Depress') || (masterRemarks.includes('Depress') ? 'Depressurized' : '-');
 
-    // Official 120-Fleet Ledger Exact Node Allocation
-    const ARUN_10_EMPTY_TANKS = new Set([
-      'ISOT-007', 'ISOT-018', 'ISOT-052', 'ISOT-053', 'ISOT-060',
-      'ISOT-074', 'ISOT-081', 'ISOT-083', 'ISOT-097', 'ISOT-110'
-    ]);
-
-    const NIAS_9_LADEN_TANKS: Record<string, number> = {
-      'ISOT-014': 54.0,
-      'ISOT-017': 63.0,
-      'ISOT-026': 62.0,
-      'ISOT-031': 55.0,
-      'ISOT-036': 56.0,
-      'ISOT-086': 74.0,
-      'ISOT-088': 62.0,
-      'ISOT-103': 59.0,
-      'ISOT-120': 66.0,
-    };
+    const defaultLedgerLevel = tankNo === 'ISOT-009' ? 49.0 : NIAS_9_LADEN_TANKS[tankNo] || (tankNo === 'ISOT-064' ? 4.0 : 85.0);
+    const level = masterLevel > 0 ? masterLevel : defaultLedgerLevel;
+    const pressureMPa = masterPress > 0 ? masterPress : (tankNo === 'ISOT-064' ? 0.22 : 0.76);
+    const tempC = masterTemp !== 0 ? masterTemp : (tankNo === 'ISOT-064' ? -135.0 : -126.5);
+    const depress = masterDepress;
+    const pressBeforeMPa = masterPressBefore;
+    const pressAfterMPa = masterPressAfter;
+    const battery = masterBattery > 0 ? masterBattery : 75;
+    const levelM3 = masterLevelM3 > 0 ? masterLevelM3 : parseFloat(((level / 100) * 45).toFixed(1));
+    const levelMmH2O = masterLevelMm > 0 ? masterLevelMm : Math.round(level * 10);
+    const lastReportDate = masterDate;
 
     // FSM Node Derivation
     let node: NodeState;
@@ -337,7 +339,7 @@ export function transformRawToDomainData(
     let finalPosition = position;
     let finalLevel = level;
     let finalLevelM3 = levelM3;
-    let finalRemarks = remarks === '-' ? '' : remarks;
+    let finalRemarks = (masterRemarks || remarks) === '-' ? '' : (masterRemarks || remarks);
     let finalPress = pressureMPa;
     let finalTemp = tempC;
 
@@ -346,33 +348,33 @@ export function transformRawToDomainData(
       node = NodeState.NODE_4_REGAS_ACTIVE_BAY;
       finalLocation = 'ORU NIAS';
       finalPosition = 'BAY 01 (ACTIVE FEED)';
-      finalLevel = 49.0;
-      finalLevelM3 = 22.0;
-      finalPress = 0.76;
-      finalTemp = -126.7;
-      finalRemarks = 'Used for Gas Trail / Active Decanting Bay-01';
+      finalLevel = masterLevel > 0 ? masterLevel : 49.0;
+      finalLevelM3 = masterLevelM3 > 0 ? masterLevelM3 : 22.0;
+      finalPress = masterPress > 0 ? masterPress : 0.76;
+      finalTemp = masterTemp !== 0 ? masterTemp : -126.7;
+      finalRemarks = masterRemarks || 'Used for Gas Trail / Active Decanting Bay-01';
     }
     // 2. NODE 3: Nias Laden Ready Buffer (9 Units)
     else if (NIAS_9_LADEN_TANKS[tankNo] !== undefined) {
       node = NodeState.NODE_3_NIAS_LAYDOWN_YARD;
       finalLocation = 'ORU NIAS';
       finalPosition = 'LAYDOWN 1 (LADEN READY)';
-      finalLevel = NIAS_9_LADEN_TANKS[tankNo];
-      finalLevelM3 = parseFloat(((finalLevel / 100) * 45).toFixed(1));
-      finalPress = 0.76;
-      finalTemp = -126.5;
-      finalRemarks = `Laden Ready Buffer (${finalLevel}%)`;
+      finalLevel = masterLevel > 0 ? masterLevel : NIAS_9_LADEN_TANKS[tankNo];
+      finalLevelM3 = masterLevelM3 > 0 ? masterLevelM3 : parseFloat(((finalLevel / 100) * 45).toFixed(1));
+      finalPress = masterPress > 0 ? masterPress : 0.76;
+      finalTemp = masterTemp !== 0 ? masterTemp : -126.5;
+      finalRemarks = masterRemarks || `Laden Ready Buffer (${finalLevel}%)`;
     }
     // 3. NODE 5: Nias Empty Return (ISOT-064)
     else if (tankNo === 'ISOT-064') {
       node = NodeState.NODE_5_EMPTY_RETURN_CYCLE;
       finalLocation = 'ORU NIAS';
       finalPosition = 'LAYDOWN 2 (EMPTY BUFFER)';
-      finalLevel = 4.0;
-      finalLevelM3 = 1.8;
-      finalPress = 0.22;
-      finalTemp = -135.0;
-      finalRemarks = 'Empty ISOTANK / Return Staging';
+      finalLevel = masterLevel > 0 ? masterLevel : 4.0;
+      finalLevelM3 = masterLevelM3 > 0 ? masterLevelM3 : 1.8;
+      finalPress = masterPress > 0 ? masterPress : 0.22;
+      finalTemp = masterTemp !== 0 ? masterTemp : -135.0;
+      finalRemarks = masterRemarks || 'Empty ISOTANK / Return Staging';
     }
     // 4. NODE 1: Aceh / Arun PAG Terminal (10 Units - All Empty / Heel Staging)
     else if (ARUN_10_EMPTY_TANKS.has(tankNo)) {
@@ -420,7 +422,7 @@ export function transformRawToDomainData(
     };
   });
 
-  // Default active bays based on hydrated data
+  // Default active bays based on hydrated 120 Fleet Ledger (ISOT-009 in Bay 01, 9 Laden in Laydown 1, 1 Empty in Laydown 2)
   const activeBays: ActiveBayState[] = [
     {
       bayId: 'Bay 01',
@@ -429,30 +431,27 @@ export function transformRawToDomainData(
       pressure: 0.76,
       temp: -126.7,
       level: 49,
-      flowRate: 2.4,
+      flowRate: 1700.0,
       status: 'RUNNING',
       totalVaporizedM3: 1420.5,
       startTime: '2026-08-13 08:00',
     },
     {
       bayId: 'Bay 02',
-      tankNo: 'ISOT-014',
-      serialNo: 'SIMU-8101513',
-      pressure: 0.78,
-      temp: -128.1,
-      level: 54,
-      flowRate: 2.1,
-      status: 'RUNNING',
-      totalVaporizedM3: 980.2,
-      startTime: '2026-08-13 10:30',
+      tankNo: null,
+      pressure: 0.0,
+      temp: 28.0,
+      level: 0,
+      flowRate: 0.0,
+      status: 'STANDBY',
+      totalVaporizedM3: 0.0,
     },
     {
       bayId: 'Bay 03',
-      tankNo: 'ISOT-017',
-      serialNo: 'SIMU-8101581',
-      pressure: 0.78,
-      temp: -126.4,
-      level: 63,
+      tankNo: null,
+      pressure: 0.0,
+      temp: 28.0,
+      level: 0,
       flowRate: 0.0,
       status: 'STANDBY',
       totalVaporizedM3: 0.0,
@@ -461,10 +460,10 @@ export function transformRawToDomainData(
       bayId: 'Bay 04',
       tankNo: null,
       pressure: 0.0,
-      temp: 28.5,
+      temp: 28.0,
       level: 0,
       flowRate: 0.0,
-      status: 'DISCONNECTED',
+      status: 'STANDBY',
       totalVaporizedM3: 0.0,
     },
   ];

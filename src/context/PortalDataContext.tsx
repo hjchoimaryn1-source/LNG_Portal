@@ -395,21 +395,26 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
       newZone.toLowerCase().includes('laydown 3') ||
       newZone === 'LAYDOWN_3'
     ) {
-      const heelLevel = params?.heelLevelPct ?? 4.0;
-      const heelPress = params?.heelPressureMPa ?? 0.22;
-      const heelTemp = params?.heelTempC ?? -135.0;
-      updateTankLog(tankNo, {
+      const updatePayload: Partial<FleetTankItem> = {
         node: NodeState.NODE_5_EMPTY_RETURN_CYCLE,
         position: slotNumber ? `Laydown 2 (Slot ${slotNumber})` : 'Laydown 2',
-        level: heelLevel,
-        pressureMPa: heelPress,
-        tempC: heelTemp,
         isMountedToBay: null,
         location: 'ORU NIAS',
-        remarks:
-          params?.remarks ||
-          `Staged in Laydown Yard 2 for MV. Saviour backhaul (Preserved ${heelLevel}% cold heel, ${heelPress} MPa)`,
-      });
+        remarks: params?.remarks || `Relocated to Laydown Yard 2${slotNumber ? ` (Slot ${slotNumber})` : ''}`,
+      };
+
+      if (params?.heelLevelPct !== undefined) {
+        updatePayload.level = params.heelLevelPct;
+        updatePayload.levelM3 = parseFloat(((params.heelLevelPct / 100) * 45).toFixed(1));
+      }
+      if (params?.heelPressureMPa !== undefined) {
+        updatePayload.pressureMPa = params.heelPressureMPa;
+      }
+      if (params?.heelTempC !== undefined) {
+        updatePayload.tempC = params.heelTempC;
+      }
+
+      updateTankLog(tankNo, updatePayload);
       return;
     }
 
@@ -582,9 +587,23 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
             pressure: targetTank.pressureMPa || 0.78,
             temp: targetTank.tempC || -126.5,
             level: targetTank.level || 60,
-            flowRate: 2.2,
+            flowRate: 1700.0,
             status: 'RUNNING',
             startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+        }
+        // If this tank was previously mounted to another bay, clear that bay
+        if (bay.tankNo === tankNo) {
+          return {
+            ...bay,
+            tankNo: null,
+            serialNo: undefined,
+            pressure: 0.0,
+            temp: 28.0,
+            level: 0,
+            flowRate: 0.0,
+            status: 'STANDBY',
+            totalVaporizedM3: 0.0,
           };
         }
         return bay;

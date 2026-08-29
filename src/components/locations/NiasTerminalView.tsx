@@ -14,6 +14,18 @@ import NiasGasQualityTab from './nias/NiasGasQualityTab';
 import NiasPowerThermalTab from './nias/NiasPowerThermalTab';
 import NiasCustodySettlementTab from './nias/NiasCustodySettlementTab';
 import { exportToCSV } from '../../utils/exportCsv';
+import { exportDailyInspectionToExcel } from '../../utils/exportDailyInspectionExcel';
+import * as XLSX from 'xlsx';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend as RechartsLegend,
+} from 'recharts';
 import {
   MapPin,
   Flame,
@@ -33,6 +45,7 @@ import {
   Ship,
   Wrench,
   Download,
+  FileSpreadsheet,
   Gauge,
   Calculator,
   Zap,
@@ -63,6 +76,9 @@ import {
   Minimize2,
   RefreshCw,
   Edit3,
+  Edit,
+  Plus,
+  Trash2,
   Wind,
   Repeat,
   ArrowLeftRight,
@@ -109,7 +125,7 @@ interface NiasTerminalViewProps {
   onNavigateSubTab?: (targetTab: string, domain?: 'ISO_TANK_MGMT' | 'REGAS_SYSTEM') => void;
 }
 
-type LaydownZone = 'ALL' | 'LAYDOWN_1' | 'LAYDOWN_2' | 'LAYDOWN_3' | 'FOUR_BAY_REGAS';
+type LaydownZone = 'ALL' | 'LAYDOWN_1' | 'SKID' | 'LAYDOWN_2' | 'LAYDOWN_3' | 'FOUR_BAY_REGAS';
 
 // Available inspection dates in operational dataset
 const INSPECTION_DATES = [
@@ -127,6 +143,14 @@ const INSPECTION_DATES = [
   '2026-08-12',
   '2026-08-13',
 ];
+
+const getRackTag = (bayId: string): string => {
+  if (bayId.includes('1') || bayId.toLowerCase().includes('01')) return 'T-201';
+  if (bayId.includes('2') || bayId.toLowerCase().includes('02')) return 'T-202';
+  if (bayId.includes('3') || bayId.toLowerCase().includes('03')) return 'T-203';
+  if (bayId.includes('4') || bayId.toLowerCase().includes('04')) return 'T-204';
+  return bayId;
+};
 
 export default function NiasTerminalView({
   initialDomain = 'TERMINAL_OVERVIEW',
@@ -245,55 +269,99 @@ export default function NiasTerminalView({
           t.node === NodeState.NODE_4_REGAS_ACTIVE_BAY ||
           t.node === NodeState.NODE_5_EMPTY_RETURN_CYCLE
       );
+      const NIAS_YARD1_ORDER: Record<string, number> = {
+        'ISOT-014': 1,
+        'ISOT-017': 2,
+        'ISOT-026': 3,
+        'ISOT-031': 4,
+        'ISOT-036': 5,
+        'ISOT-086': 6,
+        'ISOT-088': 7,
+        'ISOT-103': 8,
+        'ISOT-120': 9,
+      };
+
       const initialInventory: NiasTankAsset[] = niasTanks.map((t, idx) => {
         let zone: NiasZone = 'LAYDOWN_1';
         if (
+          t.tankNo === 'ISOT-064' ||
           t.node === NodeState.NODE_5_EMPTY_RETURN_CYCLE ||
           t.position?.toLowerCase().includes('laydown 2') ||
           t.position?.toLowerCase().includes('yard 2') ||
           t.position?.toLowerCase().includes('laydown 3') ||
-          t.remarks?.toLowerCase().includes('empty') ||
-          t.tankNo === 'ISOT-064'
+          t.remarks?.toLowerCase().includes('empty')
         ) {
           zone = 'LAYDOWN_2';
-        } else if (t.position === 'REGAS Bay 01' || t.position?.startsWith('BAY_01')) {
+        } else if (
+          t.tankNo === 'ISOT-009' ||
+          t.node === NodeState.NODE_4_REGAS_ACTIVE_BAY ||
+          t.position?.toLowerCase().includes('bay 01') ||
+          t.position?.toLowerCase().includes('bay_01') ||
+          t.isMountedToBay === 'Bay 01'
+        ) {
           zone = 'BAY_01';
-        } else if (t.position === 'REGAS Bay 02' || t.position?.startsWith('BAY_02')) {
+        } else if (t.position?.toLowerCase().includes('bay 02') || t.position?.toLowerCase().includes('bay_02') || t.isMountedToBay === 'Bay 02') {
           zone = 'BAY_02';
-        } else if (t.position === 'REGAS Bay 03' || t.position?.startsWith('BAY_03')) {
+        } else if (t.position?.toLowerCase().includes('bay 03') || t.position?.toLowerCase().includes('bay_03') || t.isMountedToBay === 'Bay 03') {
           zone = 'BAY_03';
-        } else if (t.position === 'REGAS Bay 04' || t.position?.startsWith('BAY_04')) {
+        } else if (t.position?.toLowerCase().includes('bay 04') || t.position?.toLowerCase().includes('bay_04') || t.isMountedToBay === 'Bay 04') {
           zone = 'BAY_04';
-        } else if (t.position?.toLowerCase().includes('laydown 1') || t.position?.toLowerCase().includes('yard 1')) {
+        } else {
           zone = 'LAYDOWN_1';
         }
 
-        const existingRecord = dailyMasterRecords.find(r => r.tankNo === t.tankNo);
+        const existingRecord =
+          dailyMasterRecords.find(r => r.tankNo === t.tankNo && r.reportDate === '2026-08-13') ||
+          dailyMasterRecords.find(r => r.tankNo === t.tankNo);
+
+        const assignedSlot =
+          zone === 'LAYDOWN_2'
+            ? t.tankNo === 'ISOT-064' ? 1 : (t.position?.includes('Slot') ? parseInt(t.position.match(/Slot\s*(\d+)/i)?.[1] || '1', 10) : 1)
+            : zone === 'LAYDOWN_1'
+            ? NIAS_YARD1_ORDER[t.tankNo] || (t.position?.includes('Slot') ? parseInt(t.position.match(/Slot\s*(\d+)/i)?.[1] || '1', 10) : (idx % 12) + 1)
+            : 0;
+
+        const resolvedLevel = (t.level && t.level > 0)
+          ? t.level
+          : (existingRecord?.level && existingRecord.level > 0)
+          ? existingRecord.level
+          : (zone === 'LAYDOWN_2' ? 4.0 : 50);
+
+        const resolvedLevelM3 = (t.levelM3 && t.levelM3 > 0)
+          ? t.levelM3
+          : (existingRecord?.levelM3 && existingRecord.levelM3 > 0)
+          ? existingRecord.levelM3
+          : parseFloat(((resolvedLevel / 100) * 45).toFixed(1));
+
+        const resolvedLevelMm = (t.levelMmH2O && t.levelMmH2O > 0)
+          ? t.levelMmH2O
+          : (existingRecord?.levelMmH2O && existingRecord.levelMmH2O > 0)
+          ? existingRecord.levelMmH2O
+          : Math.round(resolvedLevel * 10);
+
+        const resolvedPressure = (t.pressureMPa && t.pressureMPa > 0)
+          ? t.pressureMPa
+          : (existingRecord?.pressureMPa && existingRecord.pressureMPa > 0)
+          ? existingRecord.pressureMPa
+          : (zone === 'LAYDOWN_2' ? 0.22 : 0.76);
+
+        const resolvedTemp = (t.tempC && t.tempC !== 0)
+          ? t.tempC
+          : (existingRecord?.tempC && existingRecord.tempC !== 0)
+          ? existingRecord.tempC
+          : (zone === 'LAYDOWN_2' ? -135.0 : -126.5);
 
         return {
           id: t.tankNo,
           serialNo: t.serialNo,
           shipment: existingRecord?.shipment || 'N1',
           currentZone: zone,
-          slotIndex:
-            zone === 'LAYDOWN_2'
-              ? t.position?.includes('Slot')
-                ? parseInt(t.position.match(/Slot\s*(\d+)/i)?.[1] || '1', 10)
-                : 1
-              : 0,
-          levelPercent:
-            existingRecord?.level !== undefined && existingRecord?.level !== null && existingRecord.level > 0
-              ? existingRecord.level
-              : (t.level && t.level > 0)
-              ? t.level
-              : (zone === 'LAYDOWN_2' ? 4.0 : 50),
-          levelM3: existingRecord?.levelM3 || t.levelM3 || (zone === 'LAYDOWN_2' ? 1.8 : 23.0),
-          levelMmH2O: existingRecord?.levelMmH2O || t.levelMmH2O || (zone === 'LAYDOWN_2' ? 36 : 465),
-          pressureMpa:
-            existingRecord?.pressureMPa ||
-            t.pressureMPa ||
-            (zone === 'LAYDOWN_2' ? 0.22 : 0.5),
-          tempC: existingRecord?.tempC || t.tempC || (zone === 'LAYDOWN_2' ? -135.0 : -130),
+          slotIndex: assignedSlot,
+          levelPercent: resolvedLevel,
+          levelM3: resolvedLevelM3,
+          levelMmH2O: resolvedLevelMm,
+          pressureMpa: resolvedPressure,
+          tempC: resolvedTemp,
           batteryPercent: existingRecord?.battery || t.battery || 80,
         };
       });
@@ -313,9 +381,17 @@ export default function NiasTerminalView({
   const [activeDrawerType, setActiveDrawerType] = useState<'PATROL' | 'DISCONNECT' | null>(null);
   
   const [mroModalTankNo, setMroModalTankNo] = useState<string | null>(null);
+  const [selectedDetailTank, setSelectedDetailTank] = useState<NiasTankAsset | null>(null);
+  const [openMountDropdownTankId, setOpenMountDropdownTankId] = useState<string | null>(null);
   const [defectCat, setDefectCat] = useState<DefectCategory>('VALVE_LEAK');
   const [defectDesc, setDefectDesc] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Active Skid Sendout Modal Final Heel Direct Input States
+  const [modalFinalPressMpa, setModalFinalPressMpa] = useState<string>('0.22');
+  const [modalFinalLevelMmH2O, setModalFinalLevelMmH2O] = useState<string>('50');
+  const [modalFinalHeelVolM3, setModalFinalHeelVolM3] = useState<string>('1.0');
+  const [modalFinalHeelMassKg, setModalFinalHeelMassKg] = useState<string>('420');
 
   // HTML5 Native Drag and Drop State for Pure Visual Yard Map
   const [draggingTankNo, setDraggingTankNo] = useState<string | null>(null);
@@ -479,8 +555,22 @@ export default function NiasTerminalView({
     setCalendarViewDate(new Date(calYear, calMonth + 1, 1));
   };
 
-  // Date Filter Mode for Sub-Tab 2: Filter by Selected Date or Show All Master DB Logs
-  const [dateFilterMode, setDateFilterMode] = useState<'SELECTED_DATE' | 'ALL_DATES'>('SELECTED_DATE');
+  // Date Query Mode for Sub-Tab 2: ALL_DATA | DAILY | PERIOD_RANGE
+  const [dateQueryMode, setDateQueryMode] = useState<'ALL_DATA' | 'DAILY' | 'PERIOD_RANGE'>('DAILY');
+  const [startDate, setStartDate] = useState<string>('2026-08-01');
+  const [endDate, setEndDate] = useState<string>('2026-08-13');
+  const [batchFilter, setBatchFilter] = useState<string>('ALL');
+  const [isQuickEntryOpen, setIsQuickEntryOpen] = useState<boolean>(false);
+  const [deletedRecordIds, setDeletedRecordIds] = useState<Set<string>>(new Set());
+  const [recordToDelete, setRecordToDelete] = useState<{ id: string; tankNo: string; serialNo: string; reportDate: string } | null>(null);
+
+  // Batch Normalization Helper (N1 == N-1 == n1 == n-1)
+  const normalizeBatch = (raw?: string): string => {
+    if (!raw) return '';
+    const match = raw.match(/n-?(\d+)/i);
+    if (match) return `N${match[1]}`;
+    return raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  };
 
   // Workstation Drawer / Collapse State in Tab 2
   const [isWorkstationCollapsed, setIsWorkstationCollapsed] = useState<boolean>(false);
@@ -490,6 +580,7 @@ export default function NiasTerminalView({
   const [wsTankNo, setWsTankNo] = useState<string>('ISOT-014');
   const [wsSerialNo, setWsSerialNo] = useState<string>('SIMU-8101513');
   const [wsShipment, setWsShipment] = useState<string>('N1');
+  const [wsSelectedZone, setWsSelectedZone] = useState<'LAYDOWN_1' | 'SKID' | 'LAYDOWN_2'>('LAYDOWN_1');
   const [wsSelectedZoneFilter, setWsSelectedZoneFilter] = useState<'LAYDOWN_1' | 'LAYDOWN_2'>('LAYDOWN_1');
   const [wsLevelPct, setWsLevelPct] = useState<number>(51);
   const [wsLevelM3, setWsLevelM3] = useState<number>(23.0);
@@ -497,6 +588,7 @@ export default function NiasTerminalView({
   const [wsBattery, setWsBattery] = useState<number>(72);
   const [wsPressureMPa, setWsPressureMPa] = useState<number>(0.76);
   const [wsTempC, setWsTempC] = useState<number>(-126.7);
+  const [wsBogVentedKg, setWsBogVentedKg] = useState<number>(0);
   const [wsPressBefore, setWsPressBefore] = useState<number>(0.80);
   const [wsPressAfter, setWsPressAfter] = useState<number>(0.73);
   const [wsEnableDepress, setWsEnableDepress] = useState<boolean>(false);
@@ -507,33 +599,65 @@ export default function NiasTerminalView({
   const [wsSmtPress, setWsSmtPress] = useState<number>(0.76);
   const [wsSmtTemp, setWsSmtTemp] = useState<number>(-126.5);
   const [wsSmtBattery, setWsSmtBattery] = useState<number>(85);
+  const [wsVentStartTime, setWsVentStartTime] = useState<string>('10:00');
+  const [wsVentEndTime, setWsVentEndTime] = useState<string>('10:30');
 
   // Synchronize Workstation Report Date with selectedDate
   React.useEffect(() => {
     setWsReportDate(selectedDate);
   }, [selectedDate]);
 
-  // Conversion Helpers between mmH2O, Level %, and Level m³
+  // Available Batches for Filtering (Normalized)
+  const availableBatches = useMemo(() => {
+    const s = new Set<string>();
+    dailyMasterRecords.forEach((r) => {
+      if (r.shipment) s.add(normalizeBatch(r.shipment));
+    });
+    fleetTanks.forEach((t) => {
+      if (t.shipment) s.add(normalizeBatch(t.shipment));
+    });
+    settlementRecords.forEach((rec) => {
+      if (rec.shipment) s.add(normalizeBatch(rec.shipment));
+    });
+    if (s.size === 0) {
+      return ['N1', 'N2', 'N3'];
+    }
+    return Array.from(s).filter(Boolean).sort();
+  }, [dailyMasterRecords, fleetTanks, settlementRecords]);
+
+  // Conversion Helpers based on 950 mmH2O full-span & 44.0 m3 max volume & 441.0 kg/m3 density
+  const calcVolumeFromMmH2O = (mm: number): number => {
+    return parseFloat(((mm / 950) * 44.0).toFixed(1));
+  };
+
+  const calcMassTonFromVolume = (volM3: number): number => {
+    return parseFloat(((volM3 * 441.0) / 1000).toFixed(2));
+  };
+
+  const calcPctFromMmH2O = (mm: number): number => {
+    return parseFloat(((mm / 950) * 100).toFixed(1));
+  };
+
   const handleMmH2OChange = (mm: number) => {
     setWsLevelMmH2O(mm);
-    const pct = Math.min(100, Math.max(0, Math.round(mm / 10)));
-    const m3 = parseFloat(((mm / 1000) * 45).toFixed(1));
+    const vol = calcVolumeFromMmH2O(mm);
+    const pct = calcPctFromMmH2O(mm);
     setWsLevelPct(pct);
-    setWsLevelM3(m3);
+    setWsLevelM3(vol);
   };
 
   const handleLevelPctChange = (pct: number) => {
     setWsLevelPct(pct);
-    const mm = Math.round(pct * 10);
-    const m3 = parseFloat(((pct / 100) * 45).toFixed(1));
+    const mm = Math.round((pct / 100) * 950);
+    const vol = parseFloat(((pct / 100) * 44.0).toFixed(1));
     setWsLevelMmH2O(mm);
-    setWsLevelM3(m3);
+    setWsLevelM3(vol);
   };
 
   const handleLevelM3Change = (m3: number) => {
     setWsLevelM3(m3);
-    const pct = Math.min(100, Math.max(0, Math.round((m3 / 45) * 100)));
-    const mm = Math.round((m3 / 45) * 1000);
+    const pct = parseFloat(((m3 / 44.0) * 100).toFixed(1));
+    const mm = Math.round((m3 / 44.0) * 950);
     setWsLevelPct(pct);
     setWsLevelMmH2O(mm);
   };
@@ -549,6 +673,149 @@ export default function NiasTerminalView({
 
   
   const wsTankDensity = wsActiveSettlement?.deliveredDensity || 426;
+
+  // Quick Entry Available Tanks based on selected zone
+  const quickEntryAvailableTanks = useMemo(() => {
+    if (wsSelectedZone === 'LAYDOWN_1') {
+      const yard1 = tankInventory.filter((t) => t.currentZone === 'LAYDOWN_1');
+      return yard1.length > 0 ? yard1 : tankInventory;
+    }
+    if (wsSelectedZone === 'LAYDOWN_2') {
+      const yard2 = tankInventory.filter((t) => t.currentZone === 'LAYDOWN_2');
+      return yard2.length > 0 ? yard2 : tankInventory;
+    }
+    if (wsSelectedZone === 'SKID') {
+      const bay = tankInventory.filter((t) => t.currentZone.startsWith('BAY'));
+      return bay.length > 0 ? bay : tankInventory;
+    }
+    return tankInventory;
+  }, [tankInventory, wsSelectedZone]);
+
+  const handleSelectTankForQuickEntry = (tNo: string) => {
+    const tank = tankInventory.find((t) => t.id === tNo);
+    const existingLog = dailyMasterRecords.find((r) => r.tankNo === tNo && r.reportDate === wsReportDate);
+    const loss = getTankLossData(tNo);
+
+    setWsTankNo(tNo);
+    setWsSerialNo(tank?.serialNo || 'SIMU-8101513');
+    setWsShipment(tank?.shipment || loss.shipment || 'N1');
+
+    if (tank?.currentZone === 'LAYDOWN_2') {
+      setWsSelectedZone('LAYDOWN_2');
+    } else if (tank?.currentZone?.startsWith('BAY')) {
+      setWsSelectedZone('SKID');
+    } else {
+      setWsSelectedZone('LAYDOWN_1');
+    }
+
+    setWsLevelPct(existingLog?.level ?? tank?.levelPercent ?? 51);
+    const resolvedMm = existingLog?.levelMmH2O ?? tank?.levelMmH2O ?? 465;
+    setWsLevelMmH2O(resolvedMm);
+    setWsLevelM3(calcVolumeFromMmH2O(resolvedMm));
+    setWsPressureMPa(existingLog?.pressureMPa ?? tank?.pressureMpa ?? 0.76);
+    setWsTempC(existingLog?.tempC ?? tank?.tempC ?? -126.7);
+    setWsBogVentedKg(existingLog?.lossesKg ?? 0);
+    setWsPressBefore(existingLog?.pressBeforeMPa ?? 0.80);
+    setWsPressAfter(existingLog?.pressAfterMPa ?? (existingLog?.pressureMPa ?? tank?.pressureMpa ?? 0.73));
+
+    // SMT Remote Sensor Telemetry
+    setWsSmtPress(existingLog?.pressureMPa ?? tank?.pressureMpa ?? 0.76);
+    setWsSmtLevel(existingLog?.level ?? tank?.levelPercent ?? 51.5);
+    setWsSmtTemp(existingLog?.tempC ?? tank?.tempC ?? -126.5);
+    setWsSmtBattery(existingLog?.battery ?? 85);
+
+    setWsRemarks(existingLog?.remarks || 'Normal daily inspection');
+  };
+
+  const handleSaveQuickEntry = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const finalPress = wsPressureMPa;
+    const zoneLabel = wsSelectedZone === 'LAYDOWN_2' ? 'Laydown 2' : wsSelectedZone === 'SKID' ? 'Bay 01' : 'Laydown 1';
+    const deltaP = Math.max(0, parseFloat((wsPressBefore - wsPressAfter).toFixed(3)));
+    const calculatedLossKg = deltaP > 0 ? Math.round(deltaP * 100 * 25.5) : (wsBogVentedKg || 0);
+    const isVentingDone = calculatedLossKg > 0;
+    const ventTimeStr = isVentingDone && wsVentStartTime && wsVentEndTime ? ` [${wsVentStartTime}~${wsVentEndTime}]` : '';
+
+    const newRecord: DailyMasterRecord = {
+      id: `DM-${wsReportDate}-${wsTankNo}-${Date.now()}`,
+      reportDate: wsReportDate,
+      serialNo: wsSerialNo,
+      tankNo: wsTankNo,
+      shipment: wsShipment,
+      position: zoneLabel,
+      level: wsSmtLevel || wsLevelPct,
+      levelM3: wsLevelM3,
+      levelMmH2O: wsLevelMmH2O,
+      battery: wsSmtBattery || wsBattery || 85,
+      pressureMPa: wsPressureMPa || wsSmtPress || finalPress,
+      tempC: wsSmtTemp || wsTempC,
+      depress: isVentingDone ? 'Depressurized' : 'Normal',
+      pressBeforeMPa: wsPressBefore || wsPressureMPa,
+      pressAfterMPa: wsPressAfter || (isVentingDone ? parseFloat(Math.max(0.2, wsPressureMPa - (calculatedLossKg / 2550)).toFixed(2)) : wsPressureMPa),
+      remarks: wsRemarks || (isVentingDone ? `BOG Vented ${calculatedLossKg} kg${ventTimeStr} (ΔP: ${deltaP.toFixed(2)} MPa, ${wsPressBefore} -> ${wsPressAfter} MPa)` : 'Daily Inspection Entry'),
+      lossesKg: calculatedLossKg,
+      lossesPercent: calculatedLossKg > 0 ? parseFloat(((calculatedLossKg / 18500) * 100).toFixed(2)) : 0,
+    };
+
+    saveDailyInspectionRecord(newRecord);
+
+    setTankInventory((prev) =>
+      prev.map((t) =>
+        t.id === wsTankNo
+          ? {
+              ...t,
+              pressureMpa: wsPressureMPa || wsSmtPress || newRecord.pressureMPa,
+              levelPercent: wsSmtLevel || wsLevelPct,
+              levelM3: wsLevelM3,
+              levelMmH2O: wsLevelMmH2O,
+              tempC: wsSmtTemp || wsTempC,
+            }
+          : t
+      )
+    );
+
+    setToastMessage(`✅ Committed inspection & BOG log for ${wsTankNo} to Master DB`);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleEditRow = (record: DailyMasterRecord) => {
+    setWsReportDate(record.reportDate || selectedDate);
+    setWsTankNo(record.tankNo);
+    setWsSerialNo(record.serialNo);
+    setWsShipment(record.shipment || 'N1');
+    const pos = (record.position || '').toLowerCase();
+    if (pos.includes('2') || pos.includes('yard 2') || pos.includes('ld-2')) setWsSelectedZone('LAYDOWN_2');
+    else if (pos.includes('bay') || pos.includes('skid')) setWsSelectedZone('SKID');
+    else setWsSelectedZone('LAYDOWN_1');
+    setWsLevelMmH2O(record.levelMmH2O || (record.level ? Math.round((record.level / 100) * 950) : 465));
+    setWsLevelM3(record.levelM3 || calcVolumeFromMmH2O(record.levelMmH2O || 465));
+    setWsLevelPct(record.level || 50);
+    setWsPressureMPa(record.pressureMPa || 0.76);
+    setWsSmtPress(record.pressureMPa || 0.76);
+    setWsSmtLevel(record.level || 50);
+    setWsSmtTemp(record.tempC || -126.5);
+    setWsSmtBattery(record.battery || 85);
+    setWsTempC(record.tempC || -126.7);
+    setWsBogVentedKg(record.lossesKg || 0);
+    setWsPressBefore(record.pressBeforeMPa || 0.80);
+    setWsPressAfter(record.pressAfterMPa || 0.73);
+    setWsRemarks(record.remarks || '');
+    setIsQuickEntryOpen(true);
+  };
+
+  const handleDeleteRow = (recordId: string, tankNo: string) => {
+    setDeletedRecordIds((prev) => new Set(prev).add(recordId));
+    setToastMessage(`🗑️ Deleted record for ${tankNo}`);
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
+  const handleConfirmDeleteRecord = () => {
+    if (!recordToDelete) return;
+    setDeletedRecordIds((prev) => new Set(prev).add(recordToDelete.id));
+    setToastMessage(`🗑️ Deleted record for ${recordToDelete.tankNo} (${recordToDelete.reportDate})`);
+    setTimeout(() => setToastMessage(null), 2500);
+    setRecordToDelete(null);
+  };
 
   // Calculated Live BOG Loss in Workstation
   const wsDeltaP = useMemo(() => {
@@ -610,6 +877,111 @@ export default function NiasTerminalView({
     setWsPressAfter(existingLog?.pressAfterMPa ?? 0.73);
     setWsRemarks(existingLog?.remarks || 'Normal daily inspection');
   };
+
+  // Large Screen SCADA Console: Historical Telemetry Trend Modal State
+  const [trendModalTankNo, setTrendModalTankNo] = useState<string | null>(null);
+  const [trendTimeRange, setTrendTimeRange] = useState<'7D' | '14D' | '30D' | 'ALL'>('7D');
+
+  const handleOpenTankTrendModal = (tNo: string) => {
+    handleSelectTankForWorkstation(tNo);
+    setTrendModalTankNo(tNo);
+  };
+
+  // Compute Historical Telemetry Dataset for the selected Tank in the Trend Modal
+  const trendModalData = useMemo(() => {
+    if (!trendModalTankNo) return [];
+    
+    const tankRecords = dailyMasterRecords
+      .filter((r) => r.tankNo === trendModalTankNo)
+      .sort((a, b) => (a.reportDate > b.reportDate ? 1 : -1));
+
+    const activeTank = tankInventory.find((t) => t.id === trendModalTankNo);
+    const baseDate = new Date();
+    const daysCount = trendTimeRange === '7D' ? 7 : trendTimeRange === '14D' ? 14 : trendTimeRange === '30D' ? 30 : 30;
+
+    const points: Array<{
+      date: string;
+      fullDate: string;
+      analogPress: number;
+      smtPress: number;
+      smtLevel: number;
+      calcVol: number;
+      calcMass: number;
+      tempC: number;
+      battery: number;
+      signal: number;
+      bogLossKg: number;
+      zone: string;
+      batch: string;
+      status: string;
+    }> = [];
+
+    for (let i = daysCount - 1; i >= 0; i--) {
+      const d = new Date(baseDate);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().slice(0, 10);
+      const shortDate = dateStr.slice(5);
+
+      const existing = tankRecords.find((r) => r.reportDate === dateStr);
+      if (existing) {
+        const rawMm = existing.levelMmH2O || (existing.level ? Math.round((existing.level / 100) * 950) : 465);
+        const cVol = calcVolumeFromMmH2O(rawMm);
+        const cMass = calcMassTonFromVolume(cVol);
+        const isHighPress = (existing.pressureMPa || 0) >= 0.74;
+        points.push({
+          date: shortDate,
+          fullDate: dateStr,
+          analogPress: parseFloat((existing.pressureMPa || 0.76).toFixed(2)),
+          smtPress: parseFloat(((existing.pressureMPa || 0.76) + (Math.sin(i) * 0.01)).toFixed(2)),
+          smtLevel: parseFloat((existing.level ?? ((rawMm / 950) * 100)).toFixed(1)),
+          calcVol: parseFloat(cVol.toFixed(1)),
+          calcMass: parseFloat(cMass.toFixed(2)),
+          tempC: parseFloat((existing.tempC !== undefined && existing.tempC !== null ? existing.tempC : -126.7).toFixed(1)),
+          battery: existing.battery || Math.max(50, 95 - i),
+          signal: Math.min(100, Math.max(80, 92 + Math.round(Math.cos(i) * 5))),
+          bogLossKg: existing.depress ? (existing.pressBeforeMPa && existing.pressAfterMPa ? Math.round((existing.pressBeforeMPa - existing.pressAfterMPa) * 1000 * 6.1) : 426) : 0,
+          zone: existing.position || (activeTank?.currentZone === 'LAYDOWN_2' ? 'LD-2' : activeTank?.currentZone?.startsWith('BAY') ? 'SKID' : 'LD-1'),
+          batch: normalizeBatch(existing.shipment) || 'N1',
+          status: isHighPress ? 'WARNING' : 'NORMAL',
+        });
+      } else {
+        const currentLevel = activeTank?.levelPercent ?? 51.0;
+        const currentPress = activeTank?.pressureMpa ?? 0.76;
+        const currentTemp = activeTank?.tempC ?? -126.7;
+        const progressFactor = (daysCount - 1 - i) / Math.max(1, daysCount - 1);
+        
+        const simPress = parseFloat((0.68 + (currentPress - 0.68) * progressFactor + Math.sin(i * 0.8) * 0.015).toFixed(2));
+        const simSmtPress = parseFloat((simPress + 0.01).toFixed(2));
+        const simLevel = parseFloat((Math.min(95, currentLevel + (daysCount - 1 - (daysCount - 1 - i)) * 0.15)).toFixed(1));
+        const simMmH2O = Math.round((simLevel / 100) * 950);
+        const simVol = calcVolumeFromMmH2O(simMmH2O);
+        const simMass = calcMassTonFromVolume(simVol);
+        const simTemp = parseFloat((currentTemp + Math.sin(i * 0.5) * 0.4).toFixed(1));
+        const simBatt = Math.min(100, Math.max(60, 96 - Math.floor(i * 0.8)));
+        const simSignal = Math.min(100, Math.max(82, 94 + Math.round(Math.cos(i) * 4)));
+        const isDepressDay = i % 5 === 2;
+
+        points.push({
+          date: shortDate,
+          fullDate: dateStr,
+          analogPress: simPress,
+          smtPress: simSmtPress,
+          smtLevel: simLevel,
+          calcVol: parseFloat(simVol.toFixed(1)),
+          calcMass: parseFloat(simMass.toFixed(2)),
+          tempC: simTemp,
+          battery: simBatt,
+          signal: simSignal,
+          bogLossKg: isDepressDay ? 385 : 0,
+          zone: activeTank?.currentZone === 'LAYDOWN_2' ? 'LD-2' : activeTank?.currentZone?.startsWith('BAY') ? 'SKID' : 'LD-1',
+          batch: activeTank?.shipment ? normalizeBatch(activeTank.shipment) : 'N1',
+          status: simPress >= 0.74 ? 'WARNING' : 'NORMAL',
+        });
+      }
+    }
+
+    return points;
+  }, [trendModalTankNo, dailyMasterRecords, tankInventory, trendTimeRange]);
 
   // Consumption Modal Form State with Arun Lab Baseline Inheritance
   const [isConsumptionModalOpen, setIsConsumptionModalOpen] = useState<boolean>(false);
@@ -693,7 +1065,7 @@ export default function NiasTerminalView({
 
     // Laydown 1 should ONLY show tanks that are neither in Bay nor Laydown 2
     const yard1 = tankInventory.filter(
-      (t) => !activeBayTanksSet.has(t.id) && !yard2TankIds.has(t.id)
+      (t) => !activeBayTanksSet.has(t.id) && !yard2TankIds.has(t.id) && !t.currentZone.startsWith('BAY')
     );
 
     const calcAvgPress = (tanks: NiasTankAsset[]) => {
@@ -868,10 +1240,10 @@ export default function NiasTerminalView({
     const currentZone = getTankZone(tank.position);
     setRelocateTargetZone(currentZone === 'Laydown 1' ? 'Laydown 2' : 'Laydown 1');
     setRelocateSlotNumber(1);
-    setRelocateHeelPct(4.0);
-    setRelocateHeelPressMPa(0.22);
-    setRelocateHeelTempC(-135.0);
-    setRelocateHeelWeightKg(350);
+    setRelocateHeelPct(tank.level || 50);
+    setRelocateHeelPressMPa(tank.pressureMPa || 0.76);
+    setRelocateHeelTempC(tank.tempC || -126.5);
+    setRelocateHeelWeightKg(Math.round(((tank.level || 50) / 100) * 18200));
     setRelocateRemarks('');
   };
 
@@ -981,31 +1353,34 @@ export default function NiasTerminalView({
       if (!tankNo) return;
 
       if (targetZone === 'FOUR_BAY_REGAS' && bayId) {
-        setTankInventory(prev => prev.map(t => t.id === tankNo ? { ...t, currentZone: bayId as NiasZone } : t));
+        const bayZoneKey = (bayId.replace(' ', '_').toUpperCase()) as NiasZone;
+        setTankInventory(prev => prev.map(t => t.id === tankNo ? { ...t, currentZone: bayZoneKey } : t));
         mountTankToBay(bayId, tankNo);
-        setToastMessage(`🔥 Mounted ${tankNo} to ${bayId} for Regasification`);
+        setToastMessage(`Mounted ${tankNo} to ${getRackTag(bayId)} for Regasification`);
         setTimeout(() => setToastMessage(null), 3000);
         return;
       }
 
       if (targetZone === 'LAYDOWN_1') {
+        const occupiedBay = activeBays.find(b => b.tankNo === tankNo);
+        if (occupiedBay) {
+          unmountBay(occupiedBay.bayId);
+        }
         setTankInventory(prev => prev.map(t => t.id === tankNo ? { ...t, currentZone: 'LAYDOWN_1', slotIndex: slotNumber || t.slotIndex } : t));
         moveTankLocation(tankNo, 'Laydown 1', slotNumber);
-        setToastMessage(`✅ ${tankNo} relocated to Laydown Yard 1${slotNumber ? ` (Slot ${slotNumber})` : ''} (Receiving & BOG Buffer)`);
+        setToastMessage(`Relocated ${tankNo} to ORU (LD-1)${slotNumber ? ` (Slot #${slotNumber})` : ''}`);
         setTimeout(() => setToastMessage(null), 3000);
         return;
       }
 
       if (targetZone === 'LAYDOWN_2' || targetZone === 'LAYDOWN_3') {
+        const occupiedBay = activeBays.find(b => b.tankNo === tankNo);
+        if (occupiedBay) {
+          unmountBay(occupiedBay.bayId);
+        }
         setTankInventory(prev => prev.map(t => t.id === tankNo ? { ...t, currentZone: 'LAYDOWN_2', slotIndex: slotNumber || t.slotIndex } : t));
-        moveTankLocation(tankNo, 'Laydown 2', slotNumber, {
-          heelLevelPct: 4.0,
-          heelPressureMPa: 0.22,
-          heelTempC: -135.0,
-          heelWeightKg: 350,
-          remarks: `Staged in Laydown Yard 2 for MV. Saviour backhaul (Preserved 4.0% cold heel)`
-        });
-        setToastMessage(`🔄 ${tankNo} relocated to Laydown Yard 2 (Empty Heel 4% Staging)`);
+        moveTankLocation(tankNo, 'Laydown 2', slotNumber);
+        setToastMessage(`Relocated ${tankNo} to ORU (LD-2)${slotNumber ? ` (Slot #${slotNumber})` : ''}`);
         setTimeout(() => setToastMessage(null), 3000);
         return;
       }
@@ -1016,12 +1391,25 @@ export default function NiasTerminalView({
 
   // Computed Master Inspection List for Grid matching 14-Column Master DB schema
   const masterInspectionList: DailyMasterRecord[] = useMemo(() => {
-    let records = dailyMasterRecords;
-    if (dateFilterMode === 'SELECTED_DATE') {
-      records = dailyMasterRecords.filter((r) => r.reportDate === selectedDate);
-    }
+    let records = dailyMasterRecords.filter((r) => r.id ? !deletedRecordIds.has(r.id) : true);
 
-    if (records.length === 0) {
+    // Date Mode Filter
+    if (dateQueryMode === 'DAILY') {
+      if (selectedDate) {
+        records = records.filter((r) => r.reportDate === selectedDate);
+      }
+    } else if (dateQueryMode === 'PERIOD_RANGE') {
+      if (startDate && endDate) {
+        records = records.filter((r) => (r.reportDate || '') >= startDate && (r.reportDate || '') <= endDate);
+      } else if (startDate) {
+        records = records.filter((r) => (r.reportDate || '') >= startDate);
+      } else if (endDate) {
+        records = records.filter((r) => (r.reportDate || '') <= endDate);
+      }
+    }
+    // When dateQueryMode === 'ALL_DATA', no date filtering is applied
+
+    if (records.length === 0 && dateQueryMode === 'DAILY') {
       records = fleetTanks
         .filter((t) => !t.isUnderMaintenance)
         .map((t, idx) => {
@@ -1050,13 +1438,26 @@ export default function NiasTerminalView({
         });
     }
 
+    // Batch filter (Normalized: N1 == N-1 == n1 == n-1)
+    if (batchFilter !== 'ALL') {
+      const targetBatch = normalizeBatch(batchFilter);
+      records = records.filter((r) => normalizeBatch(r.shipment) === targetBatch);
+    }
+
     // Zone filter
     if (zoneFilter !== 'ALL') {
       records = records.filter((r) => {
-        const t = tankInventory.find(tank => tank.id === r.tankNo);
-        if (!t) return false;
-        if (zoneFilter === 'LAYDOWN_1') return t.currentZone === 'LAYDOWN_1';
-        if (zoneFilter === 'LAYDOWN_2') return t.currentZone === 'LAYDOWN_2';
+        const t = tankInventory.find((tank) => tank.id === r.tankNo);
+        const pos = (r.position || '').toLowerCase();
+        if (zoneFilter === 'LAYDOWN_1') {
+          return t ? t.currentZone === 'LAYDOWN_1' : pos.includes('1') || pos.includes('ld-1') || pos.includes('yard 1');
+        }
+        if (zoneFilter === 'LAYDOWN_2') {
+          return t ? t.currentZone === 'LAYDOWN_2' : pos.includes('2') || pos.includes('ld-2') || pos.includes('yard 2');
+        }
+        if (zoneFilter === 'SKID') {
+          return t ? t.currentZone.startsWith('BAY') : pos.includes('bay') || pos.includes('skid') || pos.includes('rack');
+        }
         return true;
       });
     }
@@ -1076,7 +1477,7 @@ export default function NiasTerminalView({
     }
 
     return records;
-  }, [dailyMasterRecords, selectedDate, dateFilterMode, zoneFilter, searchQuery, fleetTanks]);
+  }, [dailyMasterRecords, selectedDate, startDate, endDate, dateQueryMode, batchFilter, zoneFilter, searchQuery, fleetTanks, tankInventory, deletedRecordIds]);
 
   // Open inspection workstation for a tank across any sub-tab
   const handleOpenInspectionWorkstationForTank = (tank: { tankNo: string }) => {
@@ -1319,187 +1720,151 @@ export default function NiasTerminalView({
         </div>
       )}
 
-      {/* Top Header & 2-Domain Switcher Navigation */}
-      <section className="shrink-0 win-panel p-1.5 flex flex-col gap-1 select-none">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <MapPin className="w-5 h-5 text-slate-950 font-bold" />
-              <h2 className="text-base sm:text-lg font-black text-slate-950">
-                Nias Regas Unit (ORU Nias, Gunungsitoli)
-              </h2>
-            </div>
-            <p className="text-xs text-slate-950 font-bold">
-              Clean 2-domain architecture separating physical ISO Tank Lifecycle from the Gas-to-Power Process.
-            </p>
+      {/* Top Header & Operational Domain Navigation (PAGT Arun Matching Industrial Style) */}
+      <section className="shrink-0 win-panel px-3 py-1.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 select-none">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-black text-blue-950 tracking-tight">
+              NIAS Regas Unit Process
+            </h2>
           </div>
-
-          {/* Core 2-Level Switcher (2 Major Operational Domains) */}
-          <div className="flex items-center win-panel p-0.5 rounded-none border border-slate-300 gap-1 flex-wrap">
-            <button
-              onClick={() => setActiveDomain('ISO_TANK_MGMT')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded text-xs font-bold transition-all cursor-pointer ${
-                activeDomain === 'ISO_TANK_MGMT' ? 'win-tab-active' : 'win-tab-inactive'
-              }`}
-            >
-              <Box className="w-4 h-4 text-slate-950 font-bold" />
-              <span>ISO Tank Management</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-blue-950 text-slate-950 font-bold ml-1 border border-blue-500/40">
-                {fleetTanks.length} Tanks
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveDomain('REGAS_SYSTEM')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded text-xs font-bold transition-all cursor-pointer ${
-                activeDomain === 'REGAS_SYSTEM' ? 'win-tab-active' : 'win-tab-inactive'
-              }`}
-            >
-              <Zap className="w-4 h-4 text-slate-950 font-bold" />
-              <span>Regas & Power</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-950 text-slate-950 font-bold ml-1 border border-amber-200">
-                17.64 MW
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Sub-Tab Navigation Bar (Contextual to the Selected Domain) */}
-        <div className={`shrink-0 flex items-center justify-between border-t border-[#808080] pt-1 overflow-x-auto ${
-          isDark ? 'border-slate-200/80' : 'border-slate-200'
-        }`}>
-          {activeDomain === 'ISO_TANK_MGMT' ? (
-            <div className={`flex items-center p-1 rounded-none border text-xs font-bold whitespace-nowrap gap-1 ${
-              isDark ? 'win-panel/80 border-slate-200' : 'bg-slate-100 border-slate-200'
-            }`}>
-              <button
-                onClick={() => setTankSubTab('TANK_OVERVIEW')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
-                  tankSubTab === 'TANK_OVERVIEW'
-                    ? 'win-tab-active' : 'win-tab-inactive'
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                <span>Overview & Visual Yard Map</span>
-              </button>
-
-              <button
-                onClick={() => setTankSubTab('LAYDOWN_1_2_LOG')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
-                  tankSubTab === 'LAYDOWN_1_2_LOG'
-                    ? 'win-tab-active' : 'win-tab-inactive'
-                }`}
-              >
-                <FileText className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                <span>Laydown 1 Condition & BOG Log ({masterInspectionList.length})</span>
-              </button>
-
-              <button
-                onClick={() => setTankSubTab('ACTIVE_BAY_TANKS')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
-                  tankSubTab === 'ACTIVE_BAY_TANKS'
-                    ? 'win-tab-active' : 'win-tab-inactive'
-                }`}
-              >
-                <Tag className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                <span>Active Bay Mounted Tanks ({zoneStats.activeBaysCount}/4)</span>
-              </button>
-
-              <button
-                onClick={() => setTankSubTab('LAYDOWN_3_HEEL')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
-                  tankSubTab === 'LAYDOWN_3_HEEL'
-                    ? 'win-tab-active' : 'win-tab-inactive'
-                }`}
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                <span>Laydown 2 (Heel ~1.0 m³) ({zoneStats.yard2.count})</span>
-              </button>
-
-              <button
-                onClick={() => setTankSubTab('TANK_MASS_BALANCE')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
-                  tankSubTab === 'TANK_MASS_BALANCE'
-                    ? 'win-tab-active' : 'win-tab-inactive'
-                }`}
-              >
-                <Scale className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                <span>ISO Tank Mass Balance & Depressurization Log</span>
-              </button>
-            </div>
-          ) : (
-            <div className={`flex items-center p-1 rounded-none border text-xs font-bold whitespace-nowrap gap-1 ${
-              isDark ? 'win-panel/80 border-slate-200' : 'bg-slate-100 border-slate-200'
-            }`}>
-              <button
-                onClick={() => setRegasSubTab('GAS_PROCESS_TELEMETRY')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
-                  regasSubTab === 'GAS_PROCESS_TELEMETRY'
-                    ? 'win-tab-active' : 'win-tab-inactive'
-                }`}
-              >
-                <Activity className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                <span>Gas Process & State Telemetry</span>
-              </button>
-
-              <button
-                onClick={() => setRegasSubTab('GC_GAS_QUALITY')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
-                  regasSubTab === 'GC_GAS_QUALITY'
-                    ? 'win-tab-active' : 'win-tab-inactive'
-                }`}
-              >
-                <FlaskConical className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                <span>GC & Gas Quality Stream</span>
-              </button>
-
-              <button
-                onClick={() => setRegasSubTab('PLTMG_POWER_OUTPUT')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
-                  regasSubTab === 'PLTMG_POWER_OUTPUT'
-                    ? 'win-tab-active' : 'win-tab-inactive'
-                }`}
-              >
-                <Zap className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                <span>PLTMG Power & Thermal Output</span>
-              </button>
-
-              <button
-                onClick={() => setRegasSubTab('CUSTODY_HEAT_SETTLEMENT')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-none transition-all cursor-pointer ${
-                  regasSubTab === 'CUSTODY_HEAT_SETTLEMENT'
-                    ? isDark
-                      ? 'bg-indigo-600/25 text-slate-950 font-bold border border-indigo-200 shadow-none'
-                      : 'bg-white text-slate-950 font-bold font-bold border border-indigo-200 shadow-none'
-                    : isDark
-                    ? 'win-tab-inactive'
-                    : 'win-tab-inactive'
-                }`}
-              >
-                <Scale className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                <span>Custody Heat Settlement</span>
-                {disputeCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-none bg-red-500/20 text-white font-bold text-[9px] font-bold">
-                    {disputeCount} Alert
-                  </span>
-                )}
-              </button>
-            </div>
-          )}
-
-          {/* Quick Domain Tag Indicator */}
-          <div className="hidden xl:flex items-center gap-2 text-xs font-mono text-slate-950 font-bold">
-            <span>Active View:</span>
-            <span className={`px-2.5 py-1 rounded-none font-bold uppercase text-[10px] border ${
-              activeDomain === 'ISO_TANK_MGMT'
-                ? 'bg-blue-950 text-slate-950 font-bold border-blue-500/40'
-                : 'bg-amber-950 text-slate-950 font-bold border-amber-200'
-            }`}>
-              {activeDomain === 'ISO_TANK_MGMT' ? 'ISO Tank Mgmt' : 'Regas & Power'}
+          <div className="flex items-center gap-1.5">
+            <span className="bg-[#002b4d] text-white text-[11px] font-mono font-bold px-2.5 py-0.5 border border-slate-700 shadow-sm">
+              NIAS Inventory: {zoneStats.yard1.tanks.length + activeBays.filter((b) => b.tankNo).length + zoneStats.yard2.tanks.length} Tanks
             </span>
           </div>
         </div>
+
+        {/* 2-Domain Switcher Navigation (PAGT Arun Style SCADA Tabs) */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setActiveDomain('ISO_TANK_MGMT')}
+            className={`px-3 py-1 text-xs font-bold font-mono transition-all cursor-pointer ${
+              activeDomain === 'ISO_TANK_MGMT'
+                ? 'win-tab-active text-blue-900'
+                : 'win-tab-inactive'
+            }`}
+          >
+            ISO Tank Management
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveDomain('REGAS_SYSTEM')}
+            className={`px-3 py-1 text-xs font-bold font-mono transition-all cursor-pointer ${
+              activeDomain === 'REGAS_SYSTEM'
+                ? 'win-tab-active text-blue-900'
+                : 'win-tab-inactive'
+            }`}
+          >
+            Regas &amp; Power
+          </button>
+        </div>
       </section>
+
+      {/* Sub-Tabs Bar (Contextual to Selected Domain) */}
+      <div className="shrink-0 win-panel px-2 py-1 flex items-center justify-between border-t-0 border-[#808080] overflow-x-auto">
+        {activeDomain === 'ISO_TANK_MGMT' ? (
+          <div className="flex items-center gap-1 text-xs font-bold overflow-x-auto max-w-full">
+            <button
+              type="button"
+              onClick={() => setTankSubTab('TANK_OVERVIEW')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
+                tankSubTab === 'TANK_OVERVIEW' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+              }`}
+            >
+              ISO TK Position
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTankSubTab('LAYDOWN_1_2_LOG')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
+                tankSubTab === 'LAYDOWN_1_2_LOG' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+              }`}
+            >
+              ISO TK - LOG
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTankSubTab('ACTIVE_BAY_TANKS')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
+                tankSubTab === 'ACTIVE_BAY_TANKS' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+              }`}
+            >
+              ORU ( ISO TK - SKID )
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTankSubTab('LAYDOWN_3_HEEL')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
+                tankSubTab === 'LAYDOWN_3_HEEL' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+              }`}
+            >
+              ORU ( LD - 2 )
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTankSubTab('TANK_MASS_BALANCE')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
+                tankSubTab === 'TANK_MASS_BALANCE' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+              }`}
+            >
+              ORU ( LD - 2 ) Mass Balance
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 text-xs font-bold overflow-x-auto max-w-full">
+            <button
+              type="button"
+              onClick={() => setRegasSubTab('GAS_PROCESS_TELEMETRY')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
+                regasSubTab === 'GAS_PROCESS_TELEMETRY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+              }`}
+            >
+              Gas Process &amp; State Telemetry
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setRegasSubTab('GC_GAS_QUALITY')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
+                regasSubTab === 'GC_GAS_QUALITY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+              }`}
+            >
+              GC &amp; Gas Quality Stream
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setRegasSubTab('PLTMG_POWER_OUTPUT')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
+                regasSubTab === 'PLTMG_POWER_OUTPUT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+              }`}
+            >
+              PLTMG Power &amp; Thermal Output
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setRegasSubTab('CUSTODY_HEAT_SETTLEMENT')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
+                regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+              }`}
+            >
+              Custody Heat Settlement
+              {disputeCount > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 bg-red-600 text-white font-mono text-[9px] font-bold">
+                  {disputeCount} Alert
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* ==================================================================== */}
       {/* DOMAIN 1 - SUB-TAB 1: 🌐 PURE 3-COLUMN VISUAL YARD MAP (DRAG & DROP)  */}
@@ -1507,6 +1872,11 @@ export default function NiasTerminalView({
       {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'TANK_OVERVIEW' && (() => {
         const yard1TanksList = zoneStats.yard1.tanks;
         const yard2TanksList = zoneStats.yard2.tanks;
+        const yard1OccupancyPct = ((yard1TanksList.length / 34) * 100).toFixed(1);
+        const yard1TotalMassTon = yard1TanksList.reduce(
+          (acc, t) => acc + ((t.levelPercent || 85) / 100) * 18.2,
+          0
+        );
 
         // Helper to match tank by slot index (1-indexed slot number)
         const getTankAtSlot = (list: typeof yard1TanksList, slotIdx: number): typeof yard1TanksList[0] | undefined => {
@@ -1523,126 +1893,184 @@ export default function NiasTerminalView({
           return unassigned[unassignedIdx];
         };
 
-        const totalActiveFlow = activeBays.reduce((acc, b) => acc + (b.flowRate || 0), 0);
+        const firstAvailableBay = activeBays.find((b) => !b.tankNo);
         const mountedCount = activeBays.filter((b) => b.tankNo).length;
-        const yard1AvgPress = yard1TanksList.length
-          ? yard1TanksList.reduce((acc, t) => acc + (t.pressureMpa || 0), 0) / yard1TanksList.length
-          : 0.78;
+        const runningCount = activeBays.filter((b) => b.status === 'RUNNING').length;
+        const totalActiveFlow = runningCount > 0 ? 1700 : 0;
+        const yard1UsableMassTon = yard1TanksList.reduce(
+          (acc, t) => acc + Math.max(0, (((t.levelPercent || 60) - 4) / 100) * 18.2),
+          0
+        );
+        const yard1TotalEnergyMMBtu = Math.round((yard1UsableMassTon > 0 ? yard1UsableMassTon : 97.1) * 52.0);
+        const yard1AutonomyDays = ((yard1UsableMassTon > 0 ? yard1UsableMassTon : 97.1) / 21.6).toFixed(1);
+
         const yard1HighPressCount = yard1TanksList.filter((t) => (t.pressureMpa || 0) >= 0.74).length;
 
+        const activeRunningBay = activeBays.find((b) => b.status === 'RUNNING') || activeBays.find((b) => b.tankNo) || activeBays[0];
+        const activeRackTag = getRackTag(activeRunningBay?.bayId || 'Bay 01');
+        const activeTankNo = activeRunningBay?.tankNo || 'ISOT-009';
+        const activeBayTankAsset = tankInventory.find((t) => t.id === activeRunningBay?.tankNo);
+        const activeFleetTank = fleetTanks.find((t) => t.tankNo === activeRunningBay?.tankNo);
+        const activeBayLevel = activeRunningBay?.level ?? activeBayTankAsset?.levelPercent ?? activeFleetTank?.level ?? 49.0;
+        const activeBayMassTon = ((activeBayLevel / 100) * 18.2);
+        const currentTankMassKg = (activeBayLevel / 100) * 18200;
+        const usableToHeelKg = Math.max(0, currentTankMassKg - 420);
+        const remainHours = usableToHeelKg / 900;
+        const targetDate = new Date(Date.now() + remainHours * 3600 * 1000);
+        const targetTimeStr = targetDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+        const yard2TotalHeelTon = yard2TanksList.length > 0
+          ? yard2TanksList.reduce((acc, t) => acc + ((t.levelPercent || 4) / 100) * 18.2, 0)
+          : 0.73;
+
         return (
-          <div className="space-y-5 animate-in fade-in duration-200">
-            {/* 1. Top 3 Zone Metric Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Card 1: Laydown Yard 1 (Receiving & BOG) */}
-              <div className="bg-white shadow-none border border-blue-500/40 rounded-none p-4 flex flex-col justify-between shadow-none">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5" />
-                    📍 Laydown Yard 1
+          <div className="space-y-2.5 animate-in fade-in duration-200">
+            {/* 1. Top 3 Zone KPI Summary Strip (Engineering Autonomy & Energy SCADA Cards) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 select-none">
+              {/* Card 1: ORU ( LD - 1 ) */}
+              <div className="win-panel overflow-hidden border border-slate-300 flex flex-col justify-between">
+                <div className="bg-[#002b4d] px-3 py-2 flex justify-between items-center text-white border-b border-blue-900/60">
+                  <span className="text-slate-100 font-bold text-xs sm:text-sm tracking-wider uppercase flex-1 text-center">
+                    ORU ( LD - 1 )
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-white font-bold border border-blue-200">
-                    Receiving & BOG
-                  </span>
+                  <span
+                    className="w-2.5 h-2.5 rounded-full bg-[#10b981] shrink-0"
+                    title="Normal Cryo Ready Buffer"
+                  />
                 </div>
-                <div className="flex items-baseline gap-1.5 mb-1">
-                  <span className="text-2xl font-bold font-mono text-slate-950 font-bold">{yard1TanksList.length}</span>
-                  <span className="text-xs font-mono text-slate-950 font-bold">/ 12 Slots</span>
-                </div>
-                <div className="flex justify-between items-center text-[11px] font-mono text-slate-950 font-bold pt-2 border-t border-slate-200/80">
-                  <span>Avg: {yard1AvgPress.toFixed(2)} MPa</span>
-                  <span className={yard1HighPressCount > 0 ? 'text-slate-950 font-bold font-bold' : 'text-slate-950 font-bold'}>
-                    {yard1HighPressCount} Overpress / Vent
-                  </span>
-                </div>
-              </div>
-
-              {/* Card 2: 4-Bay Vaporizer Station */}
-              <div className="bg-white shadow-none border border-emerald-200 rounded-none p-4 flex flex-col justify-between shadow-none">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
-                    <Flame className="w-3.5 h-3.5" />
-                    🔥 4-Bay Vaporizer Station
-                  </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                    Active Sendout
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-1.5 mb-1">
-                  <span className="text-2xl font-bold font-mono text-slate-950 font-bold">{mountedCount} / 4</span>
-                  <span className="text-xs font-mono text-slate-950 font-bold">Bays Online</span>
-                </div>
-                <div className="flex justify-between items-center text-[11px] font-mono text-slate-950 font-bold pt-2 border-t border-slate-200/80">
-                  <span>Sendout: {totalActiveFlow.toFixed(0)} Nm³/h</span>
-                  <span className="text-slate-950 font-bold">0.35 MPa Header</span>
-                </div>
-              </div>
-
-              {/* Card 3: Laydown Yard 2 (Empty Heel 4% Staging) */}
-              <div className="bg-white shadow-none border border-purple-500/40 rounded-none p-4 flex flex-col justify-between shadow-none">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    🔄 Laydown Yard 2
-                  </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-slate-950 font-bold border border-purple-500/30">
-                    Empty Heel 4%
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-1.5 mb-1">
-                  <span className="text-2xl font-bold font-mono text-slate-950 font-bold">{yard2TanksList.length}</span>
-                  <span className="text-xs font-mono text-slate-950 font-bold">/ 12 Slots</span>
-                </div>
-                <div className="flex justify-between items-center text-[11px] font-mono text-slate-950 font-bold pt-2 border-t border-slate-200/80">
-                  <span>4.0% Heel (~350 kg)</span>
-                  <span className="text-slate-950 font-bold">Ready for MV. Saviour</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Drag & Drop Guidance Banner */}
-            <div className="flex items-center justify-between win-panel/80 border border-slate-200 rounded-none px-4 py-2.5 text-xs text-slate-950 font-bold">
-              <div className="flex items-center gap-2">
-                <GripVertical className="w-4 h-4 text-slate-950 font-bold" />
-                <span className="font-bold text-slate-950 font-bold">
-                  Interactive 3-Zone Physical Drag & Drop Terminal
-                </span>
-                <span className="hidden sm:inline text-slate-950 font-bold">—</span>
-                <span className="hidden sm:inline text-slate-950 font-bold">
-                  Drag ISO Tanks: <strong>Laydown 1 (Receiving)</strong> ➔ <strong>4-Bay (Vaporize)</strong> ➔ <strong>Laydown 2 (4% Heel Staging)</strong>
-                </span>
-              </div>
-              {draggingTankNo && (
-                <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-950 font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-none border border-emerald-800/60 animate-pulse">
-                  <span>Moving: {draggingTankNo}</span>
-                </div>
-              )}
-            </div>
-
-            {/* 2. Main 3-Column Visual Yard Map (Full Screen Width) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
-              {/* ================================================================= */}
-              {/* COLUMN 1: LAYDOWN YARD 1 (RECEIVING & BOG BUFFER - 12 SLOTS)      */}
-              {/* ================================================================= */}
-              <div className="bg-white shadow-none border border-blue-200 rounded-none p-4 sm:p-5 shadow-none space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-none bg-blue-500/20 border border-blue-500/40 flex items-center justify-center font-bold text-white font-bold text-xs">
-                      Y1
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm text-slate-950 font-bold">Laydown Yard 1</h4>
-                      <p className="text-[10px] text-slate-950 font-bold">Receiving & BOG Venting Station</p>
-                    </div>
+                <div className="p-3 space-y-1.5 font-mono text-xs sm:text-sm text-slate-800 bg-white">
+                  <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Staged Tanks:</span>
+                    <strong className="text-slate-900 font-bold text-xs text-right truncate pl-2 font-mono">
+                      {yard1TanksList.length} / 34 Slots ({yard1OccupancyPct}%)
+                    </strong>
                   </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-none bg-blue-500/15 text-white font-bold border border-blue-200">
-                    {yard1TanksList.length} / 12
+                  <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Usable Net Mass:</span>
+                    <strong className="text-slate-900 font-bold text-xs text-right truncate pl-2 font-mono">
+                      {yard1UsableMassTon.toFixed(1)} ton LNG
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Total Energy:</span>
+                    <strong className="text-blue-900 font-bold text-xs text-right truncate pl-2 font-mono">
+                      {yard1TotalEnergyMMBtu.toLocaleString()} MMBtu
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between w-full pt-1">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Est. Autonomy:</span>
+                    <strong className="text-[#0284c7] font-extrabold text-sm font-mono text-right truncate pl-2">
+                      ~{yard1AutonomyDays} Days
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: ORU ( ISO TK - Skid ) */}
+              <div className="win-panel overflow-hidden border border-slate-300 flex flex-col justify-between">
+                <div className="bg-[#002b4d] px-3 py-2 flex justify-between items-center text-white border-b border-blue-900/60">
+                  <span className="text-slate-100 font-bold text-xs sm:text-sm tracking-wider uppercase flex-1 text-center">
+                    ORU ( ISO TK - Skid )
                   </span>
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                      runningCount > 0 ? 'bg-[#10b981] animate-pulse' : 'bg-[#d97706]'
+                    }`}
+                    title={runningCount > 0 ? 'Active Vaporization Online' : 'Standby / Low Flow'}
+                  />
+                </div>
+                <div className="p-3 space-y-1.5 font-mono text-xs sm:text-sm text-slate-800 bg-white">
+                  <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Active Supply:</span>
+                    <strong className="text-slate-900 font-bold text-xs text-right truncate pl-2 font-mono">
+                      {activeRackTag} ({activeTankNo})
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Sendout Rate:</span>
+                    <strong className="text-blue-900 font-bold text-xs text-right truncate pl-2 font-mono" title="2-Vaporizer Train Sendout Rate: 1,700 Nm³/h (43.2 t/day)">
+                      1,700 Nm³/h (43.2 t/d)
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Active TK Mass:</span>
+                    <strong className="text-slate-900 font-bold text-xs text-right truncate pl-2 font-mono">
+                      {activeBayMassTon.toFixed(1)} ton (~{activeBayLevel.toFixed(0)}%)
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between w-full pt-1">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">1.0m³ Cutoff:</span>
+                    <strong className="text-[#f59e0b] font-extrabold text-sm font-mono text-right truncate pl-2">
+                      ~{remainHours.toFixed(1)}h (ETA: {targetTimeStr})
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: ORU ( LD - 2 ) */}
+              <div className="win-panel overflow-hidden border border-slate-300 flex flex-col justify-between">
+                <div className="bg-[#002b4d] px-3 py-2 flex justify-between items-center text-white border-b border-blue-900/60">
+                  <span className="text-slate-100 font-bold text-xs sm:text-sm tracking-wider uppercase flex-1 text-center">
+                    ORU ( LD - 2 )
+                  </span>
+                  <span
+                    className="w-2.5 h-2.5 rounded-full bg-[#10b981] shrink-0"
+                    title="Heel Buffer & Vacuum Intact"
+                  />
+                </div>
+                <div className="p-3 space-y-1.5 font-mono text-xs sm:text-sm text-slate-800 bg-white">
+                  <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Empty Staged:</span>
+                    <strong className="text-slate-900 font-bold text-xs text-right truncate pl-2 font-mono">
+                      {yard2TanksList.length} / 16 Slots
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Retained Heel:</span>
+                    <strong className="text-purple-900 font-bold text-xs text-right truncate pl-2 font-mono">
+                      {yard2TotalHeelTon.toFixed(2)} ton (1.0 m³ Cutoff)
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Backhaul Target:</span>
+                    <strong className="text-blue-900 font-bold text-xs text-right truncate pl-2 font-mono">
+                      {yard2TanksList.length} / 10 Ready
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between w-full pt-1">
+                    <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">M/V Saviour:</span>
+                    <strong className="text-slate-800 font-bold text-xs text-right truncate pl-2 font-mono">
+                      Shipment N-2 Staged
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+
+            {/* 2. Main 3-Column Visual Yard Map (Equal Height Flow Layout: 1.3fr 1fr 1.3fr) */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr_1.3fr] gap-2.5 items-stretch h-[calc(100vh-270px)] min-h-[660px] max-h-[calc(100vh-240px)]">
+              {/* ================================================================= */}
+              {/* COLUMN 1: LAYDOWN YARD 1 (RECEIVING & BOG BUFFER - 34 SLOTS)      */}
+              {/* ================================================================= */}
+              <div className="win-panel overflow-hidden border border-slate-300 flex flex-col h-full min-h-0 bg-[#d6d3c8]">
+                {/* Navy Panel Header (Sticky Top) */}
+                <div className="bg-[#002b4d] px-3 py-2 flex items-center justify-between text-white shrink-0 sticky top-0 z-20 shadow-xs border-b border-blue-900/60">
+                  <h4 className="font-bold text-xs text-slate-100 uppercase tracking-wide truncate">
+                    ORU ( LD - 1 )
+                  </h4>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[11px] font-mono font-black px-2 py-0.5 bg-blue-950/80 text-cyan-300 border border-blue-400/40 whitespace-nowrap">
+                      {yard1TanksList.length} / 34
+                    </span>
+                    <span className={`w-2 h-2 rounded-full inline-block shrink-0 ${yard1HighPressCount > 0 ? 'bg-[#d97706]' : 'bg-[#10b981]'}`} />
+                  </div>
                 </div>
 
-                {/* 12 Slots in 2 Columns */}
-                <div className="grid grid-cols-2 gap-2.5">
-                  {Array.from({ length: 12 }).map((_, slotIdx) => {
+                {/* 34 Slots in 2 Columns with Custom Scrollbar */}
+                <div className="p-2.5 bg-[#d6d3c8] grid grid-cols-2 gap-2 flex-1 min-h-0 overflow-y-auto overflow-x-hidden content-start custom-scada-scrollbar">
+                  {Array.from({ length: 34 }).map((_, slotIdx) => {
                     const slotNum = slotIdx + 1;
                     const tank = getTankAtSlot(yard1TanksList, slotIdx);
                     const slotTargetId = `LAYDOWN_1-slot-${slotNum}`;
@@ -1651,6 +2079,9 @@ export default function NiasTerminalView({
                     if (tank) {
                       const isDragging = draggingTankNo === tank.id;
                       const isHighPress = (tank.pressureMpa || 0) >= 0.74;
+                      const massKg = ((tank.levelPercent / 100) * 18200).toLocaleString('en-US', {
+                        maximumFractionDigits: 0,
+                      });
 
                       return (
                         <div
@@ -1658,54 +2089,270 @@ export default function NiasTerminalView({
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, tank.id, 'LAYDOWN_1')}
                           onDragEnd={handleDragEnd}
-                          className={`p-2.5 rounded-none border win-panel/90 transition-all duration-200 cursor-grab active:cursor-grabbing relative flex flex-col justify-between gap-1.5 shadow-none ${
+                          onClick={() => setSelectedDetailTank(tank)}
+                          className={`relative p-2.5 pb-2 flex flex-col justify-between gap-1.5 cursor-grab active:cursor-grabbing hover:shadow-lg transition-all rounded-xs border-2 select-none ${
                             isDragging
-                              ? 'opacity-40 scale-95 ring-2 ring-blue-400 border-blue-400'
+                              ? 'opacity-50 scale-95 ring-2 ring-blue-500 border-blue-500'
                               : isHighPress
-                              ? 'border-amber-200 hover:border-blue-400 shadow-amber-500/10'
-                              : 'border-blue-200 hover:border-blue-400/70 hover:shadow-blue-500/10'
+                              ? 'border-amber-500 bg-gradient-to-b from-[#fef3c7]/60 to-[#fde68a]/40 hover:border-amber-600'
+                              : 'border-[#64748b] bg-gradient-to-b from-[#e8edf2] to-[#dbe2ea] hover:border-[#0284c7]'
                           }`}
+                          style={{
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 3px 8px rgba(0,0,0,0.12)',
+                          }}
                         >
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-1">
-                              <GripVertical className="w-3 h-3 text-slate-950 font-bold group-hover:text-slate-950 font-bold" />
-                              <span className="font-bold font-mono text-slate-950 font-bold text-xs">{tank.id}</span>
+                          {/* 4 Corner Bolt Casting Marks (ISO Steel Detail) */}
+                          <span className="absolute -top-[2px] -left-[2px] w-2 h-2 border-t-2 border-l-2 border-[#1e293b] bg-[#475569] rounded-tl-xs pointer-events-none" />
+                          <span className="absolute -top-[2px] -right-[2px] w-2 h-2 border-t-2 border-r-2 border-[#1e293b] bg-[#475569] rounded-tr-xs pointer-events-none" />
+                          <span className="absolute -bottom-[2px] -left-[2px] w-2 h-2 border-b-2 border-l-2 border-[#1e293b] bg-[#475569] rounded-bl-xs pointer-events-none" />
+                          <span className="absolute -bottom-[2px] -right-[2px] w-2 h-2 border-b-2 border-r-2 border-[#1e293b] bg-[#475569] rounded-br-xs pointer-events-none" />
+
+                          {/* [1. Top Header Row]: Serial (Left) | Status Badge (Right) */}
+                          <div className="flex justify-between items-center px-0.5">
+                            <div className="flex items-center gap-1.5 font-mono text-[12px] font-bold text-[#002b4d] truncate">
+                              <GripVertical className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span className="truncate">{tank.serialNo || `SIMU-82010${slotNum}`}</span>
                             </div>
-                            <span className="text-[9px] font-mono text-slate-950 font-bold bg-white shadow-none px-1 py-0.2 rounded">
-                              #{slotNum < 10 ? `0${slotNum}` : slotNum}
-                            </span>
+                            <div>
+                              {isHighPress ? (
+                                <span className="text-[8.5px] font-mono font-bold text-amber-900 bg-amber-100 px-2 py-0.5 border border-amber-500 rounded-xs shadow-2xs">
+                                  [HIGH PRESS]
+                                </span>
+                              ) : (
+                                <span className="text-[8.5px] font-mono font-bold text-slate-700 bg-white px-2 py-0.5 border border-slate-300 rounded-xs shadow-2xs">
+                                  [VENTED]
+                                </span>
+                              )}
+                            </div>
                           </div>
 
-                          {/* Level Progress */}
-                          <div className="space-y-0.5">
-                            <div className="flex justify-between text-[10px] font-mono text-slate-950 font-bold">
-                              <span>Level:</span>
-                              <span className="font-bold text-slate-950 font-bold">{tank.levelPercent}%</span>
-                            </div>
-                            <div className="w-full bg-white shadow-none h-1 rounded-none overflow-hidden">
-                              <div
-                                className="h-full bg-blue-500 rounded-none"
-                                style={{ width: `${Math.min(100, tank.levelPercent || 50)}%` }}
+                          {/* [2. Saddle / Tank Bed Bar]: ISOT Tank ID in Deep Navy Bold */}
+                          <div className="text-center py-0.5 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 border-y border-slate-300 rounded-xs shadow-inner flex items-center justify-center gap-2">
+                            <span className="w-2 h-0.5 bg-slate-400 rounded-full inline-block" />
+                            <span className="text-[15px] font-mono font-black tracking-tight text-[#002b4d]">
+                              {tank.id}
+                            </span>
+                            <span className="w-2 h-0.5 bg-slate-400 rounded-full inline-block" />
+                          </div>
+
+                          {/* [3. Physical 40ft Cylindrical Tank Visual & Liquid Level] */}
+                          <div className="relative w-full h-[76px] flex items-center justify-center bg-slate-200/70 rounded-xs border border-slate-300/90 p-1 shadow-inner">
+                            <svg viewBox="0 0 420 86" className="w-full h-full" preserveAspectRatio="none">
+                              <defs>
+                                <linearGradient id={`tankVessel-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" stopColor="#f8fafc" />
+                                  <stop offset="50%" stopColor="#cbd5e1" />
+                                  <stop offset="100%" stopColor="#94a3b8" />
+                                </linearGradient>
+                                <linearGradient id={`gasVaporBg-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" stopColor="#f1f5f9" />
+                                  <stop offset="60%" stopColor="#e2e8f0" />
+                                  <stop offset="100%" stopColor="#cbd5e1" />
+                                </linearGradient>
+                                <linearGradient id={`liquidFill-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" stopColor="#38bdf8" />
+                                  <stop offset="50%" stopColor="#0284c7" />
+                                  <stop offset="100%" stopColor="#0369a1" />
+                                </linearGradient>
+                                <pattern id={`gasPattern-${tank.id}`} width="8" height="8" patternUnits="userSpaceOnUse">
+                                  <path d="M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2" stroke="#94a3b8" strokeWidth="0.75" strokeOpacity="0.3" />
+                                </pattern>
+                                <clipPath id={`innerWindowClip-${tank.id}`}>
+                                  <rect x="58" y="14" width="304" height="58" rx="8" />
+                                </clipPath>
+                              </defs>
+
+                              {/* Outer Steel Skid Frame */}
+                              <line x1="28" y1="12" x2="392" y2="12" stroke="#475569" strokeWidth="2.5" />
+                              <line x1="28" y1="74" x2="392" y2="74" stroke="#475569" strokeWidth="3" />
+
+                              {/* Left Vertical End Post */}
+                              <rect x="24" y="8" width="8" height="70" fill="#334155" stroke="#64748b" strokeWidth="1.5" rx="1" />
+                              <rect x="22" y="6" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                              <rect x="22" y="74" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+
+                              {/* Right Vertical End Post */}
+                              <rect x="388" y="8" width="8" height="70" fill="#334155" stroke="#64748b" strokeWidth="1.5" rx="1" />
+                              <rect x="386" y="6" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                              <rect x="386" y="74" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+
+                              {/* Diagonal Bottom Corner Gussets (Saddle Braces) */}
+                              <polygon points="32,74 72,74 32,48" fill="#cbd5e1" stroke="#475569" strokeWidth="1.5" />
+                              <polygon points="388,74 348,74 388,48" fill="#cbd5e1" stroke="#475569" strokeWidth="1.5" />
+
+                              {/* Left Convex Dish End Dome */}
+                              <path d="M 58 14 C 28 14, 28 72, 58 72 Z" fill={`url(#tankVessel-${tank.id})`} stroke="#475569" strokeWidth="2" />
+
+                              {/* Right Convex Dish End Dome */}
+                              <path d="M 362 14 C 392 14, 392 72, 362 72 Z" fill={`url(#tankVessel-${tank.id})`} stroke="#475569" strokeWidth="2" />
+
+                              {/* Main Cylindrical Barrel Background */}
+                              <rect x="56" y="12" width="308" height="62" fill={`url(#tankVessel-${tank.id})`} stroke="#475569" strokeWidth="1.5" />
+
+                              {/* Inner Cut-out Viewing Window Border */}
+                              <rect
+                                x="58"
+                                y="14"
+                                width="304"
+                                height="58"
+                                rx="8"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="1.5"
                               />
-                            </div>
+
+                              {/* Dual-Phase Gas Space & Cryo Liquid Interior */}
+                              <g clipPath={`url(#innerWindowClip-${tank.id})`}>
+                                {/* [1. Upper Gas / Vapor Phase (BOG Headspace)] */}
+                                <rect
+                                  x="58"
+                                  y="14"
+                                  width="304"
+                                  height="58"
+                                  fill={`url(#gasVaporBg-${tank.id})`}
+                                />
+                                {/* Gas Molecules Micro-Pattern */}
+                                <rect
+                                  x="58"
+                                  y="14"
+                                  width="304"
+                                  height="58"
+                                  fill={`url(#gasPattern-${tank.id})`}
+                                />
+                                {/* Gas Space SCADA Annotation */}
+                                <text
+                                  x="70"
+                                  y="25"
+                                  fill="#475569"
+                                  fontSize="8"
+                                  fontWeight="bold"
+                                  fontFamily="monospace"
+                                  letterSpacing="0.8"
+                                >
+                                  GAS / VAPOR (BOG)
+                                </text>
+                                <text
+                                  x="350"
+                                  y="25"
+                                  textAnchor="end"
+                                  fill="#64748b"
+                                  fontSize="7.5"
+                                  fontWeight="bold"
+                                  fontFamily="monospace"
+                                  letterSpacing="0.5"
+                                >
+                                  HEADSPACE
+                                </text>
+
+                                {/* [2. Lower Liquid LNG Phase (Cryo Fill)] */}
+                                {(() => {
+                                  const fillHeight = (tank.levelPercent / 100) * 58;
+                                  const fillY = 72 - fillHeight;
+                                  return (
+                                    <g>
+                                      <rect
+                                        x="58"
+                                        y={fillY}
+                                        width="304"
+                                        height={fillHeight}
+                                        fill={`url(#liquidFill-${tank.id})`}
+                                      />
+                                      {/* Liquid-Gas Meniscus Wave Interface Line */}
+                                      <path
+                                        d={`M 58 ${fillY} Q 134 ${fillY - 2}, 210 ${fillY} T 362 ${fillY}`}
+                                        fill="none"
+                                        stroke="#bae6fd"
+                                        strokeWidth="2"
+                                        strokeOpacity="0.95"
+                                      />
+                                      {/* Liquid LNG Label */}
+                                      {tank.levelPercent >= 25 && (
+                                        <text
+                                          x="70"
+                                          y="66"
+                                          fill="#ffffff"
+                                          opacity="0.85"
+                                          fontSize="8"
+                                          fontWeight="bold"
+                                          fontFamily="monospace"
+                                          letterSpacing="0.5"
+                                        >
+                                          LIQUID LNG
+                                        </text>
+                                      )}
+                                    </g>
+                                  );
+                                })()}
+                              </g>
+
+                              {/* Centered Percentage Level Overlay with White Halo for Maximum Legibility */}
+                              <text
+                                x="210"
+                                y="49"
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fill="#002b4d"
+                                fontSize="17"
+                                fontWeight="900"
+                                fontFamily="monospace"
+                                letterSpacing="0.5"
+                                style={{
+                                  paintOrder: 'stroke fill',
+                                  stroke: '#ffffff',
+                                  strokeWidth: '1.5px',
+                                  strokeLinejoin: 'round',
+                                }}
+                              >
+                                {(tank.levelPercent || 50).toFixed(1)}%
+                              </text>
+                            </svg>
                           </div>
 
-                          {/* Pressure & Depress */}
-                          <div className="flex justify-between items-center text-[10px] font-mono pt-1 border-t border-slate-900">
-                            <span className={isHighPress ? 'text-slate-950 font-bold font-bold' : 'text-slate-950 font-bold font-bold'}>
-                              {(tank.pressureMpa || 0).toFixed(2)} MPa
-                            </span>
-                            {isHighPress ? (
-                              <button
-                                type="button"
-                                onClick={() => handleQuickDepress(tank.id)}
-                                className="text-[9px] px-1.5 py-0.5 bg-amber-500/20 hover:bg-amber-500/40 text-white font-bold rounded border border-amber-200 cursor-pointer"
+                          {/* [4. Bottom Telemetry Data Bar]: 4 Discrete Columns [ Pressure ➔ Temp ➔ Volume ➔ Mass ] */}
+                          <div className="border border-slate-300 rounded-xs bg-white grid grid-cols-4 divide-x divide-slate-200 py-1.5 px-0.5 text-center shadow-2xs">
+                            {/* 1. Pressure */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span
+                                className={`font-mono text-xs sm:text-sm font-bold tracking-tight ${
+                                  isHighPress ? 'text-amber-700 font-black' : 'text-[#0f172a]'
+                                }`}
                               >
-                                Vent
-                              </button>
-                            ) : (
-                              <span className="text-slate-950 font-bold">{tank.tempC?.toFixed(1)} °C</span>
-                            )}
+                                {(tank.pressureMpa || 0).toFixed(2)} <span className="text-[8.5px]">MPa</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Pressure
+                              </span>
+                            </div>
+
+                            {/* 2. Temp */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span className="font-mono text-xs sm:text-sm font-bold tracking-tight text-[#0f172a]">
+                                {(tank.tempC ?? -160.0).toFixed(1)} <span className="text-[8.5px]">°C</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Temp
+                              </span>
+                            </div>
+
+                            {/* 3. Volume */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span className="font-mono text-xs sm:text-sm font-bold tracking-tight text-[#0f172a]">
+                                {(tank.levelPercent * 0.44).toFixed(1)} <span className="text-[8.5px]">m³</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Volume
+                              </span>
+                            </div>
+
+                            {/* 4. Mass */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span className="font-mono text-xs sm:text-sm font-bold tracking-tight text-[#0f172a]">
+                                {massKg} <span className="text-[8.5px]">kg</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Mass
+                              </span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -1717,17 +2364,14 @@ export default function NiasTerminalView({
                         onDragOver={(e) => handleDragOver(e, slotTargetId)}
                         onDragLeave={() => handleDragLeave(slotTargetId)}
                         onDrop={(e) => handleDrop(e, 'LAYDOWN_1', slotNum)}
-                        className={`h-24 rounded-none border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-all duration-200 text-center p-2 cursor-pointer ${
+                        className={`min-h-[160px] p-2 flex items-center justify-center text-center transition-all cursor-pointer rounded-xs border-2 border-dashed ${
                           isDragOver
-                            ? 'border-emerald-400 bg-emerald-500/20 shadow-[0_0_15px_rgba(52,211,153,0.3)] ring-2 ring-emerald-400 scale-[1.02]'
-                            : 'border-slate-200 hover:border-slate-200 win-panel/40 text-slate-950 font-bold'
+                            ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-400'
+                            : 'bg-[#f1efea] border-slate-300 hover:border-slate-400 text-slate-500'
                         }`}
                       >
-                        <span className="text-[10px] font-mono font-bold text-slate-950 font-bold">
-                          #{slotNum < 10 ? `0${slotNum}` : slotNum}
-                        </span>
-                        <span className="text-[9px] font-bold text-slate-950 font-bold">
-                          {isDragOver ? '📥 Drop Arrived Tank' : '+ Slot Empty'}
+                        <span className="text-[10px] font-mono font-bold text-slate-500">
+                          {isDragOver ? 'Drop Tank' : '+ Empty Slot'}
                         </span>
                       </div>
                     );
@@ -1736,119 +2380,377 @@ export default function NiasTerminalView({
               </div>
 
               {/* ================================================================= */}
-              {/* COLUMN 2: 4-BAY VAPORIZER STATION (PLTMG ACTIVE SENDOUT - 4 BAYS) */}
+              {/* COLUMN 2: ISO TK - SKID (PLTMG ACTIVE SENDOUT - 4 RACKS: T-201~T-204) */}
               {/* ================================================================= */}
-              <div className="bg-white shadow-none border border-emerald-200 rounded-none p-4 sm:p-5 shadow-none space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-none bg-emerald-500/20 border border-emerald-200 flex items-center justify-center font-bold text-white font-bold text-xs">
-                      <Flame className="w-4 h-4 text-slate-950 font-bold" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm text-slate-950 font-bold">4-Bay Vaporizer</h4>
-                      <p className="text-[10px] text-slate-950 font-bold">PLTMG Active Sendout Racks</p>
-                    </div>
+              <div className="win-panel overflow-hidden border border-slate-300 flex flex-col h-full min-h-0 bg-[#d6d3c8]">
+                {/* Navy Panel Header (Sticky Top) */}
+                <div className="bg-[#002b4d] px-3 py-2 flex items-center justify-between text-white shrink-0 sticky top-0 z-20 shadow-xs border-b border-blue-900/60">
+                  <h4 className="font-bold text-xs text-slate-100 uppercase tracking-wide truncate">
+                    ORU ( ISO TK - Skid )
+                  </h4>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[11px] font-mono font-black px-2 py-0.5 bg-blue-950/80 text-emerald-300 border border-emerald-500/40 whitespace-nowrap" title="2-Vaporizer Train Nominal Flow Rate">
+                      {totalActiveFlow > 0 ? `${totalActiveFlow.toLocaleString()} Nm³/h` : '0 Nm³/h'}
+                    </span>
+                    <span className={`w-2 h-2 rounded-full inline-block shrink-0 ${mountedCount > 0 ? 'bg-[#10b981]' : 'bg-[#d97706]'}`} />
                   </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-none bg-emerald-500/15 text-white font-bold border border-emerald-200">
-                    {totalActiveFlow.toFixed(0)} Nm³/h
-                  </span>
                 </div>
 
-                {/* 4 Large Bay Cards */}
-                <div className="space-y-3">
+                {/* 4 Skid Rack Cards with Custom Scrollbar */}
+                <div className="p-2.5 bg-[#d6d3c8] grid grid-cols-1 gap-2 flex-1 min-h-0 overflow-y-auto overflow-x-hidden content-start custom-scada-scrollbar">
                   {activeBays.map((bay) => {
                     const isDragOver = dragOverTarget === bay.bayId;
                     const tank = fleetTanks.find((t) => t.tankNo === bay.tankNo);
                     const isRunning = bay.status === 'RUNNING';
 
                     if (bay.tankNo) {
+                      const bayTankAsset = tankInventory.find((t) => t.id === bay.tankNo);
+                      const levelPercent =
+                        bay.level !== undefined && bay.level !== null && bay.level > 0
+                          ? bay.level
+                          : bayTankAsset?.levelPercent !== undefined && bayTankAsset.levelPercent > 0
+                          ? bayTankAsset.levelPercent
+                          : tank?.level !== undefined && tank.level > 0
+                          ? tank.level
+                          : 49.0;
+                      const pressureMpa =
+                        bay.pressure !== undefined && bay.pressure !== null && bay.pressure > 0
+                          ? bay.pressure
+                          : bayTankAsset?.pressureMpa !== undefined && bayTankAsset.pressureMpa > 0
+                          ? bayTankAsset.pressureMpa
+                          : tank?.pressureMPa || 0.76;
+                      const tempC =
+                        bay.temp !== undefined && bay.temp !== null && bay.temp < 0
+                          ? bay.temp
+                          : bayTankAsset?.tempC !== undefined && bayTankAsset.tempC < 0
+                          ? bayTankAsset.tempC
+                          : tank?.tempC || -126.7;
+                      const serialNo = bayTankAsset?.serialNo || tank?.serialNo || bay.serialNo || 'SIMU-8101426';
+                      const volumeM3 = (levelPercent * 0.44).toFixed(1);
+                      const rawMassKg = (levelPercent / 100) * 18200;
+                      const bayMassKg = rawMassKg.toLocaleString('en-US', { maximumFractionDigits: 0 });
+                      const rackTag = getRackTag(bay.bayId);
+                      const isLiquidFeed = rackTag === 'T-201' || rackTag === 'T-202';
+                      const isPbuRack = rackTag === 'T-203' || rackTag === 'T-204';
+                      const isSwapReq = isLiquidFeed && rawMassKg <= 13222;
+                      const isPbuReq = isPbuRack && rawMassKg <= 15151;
+                      const flowRate = isRunning ? 1700 : 0;
+                      const bayKey = `bay_${bay.bayId.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+
                       return (
                         <div
                           key={bay.bayId}
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, bay.tankNo!, bay.bayId)}
                           onDragEnd={handleDragEnd}
-                          className="win-panel/95 border border-emerald-200 rounded-none p-3 space-y-2.5 shadow-none relative group cursor-grab active:cursor-grabbing"
+                          onClick={() => {
+                            const bayZoneKey = (bay.bayId.replace(' ', '_').toUpperCase()) as NiasZone;
+                            const assetToSelect: NiasTankAsset = bayTankAsset
+                              ? {
+                                  ...bayTankAsset,
+                                  currentZone: bayZoneKey,
+                                  levelPercent,
+                                  pressureMpa,
+                                  tempC,
+                                  levelMmH2O: bayTankAsset.levelMmH2O || 180,
+                                }
+                              : {
+                                  id: bay.tankNo!,
+                                  serialNo: serialNo,
+                                  shipment: 'Shipment N-1',
+                                  currentZone: bayZoneKey,
+                                  slotIndex: 1,
+                                  levelPercent,
+                                  levelM3: parseFloat((levelPercent * 0.44).toFixed(1)),
+                                  levelMmH2O: 180,
+                                  pressureMpa,
+                                  tempC,
+                                  batteryPercent: 88,
+                                };
+                            setSelectedDetailTank(assetToSelect);
+                          }}
+                          className="relative p-2.5 pb-2 flex flex-col justify-between gap-1.5 cursor-grab active:cursor-grabbing hover:shadow-lg transition-all rounded-xs border-2 select-none border-[#059669] bg-gradient-to-b from-[#e8edf2] to-[#dbe2ea]"
+                          style={{
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 3px 8px rgba(0,0,0,0.12)',
+                          }}
                         >
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-1.5">
-                              <GripVertical className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                              <span className="font-bold text-xs text-slate-950 font-bold font-mono">{bay.bayId}</span>
+                          {/* 4 Corner Bolt Casting Marks */}
+                          <span className="absolute -top-[2px] -left-[2px] w-2 h-2 border-t-2 border-l-2 border-[#1e293b] bg-[#475569] rounded-tl-xs pointer-events-none" />
+                          <span className="absolute -top-[2px] -right-[2px] w-2 h-2 border-t-2 border-r-2 border-[#1e293b] bg-[#475569] rounded-tr-xs pointer-events-none" />
+                          <span className="absolute -bottom-[2px] -left-[2px] w-2 h-2 border-b-2 border-l-2 border-[#1e293b] bg-[#475569] rounded-bl-xs pointer-events-none" />
+                          <span className="absolute -bottom-[2px] -right-[2px] w-2 h-2 border-b-2 border-r-2 border-[#1e293b] bg-[#475569] rounded-br-xs pointer-events-none" />
+
+                          {/* [1. Top Header Rows]: 2 Rows (Row 1: Rack & Serial | Row 2: Status Badges) */}
+                          <div className="flex flex-col gap-1.5 w-full px-0.5">
+                            {/* Row 1: Rack Tag (Left) & Serial (Right) */}
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <GripVertical className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <span className="bg-[#002b4d] text-emerald-300 px-1.5 py-0.5 rounded-xs text-xs font-mono font-bold whitespace-nowrap shadow-2xs">
+                                  {rackTag}
+                                </span>
+                              </div>
+                              <span className="text-xs font-mono font-bold text-slate-700 whitespace-nowrap">
+                                {serialNo}
+                              </span>
                             </div>
-                            <span
-                              className={`text-[9px] font-bold px-2 py-0.5 rounded-none uppercase tracking-wider flex items-center gap-1 border ${
-                                isRunning
-                                  ? 'bg-emerald-500/20 text-white font-bold border-emerald-200 animate-pulse'
-                                  : 'bg-amber-500/20 text-white font-bold border-amber-200'
-                              }`}
-                            >
-                              <span className={`w-1.5 h-1.5 rounded-none ${isRunning ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                              {isRunning ? `RUNNING (${bay.flowRate || 400} Nm³/h)` : 'STANDBY'}
+
+                            {/* Row 2: Alarm Badges (Left) & Sendout Status (Right) */}
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center gap-1">
+                                {isSwapReq && (
+                                  <span
+                                    className="px-1.5 py-0.5 uppercase bg-amber-500 text-slate-950 font-bold text-[10px] font-mono border border-amber-600 rounded-xs animate-pulse shadow-xs whitespace-nowrap"
+                                    title="SOP Rev.0 Liquid Feed Threshold: Mass ≤ 13,222 kg (Swap to Standby Skid Required)"
+                                  >
+                                    SWAP REQ
+                                  </span>
+                                )}
+                                {isPbuReq && (
+                                  <span
+                                    className="px-1.5 py-0.5 uppercase bg-amber-500 text-slate-950 font-bold text-[10px] font-mono border border-amber-600 rounded-xs animate-pulse shadow-xs whitespace-nowrap"
+                                    title="SOP Rev.0 PBU Pressure Build-up Threshold: Mass ≤ 15,151 kg (PBU Cycle Required)"
+                                  >
+                                    PBU REQ
+                                  </span>
+                                )}
+                              </div>
+                              <span
+                                className={`px-2 py-0.5 uppercase border rounded-xs font-bold text-[10px] font-mono flex items-center gap-1 shadow-2xs whitespace-nowrap ${
+                                  isRunning
+                                    ? 'bg-emerald-100 text-emerald-900 border-emerald-500'
+                                    : 'bg-slate-100 text-slate-700 border-slate-400'
+                                }`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isRunning ? 'bg-emerald-600 animate-pulse' : 'bg-slate-500'}`} />
+                                {isRunning ? `SENDING (${flowRate.toLocaleString()} Nm³/h)` : 'STANDBY'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* [2. Saddle / Tank Bed Bar]: Mounted Tank ID */}
+                          <div className="text-center py-0.5 bg-gradient-to-r from-emerald-100 via-slate-100 to-emerald-100 border-y border-emerald-300 rounded-xs shadow-inner flex items-center justify-center gap-2">
+                            <span className="w-2 h-0.5 bg-emerald-500/60 rounded-full inline-block" />
+                            <span className="text-[15px] font-mono font-black tracking-tight text-[#002b4d]">
+                              {bay.tankNo}
                             </span>
+                            <span className="w-2 h-0.5 bg-emerald-500/60 rounded-full inline-block" />
                           </div>
 
-                          {/* Mounted Tank Specs */}
-                          <div className="p-2 bg-white shadow-none rounded-none border border-slate-200 flex justify-between items-center text-xs font-mono">
-                            <div>
-                              <span className="font-bold text-slate-950 font-bold text-sm block">{bay.tankNo}</span>
-                              <span className="text-[10px] text-slate-950 font-bold">{tank?.serialNo || 'SIMU-ACTIVE'}</span>
-                            </div>
-                            <div className="text-right">
-                              <span className="font-bold text-slate-950 font-bold">{bay.level || tank?.level || 45}% Level</span>
-                              <span className="text-[10px] text-slate-950 font-bold block">{bay.pressure || 0.35} MPa • {bay.temp || -132}°C</span>
-                            </div>
-                          </div>
+                          {/* [3. Physical 40ft Cylindrical Tank Visual & Liquid Level] */}
+                          <div className="relative w-full h-[76px] flex items-center justify-center bg-slate-200/70 rounded-xs border border-slate-300/90 p-1 shadow-inner">
+                            <svg viewBox="0 0 420 86" className="w-full h-full" preserveAspectRatio="none">
+                              <defs>
+                                <linearGradient id={`tankVessel-${bayKey}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" stopColor="#f8fafc" />
+                                  <stop offset="50%" stopColor="#cbd5e1" />
+                                  <stop offset="100%" stopColor="#94a3b8" />
+                                </linearGradient>
+                                <linearGradient id={`gasVaporBg-${bayKey}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" stopColor="#f1f5f9" />
+                                  <stop offset="60%" stopColor="#e2e8f0" />
+                                  <stop offset="100%" stopColor="#cbd5e1" />
+                                </linearGradient>
+                                <linearGradient id={`liquidFill-${bayKey}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" stopColor="#38bdf8" />
+                                  <stop offset="50%" stopColor="#0284c7" />
+                                  <stop offset="100%" stopColor="#0369a1" />
+                                </linearGradient>
+                                <pattern id={`gasPattern-${bayKey}`} width="8" height="8" patternUnits="userSpaceOnUse">
+                                  <path d="M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2" stroke="#94a3b8" strokeWidth="0.75" strokeOpacity="0.3" />
+                                </pattern>
+                                <clipPath id={`innerWindowClip-${bayKey}`}>
+                                  <rect x="58" y="14" width="304" height="58" rx="8" />
+                                </clipPath>
+                              </defs>
 
-                          {/* Bay Controls */}
-                          <div className="grid grid-cols-3 gap-1.5 pt-1">
-                            <button
-                              type="button"
-                              onClick={() => toggleBayRunning(bay.bayId)}
-                              className={`py-1 rounded-none text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                                isRunning
-                                  ? 'bg-amber-600/30 hover:bg-amber-600/50 text-white font-bold border border-amber-200'
-                                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-none'
-                              }`}
-                            >
-                              {isRunning ? '⏸ Pause' : '▶ Start'}
-                            </button>
+                              {/* Outer Steel Skid Frame */}
+                              <line x1="28" y1="12" x2="392" y2="12" stroke="#475569" strokeWidth="2.5" />
+                              <line x1="28" y1="74" x2="392" y2="74" stroke="#475569" strokeWidth="3" />
 
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveDrawerBayId(bay.bayId === activeDrawerBayId && activeDrawerType === 'DISCONNECT' ? null : bay.bayId);
-                                setActiveDrawerType('DISCONNECT');
-                                // Note: we need to scroll to it, or it will just open below the Bay Cards section.
-                                const el = document.getElementById('nias-4bay-section');
-                                if (el) {
-                                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                }
-                              }}
-                              className="py-1 bg-purple-600/30 hover:bg-purple-600/50 text-slate-950 font-bold border border-purple-500/40 rounded-none text-[10px] font-bold transition-all cursor-pointer"
-                              title="Finish Regasification & preserve 4% heel into Laydown 2"
-                            >
-                              ⏹️ Heel 4%
-                            </button>
+                              {/* Left Vertical End Post */}
+                              <rect x="24" y="8" width="8" height="70" fill="#334155" stroke="#64748b" strokeWidth="1.5" rx="1" />
+                              <rect x="22" y="6" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                              <rect x="22" y="74" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
 
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const bayTankNo = bay.tankNo;
-                                if (bayTankNo) {
-                                  setTankInventory((prev) =>
-                                    prev.map((t) =>
-                                      t.id === bayTankNo
-                                        ? { ...t, currentZone: 'LAYDOWN_2', levelPercent: 4.0, pressureMpa: 0.22, tempC: -135.0 }
-                                        : t
-                                    )
+                              {/* Right Vertical End Post */}
+                              <rect x="388" y="8" width="8" height="70" fill="#334155" stroke="#64748b" strokeWidth="1.5" rx="1" />
+                              <rect x="386" y="6" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                              <rect x="386" y="74" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+
+                              {/* Diagonal Bottom Corner Gussets (Saddle Braces) */}
+                              <polygon points="32,74 72,74 32,48" fill="#cbd5e1" stroke="#475569" strokeWidth="1.5" />
+                              <polygon points="388,74 348,74 388,48" fill="#cbd5e1" stroke="#475569" strokeWidth="1.5" />
+
+                              {/* Left Convex Dish End Dome */}
+                              <path d="M 58 14 C 28 14, 28 72, 58 72 Z" fill={`url(#tankVessel-${bayKey})`} stroke="#475569" strokeWidth="2" />
+
+                              {/* Right Convex Dish End Dome */}
+                              <path d="M 362 14 C 392 14, 392 72, 362 72 Z" fill={`url(#tankVessel-${bayKey})`} stroke="#475569" strokeWidth="2" />
+
+                              {/* Main Cylindrical Barrel Background */}
+                              <rect x="56" y="12" width="308" height="62" fill={`url(#tankVessel-${bayKey})`} stroke="#475569" strokeWidth="1.5" />
+
+                              {/* Inner Cut-out Viewing Window Border */}
+                              <rect
+                                x="58"
+                                y="14"
+                                width="304"
+                                height="58"
+                                rx="8"
+                                fill="#f1f5f9"
+                                stroke="#0284c7"
+                                strokeWidth="1.5"
+                              />
+
+                              {/* Dual-Phase Gas Space & Cryo Liquid Interior */}
+                              <g clipPath={`url(#innerWindowClip-${bayKey})`}>
+                                {/* [1. Upper Gas / Vapor Phase (BOG Headspace)] */}
+                                <rect
+                                  x="58"
+                                  y="14"
+                                  width="304"
+                                  height="58"
+                                  fill={`url(#gasVaporBg-${bayKey})`}
+                                />
+                                {/* Gas Molecules Micro-Pattern */}
+                                <rect
+                                  x="58"
+                                  y="14"
+                                  width="304"
+                                  height="58"
+                                  fill={`url(#gasPattern-${bayKey})`}
+                                />
+                                {/* Gas Space SCADA Annotation */}
+                                <text
+                                  x="70"
+                                  y="25"
+                                  fill="#475569"
+                                  fontSize="8"
+                                  fontWeight="bold"
+                                  fontFamily="monospace"
+                                  letterSpacing="0.8"
+                                >
+                                  GAS / VAPOR (BOG)
+                                </text>
+                                <text
+                                  x="350"
+                                  y="25"
+                                  textAnchor="end"
+                                  fill="#64748b"
+                                  fontSize="7.5"
+                                  fontWeight="bold"
+                                  fontFamily="monospace"
+                                  letterSpacing="0.5"
+                                >
+                                  HEADSPACE
+                                </text>
+
+                                {/* [2. Lower Liquid LNG Phase (Unified Cryo Blue Fill)] */}
+                                {(() => {
+                                  const fillHeight = (levelPercent / 100) * 58;
+                                  const fillY = 72 - fillHeight;
+                                  return (
+                                    <g>
+                                      <rect
+                                        x="58"
+                                        y={fillY}
+                                        width="304"
+                                        height={fillHeight}
+                                        fill={`url(#liquidFill-${bayKey})`}
+                                      />
+                                      {/* Liquid-Gas Meniscus Wave Interface Line */}
+                                      <path
+                                        d={`M 58 ${fillY} Q 134 ${fillY - 2}, 210 ${fillY} T 362 ${fillY}`}
+                                        fill="none"
+                                        stroke="#bae6fd"
+                                        strokeWidth="2"
+                                        strokeOpacity="0.95"
+                                      />
+                                      {/* Liquid LNG Label */}
+                                      {levelPercent >= 25 && (
+                                        <text
+                                          x="70"
+                                          y="66"
+                                          fill="#ffffff"
+                                          opacity="0.85"
+                                          fontSize="8"
+                                          fontWeight="bold"
+                                          fontFamily="monospace"
+                                          letterSpacing="0.5"
+                                        >
+                                          LIQUID LNG
+                                        </text>
+                                      )}
+                                    </g>
                                   );
-                                }
-                                unmountBay(bay.bayId);
-                              }}
-                              className="py-1 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none text-[10px] font-bold transition-colors cursor-pointer"
-                            >
-                              ⏏️ Unmount
-                            </button>
+                                })()}
+                              </g>
+
+                              {/* Centered Percentage Level Overlay with White Halo for Maximum Legibility */}
+                              <text
+                                x="210"
+                                y="49"
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fill="#002b4d"
+                                fontSize="17"
+                                fontWeight="900"
+                                fontFamily="monospace"
+                                letterSpacing="0.5"
+                                style={{
+                                  paintOrder: 'stroke fill',
+                                  stroke: '#ffffff',
+                                  strokeWidth: '1.5px',
+                                  strokeLinejoin: 'round',
+                                }}
+                              >
+                                {levelPercent.toFixed(1)}%
+                              </text>
+                            </svg>
+                          </div>
+
+                          {/* [4. Bottom Telemetry Data Bar]: 4 Discrete Columns [ Pressure ➔ Temp ➔ Volume ➔ Mass ] */}
+                          <div className="border border-slate-300 rounded-xs bg-white grid grid-cols-4 divide-x divide-slate-200 py-1.5 px-0.5 text-center shadow-2xs">
+                            {/* 1. Pressure */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span className="font-mono text-xs sm:text-sm font-bold tracking-tight text-[#0f172a]">
+                                {pressureMpa.toFixed(2)} <span className="text-[8.5px]">MPa</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Pressure
+                              </span>
+                            </div>
+
+                            {/* 2. Temp */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span className="font-mono text-xs sm:text-sm font-bold tracking-tight text-[#0f172a]">
+                                {tempC.toFixed(1)} <span className="text-[8.5px]">°C</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Temp
+                              </span>
+                            </div>
+
+                            {/* 3. Volume */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span className="font-mono text-xs sm:text-sm font-bold tracking-tight text-[#0f172a]">
+                                {volumeM3} <span className="text-[8.5px]">m³</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Volume
+                              </span>
+                            </div>
+
+                            {/* 4. Mass */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span className="font-mono text-xs sm:text-sm font-bold tracking-tight text-[#0f172a]">
+                                {bayMassKg} <span className="text-[8.5px]">kg</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Mass
+                              </span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -1860,18 +2762,17 @@ export default function NiasTerminalView({
                         onDragOver={(e) => handleDragOver(e, bay.bayId)}
                         onDragLeave={() => handleDragLeave(bay.bayId)}
                         onDrop={(e) => handleDrop(e, 'FOUR_BAY_REGAS', undefined, bay.bayId)}
-                        className={`p-4 rounded-none border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-all duration-200 text-center cursor-pointer min-h-[110px] ${
+                        className={`min-h-[160px] p-3 flex flex-col items-center justify-center gap-1 text-center transition-all cursor-pointer rounded-xs border-2 border-dashed ${
                           isDragOver
-                            ? 'border-emerald-400 bg-emerald-500/20 shadow-[0_0_15px_rgba(52,211,153,0.3)] ring-2 ring-emerald-400 scale-[1.02]'
-                            : 'border-slate-200 hover:border-slate-200 win-panel/40 text-slate-950 font-bold'
+                            ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-400'
+                            : 'bg-[#f1efea] border-slate-300 hover:border-slate-400 text-slate-500'
                         }`}
                       >
-                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-950 font-bold">
-                          <Flame className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                          <span>{bay.bayId} (Standby Rack)</span>
-                        </div>
-                        <span className="text-[10px] font-bold text-slate-950 font-bold">
-                          {isDragOver ? '🔥 Drop Tank to Mount & Vaporize' : '+ Drop ISO Tank Here to Mount'}
+                        <span className="text-xs font-mono font-bold text-slate-700">
+                          {getRackTag(bay.bayId)}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-500">
+                          {isDragOver ? 'Drop Tank to Mount' : 'Standby - Empty Rack'}
                         </span>
                       </div>
                     );
@@ -1880,31 +2781,25 @@ export default function NiasTerminalView({
               </div>
 
               {/* ================================================================= */}
-              {/* COLUMN 3: LAYDOWN YARD 2 (EMPTY HEEL 4% STAGING - 12 SLOTS)       */}
+              {/* COLUMN 3: LAYDOWN YARD 2 (EMPTY HEEL 1.0 m³ STAGING - 16 SLOTS)   */}
               {/* ================================================================= */}
-              <div className="bg-white shadow-none border border-purple-500/30 rounded-none p-4 sm:p-5 shadow-none space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-none bg-purple-500/20 border border-purple-500/40 flex items-center justify-center font-bold text-slate-950 font-bold text-xs">
-                      Y2
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm text-slate-950 font-bold">Laydown Yard 2</h4>
-                      <p className="text-[10px] text-slate-950 font-bold">Empty Heel 4% Staging Buffer</p>
-                    </div>
+              <div className="win-panel overflow-hidden border border-slate-300 flex flex-col h-full min-h-0 bg-[#d6d3c8]">
+                {/* Navy Panel Header (Sticky Top) */}
+                <div className="bg-[#002b4d] px-3 py-2 flex items-center justify-between text-white shrink-0 sticky top-0 z-20 shadow-xs border-b border-blue-900/60">
+                  <h4 className="font-bold text-xs text-slate-100 uppercase tracking-wide truncate">
+                    ORU ( LD - 2 )
+                  </h4>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[11px] font-mono font-black px-2 py-0.5 bg-blue-950/80 text-cyan-300 border border-blue-400/40 whitespace-nowrap">
+                      {yard2TanksList.length} / 16
+                    </span>
+                    <span className="w-2 h-2 rounded-full inline-block shrink-0 bg-[#10b981]" />
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleAuthorizeBackhaul}
-                    className="text-[11px] font-bold px-2.5 py-1 rounded-none bg-purple-600 hover:bg-purple-500 text-slate-950 shadow-none shadow-purple-600/20 transition-all cursor-pointer"
-                  >
-                    Backhaul ({selectedBackhaulTanks.size})
-                  </button>
                 </div>
 
-                {/* 12 Slots in 2 Columns */}
-                <div className="grid grid-cols-2 gap-2.5">
-                  {Array.from({ length: 12 }).map((_, slotIdx) => {
+                {/* 16 Slots in 2 Columns with Custom Scrollbar */}
+                <div className="p-2.5 bg-[#d6d3c8] grid grid-cols-2 gap-2 flex-1 min-h-0 overflow-y-auto overflow-x-hidden content-start custom-scada-scrollbar">
+                  {Array.from({ length: 16 }).map((_, slotIdx) => {
                     const slotNum = slotIdx + 1;
                     const tank = getTankAtSlot(yard2TanksList, slotIdx);
                     const slotTargetId = `LAYDOWN_2-slot-${slotNum}`;
@@ -1912,7 +2807,9 @@ export default function NiasTerminalView({
 
                     if (tank) {
                       const isDragging = draggingTankNo === tank.id;
-                      const isSelectedForBackhaul = selectedBackhaulTanks.has(tank.id);
+                      const massKg = ((tank.levelPercent / 100) * 18200).toLocaleString('en-US', {
+                        maximumFractionDigits: 0,
+                      });
 
                       return (
                         <div
@@ -1920,44 +2817,252 @@ export default function NiasTerminalView({
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, tank.id, 'LAYDOWN_2')}
                           onDragEnd={handleDragEnd}
-                          className={`p-2.5 rounded-none border win-panel/90 transition-all duration-200 cursor-grab active:cursor-grabbing relative flex flex-col justify-between gap-1.5 shadow-none ${
+                          onClick={() => setSelectedDetailTank(tank)}
+                          className={`relative p-2.5 pb-2 flex flex-col justify-between gap-1.5 cursor-grab active:cursor-grabbing hover:shadow-lg transition-all rounded-xs border-2 select-none ${
                             isDragging
-                              ? 'opacity-40 scale-95 ring-2 ring-purple-400 border-purple-400'
-                              : isSelectedForBackhaul
-                              ? 'border-purple-500 bg-purple-950/30 ring-1 ring-purple-400/50'
-                              : 'border-purple-500/30 hover:border-purple-400/70 hover:shadow-purple-500/10'
+                              ? 'opacity-50 scale-95 ring-2 ring-purple-500 border-purple-500'
+                              : 'border-[#64748b] bg-gradient-to-b from-[#e8edf2] to-[#dbe2ea] hover:border-[#7c3aed]'
                           }`}
+                          style={{
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 3px 8px rgba(0,0,0,0.12)',
+                          }}
                         >
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="checkbox"
-                                checked={isSelectedForBackhaul}
-                                onChange={() => toggleSelectBackhaulTank(tank.id)}
-                                className="rounded border-slate-200 win-panel text-slate-950 font-bold accent-purple-500 cursor-pointer"
-                              />
-                              <span className="font-bold font-mono text-slate-950 font-bold text-xs">{tank.id}</span>
+                          {/* 4 Corner Bolt Casting Marks */}
+                          <span className="absolute -top-[2px] -left-[2px] w-2 h-2 border-t-2 border-l-2 border-[#1e293b] bg-[#475569] rounded-tl-xs pointer-events-none" />
+                          <span className="absolute -top-[2px] -right-[2px] w-2 h-2 border-t-2 border-r-2 border-[#1e293b] bg-[#475569] rounded-tr-xs pointer-events-none" />
+                          <span className="absolute -bottom-[2px] -left-[2px] w-2 h-2 border-b-2 border-l-2 border-[#1e293b] bg-[#475569] rounded-bl-xs pointer-events-none" />
+                          <span className="absolute -bottom-[2px] -right-[2px] w-2 h-2 border-b-2 border-r-2 border-[#1e293b] bg-[#475569] rounded-br-xs pointer-events-none" />
+
+                          {/* [1. Top Header Row]: Serial (Left) | Heel 1.0m³ Status (Right) */}
+                          <div className="flex justify-between items-center px-0.5">
+                            <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-[#002b4d] truncate">
+                              <span className="truncate text-[11px] font-semibold text-slate-700">
+                                {tank.serialNo || `SIMU-82020${slotNum}`}
+                              </span>
                             </div>
-                            <span className="text-[9px] font-mono text-slate-950 font-bold bg-white shadow-none px-1 py-0.2 rounded">
-                              #{slotNum < 10 ? `0${slotNum}` : slotNum}
+                            <div>
+                              <span
+                                className={`text-[8.5px] font-mono font-bold px-2 py-0.5 border rounded-xs shadow-2xs ${
+                                  (tank.levelPercent || 4) <= 5
+                                    ? 'bg-purple-100 text-purple-950 border-purple-300'
+                                    : 'bg-emerald-100 text-emerald-950 border-emerald-400'
+                                }`}
+                              >
+                                {(tank.levelPercent || 4) <= 5
+                                  ? 'HEEL 1.0m³'
+                                  : `${(tank.levelPercent).toFixed(0)}% LADEN`}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* [2. Saddle / Tank Bed Bar]: ISOT Tank ID */}
+                          <div className="text-center py-0.5 bg-gradient-to-r from-purple-100 via-slate-100 to-purple-100 border-y border-purple-300 rounded-xs shadow-inner flex items-center justify-center gap-2">
+                            <span className="w-2 h-0.5 bg-purple-400 rounded-full inline-block" />
+                            <span className="text-[15px] font-mono font-black tracking-tight text-[#002b4d]">
+                              {tank.id}
                             </span>
+                            <span className="w-2 h-0.5 bg-purple-400 rounded-full inline-block" />
                           </div>
 
-                          {/* Preserved Heel Specs */}
-                          <div className="space-y-0.5">
-                            <div className="flex justify-between text-[10px] font-mono text-slate-950 font-bold">
-                              <span className="text-slate-950 font-bold font-bold">4.0% Heel:</span>
-                              <span className="font-bold text-slate-950 font-bold">~350 kg</span>
-                            </div>
-                            <div className="w-full bg-white shadow-none h-1 rounded-none overflow-hidden">
-                              <div className="h-full bg-purple-500 rounded-none" style={{ width: '4%' }} />
-                            </div>
+                          {/* [3. Physical 40ft Cylindrical Tank Visual & Liquid Level] */}
+                          <div className="relative w-full h-[76px] flex items-center justify-center bg-slate-200/70 rounded-xs border border-slate-300/90 p-1 shadow-inner">
+                            <svg viewBox="0 0 420 86" className="w-full h-full" preserveAspectRatio="none">
+                              <defs>
+                                <linearGradient id={`tankVessel-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" stopColor="#f8fafc" />
+                                  <stop offset="50%" stopColor="#cbd5e1" />
+                                  <stop offset="100%" stopColor="#94a3b8" />
+                                </linearGradient>
+                                <linearGradient id={`gasVaporBg-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" stopColor="#f1f5f9" />
+                                  <stop offset="60%" stopColor="#e2e8f0" />
+                                  <stop offset="100%" stopColor="#cbd5e1" />
+                                </linearGradient>
+                                <linearGradient id={`liquidFill-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" stopColor="#38bdf8" />
+                                  <stop offset="50%" stopColor="#0284c7" />
+                                  <stop offset="100%" stopColor="#0369a1" />
+                                </linearGradient>
+                                <pattern id={`gasPattern-${tank.id}`} width="8" height="8" patternUnits="userSpaceOnUse">
+                                  <path d="M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2" stroke="#94a3b8" strokeWidth="0.75" strokeOpacity="0.3" />
+                                </pattern>
+                                <clipPath id={`innerWindowClip-${tank.id}`}>
+                                  <rect x="58" y="14" width="304" height="58" rx="8" />
+                                </clipPath>
+                              </defs>
+
+                              {/* Outer Steel Skid Frame */}
+                              <line x1="28" y1="12" x2="392" y2="12" stroke="#475569" strokeWidth="2.5" />
+                              <line x1="28" y1="74" x2="392" y2="74" stroke="#475569" strokeWidth="3" />
+
+                              {/* Left Vertical End Post */}
+                              <rect x="24" y="8" width="8" height="70" fill="#334155" stroke="#64748b" strokeWidth="1.5" rx="1" />
+                              <rect x="22" y="6" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                              <rect x="22" y="74" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+
+                              {/* Right Vertical End Post */}
+                              <rect x="388" y="8" width="8" height="70" fill="#334155" stroke="#64748b" strokeWidth="1.5" rx="1" />
+                              <rect x="386" y="6" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                              <rect x="386" y="74" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+
+                              {/* Diagonal Bottom Corner Gussets (Saddle Braces) */}
+                              <polygon points="32,74 72,74 32,48" fill="#cbd5e1" stroke="#475569" strokeWidth="1.5" />
+                              <polygon points="388,74 348,74 388,48" fill="#cbd5e1" stroke="#475569" strokeWidth="1.5" />
+
+                              {/* Left Convex Dish End Dome */}
+                              <path d="M 58 14 C 28 14, 28 72, 58 72 Z" fill={`url(#tankVessel-${tank.id})`} stroke="#475569" strokeWidth="2" />
+
+                              {/* Right Convex Dish End Dome */}
+                              <path d="M 362 14 C 392 14, 392 72, 362 72 Z" fill={`url(#tankVessel-${tank.id})`} stroke="#475569" strokeWidth="2" />
+
+                              {/* Main Cylindrical Barrel Background */}
+                              <rect x="56" y="12" width="308" height="62" fill={`url(#tankVessel-${tank.id})`} stroke="#475569" strokeWidth="1.5" />
+
+                              {/* Inner Cut-out Viewing Window Border */}
+                              <rect
+                                x="58"
+                                y="14"
+                                width="304"
+                                height="58"
+                                rx="8"
+                                fill="#f1f5f9"
+                                stroke="#0284c7"
+                                strokeWidth="1.5"
+                              />
+
+                              {/* Dual-Phase Gas Space & Heel Liquid Interior */}
+                              <g clipPath={`url(#innerWindowClip-${tank.id})`}>
+                                {/* [1. Upper Gas / Vapor Phase (BOG Headspace)] */}
+                                <rect
+                                  x="58"
+                                  y="14"
+                                  width="304"
+                                  height="58"
+                                  fill={`url(#gasVaporBg-${tank.id})`}
+                                />
+                                {/* Gas Molecules Micro-Pattern */}
+                                <rect
+                                  x="58"
+                                  y="14"
+                                  width="304"
+                                  height="58"
+                                  fill={`url(#gasPattern-${tank.id})`}
+                                />
+                                {/* Gas Space SCADA Annotation */}
+                                <text
+                                  x="70"
+                                  y="25"
+                                  fill="#475569"
+                                  fontSize="8"
+                                  fontWeight="bold"
+                                  fontFamily="monospace"
+                                  letterSpacing="0.8"
+                                >
+                                  GAS / VAPOR (BOG)
+                                </text>
+                                <text
+                                  x="350"
+                                  y="25"
+                                  textAnchor="end"
+                                  fill="#64748b"
+                                  fontSize="7.5"
+                                  fontWeight="bold"
+                                  fontFamily="monospace"
+                                  letterSpacing="0.5"
+                                >
+                                  HEADSPACE
+                                </text>
+
+                                {/* [2. Lower Liquid LNG Phase (Unified Cryo Blue Heel Fill)] */}
+                                {(() => {
+                                  const fillHeight = Math.max(4, ((tank.levelPercent || 4) / 100) * 58);
+                                  const fillY = 72 - fillHeight;
+                                  return (
+                                    <g>
+                                      <rect
+                                        x="58"
+                                        y={fillY}
+                                        width="304"
+                                        height={fillHeight}
+                                        fill={`url(#liquidFill-${tank.id})`}
+                                      />
+                                      {/* Liquid-Gas Meniscus Wave Interface Line */}
+                                      <path
+                                        d={`M 58 ${fillY} Q 134 ${fillY - 2}, 210 ${fillY} T 362 ${fillY}`}
+                                        fill="none"
+                                        stroke="#bae6fd"
+                                        strokeWidth="2"
+                                        strokeOpacity="0.95"
+                                      />
+                                    </g>
+                                  );
+                                })()}
+                              </g>
+
+                              {/* Centered Percentage Level Overlay with White Halo for Maximum Legibility */}
+                              <text
+                                x="210"
+                                y="49"
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fill="#002b4d"
+                                fontSize="17"
+                                fontWeight="900"
+                                fontFamily="monospace"
+                                letterSpacing="0.5"
+                                style={{
+                                  paintOrder: 'stroke fill',
+                                  stroke: '#ffffff',
+                                  strokeWidth: '1.5px',
+                                  strokeLinejoin: 'round',
+                                }}
+                              >
+                                {(tank.levelPercent || 4.0).toFixed(1)}%
+                              </text>
+                            </svg>
                           </div>
 
-                          {/* Holding Pressure & Temp */}
-                          <div className="flex justify-between items-center text-[10px] font-mono pt-1 border-t border-slate-900">
-                            <span className="text-slate-950 font-bold font-bold">{(tank.pressureMpa || 0.22).toFixed(2)} MPa</span>
-                            <span className="text-slate-950 font-bold">{(tank.tempC || -135.0).toFixed(1)} °C</span>
+                          {/* [4. Bottom Telemetry Data Bar]: 4 Discrete Columns [ Pressure ➔ Temp ➔ Volume ➔ Mass ] */}
+                          <div className="border border-slate-300 rounded-xs bg-white grid grid-cols-4 divide-x divide-slate-200 py-1.5 px-0.5 text-center shadow-2xs">
+                            {/* 1. Pressure */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span className="font-mono text-xs sm:text-sm font-bold tracking-tight text-[#0f172a]">
+                                {(tank.pressureMpa || 0.22).toFixed(2)} <span className="text-[8.5px]">MPa</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Pressure
+                              </span>
+                            </div>
+
+                            {/* 2. Temp */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span className="font-mono text-xs sm:text-sm font-bold tracking-tight text-[#0f172a]">
+                                {(tank.tempC ?? -135.0).toFixed(1)} <span className="text-[8.5px]">°C</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Temp
+                              </span>
+                            </div>
+
+                            {/* 3. Volume */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span className="font-mono text-xs sm:text-sm font-bold tracking-tight text-[#0f172a]">
+                                {((tank.levelPercent || 4.0) * 0.44).toFixed(1)} <span className="text-[8.5px]">m³</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Volume
+                              </span>
+                            </div>
+
+                            {/* 4. Mass */}
+                            <div className="flex flex-col items-center justify-center px-1">
+                              <span className="font-mono text-xs sm:text-sm font-bold tracking-tight text-[#0f172a]">
+                                {massKg} <span className="text-[8.5px]">kg</span>
+                              </span>
+                              <span className="font-sans text-[8px] text-slate-400 font-semibold uppercase mt-0.5 tracking-tight">
+                                Mass
+                              </span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -1969,17 +3074,14 @@ export default function NiasTerminalView({
                         onDragOver={(e) => handleDragOver(e, slotTargetId)}
                         onDragLeave={() => handleDragLeave(slotTargetId)}
                         onDrop={(e) => handleDrop(e, 'LAYDOWN_2', slotNum)}
-                        className={`h-24 rounded-none border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-all duration-200 text-center p-2 cursor-pointer ${
+                        className={`min-h-[160px] p-2 flex items-center justify-center text-center transition-all cursor-pointer rounded-xs border-2 border-dashed ${
                           isDragOver
-                            ? 'border-emerald-400 bg-emerald-500/20 shadow-[0_0_15px_rgba(52,211,153,0.3)] ring-2 ring-emerald-400 scale-[1.02]'
-                            : 'border-slate-200 hover:border-slate-200 win-panel/40 text-slate-950 font-bold'
+                            ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-400'
+                            : 'bg-[#f1efea] border-slate-300 hover:border-slate-400 text-slate-500'
                         }`}
                       >
-                        <span className="text-[10px] font-mono font-bold text-slate-950 font-bold">
-                          #{slotNum < 10 ? `0${slotNum}` : slotNum}
-                        </span>
-                        <span className="text-[9px] font-bold text-slate-950 font-bold">
-                          {isDragOver ? '📥 Drop Heel Tank' : '+ Slot Empty'}
+                        <span className="text-[10px] font-mono font-bold text-slate-500">
+                          {isDragOver ? 'Drop Tank' : '+ Empty Slot'}
                         </span>
                       </div>
                     );
@@ -1992,806 +3094,991 @@ export default function NiasTerminalView({
       })()}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 2: 📥 LAYDOWN 1 & 2 CONDITION & BOG LOG          */}
+      {/* DOMAIN 1 - SUB-TAB 2: 📥 DAILY INSPECTION & BOG LOG (WORKSHEET)      */}
       {/* ==================================================================== */}
-      {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'LAYDOWN_1_2_LOG' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Top Date & Operations Toolbar */}
-          <div className="bg-white shadow-none border border-slate-200 rounded-none p-4 sm:p-5 shadow-none flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-            {/* Left: Date Controls & Search */}
-            <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-              {/* Date Filter Mode Toggle */}
-              <div className="flex items-center win-panel p-1 rounded-none border border-slate-200 text-xs font-bold">
-                <button
-                  type="button"
-                  onClick={() => setDateFilterMode('SELECTED_DATE')}
-                  className={`px-3 py-1.5 rounded-none transition-all cursor-pointer ${
-                    dateFilterMode === 'SELECTED_DATE'
-                      ? 'win-tab-active shadow-none'
-                      : 'win-tab-inactive'
-                  }`}
-                >
-                  Specific Date
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDateFilterMode('ALL_DATES')}
-                  className={`px-3 py-1.5 rounded-none transition-all cursor-pointer ${
-                    dateFilterMode === 'ALL_DATES'
-                      ? 'win-tab-active shadow-none'
-                      : 'win-tab-inactive'
-                  }`}
-                >
-                  All Master Logs ({dailyMasterRecords.length})
-                </button>
+      {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'LAYDOWN_1_2_LOG' && (() => {
+        const ld1Count = tankInventory.filter((t) => t.currentZone === 'LAYDOWN_1').length || 9;
+        const skidCount = tankInventory.filter((t) => t.currentZone?.startsWith('BAY')).length || 1;
+        const ld2Count = tankInventory.filter((t) => t.currentZone === 'LAYDOWN_2').length || 1;
+
+        // 1. Filter master inspection list based on active filters (Date query mode, range, batch, zone, search query)
+        const masterInspectionList = dailyMasterRecords.filter((rec) => {
+          // Delete filter
+          if (deletedRecordIds.has(rec.id || `rec-${rec.tankNo}`)) return false;
+
+          // Date filter
+          if (dateQueryMode === 'DAILY') {
+            if (rec.reportDate !== selectedDate) return false;
+          } else if (dateQueryMode === 'PERIOD_RANGE') {
+            if (rec.reportDate < startDate || rec.reportDate > endDate) return false;
+          }
+
+          // Batch filter (Normalized)
+          if (batchFilter !== 'ALL') {
+            const recBatch = normalizeBatch(rec.shipment);
+            const targetBatch = normalizeBatch(batchFilter);
+            if (recBatch !== targetBatch) return false;
+          }
+
+          // Zone filter
+          if (zoneFilter !== 'ALL') {
+            const liveTank = tankInventory.find((t) => t.id === rec.tankNo);
+            const pos = (rec.position || '').toLowerCase();
+            const zone =
+              liveTank?.currentZone === 'LAYDOWN_2' || pos.includes('laydown 2')
+                ? 'LAYDOWN_2'
+                : liveTank?.currentZone?.startsWith('BAY') || pos.includes('bay') || pos.includes('skid')
+                ? 'SKID'
+                : 'LAYDOWN_1';
+            if (zone !== zoneFilter) return false;
+          }
+
+          // Search query filter (Tank ID / Serial No)
+          if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase().trim();
+            const matchTank = (rec.tankNo || '').toLowerCase().includes(q);
+            const matchSerial = (rec.serialNo || '').toLowerCase().includes(q);
+            if (!matchTank && !matchSerial) return false;
+          }
+
+          return true;
+        });
+
+        // 2. Filter-Aware Excel Export Logic (Professional 2-Tier Grouped Report with Custom Styling)
+        const handleExportExcel = async () => {
+          if (masterInspectionList.length === 0) {
+            setToastMessage('⚠️ No records found to export for the current filters');
+            setTimeout(() => setToastMessage(null), 2500);
+            return;
+          }
+
+          // 1. Map filtered dataset into structured export items
+          const exportItems = masterInspectionList.map((item) => {
+            const rawMmH2O = item.levelMmH2O || (item.level ? Math.round((item.level / 100) * 950) : 465);
+            const calcVol = calcVolumeFromMmH2O(rawMmH2O);
+            const calcMass = calcMassTonFromVolume(calcVol);
+            const liveTank = tankInventory.find((t) => t.id === item.tankNo);
+            const zone =
+              liveTank?.currentZone === 'LAYDOWN_2' || (item.position || '').toLowerCase().includes('laydown 2')
+                ? 'LD-2'
+                : liveTank?.currentZone?.startsWith('BAY') || (item.position || '').toLowerCase().includes('bay')
+                ? 'SKID'
+                : 'LD-1';
+            const isHighPress = (item.pressureMPa || 0) >= 0.74;
+            const status = (item.lossesKg || 0) > 0 ? 'VENTED' : isHighPress ? 'HIGH P' : 'NORMAL';
+
+            return {
+              reportDate: item.reportDate,
+              tankNo: item.tankNo,
+              serialNo: item.serialNo,
+              shipment: normalizeBatch(item.shipment) || 'N1',
+              zone: zone,
+              levelMmH2O: rawMmH2O,
+              analogPressMPa: Number((item.pressureMPa || 0).toFixed(2)),
+              calcVolM3: Number(calcVol.toFixed(1)),
+              calcMassTon: Number(calcMass.toFixed(2)),
+              smtPressMPa: Number((item.pressureMPa || 0.76).toFixed(2)),
+              smtLevelPct: Number((item.level ?? parseFloat(((rawMmH2O / 950) * 100).toFixed(1))).toFixed(1)),
+              smtTempC: Number(item.tempC !== undefined && item.tempC !== null ? item.tempC : -126.7),
+              smtBatteryPct: Number(item.battery || 72),
+              bogVentKg: Number(item.lossesKg || 0),
+              status: status,
+              remarks: item.remarks || (item.lossesKg && item.lossesKg > 0 ? `BOG Vented ${item.lossesKg} kg` : 'Normal daily inspection'),
+            };
+          });
+
+          // 2. Determine filter description strings for filename
+          let dateStr = 'All_Dates';
+          if (dateQueryMode === 'DAILY') {
+            dateStr = selectedDate || 'Daily';
+          } else if (dateQueryMode === 'PERIOD_RANGE') {
+            dateStr = `${startDate}_to_${endDate}`;
+          }
+          const batchStr = batchFilter === 'ALL' ? 'All_Batches' : `Batch_${batchFilter}`;
+          const zoneStr = zoneFilter === 'ALL' ? 'All_Zones' : zoneFilter;
+
+          try {
+            const fileName = await exportDailyInspectionToExcel(exportItems, {
+              dateFilterDesc: dateStr,
+              batchFilterDesc: batchStr,
+              zoneFilterDesc: zoneStr,
+            });
+            setToastMessage(`📊 Exported Styled Excel (${masterInspectionList.length} records): ${fileName}`);
+            setTimeout(() => setToastMessage(null), 3000);
+          } catch (err) {
+            console.error('Error exporting daily inspection Excel:', err);
+            setToastMessage('❌ Failed to export Excel report');
+            setTimeout(() => setToastMessage(null), 3000);
+          }
+        };
+
+        return (
+          <div className="space-y-2.5 animate-in fade-in duration-200">
+            {/* 1. Unified Top Control Bar (Classic SCADA Sunken 3D Panel) */}
+            <div className="bg-[#dfdbd1] border-t-2 border-l-2 border-[#8a8579] border-b-2 border-r-2 border-white rounded-xs p-1.5 shadow-inner flex flex-wrap items-center justify-between gap-4 w-full select-none">
+              {/* Left: Logical Grouping & Micro-Labels */}
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Group 1: QUERY MODE */}
+                <div className="flex flex-col gap-0.5">
+                  <span className="w-full text-center block mb-1 text-[11px] font-extrabold text-slate-700 uppercase tracking-tighter">
+                    QUERY MODE
+                  </span>
+                  <div className="flex items-center p-0.5 bg-[#c0bbb0] border-t border-l border-[#8a8579] border-b border-r border-white rounded-xs gap-0.5 shadow-inner h-7">
+                    <button
+                      type="button"
+                      onClick={() => setDateQueryMode('ALL_DATA')}
+                      className={`px-2.5 h-full flex items-center text-xs font-mono font-bold cursor-pointer transition-all border ${
+                        dateQueryMode === 'ALL_DATA'
+                          ? 'bg-[#002b4d] text-cyan-300 border-[#001e36] shadow-inner'
+                          : 'bg-[#d4d0c8] hover:bg-[#dedad2] text-slate-800 border-slate-400'
+                      }`}
+                    >
+                      All Data
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDateQueryMode('DAILY')}
+                      className={`px-2.5 h-full flex items-center text-xs font-mono font-bold cursor-pointer transition-all border ${
+                        dateQueryMode === 'DAILY'
+                          ? 'bg-[#002b4d] text-cyan-300 border-[#001e36] shadow-inner'
+                          : 'bg-[#d4d0c8] hover:bg-[#dedad2] text-slate-800 border-slate-400'
+                      }`}
+                    >
+                      Daily
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDateQueryMode('PERIOD_RANGE')}
+                      className={`px-2.5 h-full flex items-center text-xs font-mono font-bold cursor-pointer transition-all border ${
+                        dateQueryMode === 'PERIOD_RANGE'
+                          ? 'bg-[#002b4d] text-cyan-300 border-[#001e36] shadow-inner'
+                          : 'bg-[#d4d0c8] hover:bg-[#dedad2] text-slate-800 border-slate-400'
+                      }`}
+                    >
+                      Period Range
+                    </button>
+                  </div>
+                </div>
+
+                {/* Vertical 3D Separator */}
+                <div className="h-8 border-r border-[#8a8579] border-l border-white mx-0.5 self-center hidden sm:block" />
+
+                {/* Group 2: DATE SELECTION */}
+                <div className="flex flex-col gap-0.5">
+                  <span className="w-full text-center block mb-1 text-[11px] font-extrabold text-slate-700 uppercase tracking-tighter">
+                    TARGET DATE
+                  </span>
+                  {dateQueryMode === 'DAILY' && (
+                    <div className="flex items-center gap-1.5 px-2 bg-white border-t border-l border-slate-600 border-b border-r border-slate-300 rounded-xs h-7 text-xs font-mono shadow-inner">
+                      <Calendar className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="bg-transparent text-slate-900 font-bold font-mono text-xs focus:outline-none cursor-pointer"
+                      />
+                    </div>
+                  )}
+                  {dateQueryMode === 'PERIOD_RANGE' && (
+                    <div className="flex items-center gap-1.5 px-2 bg-white border-t border-l border-slate-600 border-b border-r border-slate-300 rounded-xs h-7 text-xs font-mono shadow-inner">
+                      <Calendar className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="bg-transparent text-slate-900 font-bold font-mono text-xs focus:outline-none cursor-pointer"
+                      />
+                      <span className="text-slate-500 font-bold">~</span>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="bg-transparent text-slate-900 font-bold font-mono text-xs focus:outline-none cursor-pointer"
+                      />
+                    </div>
+                  )}
+                  {dateQueryMode === 'ALL_DATA' && (
+                    <div className="flex items-center gap-1 px-2.5 bg-[#e8e4dc] border-t border-l border-slate-500 border-b border-r border-slate-300 rounded-xs h-7 text-xs font-mono text-slate-600 font-bold shadow-inner">
+                      <span>All Records Included</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Vertical 3D Separator */}
+                <div className="h-8 border-r border-[#8a8579] border-l border-white mx-0.5 self-center hidden sm:block" />
+
+                {/* Group 3: SHIPMENT BATCH */}
+                <div className="flex flex-col gap-0.5">
+                  <span className="w-full text-center block mb-1 text-[11px] font-extrabold text-slate-700 uppercase tracking-tighter">
+                    BATCH FILTER
+                  </span>
+                  <div className="flex items-center">
+                    <select
+                      value={batchFilter}
+                      onChange={(e) => setBatchFilter(e.target.value)}
+                      className="bg-white border-t border-l border-slate-600 border-b border-r border-slate-300 text-slate-900 font-mono text-xs font-bold px-2 h-7 rounded-xs focus:outline-none cursor-pointer shadow-inner"
+                    >
+                      <option value="ALL">All Batches</option>
+                      {availableBatches.map((b) => (
+                        <option key={b} value={b}>
+                          Shipment {b}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              {/* Date Picker (enabled in SELECTED_DATE mode) */}
-              {dateFilterMode === 'SELECTED_DATE' && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 win-panel border border-slate-200 rounded-none text-xs">
-                  <Calendar className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                  <span className="text-slate-950 font-bold font-bold">Report Date:</span>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="bg-transparent text-slate-950 font-bold font-mono text-xs focus:outline-none cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Search Bar */}
-              <div className="relative flex-1 sm:w-64">
-                <Search className="w-3.5 h-3.5 text-slate-950 font-bold absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search Tank / Serial / Remarks..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs win-panel border border-slate-200 rounded-none text-slate-950 font-bold focus:outline-none focus:border-blue-500"
-                />
+              {/* Right: Classic 3D Excel Download Button */}
+              <div className="flex items-center gap-2 self-end sm:self-center">
+                <button
+                  type="button"
+                  onClick={handleExportExcel}
+                  className="h-8 px-3.5 flex items-center gap-2 bg-[#f0f4f0] hover:bg-[#e2ede2] active:bg-[#d5e5d5] text-[#135223] font-extrabold text-xs rounded-sm border-t-2 border-l-2 border-white border-b-2 border-r-2 border-[#5a8a65] shadow-xs cursor-pointer select-none transition-colors"
+                  title="Download filtered inspection log as Excel (.xlsx)"
+                >
+                  <span className="w-4 h-4 rounded-xs bg-[#107c41] text-white flex items-center justify-center font-mono text-[11px] font-bold shadow-xs">
+                    X
+                  </span>
+                  <span className="tracking-wide font-sans">Export Excel (.xlsx)</span>
+                </button>
               </div>
             </div>
 
-            {/* Right: Quick Actions & CSV Export */}
-            <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto justify-end">
-              {selectedTanks.size > 0 && (
-                <div className="flex items-center gap-1.5 p-1 win-panel border border-slate-200 rounded-none">
-                  <span className="text-[10px] text-slate-950 font-bold font-bold px-2">
-                    Move ({selectedTanks.size}) to:
+            {/* 2. High-Density 3-Block SCADA Logging Console */}
+            {isQuickEntryOpen && (
+              <div className="bg-[#e8e4dc] border-2 border-[#b0aaa0] rounded-sm p-3 shadow-md mb-3 space-y-2.5 animate-in slide-in-from-top-2 duration-150">
+                {/* Title Bar with Classic 3D SAVE Button */}
+                <div className="bg-[#0a2540] text-white px-3 py-1.5 flex items-center justify-between rounded-t text-xs font-bold -mx-3 -mt-3 mb-2 border-b border-[#071a2e]">
+                  <span className="tracking-wider uppercase font-sans font-extrabold text-xs text-white">
+                    ISO TANK CONDITION LOG
                   </span>
                   <button
-                    onClick={() => handleBatchAllocateZone('Laydown 1')}
-                    className="px-2.5 py-1 text-[11px] font-bold rounded-none bg-blue-600/20 hover:bg-blue-600/30 text-white font-bold border border-blue-500/40 cursor-pointer"
-                  >
-                    Laydown 1
-                  </button>
-                  <button
-                    onClick={() => handleBatchAllocateZone('Laydown 2')}
-                    className="px-2.5 py-1 text-[11px] font-bold rounded-none bg-amber-600/20 hover:bg-amber-600/30 text-white font-bold border border-amber-200 cursor-pointer"
-                  >
-                    Laydown 2
-                  </button>
-                  <button
-                    onClick={() => handleBatchAllocateZone('Laydown 3')}
-                    className="px-2.5 py-1 text-[11px] font-bold rounded-none bg-cyan-600/20 hover:bg-cyan-600/30 text-slate-950 font-bold border border-blue-500/40 cursor-pointer"
-                  >
-                    Laydown 3
-                  </button>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setIsWorkstationCollapsed(!isWorkstationCollapsed)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-none text-xs font-bold win-panel hover:bg-slate-100 border border-slate-200 text-slate-950 font-bold transition-all cursor-pointer"
-              >
-                <SlidersHorizontal className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                <span>{isWorkstationCollapsed ? 'Expand Workstation' : 'Collapse Workstation'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleExportDailyMasterCSV}
-                className="flex items-center gap-1.5 px-3.5 py-2 win-panel hover:bg-slate-100 border border-slate-200 text-slate-950 font-bold rounded-none text-xs font-bold transition-colors cursor-pointer"
-              >
-                <Download className="w-4 h-4 text-slate-950 font-bold" />
-                <span>📥 Export Daily CSV (14-Col)</span>
-              </button>
-            </div>
-          </div>
-
-          {/* ==================================================================== */}
-          {/* FULL-PAGE INTEGRATED 3-COLUMN DAILY INSPECTION WORKSTATION            */}
-          {/* ==================================================================== */}
-          {!isWorkstationCollapsed && (
-            <div
-              id="daily-log-workstation-panel"
-              className="bg-white shadow-none/95 border border-blue-500/40 rounded-none p-5 sm:p-6 shadow-none animate-in slide-in-from-top-3 duration-200 space-y-5"
-            >
-              {/* Workstation Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-none bg-blue-500/20 border border-blue-500/40 flex items-center justify-center shrink-0">
-                    <FileText className="w-5 h-5 text-slate-950 font-bold" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-base font-bold text-slate-950 font-bold">
-                        Nias Daily Inspection & BOG Depressurization Workstation
-                      </h3>
-                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-none bg-blue-500/20 text-white font-bold border border-blue-500/40">
-                        14-Column Master DB Direct Entry
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-950 font-bold">
-                      Edit telemetry parameters, convert cryogenic volume/mmH₂O, simulate BOG losses, and commit to Master DB
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
                     type="button"
-                    onClick={handleResetWorkstation}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-none win-panel hover:bg-slate-100 border border-slate-200 win-tab-inactive text-xs font-bold cursor-pointer transition-colors"
+                    onClick={handleSaveQuickEntry}
+                    className="h-7 px-4 flex items-center justify-center gap-1 bg-[#d4d0c8] hover:bg-[#e0dcd4] active:bg-[#bcbaae] text-slate-900 text-xs font-bold border-t border-l border-white border-b-2 border-r-2 border-slate-600 shadow-xs cursor-pointer select-none rounded-xs"
+                    title="Save Record to Database"
                   >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Reset</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsWorkstationCollapsed(true)}
-                    className="p-1.5 win-tab-inactive rounded-none hover:bg-slate-100"
-                    title="Minimize Workstation"
-                  >
-                    <Minimize2 className="w-4 h-4" />
+                    SAVE
                   </button>
                 </div>
-              </div>
 
-              {/* 2-Column Workstation Form */}
-              <form onSubmit={handleSaveDailyInspection} className="space-y-4">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                  {/* ============================================================ */}
-                  {/* COLUMN 1: TANK & ASSET IDENTITY                             */}
-                  {/* ============================================================ */}
-                  <div className="lg:col-span-4 win-panel p-2 rounded-none border border-slate-200/80 space-y-3.5 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-center border-b border-slate-200/80 pb-2 mb-3">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
-                          <span>1. Tank & Asset Identity</span>
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-950 font-bold bg-white shadow-none px-2 py-0.5 rounded border border-slate-200">
-                          Col 1~5
-                        </span>
-                      </div>
-
-                      <div className="space-y-3">
-                        {/* Row 1: Report Date & Zone Selector */}
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-[11px] text-slate-950 font-bold mb-1 font-bold">
-                              1. Report Date:
-                            </label>
-                            <input
-                              type="date"
-                              value={wsReportDate}
-                              onChange={(e) => setWsReportDate(e.target.value)}
-                              className="w-full bg-white shadow-none border border-slate-200 rounded-none px-1.5 py-0.5 text-xs font-mono text-slate-950 font-bold focus:border-blue-500 outline-none cursor-pointer"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[11px] text-slate-950 font-bold mb-1 font-bold">
-                              Location / Zone Filter:
-                            </label>
-                            <select
-                              value={wsSelectedZoneFilter}
-                              onChange={(e) => {
-                                const newZone = e.target.value as any;
-                                setWsSelectedZoneFilter(newZone);
-                                const firstTank = tankInventory.find(t => isTankInSelectedZone(t, newZone));
-                                if (firstTank) {
-                                  handleSelectTankForWorkstation(firstTank.id);
-                                }
-                              }}
-                              className="w-full bg-white shadow-none border border-slate-200 rounded-none px-1.5 py-0.5 text-xs font-mono text-slate-950 font-bold focus:border-blue-500 outline-none cursor-pointer"
-                            >
-                              <option value="LAYDOWN_1">Laydown Yard 1</option>
-                              <option value="LAYDOWN_2">Laydown Yard 2</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Row 2: Compact ISO Tank Selector */}
-                        <div>
-                          <label className="block text-[11px] text-slate-950 font-bold mb-1 font-bold">
-                            2. Select ISO Tank:
-                          </label>
-                          <select
-                            value={wsTankNo}
-                            onChange={(e) => handleSelectTankForWorkstation(e.target.value)}
-                            className="w-full bg-white shadow-none border border-blue-500/50 rounded-none px-1.5 py-0.5 text-xs font-mono font-bold text-slate-950 font-bold focus:border-blue-400 outline-none cursor-pointer"
-                          >
-                            {filteredWorkstationTanks.map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.id} - {t.serialNo}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Serial No. & Shipment Dual Chips */}
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <div>
-                            <label className="block text-[10px] text-slate-950 font-bold mb-1 font-bold">
-                              3. Serial No.:
-                            </label>
-                            <input
-                              type="text"
-                              value={wsSerialNo}
-                              readOnly
-                              disabled
-                              className="w-full bg-white shadow-none border border-slate-200 rounded-none px-2.5 py-1.5 text-xs font-mono font-bold text-slate-950 font-bold outline-none opacity-70 cursor-not-allowed"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-[10px] text-slate-950 font-bold mb-1 font-bold">
-                              4. Shipment:
-                            </label>
-                            <input
-                              type="text"
-                              value={wsShipment}
-                              readOnly
-                              disabled
-                              className="w-full bg-white shadow-none border border-slate-200 rounded-none px-2.5 py-1.5 text-xs font-mono font-bold text-slate-950 font-bold outline-none opacity-70 cursor-not-allowed"
-                            />
-                          </div>
-                        </div>
-
-                        {/* 5. Dwell & Storage Status Card */}
-                        <div className="flex-1 min-h-[70px] bg-white shadow-none/50 border border-slate-200 rounded-none p-3 flex flex-col justify-center relative overflow-hidden mt-1">
-                          {(() => {
-                            const arrDate = wsActiveTank?.arrivalHeelMetrics?.arrivalDate || '2026-08-10';
-                            const dwellDays = Math.max(0, Math.floor((new Date(wsReportDate).getTime() - new Date(arrDate).getTime()) / 86400000));
-                            const arrivalPress = wsActiveTank?.arrivalHeelMetrics?.arrivalPressureMPa || wsActiveTank?.pressBeforeMPa || 0.74;
-                            const isHighPress = wsPressureMPa > 0.75;
-                            
-                            return (
-                              <>
-                                <div className="flex items-center justify-between mb-2">
-                                  <label className="text-[11px] text-slate-950 font-bold font-bold">
-                                    5. Dwell & Storage Status:
-                                  </label>
-                                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-50 text-slate-950 font-bold border border-blue-200 font-mono">
-                                    LNG Density: {wsTankDensity.toFixed(2)} kg/m³
-                                  </span>
-                                </div>
-                                <div className="space-y-1.5">
-                                  <div className="flex items-center justify-between font-mono text-xs">
-                                    <span className="text-slate-950 font-bold flex items-center gap-1.5">
-                                      <Clock className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                                      Time in Yard
-                                    </span>
-                                    <span className="text-slate-950 font-bold font-bold">⏱️ {dwellDays}-Day Dwell</span>
-                                  </div>
-                                  <div className="flex items-center justify-between font-mono text-xs">
-                                    <span className="text-slate-950 font-bold flex items-center gap-1.5">
-                                      <TrendingUp className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                                      Pressure Drift
-                                    </span>
-                                    {isHighPress ? (
-                                      <span className="text-slate-950 font-bold font-bold animate-pulse flex items-center gap-1" title="BOG Venting Warning">
-                                        📈 {arrivalPress.toFixed(2)} ➔ {wsPressureMPa.toFixed(2)} MPa <Flame className="w-3 h-3" />
-                                      </span>
-                                    ) : (
-                                      <span className="text-slate-950 font-bold font-bold">
-                                        📈 {arrivalPress.toFixed(2)} ➔ {wsPressureMPa.toFixed(2)} MPa
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              </>
-                            );
-                          })()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ============================================================ */}
-                  {/* COLUMN 2: TELEMETRY, CALIBRATION & BOG WORKBENCH             */}
-                  {/* ============================================================ */}
-                  <div className="lg:col-span-8 win-panel p-2 rounded-none border border-slate-200/80 space-y-4 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-center border-b border-slate-200/80 pb-2 mb-3">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
-                          <span>2. Telemetry, Calibration & BOG Workbench</span>
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-950 font-bold bg-white shadow-none px-2 py-0.5 rounded border border-slate-200">
-                          Col 6~14
-                        </span>
-                      </div>
-
-                      <div className="space-y-4">
-                        {/* A. Telemetry Cross-Validation Matrix */}
-                        <div className="bg-white shadow-none/60 p-3 rounded-none border border-slate-200/60 space-y-3">
-                          <h4 className="text-[10px] uppercase text-slate-950 font-bold font-bold flex items-center justify-between gap-1.5">
-                            <span className="flex items-center gap-1.5">
-                              <span className="bg-slate-100 px-1.5 rounded text-slate-950 font-bold">A</span> 
-                              Dual-Track Direct Comparison (Analog vs. SMT Digital)
-                            </span>
-                          </h4>
-                          
-                          <div className="w-full text-left border-collapse border border-slate-200/60 rounded overflow-x-auto">
-                            <div className="min-w-[700px]">
-                              {/* Header Row */}
-                              <div className="grid grid-cols-8 bg-slate-100/40 text-[9px] uppercase font-bold text-slate-950 font-bold border-b border-slate-200 text-center items-center leading-tight">
-                                <div className="p-2 border-r border-slate-200 text-left">Data Source</div>
-                                <div className="p-2 border-r border-slate-200">Level <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(mmH₂O)</span></div>
-                                <div className="p-2 border-r border-slate-200">Pressure <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(MPa)</span></div>
-                                <div className="p-2 border-r border-slate-200">Level <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(%)</span></div>
-                                <div className="p-2 border-r border-slate-200">Volume <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(m³)</span></div>
-                                <div className="p-2 border-r border-slate-200">Mass <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(kg)</span></div>
-                                <div className="p-2 border-r border-slate-200">Battery <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(%)</span></div>
-                                <div className="p-2">Temperature <br /><span className="text-[9px] text-slate-950 font-bold font-bold normal-case">(°C)</span></div>
-                              </div>
-                              
-                              {/* Row 1: Analog */}
-                              <div className="grid grid-cols-8 border-b border-slate-200 text-center items-stretch bg-emerald-50 text-emerald-700">
-                                <div className="p-2 border-r border-slate-200 text-[10px] font-bold text-slate-950 font-bold flex items-center justify-start">
-                                  🅰️ Analog Dial
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
-                                  <input
-                                    type="number" min="0" max="1000"
-                                    value={wsLevelMmH2O}
-                                    onChange={(e) => handleMmH2OChange(parseFloat(e.target.value) || 0)}
-                                    className="w-full win-panel border border-emerald-200 rounded px-1.5 py-1 text-xs font-mono font-bold text-slate-950 font-bold outline-none text-center"
-                                  />
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
-                                  <input
-                                    type="number" step="0.01"
-                                    value={wsPressureMPa}
-                                    onChange={(e) => setWsPressureMPa(parseFloat(e.target.value) || 0)}
-                                    className={`w-full win-panel border rounded px-1.5 py-1 text-xs font-mono font-bold outline-none text-center ${wsPressureMPa >= 0.76 ? 'border-red-200 text-slate-950 font-bold' : 'border-emerald-200 text-slate-950 font-bold'}`}
-                                  />
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-950 font-bold win-panel/30">
-                                  {wsLevelPct.toFixed(1)}
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-950 font-bold win-panel/30">
-                                  {wsLevelM3.toFixed(2)}
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-950 font-bold win-panel/30">
-                                  {!isNaN(wsLevelM3) && wsLevelM3 > 0 ? (wsLevelM3 * wsTankDensity).toFixed(0) : '0'}
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-[10px] text-slate-950 font-bold italic bg-white shadow-none/40">
-                                  N/A
-                                </div>
-                                <div className="p-2 flex items-center justify-center text-[10px] text-slate-950 font-bold italic bg-white shadow-none/40">
-                                  N/A
-                                </div>
-                              </div>
-                              
-                              {/* Row 2: SMT */}
-                              <div className="grid grid-cols-8 border-b border-slate-200 text-center items-stretch bg-blue-950/10">
-                                <div className="p-2 border-r border-slate-200 text-[10px] font-bold text-slate-950 font-bold flex items-center justify-start">
-                                  🅱️ SMT Digital
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-[10px] text-slate-950 font-bold italic bg-white shadow-none/40">
-                                  N/A
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
-                                  <input
-                                    type="number" step="0.01"
-                                    value={wsSmtPress}
-                                    onChange={(e) => setWsSmtPress(parseFloat(e.target.value) || 0)}
-                                    className="w-full win-panel border border-blue-500/40 rounded px-1.5 py-1 text-xs font-mono font-bold text-slate-950 font-bold outline-none text-center"
-                                  />
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
-                                  <input
-                                    type="number" step="0.1"
-                                    value={wsSmtLevel}
-                                    onChange={(e) => setWsSmtLevel(parseFloat(e.target.value) || 0)}
-                                    className="w-full win-panel border border-blue-500/60 rounded px-1.5 py-1 text-xs font-mono font-bold text-slate-950 font-bold outline-none text-center"
-                                  />
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-950 font-bold win-panel/30">
-                                  {((wsSmtLevel / 100) * 45).toFixed(2)}
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-950 font-bold win-panel/30">
-                                  {(((wsSmtLevel / 100) * 45) * wsTankDensity).toFixed(0)}
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
-                                  <input
-                                    type="number"
-                                    value={wsSmtBattery}
-                                    onChange={(e) => setWsSmtBattery(parseFloat(e.target.value) || 0)}
-                                    className="w-full win-panel border border-blue-500/40 rounded px-1.5 py-1 text-xs font-mono font-bold text-slate-950 font-bold outline-none text-center"
-                                  />
-                                </div>
-                                <div className="p-2 flex items-center justify-center">
-                                  <input
-                                    type="number" step="0.1"
-                                    value={wsSmtTemp}
-                                    onChange={(e) => setWsSmtTemp(parseFloat(e.target.value) || 0)}
-                                    className="w-full win-panel border border-blue-500/40 rounded px-1.5 py-1 text-xs font-mono font-bold text-slate-950 font-bold outline-none text-center"
-                                  />
-                                </div>
-                              </div>
-                              
-                              {/* Row 3: Discrepancy Checks */}
-                              <div className="grid grid-cols-8 text-center items-stretch bg-white shadow-none/40">
-                                <div className="p-2 border-r border-slate-200 text-[9px] uppercase font-bold text-slate-950 font-bold flex items-center justify-start">
-                                  Integrity Delta
-                                </div>
-                                <div className="p-2 border-r border-slate-200"></div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
-                                  {(() => {
-                                    const deltaP = Math.abs(wsPressureMPa - wsSmtPress);
-                                    return deltaP <= 0.05 ? (
-                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-white font-bold border border-emerald-200 font-bold whitespace-nowrap">✅ ±{deltaP.toFixed(2)}</span>
-                                    ) : (
-                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-white font-bold border border-amber-200 font-bold whitespace-nowrap animate-pulse">⚠️ {deltaP.toFixed(2)} MPa Diff</span>
-                                    );
-                                  })()}
-                                </div>
-                                <div className="p-2 border-r border-slate-200 flex items-center justify-center">
-                                  {(() => {
-                                    const delta = Math.abs(wsSmtLevel - wsLevelPct);
-                                    return delta <= 2 ? (
-                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-white font-bold border border-emerald-200 font-bold whitespace-nowrap">✅ Verified Match</span>
-                                    ) : (
-                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-white font-bold border border-amber-200 font-bold whitespace-nowrap animate-pulse">⚠️ Discrepancy Alert</span>
-                                    );
-                                  })()}
-                                </div>
-                                <div className="col-span-4 p-2"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* B. Integrated BOG Venting & Loss Card */}
-                        <div className={`p-3 rounded-none border transition-all ${wsEnableDepress ? 'bg-white shadow-none/60 border-amber-200' : 'bg-white shadow-none/30 border-slate-200/30 opacity-80'} space-y-3`}>
-                          <h4 className="text-[10px] uppercase font-bold flex items-center justify-between gap-1.5">
-                            <div className={`flex items-center gap-1.5 ${wsEnableDepress ? 'text-slate-950 font-bold' : 'text-slate-950 font-bold'}`}>
-                              <span className={`${wsEnableDepress ? 'bg-amber-500/20 text-white font-bold' : 'bg-slate-100 text-slate-950 font-bold'} px-1.5 rounded`}>B</span> BOG Venting & Loss Card
-                            </div>
-                            <label className="flex items-center gap-1.5 cursor-pointer text-slate-950 font-bold">
-                              <input 
-                                type="checkbox"
-                                checked={wsEnableDepress}
-                                onChange={(e) => setWsEnableDepress(e.target.checked)}
-                                className="accent-amber-500 cursor-pointer"
-                              />
-                              <span className="normal-case">Execute BOG Depressurization (Optional)</span>
-                            </label>
-                          </h4>
-                          <div className={`grid grid-cols-12 gap-3 items-center transition-opacity ${wsEnableDepress ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
-                            <div className="col-span-3">
-                              <label className="block text-[10px] text-slate-950 font-bold mb-1 font-bold">
-                                Press Before:
-                              </label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={wsPressBefore}
-                                onChange={(e) => setWsPressBefore(parseFloat(e.target.value) || 0)}
-                                disabled={!wsEnableDepress}
-                                className="w-full win-panel border border-slate-200 rounded px-2 py-1.5 text-xs font-mono text-slate-950 font-bold outline-none focus:border-amber-500 disabled:bg-white shadow-none disabled:text-slate-950 font-bold"
-                              />
-                            </div>
-                            <div className="col-span-3">
-                              <label className="block text-[10px] text-slate-950 font-bold mb-1 font-bold">
-                                Press After:
-                              </label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={wsPressAfter}
-                                onChange={(e) => setWsPressAfter(parseFloat(e.target.value) || 0)}
-                                disabled={!wsEnableDepress}
-                                className="w-full win-panel border border-slate-200 rounded px-2 py-1.5 text-xs font-mono text-slate-950 font-bold outline-none focus:border-amber-500 disabled:bg-white shadow-none disabled:text-slate-950 font-bold"
-                              />
-                            </div>
-                            <div className="col-span-6 flex flex-col gap-1">
-                              <div className="p-2 bg-amber-50 text-amber-700 border border-amber-200 rounded h-full flex items-center justify-between">
-                                <div className="text-[12px] text-slate-950 font-bold font-bold">ΔP = {wsDeltaP.toFixed(2)} MPa</div>
-                                <div className="text-right">
-                                  <div className="text-sm font-bold font-mono text-slate-950 font-bold">{wsCalculatedLossKg.toLocaleString()} Kg</div>
-                                  <div className="text-[10px] text-slate-950 font-bold">{wsCalculatedLossPct.toFixed(2)}% Net Loss</div>
-                                </div>
-                              </div>
-                              <div className="text-[9px] text-slate-950 font-bold italic text-right px-1">
-                                * BOG Loss calculation derived using inherited ρ = {wsTankDensity.toFixed(2)} kg/m³
-                                <br />
-                                * Loss rate based on Arun Initial Loaded Mass ({wsInitialLoadedMass.toLocaleString()} kg)
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                <form onSubmit={handleSaveQuickEntry} className="flex flex-col lg:flex-row gap-2 w-full items-stretch">
+                  {/* BLOCK 1: IDENTIFICATION (28% width on lg) */}
+                  <div className="w-full lg:w-[28%] min-w-[280px] h-full flex flex-col justify-between p-2.5 bg-[#f4f1ea] border border-[#b0aaa0] rounded-b-sm shadow-inner">
+                    <div className="bg-[#4a5568] text-white font-extrabold text-xs uppercase tracking-wider py-1.5 px-3 text-center border-t border-l border-[#718096] border-b-2 border-r-2 border-[#2d3748] shadow-xs select-none rounded-t-sm -mx-2.5 -mt-2.5 mb-2.5">
+                      IDENTIFICATION
                     </div>
 
-                    {/* Bottom Action Bar */}
-                    <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-4">
-                      {/* Remarks Input */}
-                      <div className="flex-1 max-w-sm">
+                    <div className="grid grid-cols-12 gap-2 flex-1">
+                      {/* Row 1: Date (5 cols) & Tank ID (7 cols -> 1 : 1.4 ratio) */}
+                      <div className="col-span-5">
+                        <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                          DATE
+                        </label>
                         <input
-                          type="text"
-                          value={wsRemarks}
-                          onChange={(e) => setWsRemarks(e.target.value)}
-                          placeholder="Remarks / Observations..."
-                          className="w-full bg-white shadow-none border border-slate-200 rounded-none px-3 py-1.5 text-xs text-slate-950 font-bold focus:border-amber-500 outline-none"
+                          type="date"
+                          value={wsReportDate}
+                          onChange={(e) => setWsReportDate(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-400 focus:border-[#4a5568] rounded-sm px-1 h-8 text-xs font-mono font-bold text-slate-900 text-center focus:outline-none shadow-inner"
                         />
                       </div>
 
-                      {/* Commit & Reset Action Buttons */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={handleResetWorkstation}
-                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none text-xs font-bold transition-colors cursor-pointer"
+                      <div className="col-span-7">
+                        <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                          TANK ID
+                        </label>
+                        <select
+                          value={wsTankNo}
+                          onChange={(e) => handleSelectTankForQuickEntry(e.target.value)}
+                          className="w-full text-xs font-bold text-slate-800 bg-white border border-slate-400 rounded-sm h-8 px-1.5 focus:border-[#4a5568] focus:outline-none cursor-pointer shadow-xs"
                         >
-                          Reset
-                        </button>
-                        <button
-                          type="submit"
-                          className="flex items-center justify-center gap-1.5 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-none text-xs font-bold shadow-none shadow-emerald-600/20 transition-all cursor-pointer"
-                        >
-                          <Check className="w-4 h-4" />
-                          <span>💾 Save & Commit Log</span>
-                        </button>
+                          {tankInventory.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.id} ({t.serialNo || 'SIMU'})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Row 2: Batch (5 cols) & Zone (7 cols) */}
+                      <div className="col-span-5">
+                        <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                          BATCH
+                        </label>
+                        <div className="w-full bg-[#e2ded4] text-slate-800 font-bold border border-slate-400 rounded-sm px-1 h-8 text-xs text-center font-mono flex items-center justify-center shadow-inner truncate">
+                          {normalizeBatch(wsShipment) || 'N1'}
+                        </div>
+                      </div>
+
+                      <div className="col-span-7">
+                        <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                          ZONE
+                        </label>
+                        <div className="w-full bg-[#e2ded4] text-slate-800 font-bold border border-slate-400 rounded-sm px-1 h-8 text-xs text-center font-mono flex items-center justify-center shadow-inner truncate">
+                          {wsSelectedZone === 'LAYDOWN_2' ? 'LD-2' : wsSelectedZone === 'SKID' ? 'SKID' : 'LD-1'}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </form>
-            </div>
-          )}
 
-          {/* ==================================================================== */}
-          {/* COMPREHENSIVE MASTER INSPECTION TABLE (FULL MASTER DB GRID)          */}
-          {/* ==================================================================== */}
-          <div className="bg-white shadow-none/80 border border-slate-200 rounded-none overflow-hidden shadow-none">
-            {/* Table Header Bar with Zone Filters */}
-            <div className="p-4 sm:p-5 border-b border-slate-200 win-panel/80 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-3">
-              <div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-950 font-bold flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-slate-950 font-bold shrink-0" />
-                  Nias Laydown Yard Telemetry & Inspection Master Grid (14-Column Master DB)
-                  <span className="text-xs font-mono font-bold text-slate-950 font-bold">
-                    ({masterInspectionList.length} Records for {dateFilterMode === 'SELECTED_DATE' ? selectedDate : 'All Dates'})
+                  {/* BLOCK 2: FIELD MEASUREMENTS (48% width on lg) */}
+                  <div className="w-full lg:w-[48%] h-full flex flex-col justify-between p-2.5 bg-[#f4f1ea] border border-[#b0aaa0] rounded-b-sm shadow-inner">
+                    <div className="bg-[#4a5568] text-white font-extrabold text-xs uppercase tracking-wider py-1.5 px-3 text-center border-t border-l border-[#718096] border-b-2 border-r-2 border-[#2d3748] shadow-xs select-none rounded-t-sm -mx-2.5 -mt-2.5 mb-2.5">
+                      FIELD MEASUREMENTS
+                    </div>
+
+                    <div className="flex flex-col justify-between gap-2 flex-1">
+                      {/* Row 1: Analog Gauge (Press, Level, Calc Vol, Calc Mass) */}
+                      <div className="grid grid-cols-4 gap-2">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                            PRESS (MPa)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={wsPressureMPa}
+                            onChange={(e) => setWsPressureMPa(parseFloat(e.target.value) || 0)}
+                            className="w-full bg-white border border-slate-400 text-slate-900 focus:border-[#4a5568] rounded-sm px-1 h-8 text-sm font-mono font-bold text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                            LEVEL (mmH2O)
+                          </label>
+                          <input
+                            type="number"
+                            value={wsLevelMmH2O}
+                            onChange={(e) => handleMmH2OChange(parseFloat(e.target.value) || 0)}
+                            className="w-full bg-white border border-slate-400 text-slate-900 focus:border-[#4a5568] rounded-sm px-1 h-8 text-sm font-mono font-bold text-slate-900 text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                            CALC VOL (m³)
+                          </label>
+                          <input
+                            type="text"
+                            readOnly
+                            value={wsLevelM3.toFixed(1)}
+                            className="w-full bg-[#eef5fc] text-[#004a99] border border-[#cbe2fb] rounded-sm px-1 h-8 text-sm font-mono font-extrabold text-center cursor-not-allowed shadow-inner"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                            CALC MASS (ton)
+                          </label>
+                          <input
+                            type="text"
+                            readOnly
+                            value={calcMassTonFromVolume(wsLevelM3).toFixed(2)}
+                            className="w-full bg-[#eef5fc] text-[#004a99] border border-[#cbe2fb] rounded-sm px-1 h-8 text-sm font-mono font-extrabold text-center cursor-not-allowed shadow-inner"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Row 2: SMT Telemetry (Press, Level, Temp, Batt) */}
+                      <div className="grid grid-cols-4 gap-2 pt-1 border-t border-[#e2ded4]">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                            PRESS (MPa)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.73"
+                            value={wsSmtPress}
+                            onChange={(e) => setWsSmtPress(parseFloat(e.target.value) || 0)}
+                            className="w-full bg-white border border-slate-400 text-slate-900 focus:border-[#4a5568] rounded-sm px-1 h-8 text-sm font-mono font-bold text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                            LEVEL (%)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            placeholder="63.0"
+                            value={wsSmtLevel}
+                            onChange={(e) => setWsSmtLevel(parseFloat(e.target.value) || 0)}
+                            className="w-full bg-white border border-slate-400 text-slate-900 focus:border-[#4a5568] rounded-sm px-1 h-8 text-sm font-mono font-bold text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                            TEMP (°C)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            placeholder="-126.5"
+                            value={wsSmtTemp}
+                            onChange={(e) => setWsSmtTemp(parseFloat(e.target.value) || 0)}
+                            className="w-full bg-white border border-slate-400 text-slate-900 focus:border-[#4a5568] rounded-sm px-1 h-8 text-sm font-mono font-bold text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                            BATT (%)
+                          </label>
+                          <input
+                            type="number"
+                            placeholder="75"
+                            value={wsSmtBattery}
+                            onChange={(e) => setWsSmtBattery(parseInt(e.target.value, 10) || 0)}
+                            className="w-full bg-white border border-slate-400 text-slate-900 focus:border-[#4a5568] rounded-sm px-1 h-8 text-sm font-mono font-bold text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* BLOCK 3: BOG VENTING (24% width on lg) */}
+                  <div className="w-full lg:w-[24%] h-full flex flex-col justify-between p-2.5 bg-[#f4f1ea] border border-[#b0aaa0] rounded-b-sm shadow-inner">
+                    <div className="bg-[#4a5568] text-white font-extrabold text-xs uppercase tracking-wider py-1.5 px-3 text-center border-t border-l border-[#718096] border-b-2 border-r-2 border-[#2d3748] shadow-xs select-none rounded-t-sm -mx-2.5 -mt-2.5 mb-2.5">
+                      BOG VENTING
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 flex-1">
+                      {/* Row 1: Start & End */}
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                          START (MPa)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.80"
+                          value={wsPressBefore}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setWsPressBefore(val);
+                            const dP = Math.max(0, parseFloat((val - wsPressAfter).toFixed(3)));
+                            setWsBogVentedKg(Math.round(dP * 100 * 25.5));
+                          }}
+                          className="w-full bg-white border border-slate-400 text-slate-900 font-mono font-bold text-center focus:border-[#4a5568] focus:outline-none h-8 rounded-sm text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                          END (MPa)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.73"
+                          value={wsPressAfter}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setWsPressAfter(val);
+                            const dP = Math.max(0, parseFloat((wsPressBefore - val).toFixed(3)));
+                            setWsBogVentedKg(Math.round(dP * 100 * 25.5));
+                          }}
+                          className="w-full bg-white border border-slate-400 text-slate-900 font-mono font-bold text-center focus:border-[#4a5568] focus:outline-none h-8 rounded-sm text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                      </div>
+
+                      {/* Row 2: ΔP & BOG Loss */}
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                          ΔP (MPa)
+                        </label>
+                        <input
+                          type="text"
+                          readOnly
+                          value={`${Math.max(0, parseFloat((wsPressBefore - wsPressAfter).toFixed(3))).toFixed(2)}`}
+                          className="w-full bg-[#eef5fc] text-[#004a99] border border-[#cbe2fb] font-mono font-extrabold text-center h-8 rounded-sm text-sm cursor-not-allowed shadow-inner"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 whitespace-nowrap mb-1 text-center truncate">
+                          BOG LOSS (kg)
+                        </label>
+                        <input
+                          type="text"
+                          readOnly
+                          value={
+                            Math.max(0, parseFloat((wsPressBefore - wsPressAfter).toFixed(3))) > 0
+                              ? Math.round(Math.max(0, parseFloat((wsPressBefore - wsPressAfter).toFixed(3))) * 100 * 25.5)
+                              : 0
+                          }
+                          className="w-full bg-[#eef5fc] text-[#004a99] border border-[#cbe2fb] font-mono font-extrabold text-center h-8 rounded-sm text-sm cursor-not-allowed shadow-inner"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* 3. Master Log Table (Grouped 2-Tier Excel Grid - Polished 1:1 SCADA Palette) */}
+            <div className="bg-white border border-[#bcb5a6] rounded-t overflow-hidden shadow-xs">
+              {/* Top Navy Header Bar (Capture 1 1:1 Synchronization) */}
+              <div className="bg-[#0a2540] text-white px-3 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-[#071a2e]">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="font-extrabold text-xs uppercase tracking-wider text-white whitespace-nowrap">
+                    DAILY INSPECTION &amp; BOG LOG
                   </span>
-                </h3>
-                <p className="text-xs text-slate-950 font-bold">
-                  Direct data entry matching operational schema with inline editing, quick depressurization, and instant CSV export
-                </p>
-              </div>
+                  <div className="flex items-center gap-1 font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setZoneFilter('ALL')}
+                      className={`cursor-pointer transition-all ${
+                        zoneFilter === 'ALL'
+                          ? 'bg-[#2a4d7d] text-white border-t-2 border-l-2 border-[#1a3356] border-b border-r border-[#648dbf] shadow-inner font-extrabold text-xs px-2.5 py-0.5 rounded-sm'
+                          : 'bg-[#d4d0c8] hover:bg-[#e2ded6] text-slate-900 border-t border-l border-white border-b-2 border-r-2 border-[#706c64] shadow-xs font-bold text-xs px-2.5 py-0.5 rounded-sm select-none'
+                      }`}
+                    >
+                      ALL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setZoneFilter('LAYDOWN_1')}
+                      className={`cursor-pointer transition-all ${
+                        zoneFilter === 'LAYDOWN_1'
+                          ? 'bg-[#2a4d7d] text-white border-t-2 border-l-2 border-[#1a3356] border-b border-r border-[#648dbf] shadow-inner font-extrabold text-xs px-2.5 py-0.5 rounded-sm'
+                          : 'bg-[#d4d0c8] hover:bg-[#e2ded6] text-slate-900 border-t border-l border-white border-b-2 border-r-2 border-[#706c64] shadow-xs font-bold text-xs px-2.5 py-0.5 rounded-sm select-none'
+                      }`}
+                    >
+                      LD-1 ({ld1Count})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setZoneFilter('SKID')}
+                      className={`cursor-pointer transition-all ${
+                        zoneFilter === 'SKID'
+                          ? 'bg-[#2a4d7d] text-white border-t-2 border-l-2 border-[#1a3356] border-b border-r border-[#648dbf] shadow-inner font-extrabold text-xs px-2.5 py-0.5 rounded-sm'
+                          : 'bg-[#d4d0c8] hover:bg-[#e2ded6] text-slate-900 border-t border-l border-white border-b-2 border-r-2 border-[#706c64] shadow-xs font-bold text-xs px-2.5 py-0.5 rounded-sm select-none'
+                      }`}
+                    >
+                      SKID ({skidCount})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setZoneFilter('LAYDOWN_2')}
+                      className={`cursor-pointer transition-all ${
+                        zoneFilter === 'LAYDOWN_2'
+                          ? 'bg-[#2a4d7d] text-white border-t-2 border-l-2 border-[#1a3356] border-b border-r border-[#648dbf] shadow-inner font-extrabold text-xs px-2.5 py-0.5 rounded-sm'
+                          : 'bg-[#d4d0c8] hover:bg-[#e2ded6] text-slate-900 border-t border-l border-white border-b-2 border-r-2 border-[#706c64] shadow-xs font-bold text-xs px-2.5 py-0.5 rounded-sm select-none'
+                      }`}
+                    >
+                      LD-2 ({ld2Count})
+                    </button>
+                  </div>
+                </div>
 
-              {/* Zone Filter Buttons */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                {(
-                  [
-                    { id: 'ALL', label: 'All Zones' },
-                    { id: 'LAYDOWN_1', label: 'Laydown 1' },
-                    { id: 'LAYDOWN_2', label: 'Laydown 2' },
-                  ] as const
-                ).map((z) => (
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Classic 3D Search Box */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="search tank / serial..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-white text-slate-900 text-xs px-2.5 py-1 rounded-sm border-t-2 border-l-2 border-[#7a7a7a] border-b border-r border-[#dfdfdf] placeholder-slate-400 focus:outline-none w-48 shadow-inner"
+                    />
+                  </div>
+
+                  {/* Classic 3D + New Entry Button (Matching Gray Style) */}
                   <button
-                    key={z.id}
-                    onClick={() => setZoneFilter(z.id)}
-                    className={`px-2.5 py-1 rounded-none text-xs font-bold transition-colors cursor-pointer ${
-                      zoneFilter === z.id
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white shadow-none hover:bg-slate-850 win-tab-inactive border border-slate-200'
-                    }`}
+                    type="button"
+                    onClick={() => setIsQuickEntryOpen(!isQuickEntryOpen)}
+                    className="bg-[#d4d0c8] hover:bg-[#e0dcd4] active:bg-[#bcbaae] text-slate-900 text-xs font-bold px-3 py-1 rounded-sm border-t border-l border-white border-b-2 border-r-2 border-slate-600 shadow-xs select-none cursor-pointer"
                   >
-                    {z.label}
+                    {isQuickEntryOpen ? 'Close Entry' : '+ New Entry'}
                   </button>
-                ))}
+                </div>
               </div>
-            </div>
 
-            {/* Scrollable Master Table */}
-            <div className="overflow-x-auto max-h-[650px] overflow-y-auto border border-slate-200 rounded-none">
-              <table className="w-full text-left border-collapse min-w-[1450px]">
-                <thead className="sticky top-0 z-10 bg-slate-100 border-b border-slate-200 text-slate-950 font-bold text-[11px] uppercase tracking-wider font-bold">
-                  <tr className="border-b border-slate-200">
-                    <th className="p-3">Report Date</th>
-                    <th className="p-3">ISO Tank No.</th>
-                    <th className="p-3">Serial No.</th>
-                    <th className="p-3 text-center">Shipment</th>
-                    <th className="p-3">Yard Position</th>
-                    <th className="p-3 text-right">
-                      Level<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(%)</span>
-                    </th>
-                    <th className="p-3 text-right">
-                      Level<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(mmH₂O)</span>
-                    </th>
-                    <th className="p-3 text-right">
-                      Volume<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(m³)</span>
-                    </th>
-                    <th className="p-3 text-right">
-                      Mass<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(Ton)</span>
-                    </th>
-                    <th className="p-3 text-center">
-                      Battery<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(%)</span>
-                    </th>
-                    <th className="p-3 text-right">
-                      Pressure<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(MPa)</span>
-                    </th>
-                    <th className="p-3 text-right">
-                      Temperature<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(°C)</span>
-                    </th>
-                    <th className="p-3 text-center">
-                      Depress Status<br /><span className="text-[9px] text-slate-950 font-bold font-bold">(ΔP / Loss)</span>
-                    </th>
-                    <th className="p-3">Remarks</th>
-                  </tr>
-                </thead>
-                <tbody className="text-xs divide-y divide-slate-800/60 font-mono">
-                  {masterInspectionList.map((rec) => {
-                    const isSelected = selectedTanks.has(rec.tankNo);
-                    const isHighPress = (rec.pressureMPa || 0) >= 0.76;
-                    const isElevatedPress = (rec.pressureMPa || 0) >= 0.50 && (rec.pressureMPa || 0) < 0.76;
-                    const isNormalPress = (rec.pressureMPa || 0) < 0.50;
-
-                    const liveTank = tankInventory.find(t => t.id === rec.tankNo);
-                    const positionLabel = liveTank?.currentZone === 'LAYDOWN_1' ? 'Laydown 1' 
-                                        : liveTank?.currentZone === 'LAYDOWN_2' ? 'Laydown 2'
-                                        : liveTank?.currentZone === 'BAY_01' ? 'Bay 01'
-                                        : liveTank?.currentZone === 'BAY_02' ? 'Bay 02'
-                                        : liveTank?.currentZone === 'BAY_03' ? 'Bay 03'
-                                        : liveTank?.currentZone === 'BAY_04' ? 'Bay 04'
-                                        : rec.position || 'Laydown 1';
-
-                    return (
-                      <tr
-                        key={rec.id || `${rec.reportDate}-${rec.tankNo}`}
-                        className={`hover:bg-slate-100/50 transition-colors ${
-                          isSelected ? 'bg-emerald-50 text-emerald-700' : 'bg-transparent'
-                        }`}
+              {/* Direct Embedded CSS with !important for complete browser priority */}
+              <style>{`
+                .custom-calc-vol-hdr {
+                  background-color: #2b78c5 !important;
+                  color: #ffffff !important;
+                }
+                .custom-calc-vol-cell {
+                  background-color: #f0f7ff !important;
+                  color: #004a99 !important;
+                }
+              `}</style>
+              <div className="max-h-[620px] overflow-y-auto custom-scada-scrollbar overflow-x-hidden">
+                <table className="w-full table-fixed text-left border-collapse border border-[#bcb5a6] text-xs">
+                  <colgroup>
+                    <col className="w-[90px]" />
+                    <col className="w-[82px]" />
+                    <col className="w-[105px]" />
+                    <col className="w-[50px]" />
+                    <col className="w-[55px]" />
+                    <col className="w-[68px]" />
+                    <col className="w-[62px]" />
+                    <col className="w-[66px]" />
+                    <col className="w-[70px]" />
+                    <col className="w-[62px]" />
+                    <col className="w-[62px]" />
+                    <col className="w-[62px]" />
+                    <col className="w-[52px]" />
+                    <col className="w-[66px]" />
+                    <col className="w-[68px]" />
+                    <col className="w-[58px]" />
+                  </colgroup>
+                  <thead className="sticky top-0 z-10 font-mono text-xs select-none shadow-xs">
+                    {/* Tier 1 Header (Row 1: #4e5d6e, border #8b9aa8) */}
+                    <tr className="text-[11px] font-extrabold uppercase">
+                      <th
+                        rowSpan={2}
+                        style={{ backgroundColor: '#4e5d6e', color: '#f8fafc', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-extrabold text-xs uppercase py-2 px-1 text-center tracking-wider"
                       >
-                        {/* 1. Report Date */}
-                        <td className="p-3 text-slate-950 font-bold font-sans whitespace-nowrap">
-                          {rec.reportDate}
+                        DATE
+                      </th>
+                      <th
+                        rowSpan={2}
+                        style={{ backgroundColor: '#4e5d6e', color: '#f8fafc', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-extrabold text-xs uppercase py-2 px-1 text-center tracking-wider"
+                      >
+                        TANK ID
+                      </th>
+                      <th
+                        rowSpan={2}
+                        style={{ backgroundColor: '#4e5d6e', color: '#f8fafc', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-extrabold text-xs uppercase py-2 px-1 text-center tracking-wider"
+                      >
+                        SERIAL NO
+                      </th>
+                      <th
+                        rowSpan={2}
+                        style={{ backgroundColor: '#4e5d6e', color: '#f8fafc', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-extrabold text-xs uppercase py-2 px-1 text-center tracking-wider"
+                      >
+                        BATCH
+                      </th>
+                      <th
+                        rowSpan={2}
+                        style={{ backgroundColor: '#4e5d6e', color: '#f8fafc', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-extrabold text-xs uppercase py-2 px-1 text-center tracking-wider"
+                      >
+                        ZONE
+                      </th>
+                      {/* ANALOG GAUGE Group Header */}
+                      <th
+                        colSpan={4}
+                        style={{ backgroundColor: '#4e5d6e', color: '#f8fafc', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-extrabold text-xs uppercase py-2 px-1 text-center tracking-wider"
+                      >
+                        ANALOG GAUGE
+                      </th>
+                      {/* SMT TELEMETRY Group Header */}
+                      <th
+                        colSpan={4}
+                        style={{ backgroundColor: '#4e5d6e', color: '#f8fafc', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-extrabold text-xs uppercase py-2 px-1 text-center tracking-wider"
+                      >
+                        SMT TELEMETRY
+                      </th>
+                      {/* Process & Action Headers */}
+                      <th
+                        rowSpan={2}
+                        style={{ backgroundColor: '#4e5d6e', color: '#f8fafc', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-extrabold text-xs uppercase py-2 px-1 text-center tracking-wider"
+                      >
+                        <div className="flex flex-col items-center leading-tight">
+                          <span>BOG VENT</span>
+                          <span className="text-[10px] text-slate-200 font-normal lowercase">(kg)</span>
+                        </div>
+                      </th>
+                      <th
+                        rowSpan={2}
+                        style={{ backgroundColor: '#4e5d6e', color: '#f8fafc', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-extrabold text-xs uppercase py-2 px-1 text-center tracking-wider"
+                      >
+                        STATUS
+                      </th>
+                      <th
+                        rowSpan={2}
+                        style={{ backgroundColor: '#4e5d6e', color: '#f8fafc', borderBottom: '1px solid #8b9aa8' }}
+                        className="font-extrabold text-xs uppercase py-2 px-1 text-center tracking-wider"
+                      >
+                        ACTIONS
+                      </th>
+                    </tr>
+
+                    {/* Tier 2 Sub-Headers (Row 2: #5f6f82, highlight #2b78c5, border #8b9aa8) */}
+                    <tr className="uppercase text-xs font-bold">
+                      {/* ANALOG GAUGE Sub-headers */}
+                      <th
+                        style={{ backgroundColor: '#5f6f82', color: '#f1f5f9', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-bold text-[11px] uppercase py-1.5 px-1 text-center tracking-wider"
+                      >
+                        <div className="flex flex-col items-center leading-tight">
+                          <span>LEVEL</span>
+                          <span className="text-[10px] text-slate-300 font-normal">(mmH2O)</span>
+                        </div>
+                      </th>
+                      <th
+                        style={{ backgroundColor: '#5f6f82', color: '#f1f5f9', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-bold text-[11px] uppercase py-1.5 px-1 text-center tracking-wider"
+                      >
+                        <div className="flex flex-col items-center leading-tight">
+                          <span>PRESS</span>
+                          <span className="text-[10px] text-slate-300 font-normal">(MPa)</span>
+                        </div>
+                      </th>
+                      {/* Highlight Column: CALC VOL */}
+                      <th
+                        style={{ backgroundColor: '#2b78c5', color: '#ffffff', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="custom-calc-vol-hdr font-black text-[11px] uppercase py-1.5 px-1 text-center"
+                      >
+                        <div className="flex flex-col items-center leading-tight">
+                          <span>CALC VOL</span>
+                          <span className="text-[10px] text-blue-100 font-normal">(m³)</span>
+                        </div>
+                      </th>
+                      {/* Highlight Column: CALC MASS */}
+                      <th
+                        style={{ backgroundColor: '#2b78c5', color: '#ffffff', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="custom-calc-vol-hdr font-black text-[11px] uppercase py-1.5 px-1 text-center"
+                      >
+                        <div className="flex flex-col items-center leading-tight">
+                          <span>CALC MASS</span>
+                          <span className="text-[10px] text-blue-100 font-normal">(ton)</span>
+                        </div>
+                      </th>
+
+                      {/* SMT TELEMETRY Sub-headers */}
+                      <th
+                        style={{ backgroundColor: '#5f6f82', color: '#f1f5f9', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-bold text-[11px] uppercase py-1.5 px-1 text-center tracking-wider"
+                      >
+                        <div className="flex flex-col items-center leading-tight">
+                          <span>PRESS</span>
+                          <span className="text-[10px] text-slate-300 font-normal">(MPa)</span>
+                        </div>
+                      </th>
+                      <th
+                        style={{ backgroundColor: '#5f6f82', color: '#f1f5f9', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-bold text-[11px] uppercase py-1.5 px-1 text-center tracking-wider"
+                      >
+                        <div className="flex flex-col items-center leading-tight">
+                          <span>LEVEL</span>
+                          <span className="text-[10px] text-slate-300 font-normal">(%)</span>
+                        </div>
+                      </th>
+                      <th
+                        style={{ backgroundColor: '#5f6f82', color: '#f1f5f9', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-bold text-[11px] uppercase py-1.5 px-1 text-center tracking-wider"
+                      >
+                        <div className="flex flex-col items-center leading-tight">
+                          <span>TEMP</span>
+                          <span className="text-[10px] text-slate-300 font-normal">(°C)</span>
+                        </div>
+                      </th>
+                      <th
+                        style={{ backgroundColor: '#5f6f82', color: '#f1f5f9', borderBottom: '1px solid #8b9aa8', borderRight: '1px solid #8b9aa8' }}
+                        className="font-bold text-[11px] uppercase py-1.5 px-1 text-center tracking-wider"
+                      >
+                        <div className="flex flex-col items-center leading-tight">
+                          <span>BATT</span>
+                          <span className="text-[10px] text-slate-300 font-normal">(%)</span>
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-[13px] divide-y divide-[#e8e4dc] font-mono">
+                    {masterInspectionList.length === 0 ? (
+                      <tr>
+                        <td colSpan={16} className="py-8 text-center text-slate-500 font-mono">
+                          No inspection records found for the selected filters.
                         </td>
-
-                        {/* 2. ISO Tk No. */}
-                        <td className="p-3 font-bold text-slate-950 font-bold">
-                          {rec.tankNo}
-                        </td>
-
-                        {/* 3. Serial No. */}
-                        <td className="p-3 text-slate-950 font-bold">
-                          {rec.serialNo}
-                        </td>
-
-                        {/* 4. Shipment */}
-                        <td className="p-3 text-center">
-                          <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-950 font-bold border border-slate-200 text-[10px] font-bold">
-                            {rec.shipment}
-                          </span>
-                        </td>
-
-                        {/* 5. Yard Position (Read-only) */}
-                        <td className="p-3 font-sans">
-                          <span className="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-950 font-bold border border-slate-200 font-bold">
-                            {positionLabel}
-                          </span>
-                        </td>
-
-                        {/* 6. Level (%) */}
-                        <td className="p-3 text-right font-bold text-slate-950 font-bold">
-                          {rec.level}%
-                        </td>
-
-                        {/* 7. Level (mmH2O) */}
-                        <td className="p-3 text-right text-slate-950 font-bold">
-                          {rec.levelMmH2O}
-                        </td>
-
-                        {/* 8. Volume (m³) */}
-                        <td className="p-3 text-right text-slate-950 font-bold">
-                          {rec.levelM3.toFixed(1)}
-                        </td>
-
-                        {/* 9. Mass (Ton) */}
-                        <td className="p-3 text-right text-slate-950 font-bold">
-                          {((rec.levelM3 || 0) * 0.426).toFixed(2)}
-                        </td>
-
-                        {/* 9. Battery (%) */}
-                        <td className="p-3 text-center">
-                          <span
-                            className={`px-2 py-0.5 rounded-none text-[10px] font-bold inline-flex items-center gap-1 ${
-                              (rec.battery || 75) > 50
-                                ? 'bg-emerald-500/15 text-white font-bold border border-emerald-200'
-                                : (rec.battery || 75) > 20
-                                ? 'bg-amber-500/15 text-white font-bold border border-amber-200'
-                                : 'bg-red-500/15 text-white font-bold border border-red-200'
-                            }`}
-                          >
-                            <Battery className="w-3 h-3" />
-                            {rec.battery}%
-                          </span>
-                        </td>
-
-                        {/* 10. Pressure (MPa) with Safety Badges */}
-                        <td className="p-3 text-right">
-                          <span className="font-bold text-slate-950 font-bold block">
-                            {(rec.pressureMPa || 0).toFixed(2)} MPa
-                          </span>
-                          {isHighPress && (
-                            <span className="px-1.5 py-0.2 rounded bg-red-500/20 text-white font-bold border border-red-200 text-[9px] font-bold inline-block animate-pulse">
-                              High (Vent Req)
-                            </span>
-                          )}
-                          {isElevatedPress && (
-                            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-white font-bold border border-amber-200 text-[9px] font-bold inline-block">
-                              Elevated
-                            </span>
-                          )}
-                          {isNormalPress && (
-                            <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[9px] font-bold inline-block">
-                              Normal
-                            </span>
-                          )}
-                        </td>
-
-                        {/* 11. Temp (°C) */}
-                        <td className="p-3 text-right text-slate-950 font-bold font-bold">
-                          {(rec.tempC || -126.5).toFixed(1)} °C
-                        </td>
-
-                        {/* 13. Depress Status */}
-                        <td className="p-3 text-center">
-                          <div className="flex flex-col items-center justify-center gap-1">
-                            {(rec.depress || '').toLowerCase().includes('depress') ? (
-                              <>
-                                <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-500/20 text-white font-bold border border-amber-200">
-                                  {rec.depress || 'Depressurized'}
-                                </span>
-                                <div className="flex flex-col items-center">
-                                  <div className="text-[9px] text-slate-950 font-bold flex items-center gap-0.5">
-                                    <span>{(rec.pressBeforeMPa || 0).toFixed(2)}</span>
-                                    <span className="text-slate-950 font-bold text-[8px]">➔</span>
-                                    <span className="text-slate-950 font-bold">{(rec.pressAfterMPa || 0).toFixed(2)}</span>
-                                  </div>
-                                  <span className="text-[9px] text-slate-950 font-bold font-bold">{rec.lossesKg || 0} kg</span>
-                                </div>
-                              </>
-                            ) : (rec.depress || '').toLowerCase().includes('pending') ? (
-                              <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-blue-500/20 text-white font-bold border border-blue-500/40">
-                                Pending
-                              </span>
-                            ) : (
-                              <span className="text-slate-950 font-bold font-bold">-</span>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* 14. Remarks */}
-                        <td className="p-3 font-sans text-slate-950 font-bold max-w-[180px] truncate" title={rec.remarks}>
-                          {rec.remarks || '-'}
-                        </td>
-
-
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    ) : (
+                      masterInspectionList.map((rec) => {
+                        const isHighPress = (rec.pressureMPa || 0) >= 0.74;
+                        const rawMmH2O = rec.levelMmH2O || (rec.level ? Math.round((rec.level / 100) * 950) : 465);
+                        const calcVol = calcVolumeFromMmH2O(rawMmH2O);
+                        const calcMassTon = calcMassTonFromVolume(calcVol);
+                        const liveTank = tankInventory.find((t) => t.id === rec.tankNo);
+                        const zoneBadge =
+                          liveTank?.currentZone === 'LAYDOWN_2' || (rec.position || '').toLowerCase().includes('laydown 2')
+                            ? 'LD-2'
+                            : liveTank?.currentZone?.startsWith('BAY') || (rec.position || '').toLowerCase().includes('bay')
+                            ? 'SKID'
+                            : 'LD-1';
+
+                        const smtPress = (rec.pressureMPa || 0.76);
+                        const smtLevel = rec.level ?? parseFloat(((rawMmH2O / 950) * 100).toFixed(1));
+                        const smtTemp = (rec.tempC !== undefined && rec.tempC !== null) ? rec.tempC.toFixed(1) : '-126.7';
+                        const smtBatt = rec.battery || 72;
+                        const normalizedBatch = normalizeBatch(rec.shipment) || 'N1';
+
+                        return (
+                          <tr
+                            key={rec.id || `${rec.reportDate}-${rec.tankNo}`}
+                            className="bg-white even:bg-[#fbfaf8] hover:bg-[#eaf2fb] transition-colors border-b border-[#e8e4dc]"
+                          >
+                            {/* 1. Date */}
+                            <td className="py-1.5 px-2 text-center border-r border-[#e8e4dc] text-slate-800 font-semibold text-xs truncate">
+                              {rec.reportDate}
+                            </td>
+
+                            {/* 2. Tank ID */}
+                            <td className="py-1.5 px-2 text-center border-r border-[#e8e4dc] truncate">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenTankTrendModal(rec.tankNo)}
+                                className="text-[#0055aa] font-extrabold underline underline-offset-2 cursor-pointer hover:text-blue-800 text-[13px] font-mono"
+                                title="Open Large-Scale SCADA Historical Trend Analytics Console"
+                              >
+                                {rec.tankNo}
+                              </button>
+                            </td>
+
+                            {/* 3. Serial No */}
+                            <td className="py-1.5 px-2 text-center border-r border-[#e8e4dc] font-mono text-slate-700 text-xs font-medium truncate">
+                              {rec.serialNo}
+                            </td>
+
+                            {/* 4. Batch */}
+                            <td className="py-1.5 px-1 text-center border-r border-[#e8e4dc]">
+                              <span className="bg-white border border-slate-300 text-slate-800 px-1.5 py-0.5 rounded text-xs font-bold font-mono">
+                                {normalizedBatch}
+                              </span>
+                            </td>
+
+                            {/* 5. Zone */}
+                            <td className="py-1.5 px-1 text-center border-r border-[#e8e4dc]">
+                              <span className="border border-sky-300 text-sky-800 bg-sky-50 px-1.5 py-0.5 rounded text-xs font-bold font-mono">
+                                {zoneBadge}
+                              </span>
+                            </td>
+
+                            {/* ANALOG GAUGE 4 Columns */}
+                            {/* 6. Level (mmH2O) */}
+                            <td className="py-1.5 px-2 text-center border-r border-[#e8e4dc] text-slate-950 font-bold text-sm font-mono">
+                              {rawMmH2O}
+                            </td>
+
+                            {/* 7. Pressure (MPa) */}
+                            <td
+                              className={`py-1.5 px-2 text-center border-r border-[#e8e4dc] font-bold text-sm font-mono ${
+                                isHighPress ? 'text-amber-600 bg-amber-50/70' : 'text-slate-950'
+                              }`}
+                            >
+                              {(rec.pressureMPa || 0).toFixed(2)}
+                            </td>
+
+                            {/* 8. Highlight Column: Calc Volume (m³) - Forced Inline Style */}
+                            <td
+                              style={{ backgroundColor: '#f0f7ff', color: '#004a99', borderRight: '1px solid #d4e6f8', borderBottom: '1px solid #e2ddd2' }}
+                              className="custom-calc-vol-cell font-bold font-mono text-sm py-1.5 px-2 text-center"
+                            >
+                              {calcVol.toFixed(1)}
+                            </td>
+
+                            {/* 9. Highlight Column: Calc Mass (ton) - Forced Inline Style */}
+                            <td
+                              style={{ backgroundColor: '#f0f7ff', color: '#004a99', borderRight: '1px solid #d4e6f8', borderBottom: '1px solid #e2ddd2' }}
+                              className="custom-calc-vol-cell font-bold font-mono text-sm py-1.5 px-2 text-center"
+                            >
+                              {calcMassTon.toFixed(2)}
+                            </td>
+
+                            {/* SMT TELEMETRY 4 Columns */}
+                            {/* 10. SMT Press (MPa) */}
+                            <td
+                              className={`py-1.5 px-2 text-center border-r border-[#e8e4dc] font-mono text-sm ${
+                                smtPress >= 0.74 ? 'text-amber-600 bg-amber-50/70 font-bold' : 'text-slate-900 font-bold'
+                              }`}
+                            >
+                              {smtPress.toFixed(2)}
+                            </td>
+
+                            {/* 11. SMT Level (%) */}
+                            <td className="py-1.5 px-2 text-center border-r border-[#e8e4dc] text-slate-900 font-bold text-sm font-mono">
+                              {smtLevel.toFixed(1)}%
+                            </td>
+
+                            {/* 12. SMT Temp (°C) */}
+                            <td className="py-1.5 px-2 text-center border-r border-[#e8e4dc] text-slate-800 font-bold text-sm font-mono">
+                              {smtTemp}
+                            </td>
+
+                            {/* 13. SMT Batt (%) */}
+                            <td className="py-1.5 px-2 text-center border-r border-[#e8e4dc] text-slate-800 font-bold text-sm font-mono">
+                              {smtBatt}%
+                            </td>
+
+                            {/* PROCESS & ACTIONS */}
+                            {/* 14. BOG Vent (kg) */}
+                            <td className="py-1.5 px-2 text-center border-r border-[#e8e4dc] text-slate-950 font-bold text-sm font-mono">
+                              {rec.lossesKg || 0}
+                            </td>
+
+                            {/* 15. Status */}
+                            <td className="py-1.5 px-1 text-center border-r border-[#e8e4dc]">
+                              {(rec.lossesKg || 0) > 0 ? (
+                                <span className="border border-amber-300 text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded text-[11px] font-bold">
+                                  VENTED
+                                </span>
+                              ) : isHighPress ? (
+                                <span className="border border-red-300 text-red-800 bg-red-50 px-1.5 py-0.5 rounded text-[11px] font-bold">
+                                  HIGH P
+                                </span>
+                              ) : (
+                                <span className="border border-emerald-300 text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded text-[11px] font-bold">
+                                  NORMAL
+                                </span>
+                              )}
+                            </td>
+
+                            {/* 16. Actions */}
+                            <td className="py-1.5 px-1 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEditRow(rec)}
+                                  className="p-1 text-slate-600 hover:text-blue-700 hover:bg-blue-100 rounded cursor-pointer transition-colors"
+                                  title="Edit Record"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setRecordToDelete({
+                                      id: rec.id || `rec-${rec.tankNo}`,
+                                      tankNo: rec.tankNo,
+                                      serialNo: rec.serialNo,
+                                      reportDate: rec.reportDate,
+                                    })
+                                  }
+                                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded cursor-pointer transition-colors"
+                                  title="Delete Record"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ==================================================================== */}
       {/* DOMAIN 1 - SUB-TAB 3: 🏷️ ACTIVE BAY MOUNTED TANKS                    */}
@@ -3804,6 +5091,882 @@ export default function NiasTerminalView({
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* TANK DETAIL & STATE SCADA MODAL (PAGT/NIAS SCADA NAVY/BEIGE WINDOW THEME)  */}
+      {/* ========================================================================= */}
+      {selectedDetailTank && (() => {
+        const isSkidTank =
+          selectedDetailTank.currentZone.includes('BAY') ||
+          activeBays.some((b) => b.tankNo === selectedDetailTank.id);
+        const activeBayObj = activeBays.find((b) => b.tankNo === selectedDetailTank.id);
+        const rackTag = activeBayObj ? getRackTag(activeBayObj.bayId) : getRackTag(selectedDetailTank.currentZone);
+
+        const currentMassKg = Math.round((selectedDetailTank.levelPercent / 100) * 18200);
+        const usableKg = Math.max(0, currentMassKg - 420);
+        const remHours = usableKg / 900;
+        const etaDate = new Date(Date.now() + remHours * 3600 * 1000);
+        const etaTimeStr = `${String(etaDate.getHours()).padStart(2, '0')}:${String(etaDate.getMinutes()).padStart(2, '0')}`;
+
+        const idNum = parseInt(selectedDetailTank.id.replace(/\D/g, ''), 10) || 1;
+        const daysAgo = ((idNum * 3) % 7) + 1.3;
+        const baseTime = new Date('2026-08-29T14:00:00+07:00').getTime();
+        const stagedTime = new Date(baseTime - daysAgo * 24 * 3600 * 1000);
+        const yyyy = stagedTime.getFullYear();
+        const mm = String(stagedTime.getMonth() + 1).padStart(2, '0');
+        const dd = String(stagedTime.getDate()).padStart(2, '0');
+        const hh = String(stagedTime.getHours()).padStart(2, '0');
+        const min = String(stagedTime.getMinutes()).padStart(2, '0');
+        const formattedDate = `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+        const daysStr = daysAgo.toFixed(1);
+
+        const zoneLabel =
+          selectedDetailTank.currentZone === 'LAYDOWN_1'
+            ? `ORU (LD-1) Slot #${selectedDetailTank.slotIndex || 1}`
+            : selectedDetailTank.currentZone === 'LAYDOWN_2'
+            ? `ORU (LD-2) Slot #${selectedDetailTank.slotIndex || 1}`
+            : `ORU (ISO TK-Skid) Rack ${rackTag}`;
+
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in"
+            onClick={() => setSelectedDetailTank(null)}
+          >
+            <div
+              className="win-window border-2 border-slate-400 max-w-4xl w-full p-0 shadow-2xl animate-in zoom-in-95 max-h-[92vh] flex flex-col overflow-hidden select-none bg-[#d4d0c8]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Titlebar */}
+              <div className="bg-[#002b4d] text-white px-4 py-2 flex justify-between items-center select-none border-b border-blue-900">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-sky-400" />
+                  <span className="font-bold text-sm uppercase tracking-wider">
+                    {isSkidTank
+                      ? `Active Skid Sendout Monitor — ${selectedDetailTank.id} (${rackTag})`
+                      : `ISO Tank Condition — ${selectedDetailTank.id}`}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDetailTank(null)}
+                  className="text-slate-300 hover:text-white font-mono font-bold text-sm px-2 py-0.5 rounded hover:bg-white/10 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Sub-Header Banner (Dark Gray Background) */}
+              <div className="bg-[#2d3748] text-slate-200 px-4 py-2.5 text-xs sm:text-sm font-mono flex flex-wrap justify-between items-center border-b border-slate-600 gap-2">
+                <div className="flex flex-col gap-1">
+                  {isSkidTank ? (
+                    <>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span>
+                          <strong className="text-white">Rack:</strong> {rackTag} (Liquid Feed)
+                        </span>
+                        <span className="text-slate-400">|</span>
+                        <span>
+                          <strong className="text-white">PLTMG Load:</strong> 18.5 MW (74.0%)
+                        </span>
+                        <span className="text-slate-400">|</span>
+                        <span>
+                          <strong className="text-white">Sendout:</strong> 1,700 Nm³/h
+                        </span>
+                      </div>
+                      <div className="text-xs text-amber-300 font-mono">
+                        <strong className="text-white">Cutoff Target:</strong> Heel 1.0 m³ Cutoff Tracking Active (SOP Rev.0)
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span>
+                          <strong className="text-white">ID:</strong> {selectedDetailTank.id}
+                        </span>
+                        <span className="text-slate-400">|</span>
+                        <span>
+                          <strong className="text-white">Serial:</strong> {selectedDetailTank.serialNo || 'SIMU-820101'}
+                        </span>
+                        <span className="text-slate-400">|</span>
+                        <span>
+                          <strong className="text-white">Zone:</strong> {zoneLabel}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-300 font-mono">
+                        <strong className="text-white">Staged Since:</strong> {formattedDate} (~{daysStr} Days Staged)
+                      </div>
+                    </>
+                  )}
+                </div>
+                <span className={`px-2.5 py-1 text-xs font-bold font-mono border self-center ${
+                  selectedDetailTank.currentZone === 'LAYDOWN_1'
+                    ? 'bg-slate-900 text-cyan-300 border-cyan-400/40'
+                    : selectedDetailTank.currentZone === 'LAYDOWN_2'
+                    ? 'bg-slate-900 text-purple-200 border-purple-400/40'
+                    : 'bg-slate-900 text-emerald-300 border-emerald-400/40'
+                }`}>
+                  {selectedDetailTank.currentZone === 'LAYDOWN_1'
+                    ? 'ORU (LD-1) CRYO STORAGE'
+                    : selectedDetailTank.currentZone === 'LAYDOWN_2'
+                    ? 'ORU (LD-2) HEEL BUFFER'
+                    : `PLTMG SENDOUT RACK (${rackTag})`}
+                </span>
+              </div>
+
+              {/* Modal Body: Scrollable */}
+              <div className="p-4 space-y-3.5 overflow-y-auto flex-1 text-xs sm:text-sm">
+                {isSkidTank ? (
+                  /* ========================================================================= */
+                  /* ACTIVE SKID SENDOUT & HEEL 1.0m³ TRACKING SECTIONS                        */
+                  /* ========================================================================= */
+                  <>
+                    {/* Section 1: Heel Target */}
+                    <div className="win-panel p-3 bg-white border border-slate-300 space-y-2.5">
+                      <div className="flex justify-between items-center border-b border-slate-200 pb-1 text-slate-800">
+                        <h4 className="font-bold text-xs uppercase tracking-wider text-blue-950 font-sans">
+                          Heel Target
+                        </h4>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        {/* Card 1: Current vs Target Volume */}
+                        <div className="win-sunken bg-slate-50 border border-slate-200 min-h-[130px] flex flex-col justify-between py-2.5 px-2 items-center text-center">
+                          <span className="text-xs font-semibold text-slate-600 font-sans">Current Volume</span>
+                          <strong className="font-mono text-lg font-bold text-slate-800 my-0.5">
+                            {(selectedDetailTank.levelPercent * 0.44).toFixed(1)} m³
+                          </strong>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-xs text-slate-500 font-mono">
+                              Target: 1.0 m³ Cutoff
+                            </span>
+                            <span className="text-xs font-semibold text-emerald-600 font-mono">
+                              ~{Math.max(0, (selectedDetailTank.levelPercent * 0.44) - 1.0).toFixed(1)} m³ Remaining
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Card 2: Liquid Level Gauge */}
+                        <div className="win-sunken bg-slate-50 border border-slate-200 min-h-[130px] flex flex-col justify-between py-2.5 px-2 items-center text-center">
+                          <span className="text-xs font-semibold text-slate-600 font-sans">Level Gauge (Field)</span>
+                          <strong className="font-mono text-lg font-bold text-slate-800 my-0.5">
+                            {selectedDetailTank.levelMmH2O || Math.round(selectedDetailTank.levelPercent * 10)} mmH2O
+                          </strong>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-xs text-slate-500 font-mono">
+                              {selectedDetailTank.levelPercent.toFixed(1)}% ({(selectedDetailTank.levelPercent * 0.44).toFixed(1)} m³)
+                            </span>
+                            <span className="text-xs font-semibold text-blue-600 font-mono">
+                              Limit: 120 mmH2O
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Card 3: Active Tank Mass */}
+                        <div className="win-sunken bg-slate-50 border border-slate-200 min-h-[130px] flex flex-col justify-between py-2.5 px-2 items-center text-center">
+                          <span className="text-xs font-semibold text-slate-600 font-sans">Active Tank Mass</span>
+                          <strong className="font-mono text-lg font-bold text-emerald-700 my-0.5">
+                            {currentMassKg.toLocaleString()} kg
+                          </strong>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-xs text-slate-500 font-mono">
+                              Swap Limit: 13,222 kg
+                            </span>
+                            <span className={`text-[11px] font-bold font-mono ${
+                              currentMassKg <= 13222 ? 'text-amber-600' : 'text-emerald-700'
+                            }`}>
+                              {currentMassKg <= 13222 ? '[SWAP REQ ACTIVE]' : '[FEEDING STABLE]'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Card 4: Heel 1.0m³ Cutoff ETA */}
+                        <div className="win-sunken bg-slate-50 border border-slate-200 min-h-[130px] flex flex-col justify-between py-2.5 px-2 items-center text-center">
+                          <span className="text-xs font-semibold text-slate-600 font-sans">1.0m³ Cutoff ETA</span>
+                          <strong className="font-mono text-lg font-bold text-amber-600 my-0.5">
+                            ~{remHours.toFixed(1)} Hours
+                          </strong>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-xs font-semibold text-slate-700 font-mono">
+                              Target Time: {etaTimeStr}
+                            </span>
+                            <span className="text-xs text-slate-500 font-mono">
+                              PLTMG 18.5 MW Load
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Current Telemetry & Final Heel Input */}
+                    <div className="win-panel p-3 bg-white border border-slate-300 space-y-2">
+                      <div className="flex justify-between items-center border-b border-slate-200 pb-1">
+                        <h4 className="font-bold text-xs uppercase tracking-wider text-blue-950 font-sans">
+                          Current Telemetry &amp; Final Heel Input
+                        </h4>
+                      </div>
+                      <div className="overflow-x-auto border border-slate-300 rounded-none">
+                        <table className="w-full text-xs font-mono text-left border-collapse">
+                          <thead className="bg-slate-800 text-slate-200">
+                            <tr className="h-10">
+                              <th className="px-4 text-left font-semibold border-r border-slate-700 w-1/4">Parameter</th>
+                              <th className="px-3 text-center font-semibold border-r border-slate-700 w-1/4">SCADA Telemetry</th>
+                              <th className="px-3 text-center font-semibold border-r border-slate-700 w-1/4 bg-amber-950/40 text-amber-200">
+                                Final Field Input (Dial / Gauge)
+                              </th>
+                              <th className="px-3 text-center font-semibold w-1/4">Target Limit</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200 bg-white">
+                            <tr className="h-11 border-b border-slate-200 hover:bg-slate-50">
+                              <td className="px-4 font-bold text-slate-800 border-r border-slate-200">Tank Pressure</td>
+                              <td className="px-3 text-center text-slate-900 font-bold border-r border-slate-200">
+                                {(selectedDetailTank.pressureMpa || 0.758).toFixed(3)} MPa
+                              </td>
+                              <td className="px-3 text-center border-r border-slate-200 bg-amber-50/40">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={modalFinalPressMpa}
+                                    onChange={(e) => setModalFinalPressMpa(e.target.value)}
+                                    className="w-16 h-7 text-center font-bold text-slate-800 bg-white border border-slate-300 rounded shadow-inner focus:outline-blue-500 text-xs font-mono"
+                                    placeholder="0.22"
+                                  />
+                                  <span className="w-12 text-left text-xs text-slate-600 font-medium font-mono">MPa</span>
+                                </div>
+                              </td>
+                              <td className="px-3 text-center text-xs font-medium text-slate-600 font-mono">
+                                0.400 MPa (Safe Vent)
+                              </td>
+                            </tr>
+                            <tr className="h-11 border-b border-slate-200 hover:bg-slate-50">
+                              <td className="px-4 font-bold text-slate-800 border-r border-slate-200">Liquid Level</td>
+                              <td className="px-3 text-center text-slate-900 font-bold border-r border-slate-200">
+                                {selectedDetailTank.levelPercent.toFixed(1)}% ({(selectedDetailTank.levelPercent * 0.44).toFixed(1)} m³)
+                              </td>
+                              <td className="px-3 text-center border-r border-slate-200 bg-amber-50/40">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={modalFinalLevelMmH2O}
+                                    onChange={(e) => setModalFinalLevelMmH2O(e.target.value)}
+                                    className="w-16 h-7 text-center font-bold text-slate-800 bg-white border border-slate-300 rounded shadow-inner focus:outline-blue-500 text-xs font-mono"
+                                    placeholder="50"
+                                  />
+                                  <span className="w-12 text-left text-xs text-slate-600 font-medium font-mono">mmH2O</span>
+                                </div>
+                              </td>
+                              <td className="px-3 text-center text-xs font-medium text-slate-600 font-mono">
+                                50 mmH2O (Target)
+                              </td>
+                            </tr>
+                            <tr className="h-11 border-b border-slate-200 hover:bg-slate-50">
+                              <td className="px-4 font-bold text-slate-800 border-r border-slate-200">Final Heel Volume</td>
+                              <td className="px-3 text-center text-slate-900 font-bold border-r border-slate-200">
+                                {(selectedDetailTank.levelPercent * 0.44).toFixed(1)} m³
+                              </td>
+                              <td className="px-3 text-center border-r border-slate-200 bg-amber-50/40">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={modalFinalHeelVolM3}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setModalFinalHeelVolM3(val);
+                                      const parsed = parseFloat(val);
+                                      if (!isNaN(parsed)) {
+                                        setModalFinalHeelMassKg(String(Math.round(parsed * 420)));
+                                      }
+                                    }}
+                                    className="w-16 h-7 text-center font-bold text-slate-800 bg-white border border-slate-300 rounded shadow-inner focus:outline-blue-500 text-xs font-mono"
+                                    placeholder="1.0"
+                                  />
+                                  <span className="w-12 text-left text-xs text-slate-600 font-medium font-mono">m³</span>
+                                </div>
+                              </td>
+                              <td className="px-3 text-center text-xs font-medium text-slate-600 font-mono">
+                                1.0 m³ (Cutoff)
+                              </td>
+                            </tr>
+                            <tr className="h-11 border-b border-slate-200 hover:bg-slate-50">
+                              <td className="px-4 font-bold text-slate-800 border-r border-slate-200">Final Heel Mass</td>
+                              <td className="px-3 text-center text-slate-900 font-bold border-r border-slate-200">
+                                {currentMassKg.toLocaleString()} kg
+                              </td>
+                              <td className="px-3 text-center border-r border-slate-200 bg-amber-50/40">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={modalFinalHeelMassKg}
+                                    onChange={(e) => setModalFinalHeelMassKg(e.target.value)}
+                                    className="w-16 h-7 text-center font-bold text-slate-800 bg-white border border-slate-300 rounded shadow-inner focus:outline-blue-500 text-xs font-mono"
+                                    placeholder="420"
+                                  />
+                                  <span className="w-12 text-left text-xs text-slate-600 font-medium font-mono">kg</span>
+                                </div>
+                              </td>
+                              <td className="px-3 text-center text-xs font-medium text-slate-600 font-mono">
+                                ~420 kg (Heel)
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Section 3: Skid Operations */}
+                    <div className="win-panel p-3 bg-[#e5e3dc] border border-slate-300 space-y-2">
+                      <h4 className="font-bold text-xs uppercase tracking-wider text-blue-950 font-sans">
+                        Skid Operations
+                      </h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedDetailTank(null);
+                            setTankSubTab('ACTIVE_BAY_TANKS');
+                          }}
+                          className="win-btn bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-400 font-mono font-bold text-xs py-2 px-3 cursor-pointer text-center shadow-xs flex items-center justify-center gap-1.5"
+                        >
+                          To ORU ( ISO TK - SKID ) (Tab 3)
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const occupiedSlots = new Set(
+                              tankInventory.filter((t) => t.currentZone === 'LAYDOWN_2').map((t) => t.slotIndex)
+                            );
+                            let targetSlot = 1;
+                            for (let s = 1; s <= 16; s++) {
+                              if (!occupiedSlots.has(s)) {
+                                targetSlot = s;
+                                break;
+                              }
+                            }
+                            const parsedVol = parseFloat(modalFinalHeelVolM3) || 1.0;
+                            const parsedMass = parseFloat(modalFinalHeelMassKg) || 420;
+                            const parsedMm = parseFloat(modalFinalLevelMmH2O) || 50;
+                            const parsedPress = parseFloat(modalFinalPressMpa) || 0.22;
+                            const heelPct = Math.round((parsedVol / 44.0) * 100 * 10) / 10; // ~2.3%
+
+                            setTankInventory((prev) =>
+                              prev.map((t) =>
+                                t.id === selectedDetailTank.id
+                                  ? {
+                                      ...t,
+                                      currentZone: 'LAYDOWN_2',
+                                      slotIndex: targetSlot,
+                                      levelPercent: heelPct,
+                                      levelM3: parsedVol,
+                                      levelMmH2O: parsedMm,
+                                      pressureMpa: parsedPress,
+                                      tempC: -135.0,
+                                    }
+                                  : t
+                              )
+                            );
+                            const bayToUnmount = activeBayObj ? activeBayObj.bayId : selectedDetailTank.currentZone;
+                            unmountBay(bayToUnmount);
+                            moveTankLocation(selectedDetailTank.id, 'Laydown 2', targetSlot, {
+                              heelLevelPct: heelPct,
+                              heelPressureMPa: parsedPress,
+                              heelTempC: -135.0,
+                              heelWeightKg: parsedMass,
+                              remarks: `Regas Complete: Final Heel ${parsedVol} m³ (${parsedMass} kg) moved to Laydown 2`,
+                            });
+                            setSelectedDetailTank(null);
+                            setToastMessage(`⏹ ${selectedDetailTank.id} completed: Final Heel ${parsedVol} m³ (${parsedMass} kg) moved to ORU (LD-2) Slot #${targetSlot}`);
+                            setTimeout(() => setToastMessage(null), 3000);
+                          }}
+                          className="win-btn bg-[#002b4d] hover:bg-[#003d6d] text-white border border-[#001e36] font-mono font-bold text-xs py-2 px-3 cursor-pointer text-center shadow-xs flex items-center justify-center gap-1.5"
+                        >
+                          Complete &amp; To LD-2
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* ========================================================================= */
+                  /* YARD TANK CONDITION SECTIONS (LAYDOWN 1 & LAYDOWN 2)                      */
+                  /* ========================================================================= */
+                  <>
+                    {/* Section 1: Current Telemetry */}
+                    <div className="win-panel p-3 bg-white border border-slate-300 space-y-2.5">
+                      <div className="flex justify-between items-center border-b border-slate-200 pb-1 text-slate-800">
+                        <h4 className="font-bold text-xs uppercase tracking-wider text-blue-950 font-sans">
+                          Current Telemetry
+                        </h4>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        {/* Holding Pressure */}
+                        <div className="win-sunken bg-slate-50 p-3 border border-slate-200 text-center flex flex-col justify-between">
+                          <span className="text-xs font-semibold text-slate-600 font-sans block mb-1">Holding Pressure</span>
+                          <strong className={`font-mono text-base sm:text-lg font-bold block my-0.5 ${
+                            (selectedDetailTank.pressureMpa || 0) >= 0.74 ? 'text-amber-600' : 'text-slate-900'
+                          }`}>
+                            {(selectedDetailTank.pressureMpa || 0.76).toFixed(2)} MPa
+                          </strong>
+                          <span className="text-[10px] font-mono text-slate-500 block">
+                            {(selectedDetailTank.pressureMpa || 0) >= 0.74 ? 'Overpressure (≥0.74)' : 'Normal (<0.74)'}
+                          </span>
+                        </div>
+
+                        {/* Liquid Level / Volume */}
+                        <div className="win-sunken bg-slate-50 p-3 border border-slate-200 text-center flex flex-col justify-between">
+                          <span className="text-xs font-semibold text-slate-600 font-sans block mb-1">Liquid Level / Volume</span>
+                          <strong className="font-mono text-base sm:text-lg font-bold text-blue-950 block my-0.5">
+                            {(selectedDetailTank.levelPercent * 0.44).toFixed(1)} / 44.0 m³ ({selectedDetailTank.levelPercent}%)
+                          </strong>
+                          <div className="w-3/4 mx-auto bg-slate-200 h-1.5 mt-1 overflow-hidden rounded-full">
+                            <div
+                              className="h-full bg-[#0284c7]"
+                              style={{ width: `${Math.min(100, Math.max(0, selectedDetailTank.levelPercent))}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Cryogenic Temp */}
+                        <div className="win-sunken bg-slate-50 p-3 border border-slate-200 text-center flex flex-col justify-between">
+                          <span className="text-xs font-semibold text-slate-600 font-sans block mb-1">Cryogenic Temp</span>
+                          <strong className="font-mono text-base sm:text-lg font-bold text-slate-900 block my-0.5">
+                            {(selectedDetailTank.tempC ?? -126.5).toFixed(1)} °C
+                          </strong>
+                          <span className="text-[10px] font-mono text-emerald-700 block">Cryo Intact</span>
+                        </div>
+
+                        {/* Calculated LNG Mass */}
+                        <div className="win-sunken bg-slate-50 p-3 border border-slate-200 text-center flex flex-col justify-between">
+                          <span className="text-xs font-semibold text-slate-600 font-sans block mb-1">LNG Mass</span>
+                          <strong className="font-mono text-base sm:text-lg font-bold text-emerald-800 block my-0.5">
+                            {currentMassKg.toLocaleString()} kg
+                          </strong>
+                          <span className="text-[10px] font-mono text-slate-500 block">Density: 441 kg/m³</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Sensor Cross-Check (Excel-Style Table) */}
+                    <div className="win-panel p-3 bg-white border border-slate-300 space-y-2">
+                      <h4 className="font-bold text-xs uppercase tracking-wider text-blue-950 font-sans">
+                        Sensor Cross-Check
+                      </h4>
+                      <div className="overflow-x-auto border border-slate-300 rounded-none">
+                        <table className="w-full text-xs font-mono text-left border-collapse">
+                          <thead className="bg-slate-800 text-slate-200">
+                            <tr>
+                              <th className="py-1.5 px-3 font-semibold border-r border-slate-700">Parameter</th>
+                              <th className="py-1.5 px-3 font-semibold text-center border-r border-slate-700">Local Analog</th>
+                              <th className="py-1.5 px-3 font-semibold text-center border-r border-slate-700">SCADA / SMT</th>
+                              <th className="py-1.5 px-3 font-semibold text-center border-r border-slate-700">Delta</th>
+                              <th className="py-1.5 px-3 font-semibold text-center">Integrity Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200 bg-white">
+                            <tr className="hover:bg-slate-50">
+                              <td className="py-1.5 px-3 font-bold text-slate-800 border-r border-slate-200">Pressure</td>
+                              <td className="py-1.5 px-3 text-center text-slate-700 border-r border-slate-200">{(selectedDetailTank.pressureMpa || 0.76).toFixed(3)} MPa</td>
+                              <td className="py-1.5 px-3 text-center text-slate-900 font-bold border-r border-slate-200">{((selectedDetailTank.pressureMpa || 0.76) - 0.002).toFixed(3)} MPa</td>
+                              <td className="py-1.5 px-3 text-center text-slate-700 border-r border-slate-200">+0.002 MPa</td>
+                              <td className="py-1.5 px-3 text-center text-emerald-700 font-bold">In-Spec (Calibrated)</td>
+                            </tr>
+                            <tr className="hover:bg-slate-50">
+                              <td className="py-1.5 px-3 font-bold text-slate-800 border-r border-slate-200">Vacuum Annulus</td>
+                              <td className="py-1.5 px-3 text-center text-slate-400 border-r border-slate-200">-</td>
+                              <td className="py-1.5 px-3 text-center text-slate-900 font-bold border-r border-slate-200">&lt; 1.0 Pa</td>
+                              <td className="py-1.5 px-3 text-center text-slate-400 border-r border-slate-200">-</td>
+                              <td className="py-1.5 px-3 text-center text-emerald-700 font-bold">Hard Vacuum Sealed</td>
+                            </tr>
+                            <tr className="hover:bg-slate-50">
+                              <td className="py-1.5 px-3 font-bold text-slate-800 border-r border-slate-200">Telemetry Battery</td>
+                              <td className="py-1.5 px-3 text-center text-slate-400 border-r border-slate-200">-</td>
+                              <td className="py-1.5 px-3 text-center text-slate-900 font-bold border-r border-slate-200">{selectedDetailTank.batteryPercent || 75}%</td>
+                              <td className="py-1.5 px-3 text-center text-slate-400 border-r border-slate-200">-</td>
+                              <td className="py-1.5 px-3 text-center text-emerald-700 font-bold">Solar Float OK</td>
+                            </tr>
+                            <tr className="hover:bg-slate-50">
+                              <td className="py-1.5 px-3 font-bold text-slate-800 border-r border-slate-200">BOG Venting State</td>
+                              <td className="py-1.5 px-3 text-center text-slate-400 border-r border-slate-200">-</td>
+                              <td className="py-1.5 px-3 text-center text-slate-900 font-bold border-r border-slate-200">{(selectedDetailTank.pressureMpa || 0) >= 0.74 ? 'Required' : 'Normal'}</td>
+                              <td className="py-1.5 px-3 text-center text-slate-400 border-r border-slate-200">-</td>
+                              <td className={`py-1.5 px-3 text-center font-bold ${(selectedDetailTank.pressureMpa || 0) >= 0.74 ? 'text-amber-600' : 'text-emerald-700'}`}>
+                                {(selectedDetailTank.pressureMpa || 0) >= 0.74 ? 'Action Needed (≥0.74)' : 'Stable (<0.74)'}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Section 3: Mount to (4-Column Grid) */}
+                    <div className="win-panel p-3 bg-[#e5e3dc] border border-slate-300 space-y-2">
+                      <h4 className="font-bold text-xs uppercase tracking-wider text-blue-950 font-sans">
+                        Mount to
+                      </h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {['Bay 01', 'Bay 02', 'Bay 03', 'Bay 04'].map((bayId) => {
+                          const bayObj = activeBays.find((b) => b.bayId === bayId);
+                          const isOccupied = !!bayObj?.tankNo;
+                          const rackT = getRackTag(bayId);
+                          return (
+                            <button
+                              key={bayId}
+                              type="button"
+                              disabled={isOccupied}
+                              onClick={() => {
+                                const bayZoneKey = (bayId.replace(' ', '_').toUpperCase()) as NiasZone;
+                                setTankInventory((prev) =>
+                                  prev.map((t) =>
+                                    t.id === selectedDetailTank.id
+                                      ? { ...t, currentZone: bayZoneKey }
+                                      : t
+                                  )
+                                );
+                                mountTankToBay(bayId, selectedDetailTank.id);
+                                setSelectedDetailTank((prev) =>
+                                  prev ? { ...prev, currentZone: bayZoneKey } : null
+                                );
+                                setToastMessage(`Mounted ${selectedDetailTank.id} to ${rackT} for Regasification`);
+                                setTimeout(() => setToastMessage(null), 3000);
+                              }}
+                              className={`win-btn py-1 px-2 font-mono text-center ${
+                                isOccupied
+                                  ? 'bg-slate-200 text-slate-500 border-slate-300 cursor-not-allowed opacity-75'
+                                  : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border-emerald-600 cursor-pointer shadow-xs'
+                              }`}
+                            >
+                              {isOccupied ? (
+                                <div className="flex flex-col items-center justify-center py-1">
+                                  <span className="font-bold text-xs text-slate-800">{rackT}</span>
+                                  <span className="text-[11px] text-amber-700 font-medium">(Active: {bayObj?.tankNo})</span>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center justify-center py-1">
+                                  <span className="font-bold text-xs text-slate-700">Mount {rackT}</span>
+                                  <span className="text-[10px] text-slate-400 font-normal">(Standby / Empty)</span>
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Footer Toolbar (Clean Single Close Button) */}
+              <div className="bg-[#d4d0c8] p-3 px-4 flex justify-end items-center border-t border-slate-300">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDetailTank(null)}
+                  className="win-btn bg-slate-200 hover:bg-slate-300 text-slate-900 font-bold px-6 py-1.5 text-xs cursor-pointer border border-slate-400 shadow-xs"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Delete Confirmation Modal for Tab 2 Master Log */}
+      {recordToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-[#f0ede6] border-2 border-[#555] rounded-none shadow-2xl max-w-md w-full p-4 space-y-4 font-mono select-none">
+            {/* Title Bar (Classic Windows Style) */}
+            <div className="bg-[#002b4d] text-white px-3 py-1.5 flex items-center justify-between font-bold text-xs">
+              <div className="flex items-center gap-2">
+                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                <span>Delete Master Inspection Record</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRecordToDelete(null)}
+                className="text-slate-300 hover:text-white font-bold px-1.5 py-0.5 hover:bg-red-700/50 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Body Content */}
+            <div className="space-y-3 bg-white p-3.5 border border-slate-300">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full bg-red-100 border border-red-300 flex items-center justify-center shrink-0 text-red-600">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div className="space-y-1 text-xs">
+                  <p className="font-bold text-slate-900 font-sans">
+                    Are you sure you want to delete this inspection record?
+                  </p>
+                  <p className="text-[11px] text-slate-600">
+                    This action will remove the record from the active daily yard telemetry master view.
+                  </p>
+                </div>
+              </div>
+
+              {/* Target Details Card */}
+              <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-none text-xs space-y-1 font-mono">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-bold">Report Date:</span>
+                  <span className="font-bold text-slate-900">{recordToDelete.reportDate}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-bold">Tank ID:</span>
+                  <span className="font-bold text-blue-950">{recordToDelete.tankNo}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-bold">Serial No:</span>
+                  <span className="text-slate-700">{recordToDelete.serialNo}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setRecordToDelete(null)}
+                className="win-btn bg-[#d4d0c8] hover:bg-[#dedad2] text-slate-800 border border-slate-400 font-mono font-bold text-xs px-3.5 py-1.5 cursor-pointer shadow-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteRecord}
+                className="win-btn bg-red-600 hover:bg-red-700 text-white border border-red-800 font-mono font-bold text-xs px-3.5 py-1.5 cursor-pointer shadow-xs flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Confirm Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================================== */}
+      {/* LARGE SCREEN SCADA CONSOLE: HISTORICAL TELEMETRY TREND ANALYTICS MODAL */}
+      {/* ==================================================================== */}
+      {trendModalTankNo && (() => {
+        const tankAsset = tankInventory.find((t) => t.id === trendModalTankNo);
+        const serialNo = tankAsset?.serialNo || 'SIMU-8101426';
+
+        return (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-150">
+            <div className="w-[94vw] max-w-[1440px] h-[88vh] flex flex-col bg-[#ece9d8] border-2 border-white border-b-2 border-r-2 border-slate-700 shadow-2xl rounded-xs overflow-hidden">
+              
+              {/* Top Header Bar */}
+              <div className="bg-[#0a2540] text-white px-4 py-2 flex items-center justify-between border-b border-[#071a2e] shrink-0">
+                {/* Left: Title & Serial */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm sm:text-base font-black tracking-wider uppercase text-white font-mono flex items-center gap-1.5">
+                    <span>📈</span>
+                    <span>HISTORICAL TELEMETRY TREND ANALYTICS:</span>
+                    <span className="text-amber-300 ml-1">{trendModalTankNo}</span>
+                    <span className="text-slate-300 font-normal text-xs">({serialNo})</span>
+                  </span>
+                </div>
+
+                {/* Center: Time Range Selector 3D Buttons */}
+                <div className="flex items-center gap-1 bg-[#061828] p-1 rounded-xs border border-blue-900/60 shadow-inner">
+                  {(['7D', '14D', '30D', 'ALL'] as const).map((range) => {
+                    const label = range === '7D' ? '7 Days' : range === '14D' ? '14 Days' : range === '30D' ? '30 Days' : 'All History';
+                    const isActive = trendTimeRange === range;
+                    return (
+                      <button
+                        key={range}
+                        type="button"
+                        onClick={() => setTrendTimeRange(range)}
+                        className={`px-3 py-0.5 text-xs font-bold font-mono rounded-xs border-t border-l border-b-2 border-r-2 shadow-xs cursor-pointer select-none transition-all ${
+                          isActive
+                            ? 'bg-[#d4d0c8] text-slate-900 border-white border-b-slate-700 border-r-slate-700 shadow-inner font-black'
+                            : 'bg-[#1b2b3a] hover:bg-[#25394d] text-slate-300 border-slate-600 border-b-slate-900 border-r-slate-900'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Right: Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setTrendModalTankNo(null)}
+                  className="bg-[#c53030] hover:bg-[#e53e3e] active:bg-[#9b2c2c] text-white font-bold text-xs px-3.5 py-1 rounded-xs border-t border-l border-[#fc8181] border-b-2 border-r-2 border-[#742a2a] shadow-xs cursor-pointer select-none flex items-center gap-1"
+                >
+                  <span>✕ CLOSE</span>
+                </button>
+              </div>
+
+              {/* Modal Body: 60% Multi-Charts + 40% Data Sheet */}
+              <div className="flex-1 min-h-0 flex flex-col p-3 gap-3 overflow-hidden bg-[#e8e4dc]">
+                
+                {/* TOP: 4-Channel Multi-Chart Grid (60% height) */}
+                <div className="flex-[6] min-h-0 grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  
+                  {/* Chart 1: Pressure History (MPa) */}
+                  <div className="bg-white border-2 border-[#8a8579] rounded-xs p-2 shadow-inner flex flex-col min-h-0">
+                    <div className="bg-[#4e5d6e] text-white px-2 py-0.5 rounded-xs text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between border-b border-[#8b9aa8] mb-1 shrink-0">
+                      <span>1. PRESSURE HISTORY: ANALOG GAUGE VS SMT SENSOR (MPa)</span>
+                      <span className="font-mono text-[10px] text-blue-200">Ref Limit: 0.74 MPa</span>
+                    </div>
+                    <div className="flex-1 min-h-0 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={trendModalData} margin={{ top: 8, right: 15, left: -10, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
+                          <YAxis domain={[0.6, 0.9]} stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
+                          <RechartsTooltip
+                            contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '4px', color: '#f1f5f9', fontSize: '11px' }}
+                          />
+                          <RechartsLegend wrapperStyle={{ fontSize: '11px', paddingTop: '2px' }} />
+                          <Line type="monotone" dataKey="analogPress" name="Analog Press (MPa)" stroke="#0284c7" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                          <Line type="monotone" dataKey="smtPress" name="SMT Sensor (MPa)" stroke="#10b981" strokeWidth={2.5} strokeDasharray="4 2" dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Chart 2: Liquid Level & Volume (%) */}
+                  <div className="bg-white border-2 border-[#8a8579] rounded-xs p-2 shadow-inner flex flex-col min-h-0">
+                    <div className="bg-[#4e5d6e] text-white px-2 py-0.5 rounded-xs text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between border-b border-[#8b9aa8] mb-1 shrink-0">
+                      <span>2. LIQUID LEVEL (%) &amp; CALCULATED VOLUME (m³)</span>
+                      <span className="font-mono text-[10px] text-blue-200">Full Cap: 45.0 m³</span>
+                    </div>
+                    <div className="flex-1 min-h-0 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={trendModalData} margin={{ top: 8, right: 15, left: -10, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
+                          <YAxis yAxisId="left" domain={[0, 100]} stroke="#8b5cf6" tick={{ fontSize: 10, fill: '#7c3aed' }} />
+                          <YAxis yAxisId="right" orientation="right" domain={[0, 45]} stroke="#0284c7" tick={{ fontSize: 10, fill: '#0284c7' }} />
+                          <RechartsTooltip
+                            contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '4px', color: '#f1f5f9', fontSize: '11px' }}
+                          />
+                          <RechartsLegend wrapperStyle={{ fontSize: '11px', paddingTop: '2px' }} />
+                          <Line yAxisId="left" type="monotone" dataKey="smtLevel" name="Liquid Level (%)" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                          <Line yAxisId="right" type="monotone" dataKey="calcVol" name="Calc Vol (m³)" stroke="#0284c7" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Chart 3: Cryogenic Temperature (°C) */}
+                  <div className="bg-white border-2 border-[#8a8579] rounded-xs p-2 shadow-inner flex flex-col min-h-0">
+                    <div className="bg-[#4e5d6e] text-white px-2 py-0.5 rounded-xs text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between border-b border-[#8b9aa8] mb-1 shrink-0">
+                      <span>3. CRYOGENIC TEMPERATURE (°C) &amp; THERMAL PROFILE</span>
+                      <span className="font-mono text-[10px] text-blue-200">Cryo Range: -160 ~ -120°C</span>
+                    </div>
+                    <div className="flex-1 min-h-0 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={trendModalData} margin={{ top: 8, right: 15, left: -10, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
+                          <YAxis domain={[-160, -110]} stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
+                          <RechartsTooltip
+                            contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '4px', color: '#f1f5f9', fontSize: '11px' }}
+                          />
+                          <RechartsLegend wrapperStyle={{ fontSize: '11px', paddingTop: '2px' }} />
+                          <Line type="monotone" dataKey="tempC" name="Cryo Temp (°C)" stroke="#f43f5e" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Chart 4: IoT Battery & Signal Status (%) */}
+                  <div className="bg-white border-2 border-[#8a8579] rounded-xs p-2 shadow-inner flex flex-col min-h-0">
+                    <div className="bg-[#4e5d6e] text-white px-2 py-0.5 rounded-xs text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between border-b border-[#8b9aa8] mb-1 shrink-0">
+                      <span>4. IOT BATTERY LEVEL (%) &amp; SIGNAL INTEGRITY (%)</span>
+                      <span className="font-mono text-[10px] text-blue-200">Normal &gt; 50%</span>
+                    </div>
+                    <div className="flex-1 min-h-0 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={trendModalData} margin={{ top: 8, right: 15, left: -10, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
+                          <YAxis domain={[40, 100]} stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
+                          <RechartsTooltip
+                            contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '4px', color: '#f1f5f9', fontSize: '11px' }}
+                          />
+                          <RechartsLegend wrapperStyle={{ fontSize: '11px', paddingTop: '2px' }} />
+                          <Line type="monotone" dataKey="battery" name="Battery (%)" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                          <Line type="monotone" dataKey="signal" name="Signal Health (%)" stroke="#f59e0b" strokeWidth={2} strokeDasharray="3 3" dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                {/* BOTTOM: Data Sheet (40% height) */}
+                <div className="flex-[4] min-h-0 flex flex-col bg-white border-2 border-[#8a8579] rounded-xs shadow-inner overflow-hidden">
+                  <div className="bg-[#4e5d6e] text-white px-3 py-1 text-xs font-extrabold uppercase tracking-wider flex items-center justify-between border-b border-[#8b9aa8] shrink-0 select-none">
+                    <span>HISTORICAL INSPECTION &amp; TELEMETRY LOG DATA SHEET</span>
+                    <span className="font-mono text-xs text-slate-200">{trendModalData.length} Records Loaded</span>
+                  </div>
+
+                  <div className="flex-1 min-h-0 overflow-y-auto custom-scada-scrollbar">
+                    <table className="w-full text-xs font-mono border-collapse">
+                      <thead className="sticky top-0 bg-[#5f6f82] text-white text-[11px] font-extrabold uppercase select-none shadow-xs z-10">
+                        <tr>
+                          <th className="py-1 px-2 text-center border-r border-b border-[#8b9aa8]">DATE</th>
+                          <th className="py-1 px-1.5 text-center border-r border-b border-[#8b9aa8]">ZONE</th>
+                          <th className="py-1 px-1.5 text-center border-r border-b border-[#8b9aa8]">BATCH</th>
+                          <th className="py-1 px-2 text-center border-r border-b border-[#8b9aa8]">ANALOG PRESS</th>
+                          <th className="py-1 px-2 text-center border-r border-b border-[#8b9aa8]">LEVEL (mmH2O)</th>
+                          <th className="py-1 px-2 text-center border-r border-b border-[#8b9aa8] bg-[#2b78c5] text-white">CALC VOL</th>
+                          <th className="py-1 px-2 text-center border-r border-b border-[#8b9aa8] bg-[#2b78c5] text-white">CALC MASS</th>
+                          <th className="py-1 px-2 text-center border-r border-b border-[#8b9aa8]">SMT PRESS</th>
+                          <th className="py-1 px-2 text-center border-r border-b border-[#8b9aa8]">SMT LEVEL</th>
+                          <th className="py-1 px-2 text-center border-r border-b border-[#8b9aa8]">TEMP</th>
+                          <th className="py-1 px-1.5 text-center border-r border-b border-[#8b9aa8]">BATT</th>
+                          <th className="py-1 px-2 text-center border-r border-b border-[#8b9aa8]">BOG LOSS</th>
+                          <th className="py-1 px-2 text-center border-b border-[#8b9aa8]">STATUS</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#e8e4dc] text-[12px]">
+                        {trendModalData.slice().reverse().map((row, idx) => (
+                          <tr key={row.fullDate || idx} className="hover:bg-[#eaf2fb] transition-colors even:bg-[#faf8f5]">
+                            <td className="py-1 px-2 text-center border-r border-[#e8e4dc] font-bold text-slate-800">{row.fullDate}</td>
+                            <td className="py-1 px-1.5 text-center border-r border-[#e8e4dc]">
+                              <span className="px-1 py-0.2 bg-sky-50 text-sky-800 border border-sky-300 rounded text-[10px] font-bold">{row.zone}</span>
+                            </td>
+                            <td className="py-1 px-1.5 text-center border-r border-[#e8e4dc]">
+                              <span className="px-1 py-0.2 bg-white text-slate-800 border border-slate-300 rounded text-[10px] font-bold">{row.batch}</span>
+                            </td>
+                            <td className={`py-1 px-2 text-center border-r border-[#e8e4dc] font-bold ${row.analogPress >= 0.74 ? 'text-amber-600 font-black' : 'text-slate-900'}`}>
+                              {row.analogPress.toFixed(2)} MPa
+                            </td>
+                            <td className="py-1 px-2 text-center border-r border-[#e8e4dc] text-slate-900 font-bold">
+                              {Math.round((row.smtLevel / 100) * 950)}
+                            </td>
+                            <td className="py-1 px-2 text-center border-r border-[#d4e6f8] bg-[#f0f7ff] text-[#004a99] font-bold">
+                              {row.calcVol.toFixed(1)} m³
+                            </td>
+                            <td className="py-1 px-2 text-center border-r border-[#d4e6f8] bg-[#f0f7ff] text-[#004a99] font-bold">
+                              {row.calcMass.toFixed(2)} t
+                            </td>
+                            <td className="py-1 px-2 text-center border-r border-[#e8e4dc] text-slate-900 font-bold">{row.smtPress.toFixed(2)} MPa</td>
+                            <td className="py-1 px-2 text-center border-r border-[#e8e4dc] text-slate-900 font-bold">{row.smtLevel.toFixed(1)}%</td>
+                            <td className="py-1 px-2 text-center border-r border-[#e8e4dc] text-slate-900 font-bold">{row.tempC.toFixed(1)}°C</td>
+                            <td className="py-1 px-1.5 text-center border-r border-[#e8e4dc] text-slate-700">{row.battery}%</td>
+                            <td className="py-1 px-2 text-center border-r border-[#e8e4dc] text-slate-700 font-semibold">{row.bogLossKg > 0 ? `${row.bogLossKg} kg` : '-'}</td>
+                            <td className="py-1 px-2 text-center">
+                              <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${row.status === 'WARNING' ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'}`}>
+                                {row.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
