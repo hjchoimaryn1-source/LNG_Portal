@@ -218,7 +218,7 @@ export default function SidebarNav({
                       )}
                     </div>
 
-                    {/* Level 2: MV. Saviour Transit */}
+                    {/* Level 2: Marine Transit */}
                     <div>
                       <div
                         onClick={() => toggleNode('saviour')}
@@ -226,7 +226,7 @@ export default function SidebarNav({
                       >
                         <div className="flex items-center min-w-0">
                           <TreeToggle isOpen={!!openNodes.saviour} />
-                          <span className="text-[11px]">MV. Saviour</span>
+                          <span className="text-[11px]">Marine Transit</span>
                         </div>
                         <span className="text-[11px] font-mono text-slate-500 ml-auto pl-2 shrink-0">
                           {counts.sailingCount}

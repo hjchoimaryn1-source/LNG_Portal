@@ -25,6 +25,7 @@ import {
   CartesianGrid,
   Tooltip as RechartsTooltip,
   Legend as RechartsLegend,
+  ReferenceLine,
 } from 'recharts';
 import {
   MapPin,
@@ -406,6 +407,21 @@ export default function NiasTerminalView({
   const [relocateHeelTempC, setRelocateHeelTempC] = useState<number>(-135.0);
   const [relocateHeelWeightKg, setRelocateHeelWeightKg] = useState<number>(350);
   const [relocateRemarks, setRelocateRemarks] = useState<string>('');
+
+  // LD-2 (ORU LD-2) BOG Vent & Status Modal State
+  const [ld2VentModalTank, setLd2VentModalTank] = useState<NiasTankAsset | null>(null);
+  const [ld2ModalPress, setLd2ModalPress] = useState<number>(0.22);
+  const [ld2ModalTemp, setLd2ModalTemp] = useState<number>(-135.0);
+  const [ld2ModalLevelMm, setLd2ModalLevelMm] = useState<number>(50);
+  const [ld2ModalIsVenting, setLd2ModalIsVenting] = useState<boolean>(false);
+  const [ld2ModalPreVentPress, setLd2ModalPreVentPress] = useState<number>(0.70);
+  const [ld2ModalPostVentPress, setLd2ModalPostVentPress] = useState<number>(0.22);
+  const [ld2ModalVentKg, setLd2ModalVentKg] = useState<number>(0);
+  const [ld2ModalRemarks, setLd2ModalRemarks] = useState<string>('Normal heel holding in LD-2');
+  const [ld2ModalOperator, setLd2ModalOperator] = useState<string>('FIELD OP-1');
+
+  // Sub-Tab 4 (ORU LD-2) Sub-View: Staging Buffer vs Shipping Report
+  const [ld2ViewMode, setLd2ViewMode] = useState<'STAGING_BUFFER' | 'SHIPPING_REPORT'>('STAGING_BUFFER');
 
   // Daily Operations & BOG Event Stream Ticker State (Top Placement)
   const [eventStream, setEventStream] = useState<
@@ -881,6 +897,11 @@ export default function NiasTerminalView({
   // Large Screen SCADA Console: Historical Telemetry Trend Modal State
   const [trendModalTankNo, setTrendModalTankNo] = useState<string | null>(null);
   const [trendTimeRange, setTrendTimeRange] = useState<'7D' | '14D' | '30D' | 'ALL'>('7D');
+  const [trendSeriesVisible, setTrendSeriesVisible] = useState<{ vol: boolean; press: boolean; temp: boolean }>({
+    vol: true,
+    press: true,
+    temp: true,
+  });
 
   const handleOpenTankTrendModal = (tNo: string) => {
     handleSelectTankForWorkstation(tNo);
@@ -1562,6 +1583,124 @@ export default function NiasTerminalView({
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  // LD-2 Status & BOG Vent Modal Handlers
+  const handleOpenLd2VentModal = (tank: NiasTankAsset) => {
+    setLd2VentModalTank(tank);
+    setLd2ModalPress(tank.pressureMpa || 0.22);
+    setLd2ModalTemp(tank.tempC ?? -135.0);
+    const mm = tank.levelMmH2O || (tank.levelPercent ? Math.round((tank.levelPercent / 100) * 950) : 50);
+    setLd2ModalLevelMm(mm);
+    setLd2ModalIsVenting(false);
+    setLd2ModalPreVentPress(tank.pressureMpa || 0.70);
+    setLd2ModalPostVentPress(0.22);
+    setLd2ModalVentKg(0);
+    setLd2ModalRemarks('Normal heel holding in LD-2');
+    setLd2ModalOperator('FIELD OP-1');
+  };
+
+  const handleSaveLd2VentLog = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ld2VentModalTank) return;
+    const tankId = ld2VentModalTank.id;
+    const finalPress = ld2ModalIsVenting ? ld2ModalPostVentPress : ld2ModalPress;
+    const calcVol = parseFloat(((ld2ModalLevelMm / 950) * 44.0).toFixed(1));
+    const calcPct = parseFloat(((ld2ModalLevelMm / 950) * 100).toFixed(1));
+
+    // Update local inventory
+    setTankInventory((prev) =>
+      prev.map((t) =>
+        t.id === tankId
+          ? {
+              ...t,
+              pressureMpa: finalPress,
+              tempC: ld2ModalTemp,
+              levelPercent: calcPct,
+              levelM3: calcVol,
+              levelMmH2O: ld2ModalLevelMm,
+            }
+          : t
+      )
+    );
+
+    // Record into DailyMasterRecord
+    const newRecord: DailyMasterRecord = {
+      id: `LD2-VENT-${Date.now()}`,
+      reportDate: new Date().toISOString().slice(0, 10),
+      tankNo: tankId,
+      serialNo: ld2VentModalTank.serialNo || 'UNKNOWN',
+      shipment: ld2VentModalTank.shipment || 'N1',
+      position: 'Laydown 2',
+      level: calcPct,
+      levelM3: calcVol,
+      levelMmH2O: ld2ModalLevelMm,
+      pressureMPa: finalPress,
+      tempC: ld2ModalTemp,
+      battery: ld2VentModalTank.batteryPercent || 100,
+      remarks: `[LD-2 STAGING] ${ld2ModalRemarks} | Operator: ${ld2ModalOperator}${ld2ModalIsVenting ? ` | Venting: ${ld2ModalPreVentPress.toFixed(2)} ➔ ${ld2ModalPostVentPress.toFixed(2)} MPa (Loss: ${ld2ModalVentKg} kg)` : ''}`,
+      depress: ld2ModalIsVenting ? 'Vented' : 'None',
+      pressBeforeMPa: ld2ModalIsVenting ? ld2ModalPreVentPress : 0,
+      pressAfterMPa: ld2ModalIsVenting ? ld2ModalPostVentPress : 0,
+      lossesKg: ld2ModalIsVenting ? ld2ModalVentKg : 0,
+      lossesPercent: ld2ModalIsVenting ? parseFloat(((ld2ModalVentKg / 18200) * 100).toFixed(2)) : 0,
+    };
+
+    saveDailyInspectionRecord(newRecord);
+    setToastMessage(`💾 LD-2 Log & BOG Vent Saved for ${tankId}`);
+    setLd2VentModalTank(null);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  // Export Backhaul Shipping Report to CSV / Excel
+  const handleExportShippingReport = () => {
+    const yard2TanksList = zoneStats.yard2.tanks;
+    const exportData = yard2TanksList.map((t, idx) => {
+      const isSelected = selectedBackhaulTanks.has(t.id);
+      const massKg = Math.round(((t.levelPercent || 4.0) / 100) * 18200);
+      return {
+        'NO': idx + 1,
+        'TANK ID': t.id,
+        'SERIAL NO': t.serialNo || `SIMU-82020${idx + 1}`,
+        'VESSEL': 'M.V. SAVIOUR',
+        'VOYAGE': 'VOY-2026-08 (ARUN RETURN)',
+        'LOADING DATE': '2026-08-30',
+        'SKID UNMOUNT DATE': '2026-08-28 14:30',
+        'LD-2 DURATION (DAYS)': 2,
+        'FINAL PRESS (MPa)': (t.pressureMpa || 0.22).toFixed(2),
+        'TEMP (°C)': (t.tempC ?? -135.0).toFixed(1),
+        'HEEL LEVEL (%)': (t.levelPercent || 4.0).toFixed(1),
+        'CALC MASS (kg)': massKg,
+        'BOG VENT DONE': 'Y (0.22 MPa)',
+        'SAFETY SEAL NO': `SL-8842-N${String(idx + 1).padStart(2, '0')}`,
+        'INSPECTOR SIGN': 'FIELD OP-1 / CHIEF',
+        'STATUS': isSelected ? 'LOADED (SELECTED)' : 'STAGED FOR RETURN',
+      };
+    });
+
+    if (exportData.length === 0) {
+      setToastMessage('No staged tanks to export');
+      setTimeout(() => setToastMessage(null), 2500);
+      return;
+    }
+
+    const headers = Object.keys(exportData[0]).join(',');
+    const rows = exportData.map((row) =>
+      Object.values(row)
+        .map((val) => `"${val}"`)
+        .join(',')
+    );
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers, ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `BACKHAUL_MANIFEST_MVSAVIOUR_20260830.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setToastMessage(`📊 Exported Backhaul Shipping Report (${exportData.length} Tanks)`);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   // Submit Daily Inspection & Depress Workstation
   const handleSaveDailyInspection = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -1813,7 +1952,7 @@ export default function NiasTerminalView({
                 tankSubTab === 'TANK_MASS_BALANCE' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
               }`}
             >
-              ORU ( LD - 2 ) Mass Balance
+              Mass Balance
             </button>
           </div>
         ) : (
@@ -4094,171 +4233,851 @@ export default function NiasTerminalView({
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 4: 🔄 LAYDOWN 2 (Heel 4% Staging & Return)         */}
+      {/* DOMAIN 1 - SUB-TAB 4: ORU ( LD - 2 ) - DUAL PANEL STAGING & BACKHAUL */}
       {/* ==================================================================== */}
       {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'LAYDOWN_3_HEEL' && (() => {
         const yard2TanksList = zoneStats.yard2.tanks;
         const avgHeelPct = yard2TanksList.length > 0
           ? (yard2TanksList.reduce((acc, t) => acc + (t.levelPercent || 4.0), 0) / yard2TanksList.length).toFixed(1)
           : '4.0';
+        const loadedCount = selectedBackhaulTanks.size > 0 ? selectedBackhaulTanks.size : yard2TanksList.length;
+        const totalHeelKg = yard2TanksList.reduce((acc, t) => acc + Math.round(((t.levelPercent || 4.0) / 100) * 18200), 0);
+        const totalHeelTon = (totalHeelKg / 1000).toFixed(2);
 
         return (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Top Control Bar */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white shadow-none/80 border border-slate-200 rounded-none p-4 sm:p-5">
-            <div>
-              <h3 className="text-sm sm:text-base font-bold text-slate-950 font-bold flex items-center gap-2">
-                <RotateCcw className="w-4 h-4 text-slate-950 font-bold" />
-                Laydown Yard 2: Heel ~1.0 m³ Staging & MV. Saviour Backhaul Clearance
-              </h3>
-              <p className="text-xs text-slate-950 font-bold">
-                Exclusively collects depleted tanks from bays retaining ~445 kg (1.0 m³) cold heel (0.22 MPa, -135°C) for Arun return voyage
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleAuthorizeBackhaul}
-              disabled={selectedBackhaulTanks.size === 0}
-              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-none text-xs font-bold transition-all ${
-                selectedBackhaulTanks.size > 0
-                  ? 'bg-purple-600 hover:bg-purple-500 text-slate-950 shadow-none shadow-purple-600/25 cursor-pointer'
-                  : 'bg-slate-100 text-slate-950 font-bold border border-slate-200 cursor-not-allowed'
-              }`}
-            >
-              <Ship className="w-4 h-4" />
-              <span>Authorize MV. Saviour Backhaul ({selectedBackhaulTanks.size} Tanks)</span>
-            </button>
-          </div>
-
-          {/* Staging Summary Metric Strip */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
-              <span className="text-slate-950 font-bold text-xs font-bold block mb-1">Empty Heel Tanks Staged</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-slate-950 font-bold">{yard2TanksList.length}</span>
-                <span className="text-xs text-slate-950 font-bold">Tanks</span>
+          <div className="space-y-4 animate-in fade-in duration-200 font-mono">
+            {/* Top Control & KPI Dashboard (SCADA Header Theme - Clean without Emojis) */}
+            <div className="bg-[#0a2540] text-white p-3.5 rounded-t border-b border-[#071a2e] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 select-none">
+              <div>
+                <h3 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white font-mono flex items-center gap-2">
+                  <RotateCcw className="w-4 h-4 text-cyan-400" />
+                  <span>ORU ( LD - 2 ) : HEEL STAGING &amp; BACKHAUL CLEARANCE</span>
+                </h3>
               </div>
-              <span className="text-[10px] text-slate-950 font-bold">Depleted & Ready for Return</span>
-            </div>
 
-            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
-              <span className="text-slate-950 font-bold text-xs font-bold block mb-1">Avg Residual Heel Level</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-slate-950 font-bold">1.0 m³</span>
-                <span className="text-xs text-slate-950 font-bold">(~445 kg / {avgHeelPct}%)</span>
-              </div>
-              <span className="text-[10px] text-slate-950 font-bold">Cold heel preserved</span>
-            </div>
-
-            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
-              <span className="text-slate-950 font-bold text-xs font-bold block mb-1">Avg Heel Holding Pressure</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-slate-950 font-bold">{zoneStats.yard2.avgPress.toFixed(2)}</span>
-                <span className="text-xs text-slate-950 font-bold">MPa</span>
-              </div>
-              <span className="text-[10px] text-slate-950 font-bold">Safe marine transit margin</span>
-            </div>
-
-            <div className="p-4 bg-white shadow-none/80 border border-purple-500/40 bg-purple-950/20 rounded-none">
-              <span className="text-slate-950 font-bold text-xs font-bold block mb-1">Selected for Backhaul</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-slate-950 font-bold">{selectedBackhaulTanks.size}</span>
-                <span className="text-xs text-slate-950 font-bold">of {yard2TanksList.length}</span>
-              </div>
-              <span className="text-[10px] text-slate-950 font-bold">Target: MV. Saviour (Voyage 02)</span>
-            </div>
-          </div>
-
-          {/* 12-Slot Visual Return Staging Buffer */}
-          <div className="bg-white shadow-none border border-slate-200 rounded-none p-5 shadow-none space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-              <h4 className="text-sm font-bold text-slate-950 font-bold flex items-center gap-2">
-                <RotateCcw className="w-4 h-4 text-slate-950 font-bold" />
-                Laydown Yard 2: 12-Slot Return Buffer
-              </h4>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (selectedBackhaulTanks.size === yard2TanksList.length && yard2TanksList.length > 0) {
-                      setSelectedBackhaulTanks(new Set());
-                    } else {
-                      setSelectedBackhaulTanks(new Set(yard2TanksList.map((t) => t.id)));
-                    }
-                  }}
-                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-100 border border-slate-200 text-slate-950 font-bold rounded-none text-xs font-bold transition-colors cursor-pointer"
+                  onClick={handleAuthorizeBackhaul}
+                  disabled={selectedBackhaulTanks.size === 0}
+                  className={`flex items-center gap-1.5 px-4 py-2 font-bold text-xs rounded-xs border-t border-l border-b-2 border-r-2 shadow-xs select-none transition-all font-mono ${
+                    selectedBackhaulTanks.size > 0
+                      ? 'bg-[#7c3aed] hover:bg-[#6d28d9] active:bg-[#5b21b6] text-white border-purple-300 border-b-purple-950 border-r-purple-950 cursor-pointer'
+                      : 'bg-slate-700 text-slate-400 border-slate-600 cursor-not-allowed'
+                  }`}
                 >
-                  {selectedBackhaulTanks.size === yard2TanksList.length && yard2TanksList.length > 0 ? 'Deselect All' : 'Select All for Backhaul'}
+                  <Ship className="w-4 h-4" />
+                  <span>Authorize MV. Saviour Backhaul ({selectedBackhaulTanks.size} Tanks)</span>
                 </button>
               </div>
             </div>
 
-            {yard2TanksList.length === 0 ? (
-              <div className="py-12 text-center text-slate-950 font-bold text-xs">
-                No empty tanks currently staged in Laydown Yard 2. Tanks will auto-cycle here as regas vaporization depletes them to ≤ 4%.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
-                {yard2TanksList.map((tank) => {
-                  const isSelected = selectedBackhaulTanks.has(tank.id);
+            {/* Inner Sub-Tab Switching Bar (Clean without Emojis) */}
+            <div className="flex items-center gap-1 border-b-2 border-[#1e293b] pb-0 px-1 pt-1 bg-[#dfdbd1] rounded-xs select-none">
+              <button
+                type="button"
+                onClick={() => setLd2ViewMode('STAGING_BUFFER')}
+                className={`px-4 py-2 font-mono text-xs font-black tracking-wide border-t-2 border-l-2 border-r-2 rounded-t-xs transition-all cursor-pointer flex items-center gap-1.5 ${
+                  ld2ViewMode === 'STAGING_BUFFER'
+                    ? 'bg-[#ece9d8] text-[#002b4d] border-t-white border-l-white border-r-slate-600 shadow-xs -mb-[2px] pb-2.5 z-10'
+                    : 'bg-[#d0cbbf] hover:bg-[#dedad0] text-slate-700 border-t-slate-300 border-l-slate-300 border-r-slate-500'
+                }`}
+              >
+                <span>[1] STAGING BUFFER</span>
+              </button>
 
-                  return (
+              <button
+                type="button"
+                onClick={() => setLd2ViewMode('SHIPPING_REPORT')}
+                className={`px-4 py-2 font-mono text-xs font-black tracking-wide border-t-2 border-l-2 border-r-2 rounded-t-xs transition-all cursor-pointer flex items-center gap-1.5 ${
+                  ld2ViewMode === 'SHIPPING_REPORT'
+                    ? 'bg-[#ece9d8] text-[#002b4d] border-t-white border-l-white border-r-slate-600 shadow-xs -mb-[2px] pb-2.5 z-10'
+                    : 'bg-[#d0cbbf] hover:bg-[#dedad0] text-slate-700 border-t-slate-300 border-l-slate-300 border-r-slate-500'
+                }`}
+              >
+                <span>[2] BACKHAUL MANIFEST &amp; SHIPPING REPORT</span>
+              </button>
+            </div>
+
+            {/* ==================================================================== */}
+            {/* VIEW MODE 1: 50% : 50% SPLIT (LD-2 STAGING BUFFER vs M.V. SAVIOUR)  */}
+            {/* ==================================================================== */}
+            {ld2ViewMode === 'STAGING_BUFFER' && (() => {
+              const ld2BufferTanks = yard2TanksList.filter((t) => !selectedBackhaulTanks.has(t.id));
+              const mvSaviourTanks = yard2TanksList.filter((t) => selectedBackhaulTanks.has(t.id));
+
+              return (
+                <div className="space-y-3.5 animate-in fade-in duration-150">
+                  {/* 4 SCADA KPI Metric Cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                    <div className="bg-[#e8e4dc] border border-[#b0aaa0] rounded-xs p-2.5 shadow-xs flex flex-col justify-between">
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">TOTAL HEEL BUFFER</span>
+                      <div className="flex items-baseline gap-1.5 my-0.5">
+                        <span className="font-mono text-xl font-black text-slate-900">{yard2TanksList.length}</span>
+                        <span className="text-xs font-bold text-slate-600">/ 16 SLOTS</span>
+                      </div>
+                      <span className="text-[9px] text-slate-500 font-bold truncate">Depleted &amp; Ready for Return</span>
+                    </div>
+
+                    <div className="bg-[#e8e4dc] border border-[#b0aaa0] rounded-xs p-2.5 shadow-xs flex flex-col justify-between">
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">AVG RESIDUAL HEEL</span>
+                      <div className="flex items-baseline gap-1.5 my-0.5">
+                        <span className="font-mono text-xl font-black text-[#0055aa]">1.0 m³</span>
+                        <span className="text-xs font-bold text-slate-600">(~445 kg / {avgHeelPct}%)</span>
+                      </div>
+                      <span className="text-[9px] text-emerald-700 font-bold truncate">Cold heel preserved</span>
+                    </div>
+
+                    <div className="bg-[#e8e4dc] border border-[#b0aaa0] rounded-xs p-2.5 shadow-xs flex flex-col justify-between">
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">AVG HOLDING PRESSURE</span>
+                      <div className="flex items-baseline gap-1.5 my-0.5">
+                        <span className="font-mono text-xl font-black text-slate-900">{zoneStats.yard2.avgPress.toFixed(2)}</span>
+                        <span className="text-xs font-bold text-slate-600">MPa</span>
+                      </div>
+                      <span className="text-[9px] text-slate-500 font-bold truncate">Safe marine transit margin</span>
+                    </div>
+
+                    <div className="bg-[#f3e8ff] border border-[#c084fc] rounded-xs p-2.5 shadow-xs flex flex-col justify-between">
+                      <span className="text-[10px] font-bold text-purple-900 uppercase tracking-tighter">LOADED ON M.V. SAVIOUR</span>
+                      <div className="flex items-baseline gap-1.5 my-0.5">
+                        <span className="font-mono text-xl font-black text-purple-950">{selectedBackhaulTanks.size}</span>
+                        <span className="text-xs font-bold text-purple-700">of {yard2TanksList.length}</span>
+                      </div>
+                      <span className="text-[9px] text-purple-700 font-bold truncate">Voyage 02 (Arun Return)</span>
+                    </div>
+                  </div>
+
+                  {/* 50% : 50% Dual Panel Layout */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+                    {/* [LEFT PANEL: LAYDOWN YARD 2 (STAGING BUFFER)] */}
                     <div
-                      key={tank.id}
-                      onClick={() => toggleSelectBackhaulTank(tank.id)}
-                      className={`p-3.5 rounded-none border transition-all cursor-pointer flex flex-col justify-between ${
-                        isSelected
-                          ? 'bg-purple-950/40 border-purple-500 ring-2 ring-purple-500/40 shadow-none shadow-purple-500/10'
-                          : 'win-panel/70 border-slate-200 hover:border-purple-500/50'
+                      className={`bg-[#dfdbd1] border-2 rounded-xs p-3 shadow-inner flex flex-col justify-between transition-colors ${
+                        dragOverTarget === 'LD2' ? 'border-amber-500 bg-[#ebd9c2]' : 'border-[#8a8579]'
                       }`}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragOverTarget('LD2');
+                      }}
+                      onDragLeave={() => {
+                        if (dragOverTarget === 'LD2') setDragOverTarget(null);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const tankId = e.dataTransfer.getData('text/plain') || draggingTankNo;
+                        if (tankId && selectedBackhaulTanks.has(tankId)) {
+                          setSelectedBackhaulTanks((prev) => {
+                            const next = new Set(prev);
+                            next.delete(tankId);
+                            return next;
+                          });
+                          setToastMessage(`📦 ${tankId} returned to LD-2 Staging Buffer`);
+                          setTimeout(() => setToastMessage(null), 2500);
+                        }
+                        setDraggingTankNo(null);
+                        setDragOverTarget(null);
+                      }}
                     >
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => {}}
-                              className="rounded bg-white shadow-none border-slate-200 text-slate-950 font-bold focus:ring-purple-500"
-                            />
-                            <span className="font-mono font-bold text-sm text-slate-950 font-bold">{tank.id}</span>
-                          </div>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-slate-950 font-bold border border-purple-500/40">
-                            1.0 m³ / 445 kg
+                      {/* Header */}
+                      <div className="bg-[#4e5d6e] text-white p-2.5 -mx-3 -mt-3 mb-3 rounded-t-xs border-b-2 border-[#334155] flex flex-wrap justify-between items-center gap-2 shadow-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black uppercase tracking-wider text-white font-mono">
+                            ORU LAYDOWN YARD 2 (STAGING BUFFER)
+                          </span>
+                          <span className="bg-[#002b4d] text-cyan-300 font-mono font-bold text-[10px] px-2 py-0.5 rounded-xs border border-blue-900 shadow-xs">
+                            OCCUPIED: {ld2BufferTanks.length} / 16
                           </span>
                         </div>
 
-                        <span className="text-[10px] font-mono text-slate-950 font-bold block mb-2">{tank.serialNo}</span>
-
-                        <div className="grid grid-cols-2 gap-2 text-xs font-mono mb-2">
-                          <div className="bg-white shadow-none/80 p-2 rounded border border-slate-200">
-                            <span className="text-[10px] text-slate-950 font-bold block">Pressure</span>
-                            <span className="text-slate-950 font-bold font-bold">{(tank.pressureMpa || 0).toFixed(2)} MPa</span>
-                          </div>
-                          <div className="bg-white shadow-none/80 p-2 rounded border border-slate-200">
-                            <span className="text-[10px] text-slate-950 font-bold block">Preserved Heel</span>
-                            <span className="text-slate-950 font-bold font-bold">1.0 m³ (~445 kg)</span>
-                          </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedBackhaulTanks(new Set(yard2TanksList.map((t) => t.id)));
+                              setToastMessage('🚢 All tanks selected & loaded to M.V. SAVIOUR');
+                              setTimeout(() => setToastMessage(null), 2500);
+                            }}
+                            className="px-2.5 py-1 bg-[#d4d0c8] hover:bg-[#e0dcd4] active:bg-[#bcbaae] text-slate-900 font-bold text-[11px] rounded-xs border-t border-l border-white border-b-2 border-r-2 border-slate-600 shadow-xs cursor-pointer select-none font-mono"
+                          >
+                            SELECT ALL (LOAD ALL)
+                          </button>
                         </div>
                       </div>
 
-                      <div className="text-[10px] text-slate-950 font-bold flex justify-between items-center pt-2 border-t border-slate-200/80">
-                        <span>Voyage: Backhaul Return</span>
-                        <span className="text-slate-950 font-bold font-bold">{isSelected ? 'Selected' : 'Click to Select'}</span>
+                      {/* Grid for LD-2 Staged Tanks (2 Columns) */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {Array.from({ length: Math.max(16, yard2TanksList.length) }).map((_, slotIdx) => {
+                          const slotNum = slotIdx + 1;
+                          const tank = ld2BufferTanks[slotIdx];
+
+                          if (tank) {
+                            const massKg = Math.round(((tank.levelPercent || 4.0) / 100) * 18200);
+                            const volM3 = (((tank.levelPercent || 4.0) / 100) * 44.0).toFixed(1);
+
+                            return (
+                              <div
+                                key={tank.id}
+                                draggable={true}
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData('text/plain', tank.id);
+                                  setDraggingTankNo(tank.id);
+                                }}
+                                onDragEnd={() => {
+                                  setDraggingTankNo(null);
+                                  setDragOverTarget(null);
+                                }}
+                                className="relative p-2.5 pb-2 flex flex-col justify-between gap-1.5 rounded-xs border-2 border-[#64748b] bg-gradient-to-b from-[#e8edf2] to-[#dbe2ea] hover:border-[#0055aa] select-none shadow-md transition-all cursor-grab active:cursor-grabbing"
+                                style={{
+                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 3px 8px rgba(0,0,0,0.12)',
+                                }}
+                              >
+                                {/* 4 Corner Bolt Casting Marks */}
+                                <span className="absolute -top-[2px] -left-[2px] w-2 h-2 border-t-2 border-l-2 border-[#1e293b] bg-[#475569] rounded-tl-xs pointer-events-none" />
+                                <span className="absolute -top-[2px] -right-[2px] w-2 h-2 border-t-2 border-r-2 border-[#1e293b] bg-[#475569] rounded-tr-xs pointer-events-none" />
+                                <span className="absolute -bottom-[2px] -left-[2px] w-2 h-2 border-b-2 border-l-2 border-[#1e293b] bg-[#475569] rounded-bl-xs pointer-events-none" />
+                                <span className="absolute -bottom-[2px] -right-[2px] w-2 h-2 border-b-2 border-r-2 border-[#1e293b] bg-[#475569] rounded-br-xs pointer-events-none" />
+
+                                {/* Top Header Row */}
+                                <div className="space-y-1">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-mono font-bold text-slate-600 truncate">
+                                      {tank.serialNo || `SIMU-82020${slotNum}`}
+                                    </span>
+                                    <span className="px-1.5 py-0.5 bg-purple-100 text-purple-900 border border-purple-300 rounded-xs text-[9px] font-black font-mono">
+                                      HEEL 1.0m³
+                                    </span>
+                                  </div>
+
+                                  <div className="flex justify-between items-center pt-0.5">
+                                    <span className="text-sm font-black font-mono text-[#0055aa] tracking-tight">
+                                      {tank.id}
+                                    </span>
+                                    <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 border border-slate-300 rounded-xs text-[9px] font-bold font-mono">
+                                      2026-08-28 | D+2
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* 3D ISO Tank Graphic */}
+                                <div className="relative w-full h-[64px] flex items-center justify-center bg-slate-200/70 rounded-xs border border-slate-300/90 p-1 shadow-inner my-0.5 pointer-events-none">
+                                  <svg viewBox="0 0 420 86" className="w-full h-full" preserveAspectRatio="none">
+                                    <defs>
+                                      <linearGradient id={`tankVessel-ld2-buf-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stopColor="#f8fafc" />
+                                        <stop offset="50%" stopColor="#cbd5e1" />
+                                        <stop offset="100%" stopColor="#94a3b8" />
+                                      </linearGradient>
+                                      <linearGradient id={`gasVaporBg-ld2-buf-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stopColor="#f1f5f9" />
+                                        <stop offset="60%" stopColor="#e2e8f0" />
+                                        <stop offset="100%" stopColor="#cbd5e1" />
+                                      </linearGradient>
+                                      <linearGradient id={`liquidFill-ld2-buf-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stopColor="#38bdf8" />
+                                        <stop offset="50%" stopColor="#0284c7" />
+                                        <stop offset="100%" stopColor="#0369a1" />
+                                      </linearGradient>
+                                      <pattern id={`gasPattern-ld2-buf-${tank.id}`} width="8" height="8" patternUnits="userSpaceOnUse">
+                                        <path d="M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2" stroke="#94a3b8" strokeWidth="0.75" strokeOpacity="0.3" />
+                                      </pattern>
+                                      <clipPath id={`innerWindowClip-ld2-buf-${tank.id}`}>
+                                        <rect x="58" y="14" width="304" height="58" rx="8" />
+                                      </clipPath>
+                                    </defs>
+
+                                    <line x1="28" y1="12" x2="392" y2="12" stroke="#475569" strokeWidth="2.5" />
+                                    <line x1="28" y1="74" x2="392" y2="74" stroke="#475569" strokeWidth="3" />
+                                    <rect x="24" y="8" width="8" height="70" fill="#334155" stroke="#64748b" strokeWidth="1.5" rx="1" />
+                                    <rect x="22" y="6" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                                    <rect x="22" y="74" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                                    <rect x="388" y="8" width="8" height="70" fill="#334155" stroke="#64748b" strokeWidth="1.5" rx="1" />
+                                    <rect x="386" y="6" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                                    <rect x="386" y="74" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                                    <path d="M 58 14 C 28 14, 28 72, 58 72 Z" fill={`url(#tankVessel-ld2-buf-${tank.id})`} stroke="#475569" strokeWidth="2" />
+                                    <path d="M 362 14 C 392 14, 392 72, 362 72 Z" fill={`url(#tankVessel-ld2-buf-${tank.id})`} stroke="#475569" strokeWidth="2" />
+                                    <rect x="56" y="12" width="308" height="62" fill={`url(#tankVessel-ld2-buf-${tank.id})`} stroke="#475569" strokeWidth="1.5" />
+
+                                    <rect x="58" y="14" width="304" height="58" rx="8" fill="#f1f5f9" stroke="#0284c7" strokeWidth="1.5" />
+                                    <g clipPath={`url(#innerWindowClip-ld2-buf-${tank.id})`}>
+                                      <rect x="58" y="14" width="304" height="58" fill={`url(#gasVaporBg-ld2-buf-${tank.id})`} />
+                                      <rect x="58" y="14" width="304" height="58" fill={`url(#gasPattern-ld2-buf-${tank.id})`} />
+                                      <text x="70" y="25" fill="#475569" fontSize="8" fontWeight="bold" fontFamily="monospace" letterSpacing="0.8">GAS / VAPOR (BOG)</text>
+                                      <text x="350" y="25" textAnchor="end" fill="#64748b" fontSize="7.5" fontWeight="bold" fontFamily="monospace" letterSpacing="0.5">HEADSPACE</text>
+
+                                      {(() => {
+                                        const fillHeight = Math.max(4, ((tank.levelPercent || 4) / 100) * 58);
+                                        const fillY = 72 - fillHeight;
+                                        return (
+                                          <g>
+                                            <rect x="58" y={fillY} width="304" height={fillHeight} fill={`url(#liquidFill-ld2-buf-${tank.id})`} />
+                                            <path d={`M 58 ${fillY} Q 134 ${fillY - 2}, 210 ${fillY} T 362 ${fillY}`} fill="none" stroke="#bae6fd" strokeWidth="2" strokeOpacity="0.95" />
+                                          </g>
+                                        );
+                                      })()}
+                                    </g>
+
+                                    <text
+                                      x="210"
+                                      y="49"
+                                      textAnchor="middle"
+                                      dominantBaseline="central"
+                                      fill="#002b4d"
+                                      fontSize="16"
+                                      fontWeight="900"
+                                      fontFamily="monospace"
+                                      letterSpacing="0.5"
+                                      style={{
+                                        paintOrder: 'stroke fill',
+                                        stroke: '#ffffff',
+                                        strokeWidth: '1.5px',
+                                        strokeLinejoin: 'round',
+                                      }}
+                                    >
+                                      {(tank.levelPercent || 4.0).toFixed(1)}%
+                                    </text>
+                                  </svg>
+                                </div>
+
+                                {/* Bottom Telemetry Data Matrix */}
+                                <div className="border border-slate-300 rounded-xs bg-white grid grid-cols-4 divide-x divide-slate-200 py-1 px-0.5 text-center shadow-2xs">
+                                  <div className="flex flex-col items-center justify-center px-0.5">
+                                    <span className="font-mono text-[11px] font-bold text-[#0f172a] leading-tight">
+                                      {(tank.pressureMpa || 0.22).toFixed(2)}
+                                    </span>
+                                    <span className="text-[7.5px] text-slate-500 font-bold uppercase mt-0.5">MPa</span>
+                                  </div>
+
+                                  <div className="flex flex-col items-center justify-center px-0.5">
+                                    <span className="font-mono text-[11px] font-bold text-[#0f172a] leading-tight">
+                                      {(tank.tempC ?? -135.0).toFixed(1)}
+                                    </span>
+                                    <span className="text-[7.5px] text-slate-500 font-bold uppercase mt-0.5">°C</span>
+                                  </div>
+
+                                  <div className="flex flex-col items-center justify-center px-0.5">
+                                    <span className="font-mono text-[11px] font-bold text-[#0055aa] leading-tight">
+                                      {volM3}
+                                    </span>
+                                    <span className="text-[7.5px] text-slate-500 font-bold uppercase mt-0.5">m³</span>
+                                  </div>
+
+                                  <div className="flex flex-col items-center justify-center px-0.5">
+                                    <span className="font-mono text-[11px] font-bold text-[#0f172a] leading-tight">
+                                      {massKg}
+                                    </span>
+                                    <span className="text-[7.5px] text-slate-500 font-bold uppercase mt-0.5">kg</span>
+                                  </div>
+                                </div>
+
+                                {/* Action Footer */}
+                                <div className="flex items-center gap-1.5 pt-1 border-t border-[#c8c2b5]">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedBackhaulTanks((prev) => new Set([...prev, tank.id]));
+                                      setToastMessage(`🚢 ${tank.id} loaded to M.V. SAVIOUR deck`);
+                                      setTimeout(() => setToastMessage(null), 2500);
+                                    }}
+                                    className="flex-1 py-1 bg-[#7c3aed] hover:bg-[#6d28d9] active:bg-[#5b21b6] text-white font-bold text-[10px] rounded-xs border-t border-l border-purple-300 border-b-2 border-r-2 border-purple-950 shadow-xs cursor-pointer select-none font-mono text-center flex items-center justify-center gap-1"
+                                  >
+                                    <span>→ LOAD TO VESSEL</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenLd2VentModal(tank)}
+                                    className="px-2.5 py-1 bg-[#002b4d] hover:bg-[#003e70] active:bg-[#001f38] text-white font-bold text-[10px] rounded-xs border-t border-l border-blue-400 border-b-2 border-r-2 border-blue-950 shadow-xs cursor-pointer select-none font-mono whitespace-nowrap"
+                                  >
+                                    LOG / VENT
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          // Empty Staging Buffer Slot
+                          return (
+                            <div
+                              key={`empty-ld2-slot-${slotIdx}`}
+                              className="min-h-[175px] p-3 flex flex-col items-center justify-center gap-1 text-center rounded-xs border-2 border-dashed border-[#b0aaa0] bg-[#e8e4dc]/60 text-slate-500 shadow-inner select-none"
+                            >
+                              <span className="text-xs font-mono font-bold text-slate-700">
+                                SLOT-{String(slotNum).padStart(2, '0')}
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-500">
+                                Standby - Empty Buffer
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                  );
-                })}
+
+                    {/* [RIGHT PANEL: M.V. SAVIOUR (BACKHAUL VESSEL DECK)] */}
+                    <div
+                      className={`bg-[#d7dfdb] border-2 rounded-xs p-3 shadow-inner flex flex-col justify-between transition-colors ${
+                        dragOverTarget === 'SAVIOUR' ? 'border-purple-600 bg-[#e6daf2]' : 'border-[#71887e]'
+                      }`}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragOverTarget('SAVIOUR');
+                      }}
+                      onDragLeave={() => {
+                        if (dragOverTarget === 'SAVIOUR') setDragOverTarget(null);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const tankId = e.dataTransfer.getData('text/plain') || draggingTankNo;
+                        if (tankId && !selectedBackhaulTanks.has(tankId)) {
+                          setSelectedBackhaulTanks((prev) => new Set([...prev, tankId]));
+                          setToastMessage(`🚢 ${tankId} loaded onto M.V. SAVIOUR deck`);
+                          setTimeout(() => setToastMessage(null), 2500);
+                        }
+                        setDraggingTankNo(null);
+                        setDragOverTarget(null);
+                      }}
+                    >
+                      {/* Header */}
+                      <div className="bg-[#4e5d6e] text-white p-2.5 -mx-3 -mt-3 mb-3 rounded-t-xs border-b-2 border-[#334155] flex flex-wrap justify-between items-center gap-2 shadow-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black uppercase tracking-wider text-white font-mono">
+                            M.V. SAVIOUR (VOY-2026-08 DECK)
+                          </span>
+                          <span className="bg-[#064e3b] text-emerald-300 font-mono font-bold text-[10px] px-2 py-0.5 rounded-xs border border-emerald-900 shadow-xs">
+                            LOADED: {mvSaviourTanks.length} / 16
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedBackhaulTanks(new Set());
+                              setToastMessage('📦 All tanks returned to LD-2 Staging Buffer');
+                              setTimeout(() => setToastMessage(null), 2500);
+                            }}
+                            disabled={mvSaviourTanks.length === 0}
+                            className={`px-2.5 py-1 font-bold text-[11px] rounded-xs border-t border-l border-white border-b-2 border-r-2 shadow-xs select-none font-mono ${
+                              mvSaviourTanks.length > 0
+                                ? 'bg-[#c53030] hover:bg-[#e53e3e] active:bg-[#9b2c2c] text-white border-[#fc8181] border-b-[#742a2a] border-r-[#742a2a] cursor-pointer'
+                                : 'bg-slate-300 text-slate-500 border-slate-400 cursor-not-allowed'
+                            }`}
+                          >
+                            RESET (UNLOAD ALL)
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Grid for M.V. Saviour Deck Slots (2 Columns) */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {Array.from({ length: Math.max(16, yard2TanksList.length) }).map((_, slotIdx) => {
+                          const slotNum = slotIdx + 1;
+                          const tank = mvSaviourTanks[slotIdx];
+
+                          if (tank) {
+                            const massKg = Math.round(((tank.levelPercent || 4.0) / 100) * 18200);
+                            const volM3 = (((tank.levelPercent || 4.0) / 100) * 44.0).toFixed(1);
+
+                            return (
+                              <div
+                                key={tank.id}
+                                draggable={true}
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData('text/plain', tank.id);
+                                  setDraggingTankNo(tank.id);
+                                }}
+                                onDragEnd={() => {
+                                  setDraggingTankNo(null);
+                                  setDragOverTarget(null);
+                                }}
+                                className="relative p-2.5 pb-2 flex flex-col justify-between gap-1.5 rounded-xs border-2 border-purple-600 bg-gradient-to-b from-[#f3e8ff] to-[#e9d5ff] ring-2 ring-purple-500 select-none shadow-md transition-all cursor-grab active:cursor-grabbing"
+                                style={{
+                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 3px 8px rgba(0,0,0,0.12)',
+                                }}
+                              >
+                                {/* 4 Corner Bolt Casting Marks */}
+                                <span className="absolute -top-[2px] -left-[2px] w-2 h-2 border-t-2 border-l-2 border-[#1e293b] bg-[#475569] rounded-tl-xs pointer-events-none" />
+                                <span className="absolute -top-[2px] -right-[2px] w-2 h-2 border-t-2 border-r-2 border-[#1e293b] bg-[#475569] rounded-tr-xs pointer-events-none" />
+                                <span className="absolute -bottom-[2px] -left-[2px] w-2 h-2 border-b-2 border-l-2 border-[#1e293b] bg-[#475569] rounded-bl-xs pointer-events-none" />
+                                <span className="absolute -bottom-[2px] -right-[2px] w-2 h-2 border-b-2 border-r-2 border-[#1e293b] bg-[#475569] rounded-br-xs pointer-events-none" />
+
+                                {/* Top Header Row */}
+                                <div className="space-y-1">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-mono font-bold text-slate-600 truncate">
+                                      {tank.serialNo || `SIMU-82020${slotNum}`}
+                                    </span>
+                                    <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-xs text-[9px] font-black font-mono">
+                                      LOADED ON DECK
+                                    </span>
+                                  </div>
+
+                                  <div className="flex justify-between items-center pt-0.5">
+                                    <span className="text-sm font-black font-mono text-purple-950 tracking-tight">
+                                      {tank.id}
+                                    </span>
+                                    <span className="px-1.5 py-0.5 bg-purple-200 text-purple-900 border border-purple-300 rounded-xs text-[9px] font-bold font-mono">
+                                      DECK SLOT-{String(slotNum).padStart(2, '0')}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* 3D ISO Tank Graphic with Marine Deck theme */}
+                                <div className="relative w-full h-[64px] flex items-center justify-center bg-slate-200/70 rounded-xs border border-slate-300/90 p-1 shadow-inner my-0.5 pointer-events-none">
+                                  <svg viewBox="0 0 420 86" className="w-full h-full" preserveAspectRatio="none">
+                                    <defs>
+                                      <linearGradient id={`tankVessel-sav-buf-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stopColor="#f8fafc" />
+                                        <stop offset="50%" stopColor="#cbd5e1" />
+                                        <stop offset="100%" stopColor="#94a3b8" />
+                                      </linearGradient>
+                                      <linearGradient id={`gasVaporBg-sav-buf-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stopColor="#f1f5f9" />
+                                        <stop offset="60%" stopColor="#e2e8f0" />
+                                        <stop offset="100%" stopColor="#cbd5e1" />
+                                      </linearGradient>
+                                      <linearGradient id={`liquidFill-sav-buf-${tank.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stopColor="#38bdf8" />
+                                        <stop offset="50%" stopColor="#0284c7" />
+                                        <stop offset="100%" stopColor="#0369a1" />
+                                      </linearGradient>
+                                      <pattern id={`gasPattern-sav-buf-${tank.id}`} width="8" height="8" patternUnits="userSpaceOnUse">
+                                        <path d="M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2" stroke="#94a3b8" strokeWidth="0.75" strokeOpacity="0.3" />
+                                      </pattern>
+                                      <clipPath id={`innerWindowClip-sav-buf-${tank.id}`}>
+                                        <rect x="58" y="14" width="304" height="58" rx="8" />
+                                      </clipPath>
+                                    </defs>
+
+                                    <line x1="28" y1="12" x2="392" y2="12" stroke="#475569" strokeWidth="2.5" />
+                                    <line x1="28" y1="74" x2="392" y2="74" stroke="#475569" strokeWidth="3" />
+                                    <rect x="24" y="8" width="8" height="70" fill="#334155" stroke="#64748b" strokeWidth="1.5" rx="1" />
+                                    <rect x="22" y="6" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                                    <rect x="22" y="74" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                                    <rect x="388" y="8" width="8" height="70" fill="#334155" stroke="#64748b" strokeWidth="1.5" rx="1" />
+                                    <rect x="386" y="6" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                                    <rect x="386" y="74" width="12" height="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="1" />
+                                    <path d="M 58 14 C 28 14, 28 72, 58 72 Z" fill={`url(#tankVessel-sav-buf-${tank.id})`} stroke="#475569" strokeWidth="2" />
+                                    <path d="M 362 14 C 392 14, 392 72, 362 72 Z" fill={`url(#tankVessel-sav-buf-${tank.id})`} stroke="#475569" strokeWidth="2" />
+                                    <rect x="56" y="12" width="308" height="62" fill={`url(#tankVessel-sav-buf-${tank.id})`} stroke="#475569" strokeWidth="1.5" />
+
+                                    <rect x="58" y="14" width="304" height="58" rx="8" fill="#f1f5f9" stroke="#0284c7" strokeWidth="1.5" />
+                                    <g clipPath={`url(#innerWindowClip-sav-buf-${tank.id})`}>
+                                      <rect x="58" y="14" width="304" height="58" fill={`url(#gasVaporBg-sav-buf-${tank.id})`} />
+                                      <rect x="58" y="14" width="304" height="58" fill={`url(#gasPattern-sav-buf-${tank.id})`} />
+                                      <text x="70" y="25" fill="#475569" fontSize="8" fontWeight="bold" fontFamily="monospace" letterSpacing="0.8">GAS / VAPOR (BOG)</text>
+                                      <text x="350" y="25" textAnchor="end" fill="#64748b" fontSize="7.5" fontWeight="bold" fontFamily="monospace" letterSpacing="0.5">HEADSPACE</text>
+
+                                      {(() => {
+                                        const fillHeight = Math.max(4, ((tank.levelPercent || 4) / 100) * 58);
+                                        const fillY = 72 - fillHeight;
+                                        return (
+                                          <g>
+                                            <rect x="58" y={fillY} width="304" height={fillHeight} fill={`url(#liquidFill-sav-buf-${tank.id})`} />
+                                            <path d={`M 58 ${fillY} Q 134 ${fillY - 2}, 210 ${fillY} T 362 ${fillY}`} fill="none" stroke="#bae6fd" strokeWidth="2" strokeOpacity="0.95" />
+                                          </g>
+                                        );
+                                      })()}
+                                    </g>
+
+                                    <text
+                                      x="210"
+                                      y="49"
+                                      textAnchor="middle"
+                                      dominantBaseline="central"
+                                      fill="#002b4d"
+                                      fontSize="16"
+                                      fontWeight="900"
+                                      fontFamily="monospace"
+                                      letterSpacing="0.5"
+                                      style={{
+                                        paintOrder: 'stroke fill',
+                                        stroke: '#ffffff',
+                                        strokeWidth: '1.5px',
+                                        strokeLinejoin: 'round',
+                                      }}
+                                    >
+                                      {(tank.levelPercent || 4.0).toFixed(1)}%
+                                    </text>
+                                  </svg>
+                                </div>
+
+                                {/* Bottom Telemetry Data Matrix */}
+                                <div className="border border-purple-300 rounded-xs bg-white grid grid-cols-4 divide-x divide-purple-200 py-1 px-0.5 text-center shadow-2xs">
+                                  <div className="flex flex-col items-center justify-center px-0.5">
+                                    <span className="font-mono text-[11px] font-bold text-[#0f172a] leading-tight">
+                                      {(tank.pressureMpa || 0.22).toFixed(2)}
+                                    </span>
+                                    <span className="text-[7.5px] text-slate-500 font-bold uppercase mt-0.5">MPa</span>
+                                  </div>
+
+                                  <div className="flex flex-col items-center justify-center px-0.5">
+                                    <span className="font-mono text-[11px] font-bold text-[#0f172a] leading-tight">
+                                      {(tank.tempC ?? -135.0).toFixed(1)}
+                                    </span>
+                                    <span className="text-[7.5px] text-slate-500 font-bold uppercase mt-0.5">°C</span>
+                                  </div>
+
+                                  <div className="flex flex-col items-center justify-center px-0.5">
+                                    <span className="font-mono text-[11px] font-bold text-purple-900 leading-tight">
+                                      {volM3}
+                                    </span>
+                                    <span className="text-[7.5px] text-slate-500 font-bold uppercase mt-0.5">m³</span>
+                                  </div>
+
+                                  <div className="flex flex-col items-center justify-center px-0.5">
+                                    <span className="font-mono text-[11px] font-bold text-purple-950 leading-tight">
+                                      {massKg}
+                                    </span>
+                                    <span className="text-[7.5px] text-slate-500 font-bold uppercase mt-0.5">kg</span>
+                                  </div>
+                                </div>
+
+                                {/* Action Footer */}
+                                <div className="flex items-center gap-1.5 pt-1 border-t border-purple-300">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedBackhaulTanks((prev) => {
+                                        const next = new Set(prev);
+                                        next.delete(tank.id);
+                                        return next;
+                                      });
+                                      setToastMessage(`📦 ${tank.id} returned to LD-2 Staging Buffer`);
+                                      setTimeout(() => setToastMessage(null), 2500);
+                                    }}
+                                    className="flex-1 py-1 bg-[#d4d0c8] hover:bg-[#e0dcd4] active:bg-[#bcbaae] text-slate-900 font-bold text-[10px] rounded-xs border-t border-l border-white border-b-2 border-r-2 border-slate-600 shadow-xs cursor-pointer select-none font-mono text-center flex items-center justify-center gap-1"
+                                  >
+                                    <span>← UNLOAD TO LD-2</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenLd2VentModal(tank)}
+                                    className="px-2.5 py-1 bg-[#002b4d] hover:bg-[#003e70] active:bg-[#001f38] text-white font-bold text-[10px] rounded-xs border-t border-l border-blue-400 border-b-2 border-r-2 border-blue-950 shadow-xs cursor-pointer select-none font-mono whitespace-nowrap"
+                                  >
+                                    LOG / VENT
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          // Empty Deck Slot (Drop Target)
+                          return (
+                            <div
+                              key={`empty-sav-slot-${slotIdx}`}
+                              className="min-h-[175px] p-3 flex flex-col items-center justify-center gap-1 text-center rounded-xs border-2 border-dashed border-[#71887e] bg-[#d7dfdb]/60 text-slate-600 shadow-inner select-none hover:bg-emerald-50/60 transition-colors"
+                            >
+                              <span className="text-xs font-mono font-bold text-slate-700">
+                                DECK SLOT-{String(slotNum).padStart(2, '0')}
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-500">
+                                Drop ISO Tank Here / Empty Deck Slot
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ==================================================================== */}
+            {/* VIEW MODE 2: BACKHAUL MANIFEST & SHIPPING REPORT                     */}
+            {/* ==================================================================== */}
+            {ld2ViewMode === 'SHIPPING_REPORT' && (
+              <div className="space-y-3.5 animate-in fade-in duration-150">
+                {/* [상단 VOYAGE SUMMARY 패널] */}
+                <div className="bg-[#e8e4dc] border-2 border-[#8a8579] rounded-xs p-3.5 shadow-sm space-y-3">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[#c8c2b5] pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <Ship className="w-5 h-5 text-[#0055aa]" />
+                      <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#002b4d] font-mono">
+                        BACKHAUL MARINE VOYAGE MANIFEST SUMMARY
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleExportShippingReport}
+                      className="px-4 py-1.5 bg-[#2f855a] hover:bg-[#38a169] active:bg-[#22543d] text-white font-bold text-xs rounded-xs border-t border-l border-[#48bb78] border-b-2 border-r-2 border-[#1c4d35] shadow-xs cursor-pointer select-none font-mono flex items-center gap-1.5"
+                    >
+                      <FileSpreadsheet className="w-4 h-4" />
+                      <span>EXPORT MANIFEST (EXCEL / CSV)</span>
+                    </button>
+                  </div>
+
+                  {/* 5 Summary KPI Tiles */}
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                    <div className="bg-white border border-[#b0aaa0] rounded-xs p-2 shadow-inner text-center">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase block">VESSEL</span>
+                      <span className="text-xs font-black text-slate-900 font-mono">M.V. SAVIOUR</span>
+                    </div>
+
+                    <div className="bg-white border border-[#b0aaa0] rounded-xs p-2 shadow-inner text-center">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase block">VOYAGE</span>
+                      <span className="text-xs font-black text-slate-900 font-mono truncate block">VOY-2026-08 (ARUN)</span>
+                    </div>
+
+                    <div className="bg-white border border-[#b0aaa0] rounded-xs p-2 shadow-inner text-center">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase block">LOADING DATE</span>
+                      <span className="text-xs font-black text-slate-900 font-mono">2026-08-30</span>
+                    </div>
+
+                    <div className="bg-white border border-[#b0aaa0] rounded-xs p-2 shadow-inner text-center">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase block">TOTAL LOADED</span>
+                      <span className="text-xs font-black text-purple-950 font-mono">
+                        {loadedCount} / {yard2TanksList.length} Tanks
+                      </span>
+                    </div>
+
+                    <div className="bg-[#f0f7ff] border border-[#7ba4cc] rounded-xs p-2 shadow-inner text-center">
+                      <span className="text-[10px] font-bold text-[#004a99] uppercase block">TOTAL HEEL MASS</span>
+                      <span className="text-sm font-black text-[#004a99] font-mono">
+                        {totalHeelTon} Ton ({totalHeelKg.toLocaleString()} kg)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* [선적 마스터 테이블 - 2단 슬레이트 SCADA 스타일] */}
+                <div className="bg-white border-2 border-[#8a8579] rounded-xs overflow-hidden shadow-md">
+                  <div className="overflow-x-auto custom-scada-scrollbar">
+                    <table className="w-full text-xs text-center border-collapse font-mono">
+                      {/* 1행: 4대 그룹 헤더 */}
+                      <thead>
+                        <tr className="bg-[#4e5d6e] text-white font-extrabold uppercase text-[11px] tracking-wider border-b border-[#334155]">
+                          <th colSpan={3} className="py-2 px-2 border-r border-[#64748b] bg-[#3e4d5e]">
+                            [1] IDENTIFICATION
+                          </th>
+                          <th colSpan={2} className="py-2 px-2 border-r border-[#64748b] bg-[#475768]">
+                            [2] STAGING HISTORY
+                          </th>
+                          <th colSpan={4} className="py-2 px-2 border-r border-[#64748b] bg-[#3a506b]">
+                            [3] FINAL TELEMETRY (RESIDUAL HEEL)
+                          </th>
+                          <th colSpan={4} className="py-2 px-2 bg-[#3e4d5e]">
+                            [4] CLEARANCE &amp; CERTIFICATION
+                          </th>
+                        </tr>
+
+                        {/* 2행: 세부 컬럼 헤더 */}
+                        <tr className="bg-[#5f6f82] text-[#f1f5f9] font-bold text-[10px] tracking-tight border-b-2 border-[#334155] select-none">
+                          {/* Identification */}
+                          <th className="py-2 px-2 border-r border-[#718096] w-10">NO</th>
+                          <th className="py-2 px-2 border-r border-[#718096]">TANK ID</th>
+                          <th className="py-2 px-2 border-r border-[#718096]">SERIAL NO</th>
+
+                          {/* Staging History */}
+                          <th className="py-2 px-2 border-r border-[#718096]">SKID UNMOUNT DATE</th>
+                          <th className="py-2 px-2 border-r border-[#718096]">LD-2 DURATION</th>
+
+                          {/* Final Telemetry */}
+                          <th className="py-2 px-2 border-r border-[#718096]">FINAL PRESS (MPa)</th>
+                          <th className="py-2 px-2 border-r border-[#718096]">TEMP (°C)</th>
+                          <th className="py-2 px-2 border-r border-[#718096]">HEEL LEVEL (%)</th>
+                          <th className="py-2 px-2 border-r border-[#718096] bg-[#355375] text-cyan-200">
+                            CALC MASS (kg)
+                          </th>
+
+                          {/* Clearance */}
+                          <th className="py-2 px-2 border-r border-[#718096]">BOG VENT DONE</th>
+                          <th className="py-2 px-2 border-r border-[#718096]">SAFETY SEAL NO</th>
+                          <th className="py-2 px-2 border-r border-[#718096]">INSPECTOR SIGN</th>
+                          <th className="py-2 px-2">STATUS</th>
+                        </tr>
+                      </thead>
+
+                      {/* 테이블 본문 */}
+                      <tbody className="divide-y divide-slate-200 bg-white">
+                        {yard2TanksList.length === 0 ? (
+                          <tr>
+                            <td colSpan={13} className="py-8 text-center text-slate-500 font-bold">
+                              No empty heel tanks staged in Laydown Yard 2.
+                            </td>
+                          </tr>
+                        ) : (
+                          yard2TanksList.map((tank, idx) => {
+                            const isSelected = selectedBackhaulTanks.has(tank.id);
+                            const massKg = Math.round(((tank.levelPercent || 4.0) / 100) * 18200);
+                            const isEven = idx % 2 === 0;
+
+                            return (
+                              <tr
+                                key={tank.id}
+                                className={`hover:bg-amber-50 transition-colors font-mono ${
+                                  isEven ? 'bg-[#faf9f6]' : 'bg-white'
+                                }`}
+                              >
+                                {/* Identification */}
+                                <td className="py-2.5 px-2 border-r border-slate-200 font-bold text-slate-500">
+                                  {idx + 1}
+                                </td>
+                                <td className="py-2.5 px-2 border-r border-slate-200 font-black text-[#0055aa]">
+                                  {tank.id}
+                                </td>
+                                <td className="py-2.5 px-2 border-r border-slate-200 font-bold text-slate-700">
+                                  {tank.serialNo || `SIMU-82020${idx + 1}`}
+                                </td>
+
+                                {/* Staging History */}
+                                <td className="py-2.5 px-2 border-r border-slate-200 text-slate-700 font-medium">
+                                  2026-08-28 14:30
+                                </td>
+                                <td className="py-2.5 px-2 border-r border-slate-200 font-bold text-slate-800">
+                                  2 Days (48h)
+                                </td>
+
+                                {/* Final Telemetry */}
+                                <td className="py-2.5 px-2 border-r border-slate-200 font-bold text-slate-900">
+                                  {(tank.pressureMpa || 0.22).toFixed(2)}
+                                </td>
+                                <td className="py-2.5 px-2 border-r border-slate-200 font-bold text-slate-900">
+                                  {(tank.tempC ?? -135.0).toFixed(1)}
+                                </td>
+                                <td className="py-2.5 px-2 border-r border-slate-200 font-bold text-[#0055aa]">
+                                  {(tank.levelPercent || 4.0).toFixed(1)}%
+                                </td>
+                                <td
+                                  className="py-2.5 px-2 border-r border-slate-200 font-black text-[#004a99]"
+                                  style={{ backgroundColor: '#f0f7ff' }}
+                                >
+                                  {massKg.toLocaleString()} kg
+                                </td>
+
+                                {/* Clearance */}
+                                <td className="py-2.5 px-2 border-r border-slate-200 font-bold text-emerald-700">
+                                  Y (0.22 MPa)
+                                </td>
+                                <td className="py-2.5 px-2 border-r border-slate-200 font-bold text-slate-600">
+                                  SL-8842-N{String(idx + 1).padStart(2, '0')}
+                                </td>
+                                <td className="py-2.5 px-2 border-r border-slate-200 font-bold text-slate-700">
+                                  FIELD OP-1 / CHIEF
+                                </td>
+                                <td className="py-2.5 px-2">
+                                  <span className="px-2 py-0.5 bg-purple-100 text-purple-900 border border-purple-300 font-black rounded-xs text-[10px] shadow-2xs">
+                                    LOADED
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
           </div>
-        </div>
         );
       })()}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 5: ⚖️ ISO TANK MASS BALANCE & DEPRESSURIZATION LOG   */}
+      {/* DOMAIN 1 - SUB-TAB 5: ISO TANK MASS BALANCE & DEPRESSURIZATION LOG   */}
       {/* ==================================================================== */}
       {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'TANK_MASS_BALANCE' && (
         <NiasTankMassBalanceTab />
@@ -4742,6 +5561,262 @@ export default function NiasTerminalView({
           </div>
         </div>
       )}
+
+      {/* ==================================================================== */}
+      {/* LD-2 TANK STATUS & BOG VENT DIALOG MODAL (WIDTH: 800px)              */}
+      {/* ==================================================================== */}
+      {ld2VentModalTank && (() => {
+        const calcVol = parseFloat(((ld2ModalLevelMm / 950) * 44.0).toFixed(1));
+        const calcMassKg = Math.round(calcVol * 441.0);
+        const calcMassTon = parseFloat(((calcVol * 441.0) / 1000).toFixed(2));
+
+        return (
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-150 font-mono"
+            onClick={() => setLd2VentModalTank(null)}
+          >
+            <div
+              className="w-[800px] max-w-[90vw] max-h-[92vh] flex flex-col bg-[#ece9d8] border-2 border-white border-b-2 border-r-2 border-slate-700 shadow-2xl rounded-xs overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="bg-[#1e293b] text-white px-4 py-2.5 flex items-center justify-between border-b-2 border-[#334155] shadow-xs shrink-0 select-none">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm sm:text-base font-black tracking-wider uppercase text-white font-mono flex items-center gap-1.5">
+                    <span>💨</span>
+                    <span>LD-2 TANK STATUS &amp; BOG VENT: {ld2VentModalTank.id}</span>
+                    <span className="text-amber-300 ml-1 font-bold">(SERIAL: {ld2VentModalTank.serialNo || 'SIMU-820201'})</span>
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setLd2VentModalTank(null)}
+                  className="bg-[#c53030] hover:bg-[#e53e3e] active:bg-[#9b2c2c] text-white font-bold text-xs px-3.5 py-1.5 rounded-xs border-t border-l border-[#fc8181] border-b-2 border-r-2 border-[#742a2a] shadow-xs cursor-pointer select-none flex items-center gap-1 font-mono"
+                >
+                  <span>✕ CLOSE</span>
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <form onSubmit={handleSaveLd2VentLog} className="p-4 space-y-3.5 overflow-y-auto custom-scada-scrollbar bg-[#f0ede6]">
+                {/* Status Info Strip */}
+                <div className="bg-[#f4f1ea] border-2 border-[#b0aaa0] rounded-xs p-2.5 flex flex-wrap items-center justify-between gap-2 shadow-inner text-xs">
+                  <div>
+                    <span className="font-bold text-slate-600 uppercase">ZONE: </span>
+                    <span className="font-black text-[#002b4d]">LAYDOWN YARD 2 (ORU LD-2)</span>
+                  </div>
+                  <div>
+                    <span className="font-bold text-slate-600 uppercase">STAGED: </span>
+                    <span className="font-bold text-slate-900">2026-08-28 (D+2 Days)</span>
+                  </div>
+                  <div>
+                    <span className="font-bold text-slate-600 uppercase">TARGET: </span>
+                    <span className="font-bold text-purple-900">MV. Saviour Backhaul</span>
+                  </div>
+                </div>
+
+                {/* Section 1: Real-time Gauge Telemetry */}
+                <div className="bg-[#e8e4dc] border border-[#b0aaa0] rounded-xs p-3 shadow-xs space-y-2">
+                  <div className="text-[11px] font-black uppercase tracking-wider text-[#002b4d] border-b border-[#c8c2b5] pb-1 flex items-center gap-1.5">
+                    <span>[1] PHYSICAL GAUGE MEASUREMENTS &amp; RESIDUAL HEEL</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    <div className="flex flex-col">
+                      <label className="text-[10px] font-bold text-slate-700 uppercase mb-1 truncate text-center">
+                        PRESSURE (MPa)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={ld2ModalPress}
+                        onChange={(e) => setLd2ModalPress(parseFloat(e.target.value) || 0)}
+                        className="bg-white border border-[#8b9aa8] rounded-xs px-2 py-1 text-slate-950 font-bold font-mono text-center text-sm shadow-inner focus:bg-amber-50 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="flex flex-col">
+                      <label className="text-[10px] font-bold text-slate-700 uppercase mb-1 truncate text-center">
+                        TEMP (°C)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={ld2ModalTemp}
+                        onChange={(e) => setLd2ModalTemp(parseFloat(e.target.value) || 0)}
+                        className="bg-white border border-[#8b9aa8] rounded-xs px-2 py-1 text-slate-950 font-bold font-mono text-center text-sm shadow-inner focus:bg-amber-50 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="flex flex-col">
+                      <label className="text-[10px] font-bold text-slate-700 uppercase mb-1 truncate text-center">
+                        LEVEL (mmH2O)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        value={ld2ModalLevelMm}
+                        onChange={(e) => setLd2ModalLevelMm(parseFloat(e.target.value) || 0)}
+                        className="bg-white border border-[#8b9aa8] rounded-xs px-2 py-1 text-slate-950 font-bold font-mono text-center text-sm shadow-inner focus:bg-amber-50 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="flex flex-col">
+                      <label className="text-[10px] font-bold text-[#004a99] uppercase mb-1 truncate text-center">
+                        CALC VOL (m³)
+                      </label>
+                      <div className="h-[30px] bg-[#f0f7ff] border border-[#7ba4cc] rounded-xs px-2 py-1 text-[#004a99] font-black font-mono text-center text-sm shadow-inner flex items-center justify-center">
+                        {calcVol.toFixed(1)}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col">
+                      <label className="text-[10px] font-bold text-[#004a99] uppercase mb-1 truncate text-center">
+                        CALC MASS (kg)
+                      </label>
+                      <div className="h-[30px] bg-[#f0f7ff] border border-[#7ba4cc] rounded-xs px-2 py-1 text-[#004a99] font-black font-mono text-center text-sm shadow-inner flex items-center justify-center">
+                        {calcMassKg} kg ({calcMassTon} T)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 2: BOG Venting & Controlled Depressurization Action */}
+                <div className="bg-[#e8e4dc] border border-[#b0aaa0] rounded-xs p-3 shadow-xs space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-[#c8c2b5] pb-1">
+                    <div className="text-[11px] font-black uppercase tracking-wider text-[#002b4d] flex items-center gap-1.5">
+                      <span>[2] BOG VENTING &amp; CONTROLLED DEPRESSURIZATION</span>
+                    </div>
+
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={ld2ModalIsVenting}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setLd2ModalIsVenting(checked);
+                          if (checked) {
+                            setLd2ModalPreVentPress(ld2ModalPress || 0.70);
+                            setLd2ModalPostVentPress(0.22);
+                            const deltaP = Math.max(0, (ld2ModalPress || 0.70) - 0.22);
+                            setLd2ModalVentKg(Math.round(deltaP * 450));
+                          }
+                        }}
+                        className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                      />
+                      <span className="text-xs font-bold text-slate-800 font-mono">Perform BOG Venting</span>
+                    </label>
+                  </div>
+
+                  {ld2ModalIsVenting ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 animate-in fade-in duration-150">
+                      <div className="flex flex-col">
+                        <label className="text-[10px] font-bold text-slate-700 uppercase mb-1 truncate text-center">
+                          PRE-VENT PRESS (MPa)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={ld2ModalPreVentPress}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setLd2ModalPreVentPress(val);
+                            const delta = Math.max(0, val - ld2ModalPostVentPress);
+                            setLd2ModalVentKg(Math.round(delta * 450));
+                          }}
+                          className="bg-white border border-[#8b9aa8] rounded-xs px-2 py-1 text-slate-950 font-bold font-mono text-center text-sm shadow-inner focus:bg-amber-50 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="flex flex-col">
+                        <label className="text-[10px] font-bold text-slate-700 uppercase mb-1 truncate text-center">
+                          POST-VENT PRESS (MPa)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={ld2ModalPostVentPress}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setLd2ModalPostVentPress(val);
+                            const delta = Math.max(0, ld2ModalPreVentPress - val);
+                            setLd2ModalVentKg(Math.round(delta * 450));
+                          }}
+                          className="bg-white border border-[#8b9aa8] rounded-xs px-2 py-1 text-slate-950 font-bold font-mono text-center text-sm shadow-inner focus:bg-amber-50 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="flex flex-col">
+                        <label className="text-[10px] font-bold text-purple-900 uppercase mb-1 truncate text-center">
+                          VENTED BOG AMOUNT (kg)
+                        </label>
+                        <input
+                          type="number"
+                          step="1"
+                          value={ld2ModalVentKg}
+                          onChange={(e) => setLd2ModalVentKg(parseFloat(e.target.value) || 0)}
+                          className="bg-purple-50 border border-purple-400 rounded-xs px-2 py-1 text-purple-950 font-black font-mono text-center text-sm shadow-inner focus:bg-purple-100 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-2.5 bg-[#f4f1ea] border border-[#b0aaa0] rounded-xs text-center text-[11px] text-slate-600 font-bold">
+                      Holding pressure is within normal safe storage range. Check the box above if controlled venting is required before vessel backhaul.
+                    </div>
+                  )}
+                </div>
+
+                {/* Section 3: Operator Remarks & Inspector */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="sm:col-span-2 flex flex-col">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase mb-1">
+                      OPERATOR REMARKS
+                    </label>
+                    <input
+                      type="text"
+                      value={ld2ModalRemarks}
+                      onChange={(e) => setLd2ModalRemarks(e.target.value)}
+                      className="bg-white border border-[#8b9aa8] rounded-xs px-2.5 py-1.5 text-slate-950 font-semibold font-mono text-xs shadow-inner focus:bg-amber-50 focus:outline-none"
+                      placeholder="Staging inspection notes..."
+                    />
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase mb-1">
+                      INSPECTOR
+                    </label>
+                    <input
+                      type="text"
+                      value={ld2ModalOperator}
+                      onChange={(e) => setLd2ModalOperator(e.target.value)}
+                      className="bg-white border border-[#8b9aa8] rounded-xs px-2.5 py-1.5 text-slate-950 font-semibold font-mono text-xs shadow-inner focus:bg-amber-50 focus:outline-none"
+                      placeholder="Operator Name"
+                    />
+                  </div>
+                </div>
+
+                {/* Footer Controls */}
+                <div className="flex justify-end items-center gap-2 pt-2 border-t border-[#c8c2b5]">
+                  <button
+                    type="button"
+                    onClick={() => setLd2VentModalTank(null)}
+                    className="h-8 px-4 bg-[#d4d0c8] hover:bg-[#e0dcd4] active:bg-[#bcbaae] text-slate-900 font-bold text-xs rounded-xs border-t border-l border-white border-b-2 border-r-2 border-slate-600 shadow-xs cursor-pointer select-none font-mono"
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    type="submit"
+                    className="h-8 px-6 bg-[#2f855a] hover:bg-[#38a169] active:bg-[#22543d] text-white font-bold text-xs rounded-xs border-t border-l border-[#48bb78] border-b-2 border-r-2 border-[#1c4d35] shadow-xs cursor-pointer select-none font-mono flex items-center gap-1.5"
+                  >
+                    <span>💾 SAVE STATUS &amp; VENT LOG</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* STAGE 1 MODAL REMOVED - NOW INTEGRATED AS DRAWER */}
 
@@ -5750,16 +6825,19 @@ export default function NiasTerminalView({
       {trendModalTankNo && (() => {
         const tankAsset = tankInventory.find((t) => t.id === trendModalTankNo);
         const serialNo = tankAsset?.serialNo || 'SIMU-8101426';
+        const latestPoint = trendModalData.length > 0 ? trendModalData[trendModalData.length - 1] : null;
+        const battVal = latestPoint?.battery ?? tankAsset?.batteryPercent ?? 95;
+        const sigVal = latestPoint?.signal ?? 92;
 
         return (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-150">
-            <div className="w-[94vw] max-w-[1440px] h-[88vh] flex flex-col bg-[#ece9d8] border-2 border-white border-b-2 border-r-2 border-slate-700 shadow-2xl rounded-xs overflow-hidden">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4 select-none animate-in fade-in duration-150 font-mono">
+            <div className="w-[96vw] max-w-[1480px] h-[90vh] flex flex-col bg-[#ece9d8] border-2 border-white border-b-2 border-r-2 border-slate-700 shadow-2xl rounded-xs overflow-hidden">
               
               {/* Top Header Bar */}
               <div className="bg-[#0a2540] text-white px-4 py-2 flex items-center justify-between border-b border-[#071a2e] shrink-0">
                 {/* Left: Title & Serial */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm sm:text-base font-black tracking-wider uppercase text-white font-mono flex items-center gap-1.5">
+                <div className="flex items-center gap-2 whitespace-nowrap overflow-hidden">
+                  <span className="text-sm sm:text-base font-black tracking-wider uppercase text-white font-mono flex items-center gap-1.5 shrink-0">
                     <span>📈</span>
                     <span>HISTORICAL TELEMETRY TREND ANALYTICS:</span>
                     <span className="text-amber-300 ml-1">{trendModalTankNo}</span>
@@ -5768,7 +6846,7 @@ export default function NiasTerminalView({
                 </div>
 
                 {/* Center: Time Range Selector 3D Buttons */}
-                <div className="flex items-center gap-1 bg-[#061828] p-1 rounded-xs border border-blue-900/60 shadow-inner">
+                <div className="flex items-center gap-1 bg-[#061828] p-1 rounded-xs border border-blue-900/60 shadow-inner shrink-0">
                   {(['7D', '14D', '30D', 'ALL'] as const).map((range) => {
                     const label = range === '7D' ? '7 Days' : range === '14D' ? '14 Days' : range === '30D' ? '30 Days' : 'All History';
                     const isActive = trendTimeRange === range;
@@ -5789,112 +6867,304 @@ export default function NiasTerminalView({
                   })}
                 </div>
 
-                {/* Right: Close Button */}
-                <button
-                  type="button"
-                  onClick={() => setTrendModalTankNo(null)}
-                  className="bg-[#c53030] hover:bg-[#e53e3e] active:bg-[#9b2c2c] text-white font-bold text-xs px-3.5 py-1 rounded-xs border-t border-l border-[#fc8181] border-b-2 border-r-2 border-[#742a2a] shadow-xs cursor-pointer select-none flex items-center gap-1"
-                >
-                  <span>✕ CLOSE</span>
-                </button>
+                {/* Right: Auxiliary Telemetry Badge [ BATT | SIG ] + Close Button */}
+                <div className="flex items-center gap-3 shrink-0">
+                  {/* Slate Inset Telemetry Badge */}
+                  <div className="flex items-center gap-2.5 px-3 py-1 bg-[#07131f] text-slate-200 border border-slate-700/80 rounded-xs shadow-[inset_1px_1px_3px_rgba(0,0,0,0.8)] font-mono text-xs select-none">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${battVal > 50 ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                      <span className="text-slate-400 font-bold text-[11px]">BATT:</span>
+                      <span className={`font-black ${battVal > 50 ? 'text-emerald-400' : 'text-amber-400'}`}>{battVal}%</span>
+                    </div>
+                    <span className="text-slate-600 font-bold">|</span>
+                    <div className="flex items-center gap-1.5">
+                      <Radio className="w-3 h-3 text-cyan-400" />
+                      <span className="text-slate-400 font-bold text-[11px]">SIG:</span>
+                      <span className="text-cyan-300 font-black">{sigVal}%</span>
+                    </div>
+                  </div>
+
+                  {/* Close Button */}
+                  <button
+                    type="button"
+                    onClick={() => setTrendModalTankNo(null)}
+                    className="bg-[#c53030] hover:bg-[#e53e3e] active:bg-[#9b2c2c] text-white font-bold text-xs px-3.5 py-1 rounded-xs border-t border-l border-[#fc8181] border-b-2 border-r-2 border-[#742a2a] shadow-xs cursor-pointer select-none flex items-center gap-1 font-mono"
+                  >
+                    <span>✕ CLOSE</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Modal Body: 60% Multi-Charts + 40% Data Sheet */}
+              {/* Modal Body: 60% Single Large Multi-Axis Chart + 40% Data Sheet */}
               <div className="flex-1 min-h-0 flex flex-col p-3 gap-3 overflow-hidden bg-[#e8e4dc]">
                 
-                {/* TOP: 4-Channel Multi-Chart Grid (60% height) */}
-                <div className="flex-[6] min-h-0 grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {/* TOP: Single Multi-Axis SCADA Telemetry Chart Canvas (60% height) */}
+                <div className="flex-[6] min-h-0 flex flex-col bg-[#1e293b] border-2 border-[#475569] rounded-xs shadow-[inset_2px_2px_6px_rgba(0,0,0,0.5)] p-2.5 overflow-hidden">
                   
-                  {/* Chart 1: Pressure History (MPa) */}
-                  <div className="bg-white border-2 border-[#8a8579] rounded-xs p-2 shadow-inner flex flex-col min-h-0">
-                    <div className="bg-[#4e5d6e] text-white px-2 py-0.5 rounded-xs text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between border-b border-[#8b9aa8] mb-1 shrink-0">
-                      <span>1. PRESSURE HISTORY: ANALOG GAUGE VS SMT SENSOR (MPa)</span>
-                      <span className="font-mono text-[10px] text-blue-200">Ref Limit: 0.74 MPa</span>
-                    </div>
-                    <div className="flex-1 min-h-0 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={trendModalData} margin={{ top: 8, right: 15, left: -10, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                          <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
-                          <YAxis domain={[0.6, 0.9]} stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
-                          <RechartsTooltip
-                            contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '4px', color: '#f1f5f9', fontSize: '11px' }}
-                          />
-                          <RechartsLegend wrapperStyle={{ fontSize: '11px', paddingTop: '2px' }} />
-                          <Line type="monotone" dataKey="analogPress" name="Analog Press (MPa)" stroke="#0284c7" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                          <Line type="monotone" dataKey="smtPress" name="SMT Sensor (MPa)" stroke="#10b981" strokeWidth={2.5} strokeDasharray="4 2" dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
+                  {/* Chart Container */}
+                  <div className="flex-1 min-h-0 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={trendModalData} margin={{ top: 15, right: 70, left: 15, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={true} horizontal={true} strokeOpacity={0.7} />
+                        <XAxis
+                          dataKey="date"
+                          stroke="#64748b"
+                          tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'monospace', fontWeight: 'bold' }}
+                          tickLine={{ stroke: '#475569' }}
+                        />
+
+                        {/* Axis 1 (Left Y1): Liquid Level / Residual Volume */}
+                        <YAxis
+                          yAxisId="vol"
+                          orientation="left"
+                          stroke="#00b4d8"
+                          domain={[0, 25]}
+                          tick={{ fontSize: 10, fill: '#00b4d8', fontFamily: 'monospace', fontWeight: 'bold' }}
+                          tickLine={{ stroke: '#00b4d8' }}
+                          label={{
+                            value: 'Vol (m³)',
+                            angle: -90,
+                            position: 'insideLeft',
+                            offset: 0,
+                            fill: '#00b4d8',
+                            fontSize: 11,
+                            fontWeight: 'bold',
+                            fontFamily: 'monospace',
+                          }}
+                        />
+
+                        {/* Axis 2 (Right Y2 - 1st Right Axis): Holding / SMT Pressure */}
+                        <YAxis
+                          yAxisId="press"
+                          orientation="right"
+                          stroke="#2ec4b6"
+                          domain={[0.0, 1.0]}
+                          tick={{ fontSize: 10, fill: '#2ec4b6', fontFamily: 'monospace', fontWeight: 'bold' }}
+                          tickLine={{ stroke: '#2ec4b6' }}
+                          label={{
+                            value: 'Press (MPa)',
+                            angle: -90,
+                            position: 'insideRight',
+                            offset: 0,
+                            fill: '#2ec4b6',
+                            fontSize: 11,
+                            fontWeight: 'bold',
+                            fontFamily: 'monospace',
+                          }}
+                        />
+
+                        {/* Axis 3 (Right Y3 - 2nd Right Axis Offset): Cryogenic Temperature */}
+                        <YAxis
+                          yAxisId="temp"
+                          orientation="right"
+                          stroke="#ff6b6b"
+                          domain={[-160, -100]}
+                          dx={38}
+                          tick={{ fontSize: 10, fill: '#ff6b6b', fontFamily: 'monospace', fontWeight: 'bold' }}
+                          tickLine={{ stroke: '#ff6b6b' }}
+                          label={{
+                            value: 'Temp (°C)',
+                            angle: -90,
+                            position: 'insideRight',
+                            offset: 38,
+                            fill: '#ff6b6b',
+                            fontSize: 11,
+                            fontWeight: 'bold',
+                            fontFamily: 'monospace',
+                          }}
+                        />
+
+                        {/* Process Reference Lines with Soft Slate (#94a3b8) text */}
+                        <ReferenceLine
+                          yAxisId="press"
+                          y={0.70}
+                          stroke="#2ec4b6"
+                          strokeDasharray="3 3"
+                          strokeOpacity={0.5}
+                          label={{
+                            value: 'Regas limit: 0.70 MPa',
+                            position: 'insideTopRight',
+                            fill: '#94a3b8',
+                            fontSize: 10,
+                            fontFamily: 'monospace',
+                            fontWeight: 'bold',
+                          }}
+                        />
+                        <ReferenceLine
+                          yAxisId="press"
+                          y={0.30}
+                          stroke="#2ec4b6"
+                          strokeDasharray="3 3"
+                          strokeOpacity={0.5}
+                          label={{
+                            value: 'Disconnect target: 0.30 MPa',
+                            position: 'insideBottomRight',
+                            fill: '#94a3b8',
+                            fontSize: 10,
+                            fontFamily: 'monospace',
+                            fontWeight: 'bold',
+                          }}
+                        />
+                        <ReferenceLine
+                          yAxisId="vol"
+                          y={1.0}
+                          stroke="#00b4d8"
+                          strokeDasharray="3 3"
+                          strokeOpacity={0.5}
+                          label={{
+                            value: 'Heel limit: 1.0 m³',
+                            position: 'insideBottomLeft',
+                            fill: '#94a3b8',
+                            fontSize: 10,
+                            fontFamily: 'monospace',
+                            fontWeight: 'bold',
+                          }}
+                        />
+
+                        {/* SCADA HUD Tooltip */}
+                        <RechartsTooltip
+                          content={({ active, payload, label }) => {
+                            if (active && payload && payload.length) {
+                              const d = payload[0]?.payload;
+                              return (
+                                <div className="bg-[#0c141f]/95 border border-[#3b82f6]/60 p-2.5 rounded shadow-2xl backdrop-blur-md font-mono text-xs text-white space-y-1.5 min-w-[220px]">
+                                  <div className="border-b border-slate-700/80 pb-1 flex justify-between items-center">
+                                    <span className="font-extrabold text-amber-300">📅 {d?.fullDate || label}</span>
+                                    <span className="px-1.5 py-0.2 bg-blue-900/60 text-cyan-300 border border-cyan-500/30 rounded text-[10px]">
+                                      {d?.zone} | {d?.batch}
+                                    </span>
+                                  </div>
+                                  <div className="space-y-1 text-[11px]">
+                                    <div className="flex justify-between items-center text-[#00b4d8]">
+                                      <span>• Residual Volume:</span>
+                                      <span className="font-bold">{d?.calcVol?.toFixed(1)} m³ ({d?.smtLevel?.toFixed(1)}%)</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-[#2ec4b6]">
+                                      <span>• Holding Pressure:</span>
+                                      <span className="font-bold">{d?.analogPress?.toFixed(2)} MPa</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-[#2ec4b6]/80">
+                                      <span>• SMT Sensor Press:</span>
+                                      <span className="font-bold">{d?.smtPress?.toFixed(2)} MPa</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-[#ff6b6b]">
+                                      <span>• Cryo Temp:</span>
+                                      <span className="font-bold">{d?.tempC?.toFixed(1)} °C</span>
+                                    </div>
+                                    {d?.bogLossKg > 0 && (
+                                      <div className="flex justify-between items-center text-amber-400 border-t border-slate-800 pt-0.5">
+                                        <span>• BOG Vented Loss:</span>
+                                        <span className="font-bold">{d.bogLossKg} kg</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+
+                        {/* Series 1: Residual Volume (m³) */}
+                        <Line
+                          yAxisId="vol"
+                          type="monotone"
+                          dataKey="calcVol"
+                          name="Residual Volume (m³)"
+                          stroke="#00b4d8"
+                          strokeWidth={2.5}
+                          dot={{ r: 3, fill: '#00b4d8', stroke: '#1e293b', strokeWidth: 1 }}
+                          activeDot={{ r: 5, fill: '#00b4d8', stroke: '#fff', strokeWidth: 2 }}
+                          hide={!trendSeriesVisible.vol}
+                        />
+
+                        {/* Series 2: Pressure (MPa) */}
+                        <Line
+                          yAxisId="press"
+                          type="monotone"
+                          dataKey="analogPress"
+                          name="Pressure (MPa)"
+                          stroke="#2ec4b6"
+                          strokeWidth={2.5}
+                          dot={{ r: 3, fill: '#2ec4b6', stroke: '#1e293b', strokeWidth: 1 }}
+                          activeDot={{ r: 5, fill: '#2ec4b6', stroke: '#fff', strokeWidth: 2 }}
+                          hide={!trendSeriesVisible.press}
+                        />
+
+                        {/* Series 2b: SMT Pressure (MPa) - dashed telemetry comparison */}
+                        <Line
+                          yAxisId="press"
+                          type="monotone"
+                          dataKey="smtPress"
+                          name="SMT Pressure (MPa)"
+                          stroke="#2ec4b6"
+                          strokeDasharray="4 2"
+                          strokeWidth={1.5}
+                          strokeOpacity={0.85}
+                          dot={false}
+                          activeDot={{ r: 4 }}
+                          hide={!trendSeriesVisible.press}
+                        />
+
+                        {/* Series 3: Cryo Temp (°C) */}
+                        <Line
+                          yAxisId="temp"
+                          type="monotone"
+                          dataKey="tempC"
+                          name="Cryo Temp (°C)"
+                          stroke="#ff6b6b"
+                          strokeWidth={2.5}
+                          dot={{ r: 3, fill: '#ff6b6b', stroke: '#1e293b', strokeWidth: 1 }}
+                          activeDot={{ r: 5, fill: '#ff6b6b', stroke: '#fff', strokeWidth: 2 }}
+                          hide={!trendSeriesVisible.temp}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
 
-                  {/* Chart 2: Liquid Level & Volume (%) */}
-                  <div className="bg-white border-2 border-[#8a8579] rounded-xs p-2 shadow-inner flex flex-col min-h-0">
-                    <div className="bg-[#4e5d6e] text-white px-2 py-0.5 rounded-xs text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between border-b border-[#8b9aa8] mb-1 shrink-0">
-                      <span>2. LIQUID LEVEL (%) &amp; CALCULATED VOLUME (m³)</span>
-                      <span className="font-mono text-[10px] text-blue-200">Full Cap: 45.0 m³</span>
-                    </div>
-                    <div className="flex-1 min-h-0 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={trendModalData} margin={{ top: 8, right: 15, left: -10, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                          <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
-                          <YAxis yAxisId="left" domain={[0, 100]} stroke="#8b5cf6" tick={{ fontSize: 10, fill: '#7c3aed' }} />
-                          <YAxis yAxisId="right" orientation="right" domain={[0, 45]} stroke="#0284c7" tick={{ fontSize: 10, fill: '#0284c7' }} />
-                          <RechartsTooltip
-                            contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '4px', color: '#f1f5f9', fontSize: '11px' }}
-                          />
-                          <RechartsLegend wrapperStyle={{ fontSize: '11px', paddingTop: '2px' }} />
-                          <Line yAxisId="left" type="monotone" dataKey="smtLevel" name="Liquid Level (%)" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                          <Line yAxisId="right" type="monotone" dataKey="calcVol" name="Calc Vol (m³)" stroke="#0284c7" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
+                  {/* SCADA Interactive Centralized Bottom Legend with Toggle Support */}
+                  <div className="flex items-center justify-center gap-4 sm:gap-8 pt-1.5 border-t border-[#334155] bg-[#0f172a] py-1.5 px-3 rounded-xs font-mono text-xs select-none shrink-0 shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => setTrendSeriesVisible((prev) => ({ ...prev, temp: !prev.temp }))}
+                      className={`flex items-center gap-2 px-3 py-1 rounded-xs cursor-pointer transition-all border ${
+                        trendSeriesVisible.temp
+                          ? 'bg-[#ff6b6b]/15 border-[#ff6b6b]/60 text-[#ff6b6b] shadow-xs font-bold'
+                          : 'bg-slate-800/40 border-slate-700/50 text-slate-500 opacity-60 line-through'
+                      }`}
+                      title="Toggle Cryo Temperature Series"
+                    >
+                      <span className={`w-3 h-1 rounded-full ${trendSeriesVisible.temp ? 'bg-[#ff6b6b]' : 'bg-slate-600'}`} />
+                      <span className="font-bold text-[11px]">Cryo Temp (°C)</span>
+                    </button>
 
-                  {/* Chart 3: Cryogenic Temperature (°C) */}
-                  <div className="bg-white border-2 border-[#8a8579] rounded-xs p-2 shadow-inner flex flex-col min-h-0">
-                    <div className="bg-[#4e5d6e] text-white px-2 py-0.5 rounded-xs text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between border-b border-[#8b9aa8] mb-1 shrink-0">
-                      <span>3. CRYOGENIC TEMPERATURE (°C) &amp; THERMAL PROFILE</span>
-                      <span className="font-mono text-[10px] text-blue-200">Cryo Range: -160 ~ -120°C</span>
-                    </div>
-                    <div className="flex-1 min-h-0 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={trendModalData} margin={{ top: 8, right: 15, left: -10, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                          <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
-                          <YAxis domain={[-160, -110]} stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
-                          <RechartsTooltip
-                            contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '4px', color: '#f1f5f9', fontSize: '11px' }}
-                          />
-                          <RechartsLegend wrapperStyle={{ fontSize: '11px', paddingTop: '2px' }} />
-                          <Line type="monotone" dataKey="tempC" name="Cryo Temp (°C)" stroke="#f43f5e" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
+                    <button
+                      type="button"
+                      onClick={() => setTrendSeriesVisible((prev) => ({ ...prev, press: !prev.press }))}
+                      className={`flex items-center gap-2 px-3 py-1 rounded-xs cursor-pointer transition-all border ${
+                        trendSeriesVisible.press
+                          ? 'bg-[#2ec4b6]/15 border-[#2ec4b6]/60 text-[#2ec4b6] shadow-xs font-bold'
+                          : 'bg-slate-800/40 border-slate-700/50 text-slate-500 opacity-60 line-through'
+                      }`}
+                      title="Toggle Pressure Series"
+                    >
+                      <span className={`w-3 h-1 rounded-full ${trendSeriesVisible.press ? 'bg-[#2ec4b6]' : 'bg-slate-600'}`} />
+                      <span className="font-bold text-[11px]">Pressure (MPa)</span>
+                    </button>
 
-                  {/* Chart 4: IoT Battery & Signal Status (%) */}
-                  <div className="bg-white border-2 border-[#8a8579] rounded-xs p-2 shadow-inner flex flex-col min-h-0">
-                    <div className="bg-[#4e5d6e] text-white px-2 py-0.5 rounded-xs text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-between border-b border-[#8b9aa8] mb-1 shrink-0">
-                      <span>4. IOT BATTERY LEVEL (%) &amp; SIGNAL INTEGRITY (%)</span>
-                      <span className="font-mono text-[10px] text-blue-200">Normal &gt; 50%</span>
-                    </div>
-                    <div className="flex-1 min-h-0 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={trendModalData} margin={{ top: 8, right: 15, left: -10, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                          <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
-                          <YAxis domain={[40, 100]} stroke="#64748b" tick={{ fontSize: 10, fill: '#475569' }} />
-                          <RechartsTooltip
-                            contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '4px', color: '#f1f5f9', fontSize: '11px' }}
-                          />
-                          <RechartsLegend wrapperStyle={{ fontSize: '11px', paddingTop: '2px' }} />
-                          <Line type="monotone" dataKey="battery" name="Battery (%)" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                          <Line type="monotone" dataKey="signal" name="Signal Health (%)" stroke="#f59e0b" strokeWidth={2} strokeDasharray="3 3" dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTrendSeriesVisible((prev) => ({ ...prev, vol: !prev.vol }))}
+                      className={`flex items-center gap-2 px-3 py-1 rounded-xs cursor-pointer transition-all border ${
+                        trendSeriesVisible.vol
+                          ? 'bg-[#00b4d8]/15 border-[#00b4d8]/60 text-[#00b4d8] shadow-xs font-bold'
+                          : 'bg-slate-800/40 border-slate-700/50 text-slate-500 opacity-60 line-through'
+                      }`}
+                      title="Toggle Residual Volume Series"
+                    >
+                      <span className={`w-3 h-1 rounded-full ${trendSeriesVisible.vol ? 'bg-[#00b4d8]' : 'bg-slate-600'}`} />
+                      <span className="font-bold text-[11px]">Residual Volume (m³)</span>
+                    </button>
                   </div>
                 </div>
 

@@ -2,14 +2,10 @@
 
 import React, { useState, useMemo } from 'react';
 import {
-  Scale,
   Search,
   Download,
   AlertTriangle,
   CheckCircle2,
-  Box,
-  Wind,
-  Flame,
   RotateCcw,
 } from 'lucide-react';
 import { usePortalData } from '@/context/PortalDataContext';
@@ -211,7 +207,6 @@ export default function NiasTankMassBalanceTab() {
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'DEPRESSURIZED' | 'OVERPRESSURE_VENT_REQUIRED'>('ALL');
-  const [shipmentFilter, setShipmentFilter] = useState<string>('ALL');
 
   // Selected Tank IDs state for dynamic KPI calculation (defaults to all selected)
   const [selectedTankNos, setSelectedTankNos] = useState<Set<string>>(() => {
@@ -267,12 +262,9 @@ export default function NiasTankMassBalanceTab() {
       const matchesStatus =
         statusFilter === 'ALL' || r.operationalStatus === statusFilter;
 
-      const matchesShipment =
-        shipmentFilter === 'ALL' || r.shipment === shipmentFilter;
-
-      return matchesSearch && matchesStatus && matchesShipment;
+      return matchesSearch && matchesStatus;
     });
-  }, [rows, searchQuery, statusFilter, shipmentFilter]);
+  }, [rows, searchQuery, statusFilter]);
 
   // Selected rows (used for dynamic KPI metrics & summary calculation)
   const selectedRows = useMemo(() => {
@@ -385,7 +377,7 @@ export default function NiasTankMassBalanceTab() {
     ]);
 
     const csvContent =
-      'data:text/csv;charset=utf-8,' +
+      'data:text/csv;charset=utf-8,\uFEFF' +
       [headers.join(','), ...csvRows.map((e) => e.join(','))].join('\n');
 
     const encodedUri = encodeURI(csvContent);
@@ -401,53 +393,39 @@ export default function NiasTankMassBalanceTab() {
   };
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-200">
-      {/* 1. Header Information Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white shadow-none/80 border border-slate-200 rounded-none p-4 sm:p-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-none text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-white font-bold border border-blue-200">
-              Domain 1: Physical Asset Accounting
-            </span>
-            <span className="text-xs text-slate-950 font-bold font-mono">
-              Density: 428.0 kg/m³
-            </span>
-          </div>
-          <h3 className="text-sm sm:text-base font-bold text-slate-950 font-bold flex items-center gap-2 mt-1">
-            <Scale className="w-4 h-4 text-slate-950 font-bold" />
-            ISO Tank Mass Balance & Yard Depressurization Log
-          </h3>
-          <p className="text-xs text-slate-950 font-bold mt-0.5">
-            Physical tracking of arrival stock, depressurization venting losses, and available bay vaporizer inventory across Nias terminal vessels.
-          </p>
-        </div>
+    <div className="space-y-3 animate-in fade-in duration-200 font-mono">
+      {/* 1. Header Information Banner (SCADA Navy Theme) */}
+      <div className="bg-[#0a2540] text-white p-3 rounded-t-xs border-b-2 border-[#071a2e] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-2.5 select-none">
+        <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white font-mono">
+          ISO TANK MASS BALANCE &amp; YARD DEPRESSURIZATION LOG
+        </h3>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-none text-xs font-bold bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold border border-slate-200 shadow-none transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xs text-xs font-bold font-mono bg-[#2f855a] hover:bg-[#38a169] active:bg-[#22543d] text-white border-t border-l border-[#48bb78] border-b-2 border-r-2 border-[#1c4d35] shadow-xs transition-all cursor-pointer select-none"
           >
-            <Download className="w-3.5 h-3.5 text-slate-950 font-bold" />
-            <span>Export Selected (CSV)</span>
+            <Download className="w-3.5 h-3.5" />
+            <span>[ EXPORT CSV ]</span>
           </button>
         </div>
       </div>
 
-      {/* 2. Top Summary Controls & Dynamic 3 KPI Cards */}
-      <div className="space-y-3">
-        {/* Dynamic Selection Indicator Strip */}
-        <div className="flex flex-wrap justify-between items-center gap-2 px-1 text-xs">
+      {/* 2. Top Summary Scope & 3 Slim KPI Cards (Height-Optimized & Centered) */}
+      <div className="space-y-2.5 font-mono">
+        {/* Dynamic Selection Scope Bar */}
+        <div className="flex flex-wrap justify-between items-center gap-2 px-2 py-1 text-xs bg-[#dfdbd1] rounded-xs border border-[#8a8579]">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-950 font-bold">Active Calculation Scope:</span>
+            <span className="font-bold text-slate-800 uppercase tracking-tight text-[11px]">CALCULATION SCOPE:</span>
             <span
-              className={`px-2.5 py-0.5 rounded-none font-mono text-xs font-bold border transition-colors ${
+              className={`px-2 py-0.5 rounded-xs font-mono text-xs font-black border shadow-2xs ${
                 metrics.selectedCount === metrics.totalTanks
-                  ? 'bg-slate-100 text-slate-950 font-bold border-slate-200'
-                  : 'bg-cyan-950/60 text-slate-950 font-bold border-cyan-700/60 ring-1 ring-cyan-500/30'
+                  ? 'bg-[#002b4d] text-cyan-300 border-blue-900'
+                  : 'bg-[#7c3aed] text-white border-purple-900'
               }`}
             >
-              Showing {metrics.selectedCount} of {metrics.totalTanks} Selected Tanks
+              {metrics.selectedCount} / {metrics.totalTanks} TANKS SELECTED
             </span>
           </div>
 
@@ -455,198 +433,198 @@ export default function NiasTankMassBalanceTab() {
             <button
               type="button"
               onClick={handleResetToAll}
-              className="flex items-center gap-1 text-xs font-bold win-tab-inactive bg-white shadow-none hover:bg-slate-100 px-3 py-1 rounded-none border border-slate-200 shadow-none transition-all cursor-pointer"
+              className="flex items-center gap-1 text-[11px] font-bold bg-[#d4d0c8] hover:bg-[#e0dcd4] active:bg-[#bcbaae] text-slate-900 px-2 py-0.5 rounded-xs border-t border-l border-white border-b-2 border-r-2 border-slate-600 shadow-xs transition-all cursor-pointer font-mono"
             >
               <RotateCcw className="w-3 h-3" />
-              <span>Reset to All Tanks</span>
+              <span>RESET TO ALL TANKS</span>
             </button>
           )}
         </div>
 
-        {/* 3 Clean & De-cluttered KPI Metric Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Card 1: Initial Terminal Inventory */}
-          <div className="bg-white shadow-none/80 border border-slate-200 rounded-none p-4.5 flex flex-col justify-between shadow-none">
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
-                <Box className="w-4 h-4 text-slate-950 font-bold" />
-                Initial Terminal Inventory
+        {/* 3 Compact Centered 3D KPI Cards with #4e5d6e Headers */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+          {/* Card 1: INITIAL ARRIVAL INVENTORY */}
+          <div className="bg-[#e8e4dc] border-2 border-[#8a8579] rounded-xs overflow-hidden shadow-xs flex flex-col justify-between">
+            <div className="bg-[#4e5d6e] text-white px-3 py-1.5 flex items-center justify-between border-b border-[#334155]">
+              <span className="text-[11px] font-black uppercase tracking-wider text-white">
+                INITIAL ARRIVAL INVENTORY
               </span>
-              <span className="text-xs font-mono text-slate-950 font-bold">
-                {metrics.selectedCount} Tanks
+              <span className="text-[9.5px] font-bold font-mono px-1.5 py-0.2 bg-[#334155] text-slate-200 border border-[#64748b] rounded-xs">
+                {metrics.selectedCount} TANKS
               </span>
             </div>
 
-            <div className="my-2 space-y-1">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl sm:text-3xl font-bold font-mono text-slate-950 font-bold">
+            <div className="p-2.5 flex flex-col items-center justify-center text-center space-y-0.5">
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-xl sm:text-2xl font-black font-mono text-slate-900">
                   {metrics.totalInitialWeightArunKg.toLocaleString()}
                 </span>
-                <span className="text-xs font-mono text-slate-950 font-bold font-bold">kg</span>
+                <span className="text-xs font-bold text-slate-600">kg</span>
               </div>
-              <div className="text-xs font-mono text-slate-950 font-bold flex items-center gap-1.5">
-                <span>Arrival:</span>
-                <span className="text-slate-950 font-bold font-bold">{metrics.totalArrivalStockKg.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg</span>
-                <span className="text-slate-950 font-bold">({metrics.totalArrivalStockM3.toFixed(1)} m³)</span>
+              <div className="text-[11px] font-bold text-slate-600">
+                Arrival: <strong className="text-slate-900">{metrics.totalArrivalStockKg.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg</strong>{' '}
+                <span className="text-[#0055aa]">({metrics.totalArrivalStockM3.toFixed(1)} m³)</span>
               </div>
-            </div>
-
-            <div className="text-[11px] font-mono text-slate-950 font-bold pt-2 border-t border-slate-200/80 flex justify-between">
-              <span>Arun Net Certified</span>
-              <span className="text-slate-950 font-bold">Tare & Net Baseline</span>
+              <div className="pt-1.5 mt-1 border-t border-[#c8c2b5] w-full text-[9.5px] font-bold text-slate-500 text-center">
+                Arun Baseline • Tare &amp; Net Certified
+              </div>
             </div>
           </div>
 
-          {/* Card 2: Total Yard BOG Venting Losses */}
-          <div className="bg-white shadow-none/80 border border-slate-200 rounded-none p-4.5 flex flex-col justify-between shadow-none">
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
-                <Wind className="w-4 h-4 text-slate-950 font-bold" />
-                Total Yard BOG Venting Losses
+          {/* Card 2: TOTAL YARD BOG LOSS */}
+          <div className="bg-[#e8e4dc] border-2 border-[#8a8579] rounded-xs overflow-hidden shadow-xs flex flex-col justify-between">
+            <div className="bg-[#4e5d6e] text-white px-3 py-1.5 flex items-center justify-between border-b border-[#334155]">
+              <span className="text-[11px] font-black uppercase tracking-wider text-white">
+                TOTAL YARD BOG LOSS
               </span>
-              <span className="text-xs font-mono font-bold text-slate-950 font-bold">
+              <span className="text-[9.5px] font-bold font-mono px-1.5 py-0.2 bg-red-950/80 text-red-200 border border-red-700 rounded-xs">
                 ~{metrics.avgLossPct.toFixed(1)}%
               </span>
             </div>
 
-            <div className="my-2 space-y-1">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl sm:text-3xl font-bold font-mono text-slate-950 font-bold">
+            <div className="p-2.5 flex flex-col items-center justify-center text-center space-y-0.5">
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-xl sm:text-2xl font-black font-mono text-[#c53030]">
                   -{metrics.totalBogLossKg.toLocaleString(undefined, { maximumFractionDigits: 1 })}
                 </span>
-                <span className="text-xs font-mono text-slate-950 font-bold font-bold">kg</span>
+                <span className="text-xs font-bold text-red-800">kg</span>
               </div>
-              <div className="text-xs font-mono text-slate-950 font-bold flex items-center gap-1.5">
-                <span>Overpressure:</span>
-                <span className={metrics.overpressureCount > 0 ? 'text-slate-950 font-bold font-bold' : 'text-slate-950 font-bold'}>
+              <div className="text-[11px] font-bold text-slate-600">
+                Overpressure:{' '}
+                <span className={metrics.overpressureCount > 0 ? 'text-[#c53030] font-black' : 'text-slate-700'}>
                   {metrics.overpressureCount} Tanks (&gt; 5.0%)
                 </span>
               </div>
-            </div>
-
-            <div className="text-[11px] font-mono text-slate-950 font-bold pt-2 border-t border-slate-200/80 flex justify-between">
-              <span>Depress: 0.81 ➔ 0.73 MPa</span>
-              <span className="text-slate-950 font-bold">Vented Margin</span>
+              <div className="pt-1.5 mt-1 border-t border-[#c8c2b5] w-full text-[9.5px] font-bold text-red-700 text-center">
+                Depress: 0.81 ➔ 0.73 MPa • Vented Boil-Off
+              </div>
             </div>
           </div>
 
-          {/* Card 3: Net Usable Stock for Bay Vaporizers */}
-          <div className="bg-white shadow-none/80 border border-slate-200 rounded-none p-4.5 flex flex-col justify-between shadow-none">
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-950 font-bold flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-slate-950 font-bold" />
-                Net Usable Stock for Bay Vaporizers
+          {/* Card 3: NET USABLE STOCK (SKID FEED) */}
+          <div className="bg-[#f0f7ff] border-2 border-[#7ba4cc] rounded-xs overflow-hidden shadow-xs flex flex-col justify-between">
+            <div className="bg-[#4e5d6e] text-white px-3 py-1.5 flex items-center justify-between border-b border-[#334155]">
+              <span className="text-[11px] font-black uppercase tracking-wider text-white">
+                NET USABLE STOCK (SKID FEED)
               </span>
-              <span className="text-xs font-mono font-bold text-slate-950 font-bold">
+              <span className="text-[9.5px] font-bold font-mono px-1.5 py-0.2 bg-blue-950/80 text-cyan-200 border border-blue-700 rounded-xs">
                 {metrics.usablePct.toFixed(1)}% Usable
               </span>
             </div>
 
-            <div className="my-2 space-y-1">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl sm:text-3xl font-bold font-mono text-slate-950 font-bold">
+            <div className="p-2.5 flex flex-col items-center justify-center text-center space-y-0.5">
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-xl sm:text-2xl font-black font-mono text-[#004a99]">
                   {metrics.netUsableStockKg.toLocaleString(undefined, { maximumFractionDigits: 1 })}
                 </span>
-                <span className="text-xs font-mono text-slate-950 font-bold font-bold">kg</span>
+                <span className="text-xs font-bold text-[#004a99]">kg</span>
               </div>
-              <div className="text-xs font-mono text-slate-950 font-bold flex items-center gap-1.5">
-                <span>Liquid Volume:</span>
-                <span className="text-slate-950 font-bold font-bold">{metrics.netUsableStockM3.toFixed(1)} m³</span>
+              <div className="text-[11px] font-bold text-[#004a99]">
+                Liquid Volume: <strong className="text-[#002b4d]">{metrics.netUsableStockM3.toFixed(1)} m³</strong>
               </div>
-            </div>
-
-            <div className="text-[11px] font-mono text-slate-950 font-bold pt-2 border-t border-slate-200/80 flex justify-between">
-              <span>Bay Sendout Ready</span>
-              <span className="text-slate-950 font-bold font-bold">4-Bay Active Feed</span>
+              <div className="pt-1.5 mt-1 border-t border-[#b8d2eb] w-full text-[9.5px] font-bold text-[#004a99] text-center">
+                Bay Sendout Ready • 4-Bay Active Feed
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 3. Filter and Search Controls */}
-      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-white shadow-none/60 p-3.5 rounded-none border border-slate-200">
-        <div className="flex flex-1 items-center gap-2 win-panel px-1.5 py-0.5 rounded-none border border-slate-200">
-          <Search className="w-4 h-4 text-slate-950 font-bold" />
+      {/* 3. Filter and Search Controls (Inline Compact Layout) */}
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5 bg-[#dfdbd1] p-2 rounded-xs border-2 border-[#8a8579] font-mono select-none">
+        {/* Compact Search Input (Max Width Constrained) */}
+        <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-xs border-2 border-[#8a8579] shadow-inner max-w-full sm:max-w-[420px] w-full">
+          <Search className="w-3.5 h-3.5 text-slate-500 shrink-0" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search ISO Tank No (e.g. ISOT-009), Serial No, Shipment, or Action..."
-            className="w-full bg-transparent text-xs text-slate-950 font-bold placeholder-slate-400 focus:outline-none"
+            placeholder="Search ISO Tank No, Serial, Shipment..."
+            className="w-full bg-transparent text-xs font-mono font-bold text-slate-900 placeholder-slate-400 focus:outline-none"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="win-tab-inactive text-xs px-1"
+              className="text-xs font-bold text-slate-500 hover:text-slate-800 px-1 cursor-pointer"
             >
               ✕
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto">
-          <div className="flex items-center win-panel p-1 rounded-none border border-slate-200 text-xs">
-            <button
-              type="button"
-              onClick={() => setStatusFilter('ALL')}
-              className={`px-2.5 py-1 rounded font-bold transition-all cursor-pointer ${
-                statusFilter === 'ALL'
-                  ? 'bg-blue-600/30 text-white font-bold border border-blue-500/40'
-                  : 'win-tab-inactive'
-              }`}
-            >
-              All ({rows.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setStatusFilter('DEPRESSURIZED')}
-              className={`px-2.5 py-1 rounded font-bold transition-all cursor-pointer ${
-                statusFilter === 'DEPRESSURIZED'
-                  ? 'bg-emerald-600/30 text-white font-bold border border-emerald-200'
-                  : 'win-tab-inactive'
-              }`}
-            >
-              Depressurized ({rows.filter((r) => r.operationalStatus === 'DEPRESSURIZED').length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setStatusFilter('OVERPRESSURE_VENT_REQUIRED')}
-              className={`px-2.5 py-1 rounded font-bold transition-all cursor-pointer ${
-                statusFilter === 'OVERPRESSURE_VENT_REQUIRED'
-                  ? 'bg-amber-600/30 text-white font-bold border border-amber-200'
-                  : 'win-tab-inactive'
-              }`}
-            >
-              Overpressured ({rows.filter((r) => r.operationalStatus === 'OVERPRESSURE_VENT_REQUIRED').length})
-            </button>
-          </div>
+        {/* 3D Filter Buttons */}
+        <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => setStatusFilter('ALL')}
+            className={`px-3 py-1 font-bold text-xs rounded-xs border-t border-l border-white border-b-2 border-r-2 shadow-xs transition-all cursor-pointer font-mono whitespace-nowrap ${
+              statusFilter === 'ALL'
+                ? 'bg-[#002b4d] text-cyan-300 border-blue-900 border-b-black border-r-black'
+                : 'bg-[#d4d0c8] hover:bg-[#e0dcd4] active:bg-[#bcbaae] text-slate-900 border-slate-600'
+            }`}
+          >
+            [ ALL ({rows.length}) ]
+          </button>
+          <button
+            type="button"
+            onClick={() => setStatusFilter('DEPRESSURIZED')}
+            className={`px-3 py-1 font-bold text-xs rounded-xs border-t border-l border-white border-b-2 border-r-2 shadow-xs transition-all cursor-pointer font-mono whitespace-nowrap ${
+              statusFilter === 'DEPRESSURIZED'
+                ? 'bg-[#002b4d] text-cyan-300 border-blue-900 border-b-black border-r-black'
+                : 'bg-[#d4d0c8] hover:bg-[#e0dcd4] active:bg-[#bcbaae] text-slate-900 border-slate-600'
+            }`}
+          >
+            [ DEPRESSURIZED ({rows.filter((r) => r.operationalStatus === 'DEPRESSURIZED').length}) ]
+          </button>
+          <button
+            type="button"
+            onClick={() => setStatusFilter('OVERPRESSURE_VENT_REQUIRED')}
+            className={`px-3 py-1 font-bold text-xs rounded-xs border-t border-l border-white border-b-2 border-r-2 shadow-xs transition-all cursor-pointer font-mono whitespace-nowrap ${
+              statusFilter === 'OVERPRESSURE_VENT_REQUIRED'
+                ? 'bg-[#002b4d] text-cyan-300 border-blue-900 border-b-black border-r-black'
+                : 'bg-[#d4d0c8] hover:bg-[#e0dcd4] active:bg-[#bcbaae] text-slate-900 border-slate-600'
+            }`}
+          >
+            [ OVERPRESSURED ({rows.filter((r) => r.operationalStatus === 'OVERPRESSURE_VENT_REQUIRED').length}) ]
+          </button>
         </div>
       </div>
 
-      {/* 4. 10-Column Master ISO Tank Mass Balance & Depressurization Table with Checkboxes */}
-      <div className="bg-white shadow-none border border-slate-200 rounded-none shadow-none overflow-hidden">
-        <div className="p-4 border-b border-slate-200 flex justify-between items-center win-panel/40">
-          <div className="flex items-center gap-2">
-            <Scale className="w-4 h-4 text-slate-950 font-bold" />
-            <h4 className="text-sm font-bold text-slate-950 font-bold">
-              ISO Tank Physical Inventory & Depressurization Mass Balance Ledger
-            </h4>
-            <span className="text-xs font-mono text-slate-950 font-bold">
-              ({selectedRows.length}/{rows.length} Active in Calculation)
-            </span>
-          </div>
-          <span className="text-[11px] font-mono text-slate-950 font-bold hidden sm:inline-block">
-            Physical Accounting (kg & m³) • Interactive Checkbox Selection
-          </span>
-        </div>
+      {/* 4. 2-Tier Master ISO Tank Mass Balance Table (13 Separate Columns & Sticky Header/Footer) */}
+      <div className="bg-white border-2 border-[#8a8579] rounded-xs overflow-hidden shadow-md">
+        <div className="max-h-[480px] overflow-y-auto overflow-x-auto custom-scada-scrollbar">
+          <table className="w-full text-xs text-center border-collapse font-mono">
+            {/* 1행: 7대 그룹 헤더 (Cool Slate Gray #4e5d6e, White Text, Crisp Silver Borders) */}
+            <thead className="sticky top-0 z-20 shadow-xs">
+              <tr className="bg-[#4e5d6e] text-white font-extrabold uppercase text-[11px] tracking-wider border-b border-[#8b9aa8]">
+                <th colSpan={4} className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#4e5d6e]">
+                  [1] IDENTIFICATION
+                </th>
+                <th colSpan={1} className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#475768]">
+                  [2] INITIAL
+                </th>
+                <th colSpan={2} className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#3a506b]">
+                  [3] ARRIVAL YARD
+                </th>
+                <th colSpan={2} className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#344d6b]">
+                  [4] POST-DEPRESS SKID READY
+                </th>
+                <th colSpan={2} className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#2b78c5] text-white">
+                  [5] BOG VENTING LOSS
+                </th>
+                <th colSpan={1} className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#475768]">
+                  [6] DENSITY
+                </th>
+                <th colSpan={1} className="py-2 px-2 text-center bg-[#4e5d6e]">
+                  [7] STATUS
+                </th>
+              </tr>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-slate-200 win-panel/90">
-                {/* 0. Multi-Select Master Checkbox */}
-                <th className="py-3 px-3 text-center w-10">
+              {/* 2행: 13개 세부 컬럼 헤더 (Mid Slate #5f6f82, Bright Silver Text, Crisp Borders) */}
+              <tr className="bg-[#5f6f82] text-[#f8fafc] font-bold text-[10px] tracking-tight border-b-2 border-[#8b9aa8] select-none">
+                {/* [1] Identification (4 cols) */}
+                <th className="py-2 px-1 border-r border-[#8b9aa8] w-10 text-center bg-[#5f6f82]">
                   <input
                     type="checkbox"
                     checked={isAllFilteredSelected}
@@ -655,184 +633,152 @@ export default function NiasTankMassBalanceTab() {
                     }}
                     onChange={toggleSelectAllFiltered}
                     title={isAllFilteredSelected ? "Deselect All Filtered" : "Select All Filtered"}
-                    className="w-4 h-4 rounded border-slate-200 win-panel text-slate-950 font-bold accent-cyan-500 focus:ring-cyan-500 cursor-pointer"
+                    className="w-3.5 h-3.5 accent-[#002b4d] cursor-pointer"
                   />
                 </th>
+                <th className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#5f6f82]">TANK ID</th>
+                <th className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#5f6f82]">SERIAL NO</th>
+                <th className="py-2 px-2 border-r border-[#8b9aa8] w-14 text-center bg-[#5f6f82]">BATCH</th>
 
-                {/* 1. ISO Tank & Serial */}
-                <th className="py-3 px-4 text-left">
-                  <div className="text-xs font-bold text-slate-950 font-bold">ISO Tank & Serial</div>
-                  <div className="text-[10px] font-bold text-slate-950 font-bold tracking-wider">[ ID / Prefix ]</div>
+                {/* [2] Initial (1 col) */}
+                <th className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#56687d]">ARUN MASS (kg)</th>
+
+                {/* [3] Arrival Yard (2 cols) */}
+                <th className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#4f647d]">VOL (m³)</th>
+                <th className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#4f647d]">MASS (kg)</th>
+
+                {/* [4] Post-Depress Skid Ready (2 cols) */}
+                <th className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#475d78]">VOL (m³)</th>
+                <th className="py-2 px-2 border-r border-[#8b9aa8] text-center bg-[#475d78]">MASS (kg)</th>
+
+                {/* [5] BOG Venting Loss (2 cols - Sky Blue Highlighted Header) */}
+                <th className="py-2 px-2 border-r border-[#8b9aa8] bg-[#2b78c5] text-white text-center font-black">
+                  LOSS (kg)
+                </th>
+                <th className="py-2 px-2 border-r border-[#8b9aa8] bg-[#2b78c5] text-white text-center font-black">
+                  RATIO (%)
                 </th>
 
-                {/* 2. Shipment */}
-                <th className="py-3 px-3 text-center">
-                  <div className="text-xs font-bold text-slate-950 font-bold">Shipment</div>
-                  <div className="text-[10px] font-bold text-slate-950 font-bold tracking-wider">[ Batch ]</div>
-                </th>
+                {/* [6] Density (1 col) */}
+                <th className="py-2 px-2 border-r border-[#8b9aa8] w-24 text-center bg-[#56687d]">DENSITY (kg/m³)</th>
 
-                {/* 3. Initial Weight (Arun) */}
-                <th className="py-3 px-4 text-right">
-                  <div className="text-xs font-bold text-slate-950 font-bold">Initial Weight (Arun)</div>
-                  <div className="text-[10px] font-bold text-slate-950 font-bold tracking-wider">[ kg ]</div>
-                </th>
-
-                {/* 4. Arrival Stock (IoT) */}
-                <th className="py-3 px-4 text-right">
-                  <div className="text-xs font-bold text-slate-950 font-bold">Arrival Stock (IoT)</div>
-                  <div className="text-[10px] font-bold text-slate-950 font-bold tracking-wider">[ m³ / kg ]</div>
-                </th>
-
-                {/* 5. Post-Depress. Stock */}
-                <th className="py-3 px-4 text-right">
-                  <div className="text-xs font-bold text-slate-950 font-bold">Post-Depress. Stock</div>
-                  <div className="text-[10px] font-bold text-slate-950 font-bold tracking-wider">[ m³ / kg ]</div>
-                </th>
-
-                {/* 6. BOG Venting Losses */}
-                <th className="py-3 px-4 text-right">
-                  <div className="text-xs font-bold text-slate-950 font-bold">BOG Venting Losses</div>
-                  <div className="text-[10px] font-bold text-slate-950 font-bold tracking-wider">[ kg / % ]</div>
-                </th>
-
-                {/* 7. Liquid Density */}
-                <th className="py-3 px-3 text-center">
-                  <div className="text-xs font-bold text-slate-950 font-bold">Liquid Density</div>
-                  <div className="text-[10px] font-bold text-slate-950 font-bold tracking-wider">[ kg/m³ ]</div>
-                </th>
-
-                {/* 8. Available Bay Stock */}
-                <th className="py-3 px-4 text-right">
-                  <div className="text-xs font-bold text-slate-950 font-bold">Available Bay Stock</div>
-                  <div className="text-[10px] font-bold text-slate-950 font-bold tracking-wider">[ kg ]</div>
-                </th>
-
-                {/* 9. Operational Status */}
-                <th className="py-3 px-4 text-center">
-                  <div className="text-xs font-bold text-slate-950 font-bold">Operational Status</div>
-                  <div className="text-[10px] font-bold text-slate-950 font-bold tracking-wider">[ State ]</div>
-                </th>
+                {/* [7] Status (1 col) */}
+                <th className="py-2 px-2 text-center bg-[#5f6f82]">STATE</th>
               </tr>
             </thead>
-            <tbody className="font-mono">
+
+            {/* 테이블 본문 */}
+            <tbody className="divide-y divide-[#cbd5e1] bg-white">
               {filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-slate-950 font-bold font-sans text-xs">
+                  <td colSpan={13} className="py-8 text-center text-slate-500 font-bold">
                     No matching ISO Tank mass balance records found.
                   </td>
                 </tr>
               ) : (
                 filteredRows.map((row, idx) => {
                   const isSelected = selectedTankNos.has(row.tankNo);
-                  const zebraBg = idx % 2 === 0 ? 'bg-white shadow-none/60' : 'bg-white shadow-none/25';
-                  const rowClass = isSelected
-                    ? 'bg-sky-950/30 hover:bg-sky-950/40'
-                    : `${zebraBg} hover:bg-slate-100/40`;
+                  const isEven = idx % 2 === 0;
 
                   return (
                     <tr
                       key={row.tankNo}
-                      className={`${rowClass} transition-colors border-b border-slate-200/80`}
+                      className={`hover:bg-amber-50 transition-colors font-mono ${
+                        isSelected ? (isEven ? 'bg-[#f5f9fc]' : 'bg-[#eef5fa]') : (isEven ? 'bg-[#faf9f6]' : 'bg-white')
+                      }`}
                     >
-                      {/* 0. Row Checkbox */}
-                      <td className="py-3 px-3 text-center w-10">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleSelectTank(row.tankNo)}
-                          className="w-4 h-4 rounded border-slate-200 win-panel text-slate-950 font-bold accent-cyan-500 focus:ring-cyan-500 cursor-pointer"
-                        />
-                      </td>
-
-                      {/* 1. ISO Tank & Serial */}
-                      <td className="py-3 px-4 text-left">
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-950 font-bold font-mono text-[10px] w-4">#{idx + 1}</span>
-                          <div>
-                            <span className="font-bold font-mono text-slate-950 font-bold text-sm block">
-                              {row.tankNo}
-                            </span>
-                            <span className="text-[10px] font-mono text-slate-950 font-bold block">
-                              {row.serialNo}
-                            </span>
-                          </div>
+                      {/* 0. Checkbox & No */}
+                      <td className="py-2 px-1 border-r border-[#8b9aa8] border-b border-[#cbd5e1] text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectTank(row.tankNo)}
+                            className="w-3.5 h-3.5 accent-[#002b4d] cursor-pointer"
+                          />
+                          <span className="text-[10px] font-bold text-slate-400">{idx + 1}</span>
                         </div>
                       </td>
 
-                      {/* 2. Shipment Batch */}
-                      <td className="py-3 px-3 text-center">
-                        <span className="px-2 py-0.5 rounded bg-blue-500/15 text-white font-bold border border-blue-200 text-[10px] font-bold font-mono">
-                          {row.shipment}
-                        </span>
+                      {/* 1. Tank ID */}
+                      <td className="py-2 px-2 border-r border-[#8b9aa8] border-b border-[#cbd5e1] font-black text-[#0055aa] text-center">
+                        {row.tankNo}
                       </td>
 
-                      {/* 3. Initial Weight (Arun) [kg] */}
-                      <td className="py-3 px-4 text-right">
-                        <span className="font-mono text-slate-950 font-bold font-bold text-xs">
-                          {row.initialWeightArunKg.toLocaleString()}
-                        </span>
+                      {/* 2. Serial No */}
+                      <td className="py-2 px-2 border-r border-[#8b9aa8] border-b border-[#cbd5e1] font-bold text-slate-700 text-center">
+                        {row.serialNo}
                       </td>
 
-                      {/* 4. Arrival Stock (IoT) [m³ / kg] */}
-                      <td className="py-3 px-4 text-right font-mono">
-                        <div className="text-slate-950 font-bold font-bold text-xs">
-                          {row.arrivalStockKg.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-                        </div>
-                        <div className="text-[10px] text-slate-950 font-bold">
-                          {row.arrivalStockM3.toFixed(1)} m³
-                        </div>
+                      {/* 3. Shipment Batch */}
+                      <td className="py-2 px-2 border-r border-[#8b9aa8] border-b border-[#cbd5e1] font-black text-[#002b4d] text-center">
+                        {row.shipment}
                       </td>
 
-                      {/* 5. Post-Depress. Stock [m³ / kg] */}
-                      <td className="py-3 px-4 text-right font-mono">
-                        <div className="text-slate-950 font-bold font-bold text-xs">
-                          {row.postDepressStockKg.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-                        </div>
-                        <div className="text-[10px] text-slate-950 font-bold">
-                          {row.postDepressStockM3.toFixed(1)} m³
-                        </div>
+                      {/* 4. Arun Mass (kg) */}
+                      <td className="py-2 px-2 border-r border-[#8b9aa8] border-b border-[#cbd5e1] font-bold text-slate-800 text-center">
+                        {row.initialWeightArunKg.toLocaleString()}
                       </td>
 
-                      {/* 6. BOG Venting Losses [kg / %] */}
-                      <td className="py-3 px-4 text-right font-mono">
-                        <div className="text-slate-950 font-bold font-bold text-xs">
-                          -{row.bogLossKg.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-                        </div>
-                        <div className="text-[10px] text-slate-950 font-bold">
-                          ({row.bogLossPercent.toFixed(2)}%)
-                        </div>
+                      {/* 5. Arrival Vol (m³) */}
+                      <td className="py-2 px-2 border-r border-[#8b9aa8] border-b border-[#cbd5e1] font-bold text-slate-800 text-center">
+                        {row.arrivalStockM3.toFixed(1)}
                       </td>
 
-                      {/* 7. Liquid Density [kg/m³] */}
-                      <td className="py-3 px-3 text-center font-mono text-slate-950 font-bold text-xs">
+                      {/* 6. Arrival Mass (kg) */}
+                      <td className="py-2 px-2 border-r border-[#8b9aa8] border-b border-[#cbd5e1] font-bold text-slate-800 text-center">
+                        {row.arrivalStockKg.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                      </td>
+
+                      {/* 7. Post-Depress Vol (m³) */}
+                      <td className="py-2 px-2 border-r border-[#8b9aa8] border-b border-[#cbd5e1] font-bold text-slate-800 text-center">
+                        {row.postDepressStockM3.toFixed(1)}
+                      </td>
+
+                      {/* 8. Post-Depress Mass (kg) */}
+                      <td className="py-2 px-2 border-r border-[#8b9aa8] border-b border-[#cbd5e1] font-bold text-slate-800 text-center">
+                        {row.postDepressStockKg.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                      </td>
+
+                      {/* 9. BOG Loss (kg) (Highlighted Sky Blue Cell) */}
+                      <td
+                        className="py-2 px-2 border-r border-[#8b9aa8] border-b border-[#cbd5e1] font-black text-[#dc2626] text-center"
+                        style={{ backgroundColor: '#f0f7ff' }}
+                      >
+                        -{row.bogLossKg.toFixed(1)}
+                      </td>
+
+                      {/* 10. BOG Loss Ratio (%) (Highlighted Sky Blue Cell) */}
+                      <td
+                        className="py-2 px-2 border-r border-[#8b9aa8] border-b border-[#cbd5e1] font-black text-[#dc2626] text-center"
+                        style={{ backgroundColor: '#f0f7ff' }}
+                      >
+                        {row.bogLossPercent.toFixed(2)}
+                      </td>
+
+                      {/* 11. Liquid Density (kg/m³) */}
+                      <td className="py-2 px-2 border-r border-[#8b9aa8] border-b border-[#cbd5e1] font-bold text-slate-700 text-center">
                         {row.liquidDensity.toFixed(1)}
                       </td>
 
-                      {/* 8. Available Bay Stock [kg] */}
-                      <td className="py-3 px-4 text-right font-mono">
-                        <span className="text-slate-950 font-bold font-bold text-sm">
-                          {row.availableBayStockKg.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-                        </span>
-                      </td>
-
-                      {/* 9. Operational Status */}
-                      <td className="py-3 px-4 text-center">
+                      {/* 12. Operational State Badge */}
+                      <td className="py-2 px-2 border-b border-[#cbd5e1] text-center">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-[10px] font-bold border ${
+                          className={`inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-xs text-[10px] font-black border shadow-2xs ${
                             row.operationalStatus === 'OVERPRESSURE_VENT_REQUIRED'
-                              ? 'bg-amber-500/15 text-white font-bold border-amber-200'
-                              : 'bg-emerald-500/15 text-white font-bold border-emerald-200'
+                              ? 'bg-amber-100 text-amber-900 border-amber-300'
+                              : 'bg-emerald-100 text-emerald-900 border-emerald-300'
                           }`}
                         >
                           {row.operationalStatus === 'OVERPRESSURE_VENT_REQUIRED' ? (
-                            <AlertTriangle className="w-3 h-3 text-slate-950 font-bold" />
+                            <AlertTriangle className="w-3 h-3 text-amber-700" />
                           ) : (
-                            <CheckCircle2 className="w-3 h-3 text-slate-950 font-bold" />
+                            <CheckCircle2 className="w-3 h-3 text-emerald-700" />
                           )}
                           <span>
                             {row.operationalStatus === 'OVERPRESSURE_VENT_REQUIRED'
-                              ? 'Overpressured - Vent Required'
-                              : 'Depressurized'}
+                              ? 'OVERPRESSURED'
+                              : 'DEPRESSURIZED'}
                           </span>
                         </span>
                       </td>
@@ -841,43 +787,59 @@ export default function NiasTankMassBalanceTab() {
                 })
               )}
             </tbody>
+
+            {/* Total Sticky Footer Row */}
             {filteredRows.length > 0 && (
-              <tfoot>
-                <tr className="win-panel border-t-2 border-slate-200 font-mono font-bold text-xs text-slate-950 font-bold">
-                  <td className="py-3.5 px-4 text-left" colSpan={3}>
-                    <span className="text-slate-950 font-bold uppercase tracking-wider text-[11px]">
-                      Selected Total ({selectedRows.length} Tanks)
-                    </span>
+              <tfoot className="sticky bottom-0 z-20 shadow-md">
+                <tr className="bg-[#e8e4dc] border-t-2 border-[#8a8579] font-mono font-bold text-xs text-slate-900 select-none">
+                  {/* [1] Identification Total (4 cols) */}
+                  <td className="py-2.5 px-2 border-r border-[#8b9aa8] text-center font-black bg-[#e8e4dc]" colSpan={4}>
+                    TOTAL ({selectedRows.length} OF {rows.length} TANKS)
                   </td>
-                  <td className="py-3.5 px-4 text-right text-slate-950 font-bold">
+
+                  {/* [2] Initial Total */}
+                  <td className="py-2.5 px-2 border-r border-[#8b9aa8] font-black text-slate-900 text-center bg-[#e8e4dc]">
                     {selectedRows.reduce((acc, r) => acc + r.initialWeightArunKg, 0).toLocaleString()}
                   </td>
-                  <td className="py-3.5 px-4 text-right text-slate-950 font-bold">
-                    <div>{selectedRows.reduce((acc, r) => acc + r.arrivalStockKg, 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}</div>
-                    <div className="text-[10px] text-slate-950 font-bold font-bold">
-                      {selectedRows.reduce((acc, r) => acc + r.arrivalStockM3, 0).toFixed(1)} m³
-                    </div>
+
+                  {/* [3] Arrival Yard Vol & Mass */}
+                  <td className="py-2.5 px-2 border-r border-[#8b9aa8] font-black text-slate-900 text-center bg-[#e8e4dc]">
+                    {selectedRows.reduce((acc, r) => acc + r.arrivalStockM3, 0).toFixed(1)}
                   </td>
-                  <td className="py-3.5 px-4 text-right text-slate-950 font-bold">
-                    <div>{selectedRows.reduce((acc, r) => acc + r.postDepressStockKg, 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}</div>
-                    <div className="text-[10px] text-slate-950 font-bold font-bold">
-                      {selectedRows.reduce((acc, r) => acc + r.postDepressStockM3, 0).toFixed(1)} m³
-                    </div>
+                  <td className="py-2.5 px-2 border-r border-[#8b9aa8] font-black text-slate-900 text-center bg-[#e8e4dc]">
+                    {selectedRows.reduce((acc, r) => acc + r.arrivalStockKg, 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}
                   </td>
-                  <td className="py-3.5 px-4 text-right text-slate-950 font-bold">
-                    <div>-{selectedRows.reduce((acc, r) => acc + r.bogLossKg, 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}</div>
-                    <div className="text-[10px] text-slate-950 font-bold font-bold">
-                      (~{(selectedRows.reduce((acc, r) => acc + r.bogLossKg, 0) / (selectedRows.reduce((acc, r) => acc + r.arrivalStockKg, 0) || 1) * 100).toFixed(2)}%)
-                    </div>
+
+                  {/* [4] Post-Depress Skid Ready Vol & Mass */}
+                  <td className="py-2.5 px-2 border-r border-[#8b9aa8] font-black text-slate-900 text-center bg-[#e8e4dc]">
+                    {selectedRows.reduce((acc, r) => acc + r.postDepressStockM3, 0).toFixed(1)}
                   </td>
-                  <td className="py-3.5 px-3 text-center text-slate-950 font-bold font-bold">
+                  <td className="py-2.5 px-2 border-r border-[#8b9aa8] font-black text-slate-900 text-center bg-[#e8e4dc]">
+                    {selectedRows.reduce((acc, r) => acc + r.postDepressStockKg, 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                  </td>
+
+                  {/* [5] BOG Venting Loss (kg & %) */}
+                  <td
+                    className="py-2.5 px-2 border-r border-[#8b9aa8] font-black text-[#dc2626] text-center"
+                    style={{ backgroundColor: '#e2efff' }}
+                  >
+                    -{selectedRows.reduce((acc, r) => acc + r.bogLossKg, 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                  </td>
+                  <td
+                    className="py-2.5 px-2 border-r border-[#8b9aa8] font-black text-[#dc2626] text-center"
+                    style={{ backgroundColor: '#e2efff' }}
+                  >
+                    {metrics.avgLossPct.toFixed(2)}
+                  </td>
+
+                  {/* [6] Density */}
+                  <td className="py-2.5 px-2 border-r border-[#8b9aa8] font-black text-slate-700 text-center bg-[#e8e4dc]">
                     428.0
                   </td>
-                  <td className="py-3.5 px-4 text-right text-slate-950 font-bold text-sm">
-                    {selectedRows.reduce((acc, r) => acc + r.availableBayStockKg, 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}
-                  </td>
-                  <td className="py-3.5 px-4 text-center text-[10px] text-slate-950 font-bold font-sans font-bold">
-                    Reconciled Mass Balance
+
+                  {/* [7] Status */}
+                  <td className="py-2.5 px-2 font-black text-[10px] text-slate-700 text-center bg-[#e8e4dc]">
+                    RECONCILED
                   </td>
                 </tr>
               </tfoot>

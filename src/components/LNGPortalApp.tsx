@@ -111,13 +111,13 @@ const SUBPROCESS_TITLES: Record<
   },
   SAVIOUR_VOYAGE_MONITORING: {
     location: 'LNG-Process',
-    process: 'MV. Saviour > Voyage Monitoring',
+    process: 'Marine Transit > Voyage Monitoring',
     icon: <Ship className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   SAVIOUR_MARINE_PRESSURE: {
     location: 'LNG-Process',
-    process: 'MV. Saviour > Marine Pressure Log',
+    process: 'Marine Transit > Marine Pressure Log',
     icon: <Ship className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
@@ -525,7 +525,7 @@ function LNGPortalInner() {
                   onClick={() => handleSelectSubProcess('SAVIOUR_VOYAGE_MONITORING')}
                   className={activeKey.startsWith('SAVIOUR') ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>MV. Saviour</span>
+                  <span>Marine Transit</span>
                 </button>
 
                 <button
@@ -753,10 +753,10 @@ function LNGPortalInner() {
 
               {/* MV. Saviour Transit */}
               {activeKey === 'SAVIOUR_VOYAGE_MONITORING' && (
-                <MvSaviourView initialSubTab="VOYAGE_MONITORING" />
+                <MvSaviourView initialSubTab="STOWAGE_PLAN" />
               )}
               {activeKey === 'SAVIOUR_MARINE_PRESSURE' && (
-                <MvSaviourView initialSubTab="MARINE_PRESSURE" />
+                <MvSaviourView initialSubTab="STOWAGE_PLAN" />
               )}
 
               {/* Maintenance & Depot */}
