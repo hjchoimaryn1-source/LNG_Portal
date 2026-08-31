@@ -415,7 +415,7 @@ export default function SidebarNav({
                                       : 'text-slate-800 hover:bg-slate-200'
                                   }`}
                                 >
-                                  <span>Gas Process Telemetry</span>
+                                  <span>GAS PROCESS</span>
                                   <span
                                     className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
                                       activeKey === 'NIAS_GAS_PROCESS_TELEMETRY'
@@ -435,7 +435,18 @@ export default function SidebarNav({
                                       : 'text-slate-800 hover:bg-slate-200'
                                   }`}
                                 >
-                                  <span>GC Gas Quality Stream</span>
+                                  <span>GAS METERING - LOG</span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleItemClick('NIAS_GAS_METERING_LEDGER')}
+                                  className={`w-full flex items-center justify-between pl-14 pr-2 py-0.5 text-[11px] text-left transition-colors ${
+                                    activeKey === 'NIAS_GAS_METERING_LEDGER'
+                                      ? 'bg-[#0a2558] text-white font-bold'
+                                      : 'text-slate-800 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  <span>GAS METERING (LEDGER)</span>
                                 </button>
 
                                 <button
@@ -446,7 +457,7 @@ export default function SidebarNav({
                                       : 'text-slate-800 hover:bg-slate-200'
                                   }`}
                                 >
-                                  <span>PLTMG Power & Output</span>
+                                  <span>PLTMG Power</span>
                                   <span
                                     className={`text-[11px] font-mono ml-auto pl-2 shrink-0 ${
                                       activeKey === 'NIAS_PLTMG_POWER_OUTPUT'
@@ -466,7 +477,7 @@ export default function SidebarNav({
                                       : 'text-slate-800 hover:bg-slate-200'
                                   }`}
                                 >
-                                  <span>Custody Heat Settlement</span>
+                                  <span>Monthly Report</span>
                                   {counts.disputeAlerts > 0 ? (
                                     <span className="text-[10px] font-mono font-bold bg-red-600 text-white px-1 py-0.2 ml-auto shrink-0 leading-tight">
                                       ! {counts.disputeAlerts}

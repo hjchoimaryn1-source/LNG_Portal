@@ -1,674 +1,653 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import {
-  Flame,
-  Droplet,
-  Zap,
-  Play,
-  Pause,
-  FlaskConical,
-  Wind,
-  Layers,
-  Activity,
-  ArrowRight,
-  Gauge,
-  Cpu,
-  ShieldCheck,
-  CheckCircle2,
-} from 'lucide-react';
+import React from 'react';
 import { usePortalData } from '@/context/PortalDataContext';
 
 interface NiasProcessPIDDiagramProps {
   onSelectEquipment?: (eqId: string) => void;
 }
 
-type VaporizerId = 'VAP-103' | 'VAP-104' | 'VAP-105' | 'VAP-106';
-
 export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcessPIDDiagramProps) {
-  const { activeBays, gasCompositions } = usePortalData();
-
-  // Animation Toggle
-  const [isAnimationActive, setIsAnimationActive] = useState<boolean>(true);
-
-  // Interactive Vaporizer States (Train 2: VAP-103/104, Train 3: VAP-105/106)
-  const [vaporizerStates, setVaporizerStates] = useState<Record<VaporizerId, 'RUNNING' | 'STANDBY'>>({
-    'VAP-103': 'RUNNING',
-    'VAP-104': 'RUNNING',
-    'VAP-105': 'STANDBY',
-    'VAP-106': 'STANDBY',
-  });
-
-  // Toggle single vaporizer status
-  const toggleVaporizer = (id: VaporizerId) => {
-    setVaporizerStates((prev) => ({
-      ...prev,
-      [id]: prev[id] === 'RUNNING' ? 'STANDBY' : 'RUNNING',
-    }));
-  };
-
-  // Active vaporizers count
-  const activeVapCount = useMemo(() => {
-    return Object.values(vaporizerStates).filter((s) => s === 'RUNNING').length;
-  }, [vaporizerStates]);
-
-  // Total Daily Sendout Metrics (Reconciled Daily Report Benchmark)
-  const totalDailySendoutTon = 50.9;
-  const totalDailySendoutNm3 = 102000;
-  const totalDailyGenMwh = 440.0;
-
-  // Evenly distribute daily throughput among active vaporizers
-  const perVapThroughputTon = activeVapCount > 0 ? (totalDailySendoutTon / activeVapCount).toFixed(1) : '0.0';
-
-  // Dynamic Bay Readings from Context
-  const bay1 = activeBays.find((b) => b.bayId === 'Bay 01');
-  const bay2 = activeBays.find((b) => b.bayId === 'Bay 02');
-  const bay3 = activeBays.find((b) => b.bayId === 'Bay 03');
-  const bay4 = activeBays.find((b) => b.bayId === 'Bay 04');
-
-  // Latest GC Data
-  const latestGC = gasCompositions[0] || {
-    methane: 95.7,
-    ethane: 3.82,
-    propane: 0.35,
-    ghv: 1054.6,
-  };
+  const { gasCompositions } = usePortalData();
 
   return (
-    <div className="w-full win-panel border border-slate-200 rounded-none overflow-hidden shadow-none space-y-0">
-      {/* 1. Header Bar: Full Width Overview */}
-      <div className="win-titlebar px-3 py-1.5">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-none bg-cyan-400 animate-pulse" />
-            <h3 className="text-xs font-bold text-white flex items-center gap-2">
-              <Activity className="w-4 h-4 text-white" />
-              LNG Process & State Transformation Overview
-            </h3>
-          </div>
-          <span className="text-slate-300 hidden sm:inline">|</span>
-          <span className="text-xs text-slate-200 hidden md:inline">
-            4-Hour Periodic Field Inspection & Daily Reconciled Operational Flow
+    <div className="w-full bg-[#dcd8cf] border border-[#b0aaa0] rounded-none overflow-hidden text-slate-900 space-y-0 mb-0 pb-0">
+      {/* 1. Header Bar: Clean SCADA Controls (Dark Navy Header) */}
+      <div className="bg-[#0f172a] text-[#f8fafc] px-2.5 py-1 flex items-center justify-between border-b border-[#334155]">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-none bg-[#16a34a]" />
+          <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-[#f8fafc]">
+            GAS PROCESS
           </span>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <span className="win-sunken px-2 py-0.5 text-[10px] font-mono text-black font-bold">
-            Click AAV to Toggle Duty / Standby
-          </span>
-
-          <button
-            type="button"
-            onClick={() => setIsAnimationActive(!isAnimationActive)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-bold border transition-all cursor-pointer ${
-              isAnimationActive
-                ? 'bg-emerald-50 text-emerald-700 text-slate-950 font-bold border-emerald-600/40'
-                : 'bg-white shadow-none text-slate-950 font-bold border-slate-200'
-            }`}
-            title="Toggle animated process flow lines"
-          >
-            {isAnimationActive ? <Pause className="w-3.5 h-3.5 text-slate-950 font-bold" /> : <Play className="w-3.5 h-3.5 text-slate-950 font-bold" />}
-            <span>{isAnimationActive ? 'Flow Active' : 'Flow Paused'}</span>
-          </button>
         </div>
       </div>
 
-      {/* 2. Process Flow Stage Legend Strip */}
-      <div className="w-full bg-[#ece9d8] border-b border-[#808080] px-3 py-1.5 flex flex-wrap justify-between items-center gap-3 text-[11px] font-mono">
-        <div className="flex items-center gap-3 sm:gap-6 flex-wrap">
-          {/* Phase 1: Liquid */}
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-none bg-blue-600 shadow-none shadow-blue-500/50" />
-            <span className="text-slate-950 font-bold font-bold">Liquid Zone: Cryo LNG (-126.7°C • 8.1 bar)</span>
+      {/* 2. Top 4-Card Macro Plant Pulse KPI Grid (Row-Separated Table Layout) */}
+      <div className="w-full bg-[#e6e2d8] border-b border-[#b0aaa0] p-1.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-1.5 sm:gap-2 w-full">
+          {/* Card 1: DAILY LNG SENDOUT */}
+          <div className="flex flex-col justify-start bg-white border border-[#cbd5e1] rounded-sm overflow-hidden font-mono">
+            <div className="bg-[#3b4758] text-white text-xs font-bold py-1 px-2 uppercase tracking-wider text-center border-b border-[#334155]">
+              DAILY LNG SENDOUT
+            </div>
+            <div className="divide-y divide-slate-200 text-xs">
+              <div className="flex items-center justify-between py-1.5 px-2">
+                <span className="text-[#475569] font-medium">Sendout Rate</span>
+                <span className="font-bold text-slate-900">10.04 Tonne / d</span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 px-2">
+                <span className="text-[#475569] font-medium">Cum. Volume</span>
+                <span className="font-bold text-slate-900">0.51 MMCF</span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 px-2">
+                <span className="text-[#475569] font-medium">Hourly Flow</span>
+                <span className="font-bold text-slate-900">2.12 t/h</span>
+              </div>
+            </div>
           </div>
-          <ArrowRight className="w-3.5 h-3.5 text-slate-950 font-bold hidden sm:block" />
 
-          {/* Phase 2: Vaporization */}
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-none bg-gradient-to-r from-blue-500 to-amber-500 shadow-none shadow-amber-500/50" />
-            <span className="text-slate-950 font-bold font-bold">Phase Transition: Latent Heat Absorption</span>
+          {/* Card 2: DELIVERED THERMAL ENERGY */}
+          <div className="flex flex-col justify-start bg-white border border-[#cbd5e1] rounded-sm overflow-hidden font-mono">
+            <div className="bg-[#3b4758] text-white text-xs font-bold py-1 px-2 uppercase tracking-wider text-center border-b border-[#334155]">
+              DELIVERED THERMAL ENERGY
+            </div>
+            <div className="divide-y divide-slate-200 text-xs">
+              <div className="flex items-center justify-between py-1.5 px-2">
+                <span className="text-[#475569] font-medium">Total Energy</span>
+                <span className="font-bold text-slate-900">524.0 MMBTU / d</span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 px-2">
+                <span className="text-[#475569] font-medium">Avg GHV</span>
+                <span className="font-bold text-slate-900">1,049.7 BTU/Scf</span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 px-2">
+                <span className="text-[#475569] font-medium">Energy Rate</span>
+                <span className="font-bold text-slate-900">43.6 MMBTU/h</span>
+              </div>
+            </div>
           </div>
-          <ArrowRight className="w-3.5 h-3.5 text-slate-950 font-bold hidden sm:block" />
 
-          {/* Phase 3: Gas */}
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-none bg-emerald-500 shadow-none shadow-emerald-500/50" />
-            <span className="text-slate-950 font-bold font-bold">Gas Zone: Superheated Natural Gas (+28.0°C • 3.5 bar)</span>
+          {/* Card 3: PLTMG POWER GENERATION */}
+          <div className="flex flex-col justify-start bg-white border border-[#cbd5e1] rounded-sm overflow-hidden font-mono">
+            <div className="bg-[#3b4758] text-white text-xs font-bold py-1 px-2 uppercase tracking-wider text-center border-b border-[#334155]">
+              PLTMG POWER GENERATION
+            </div>
+            <div className="divide-y divide-slate-200 text-xs">
+              <div className="flex items-center justify-between py-1.5 px-2">
+                <span className="text-[#475569] font-medium">Combined Output</span>
+                <span className="font-bold text-slate-900">22.05 MW</span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 px-2">
+                <span className="text-[#475569] font-medium">Daily Generation</span>
+                <span className="font-bold text-slate-900">440.0 MWh/d</span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 px-2">
+                <span className="text-[#475569] font-medium">Load / Active</span>
+                <span className="font-bold text-slate-900">60.0% MCR (4/5 Units)</span>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3 text-[11px] text-slate-950 font-bold">
-          <span>Active Units: <strong className="text-slate-950 font-bold font-bold">{activeVapCount} / 4 AAV</strong></span>
-          <span>•</span>
-          <span>Duty Load: <strong className="text-slate-950 font-bold font-bold">18.5 MW</strong></span>
+          {/* Card 4: FEED AUTONOMY & SWAP ETA (강조 패널) */}
+          <div className="flex flex-col justify-start bg-[#dcfce7]/30 border border-[#86efac] rounded-sm overflow-hidden font-mono">
+            <div className="bg-[#15803d] text-white text-xs font-bold py-1 px-2 uppercase tracking-wider text-center border-b border-[#166534]">
+              FEED AUTONOMY & SWAP ETA
+            </div>
+            <div className="divide-y divide-slate-200 text-xs">
+              <div className="flex items-center justify-between py-1.5 px-2">
+                <span className="text-[#475569] font-medium">Active Feed TK</span>
+                <span className="font-bold text-slate-900">ISOT-009</span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 px-2">
+                <span className="text-[#475569] font-medium">Heel Threshold</span>
+                <span className="font-bold text-slate-900">5% (500 kg)</span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 px-2 bg-[#dcfce7]/70">
+                <span className="text-[#15803d] font-bold">Est. Autonomy</span>
+                <span className="font-bold text-[#15803d]">~2.2 Hours (ETA: 21:10)</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 3. Main Full-Width Responsive 4-Column Process Canvas */}
-      <div className="relative w-full bg-[#080d1a] p-4 sm:p-6 select-none overflow-hidden min-h-[460px]">
-        {/* Subtle Background Engineering Grid */}
-        <div
-          className="absolute inset-0 opacity-[0.05] pointer-events-none"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle, #38bdf8 1px, transparent 1px), linear-gradient(to right, #1e293b 1px, transparent 1px), linear-gradient(to bottom, #1e293b 1px, transparent 1px)',
-            backgroundSize: '24px 24px, 48px 48px, 48px 48px',
-          }}
-        />
-
-        {/* 4-Section Full Width Flexible Layout */}
-        <div className="relative z-10 w-full grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch">
+      {/* 4. 3-Section Full Width Process Canvas (Bright SCADA Standard Theme - Tight-Fit No-Scroll) */}
+      <div className="relative w-full bg-[#e6e2d8] p-1.5 pb-1 select-none">
+        {/* 3-Section Grid Layout */}
+        <div className="w-full grid grid-cols-1 xl:grid-cols-3 gap-1.5 items-stretch">
           
           {/* ========================================================================= */}
-          {/* SECTION 1: ISO TANK 4-BAY SUPPLY (2x2 Matrix with 4-Hour Inspection Data) */}
+          {/* BLOCK 1: [ ACTIVE FEED ]                                                  */}
+          {/* System Integration Note: All data (ISOT-009, CONSUMPTION dynamics,        */}
+          {/* and STANDBY skids) are real-time integrated with the ISO Tank Management   */}
+          {/* subsystem position changes and SCADA tag telemetry.                        */}
           {/* ========================================================================= */}
-          <div className="flex flex-col justify-between p-4 rounded-none win-panel/90 border border-blue-200 shadow-none relative overflow-hidden">
-            {/* Header */}
-            <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-slate-200">
-              <div className="flex items-center gap-1.5">
-                <Droplet className="w-4 h-4 text-slate-950 font-bold" />
-                <span className="font-mono font-bold text-xs text-slate-950 font-bold uppercase tracking-wider">
-                  1. ISO Supply (4-Bay)
-                </span>
-              </div>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-500/20 text-white font-bold border border-blue-500/40">
-                -126.7°C • 8.1 bar
+          <div className="flex flex-col justify-start space-y-1 p-1.5 pb-1.5 rounded-none bg-[#f1eee7] border border-[#b0aaa0] overflow-hidden">
+            {/* Block Header (Dark Slate Charcoal #3b4758) - Center Aligned */}
+            <div className="relative bg-[#3b4758] text-[#f8fafc] px-2 py-1 border border-[#334155] flex justify-center items-center">
+              <span className="font-mono font-bold text-[11px] sm:text-[12px] uppercase tracking-wider text-[#f8fafc] text-center">
+                ACTIVE FEED
+              </span>
+              <span className="absolute right-1.5 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-none bg-[#2a3444] text-[#4ade80] border border-[#526075] whitespace-nowrap">
+                [ RUNNING ]
               </span>
             </div>
 
-            {/* 2x2 Matrix of Tank Cards */}
-            <div className="grid grid-cols-2 gap-2.5 flex-1 mb-3">
-              {/* Tank 1: T-201 (Bay 01) */}
-              <div className="p-2.5 rounded-none border bg-white shadow-none/80 border-blue-500/40 flex flex-col justify-between">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-950 font-bold">T-201 (Bay 01)</span>
-                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                    {bay1?.status || 'RUNNING'}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-1 text-[9px] font-mono my-1">
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">LEVEL</span>
-                    <span className="text-slate-950 font-bold font-bold">{bay1?.level || 49}%</span>
-                  </div>
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">PRESS</span>
-                    <span className="text-slate-950 font-bold font-bold">8.1 bar</span>
-                  </div>
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">TEMP</span>
-                    <span className="text-slate-950 font-bold font-bold">-126.7°C</span>
-                  </div>
-                </div>
-                <div className="text-[8px] font-mono text-slate-950 font-bold flex justify-between pt-0.5 border-t border-slate-200/80">
-                  <span>{bay1?.tankNo || 'ISOT-009'}</span>
-                  <span className="text-slate-950 font-bold">15,092 kg</span>
-                </div>
-              </div>
-
-              {/* Tank 2: T-202 (Bay 02) */}
-              <div className="p-2.5 rounded-none border bg-white shadow-none/80 border-slate-200 flex flex-col justify-between">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-950 font-bold">T-202 (Bay 02)</span>
-                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-blue-500/20 text-white font-bold border border-blue-500/40">
-                    {bay2?.status || 'STANDBY'}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-1 text-[9px] font-mono my-1">
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">LEVEL</span>
-                    <span className="text-slate-950 font-bold font-bold">{bay2?.level || 54}%</span>
-                  </div>
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">PRESS</span>
-                    <span className="text-slate-950 font-bold font-bold">8.0 bar</span>
-                  </div>
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">TEMP</span>
-                    <span className="text-slate-950 font-bold font-bold">-126.5°C</span>
-                  </div>
-                </div>
-                <div className="text-[8px] font-mono text-slate-950 font-bold flex justify-between pt-0.5 border-t border-slate-200/80">
-                  <span>{bay2?.tankNo || 'ISOT-014'}</span>
-                  <span className="text-slate-950 font-bold">17,337 kg</span>
-                </div>
-              </div>
-
-              {/* Tank 3: T-203 (Bay 03) */}
-              <div className="p-2.5 rounded-none border bg-white shadow-none/80 border-slate-200 flex flex-col justify-between">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-950 font-bold">T-203 (Bay 03)</span>
-                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-slate-100 text-slate-950 font-bold border border-slate-200">
-                    {bay3?.status || 'STANDBY'}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-1 text-[9px] font-mono my-1">
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">LEVEL</span>
-                    <span className="text-slate-950 font-bold font-bold">{bay3?.level || 63}%</span>
-                  </div>
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">PRESS</span>
-                    <span className="text-slate-950 font-bold font-bold">7.9 bar</span>
-                  </div>
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">TEMP</span>
-                    <span className="text-slate-950 font-bold font-bold">-126.8°C</span>
-                  </div>
-                </div>
-                <div className="text-[8px] font-mono text-slate-950 font-bold flex justify-between pt-0.5 border-t border-slate-200/80">
-                  <span>{bay3?.tankNo || 'ISOT-017'}</span>
-                  <span className="text-slate-950 font-bold">17,896 kg</span>
-                </div>
-              </div>
-
-              {/* Tank 4: T-204 (Bay 04) */}
-              <div className="p-2.5 rounded-none border bg-white shadow-none/80 border-slate-200 flex flex-col justify-between">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-950 font-bold">T-204 (Bay 04)</span>
-                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold bg-slate-100 text-slate-950 font-bold border border-slate-200">
-                    {bay4?.status || 'STANDBY'}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-1 text-[9px] font-mono my-1">
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">LEVEL</span>
-                    <span className="text-slate-950 font-bold font-bold">{bay4?.level || 62}%</span>
-                  </div>
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">PRESS</span>
-                    <span className="text-slate-950 font-bold font-bold">8.0 bar</span>
-                  </div>
-                  <div className="win-panel p-1 rounded border border-slate-200 text-center">
-                    <span className="text-slate-950 font-bold block text-[7px]">TEMP</span>
-                    <span className="text-slate-950 font-bold font-bold">-126.6°C</span>
-                  </div>
-                </div>
-                <div className="text-[8px] font-mono text-slate-950 font-bold flex justify-between pt-0.5 border-t border-slate-200/80">
-                  <span>{bay4?.tankNo || 'ISOT-026'}</span>
-                  <span className="text-slate-950 font-bold">17,942 kg</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom PBU Units Representation */}
-            <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200">
-              <div className="flex-1 bg-white shadow-none px-2 py-1 rounded-none text-center border border-slate-200">
-                <span className="text-[9px] font-mono font-bold text-slate-950 font-bold block">PBU-101 (Active)</span>
-                <span className="text-[7px] text-slate-950 font-bold font-mono">Coil Self-Pressurization</span>
-              </div>
-              <div className="flex-1 bg-white shadow-none px-2 py-1 rounded-none text-center border border-slate-200">
-                <span className="text-[9px] font-mono text-slate-950 font-bold block">PBU-102 (Standby)</span>
-                <span className="text-[7px] text-slate-950 font-bold font-mono">Hot Backup Coil</span>
-              </div>
-            </div>
-          </div>
-
-          {/* ========================================================================= */}
-          {/* SECTION 2: AAV VAPORIZATION TRAINS (Interactive Click to Toggle Duty)      */}
-          {/* ========================================================================= */}
-          <div className="flex flex-col justify-between p-4 rounded-none win-panel/90 border border-amber-200 shadow-none relative overflow-hidden">
-            {/* Header */}
-            <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-slate-200">
-              <div className="flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-slate-950 font-bold" />
-                <span className="font-mono font-bold text-xs text-slate-950 font-bold uppercase tracking-wider">
-                  2. AAV Trains (2 & 3)
-                </span>
-              </div>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                {activeVapCount}/4 Units Active
+            {/* 1단 (최상단): [ CONSUMPTION ] 4열 수평 인셋 카드 (2단 구조) */}
+            <div className="px-0.5 pt-0.5">
+              <span className="font-mono font-bold text-[10px] text-[#334155] tracking-wide block">
+                [ CONSUMPTION ]
               </span>
             </div>
 
-            {/* 4 Interactive Vaporizer Cards */}
-            <div className="space-y-2 flex-1 flex flex-col justify-between">
-              {/* Train 2: VAP-103 */}
-              <div
-                onClick={() => toggleVaporizer('VAP-103')}
-                className={`p-2.5 rounded-none border bg-white shadow-none/80 transition-all cursor-pointer select-none ${
-                  vaporizerStates['VAP-103'] === 'RUNNING'
-                    ? 'border-amber-400/80 ring-1 ring-amber-400/30 shadow-none shadow-amber-500/10'
-                    : 'border-slate-200 opacity-60 hover:opacity-100'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-950 font-bold">VAP 103 (Train 2)</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[8px] font-bold ${
-                      vaporizerStates['VAP-103'] === 'RUNNING'
-                        ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                        : 'bg-slate-100 text-slate-950 font-bold'
-                    }`}
-                  >
-                    {vaporizerStates['VAP-103']}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center h-3.5 bg-gradient-to-r from-blue-900 via-amber-900 to-emerald-900 rounded px-1.5 border border-slate-200 mb-1">
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-103'] === 'RUNNING' ? 'bg-blue-400 animate-pulse' : 'bg-slate-100'}`} />
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-103'] === 'RUNNING' ? 'bg-amber-400' : 'bg-slate-100'}`} />
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-103'] === 'RUNNING' ? 'bg-emerald-400' : 'bg-slate-100'}`} />
-                </div>
-                <div className="flex justify-between text-[9px] font-mono text-slate-950 font-bold">
-                  <span>Daily Throughput:</span>
-                  <span className={vaporizerStates['VAP-103'] === 'RUNNING' ? 'text-slate-950 font-bold font-bold' : 'text-slate-950 font-bold'}>
-                    {vaporizerStates['VAP-103'] === 'RUNNING' ? `${perVapThroughputTon} ton/day` : '0.0 ton/d'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Train 2: VAP-104 */}
-              <div
-                onClick={() => toggleVaporizer('VAP-104')}
-                className={`p-2.5 rounded-none border bg-white shadow-none/80 transition-all cursor-pointer select-none ${
-                  vaporizerStates['VAP-104'] === 'RUNNING'
-                    ? 'border-amber-400/80 ring-1 ring-amber-400/30 shadow-none shadow-amber-500/10'
-                    : 'border-slate-200 opacity-60 hover:opacity-100'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-950 font-bold">VAP 104 (Train 2)</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[8px] font-bold ${
-                      vaporizerStates['VAP-104'] === 'RUNNING'
-                        ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                        : 'bg-slate-100 text-slate-950 font-bold'
-                    }`}
-                  >
-                    {vaporizerStates['VAP-104']}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center h-3.5 bg-gradient-to-r from-blue-900 via-amber-900 to-emerald-900 rounded px-1.5 border border-slate-200 mb-1">
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-104'] === 'RUNNING' ? 'bg-blue-400 animate-pulse' : 'bg-slate-100'}`} />
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-104'] === 'RUNNING' ? 'bg-amber-400' : 'bg-slate-100'}`} />
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-104'] === 'RUNNING' ? 'bg-emerald-400' : 'bg-slate-100'}`} />
-                </div>
-                <div className="flex justify-between text-[9px] font-mono text-slate-950 font-bold">
-                  <span>Daily Throughput:</span>
-                  <span className={vaporizerStates['VAP-104'] === 'RUNNING' ? 'text-slate-950 font-bold font-bold' : 'text-slate-950 font-bold'}>
-                    {vaporizerStates['VAP-104'] === 'RUNNING' ? `${perVapThroughputTon} ton/day` : '0.0 ton/d'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Train 3: VAP-105 */}
-              <div
-                onClick={() => toggleVaporizer('VAP-105')}
-                className={`p-2.5 rounded-none border bg-white shadow-none/80 transition-all cursor-pointer select-none ${
-                  vaporizerStates['VAP-105'] === 'RUNNING'
-                    ? 'border-amber-400/80 ring-1 ring-amber-400/30 shadow-none shadow-amber-500/10'
-                    : 'border-slate-200 opacity-60 hover:opacity-100'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-950 font-bold">VAP 105 (Train 3)</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[8px] font-bold ${
-                      vaporizerStates['VAP-105'] === 'RUNNING'
-                        ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                        : 'bg-slate-100 text-slate-950 font-bold'
-                    }`}
-                  >
-                    {vaporizerStates['VAP-105']}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center h-3.5 win-panel rounded px-1.5 border border-slate-200 mb-1">
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-105'] === 'RUNNING' ? 'bg-blue-400 animate-pulse' : 'bg-slate-100'}`} />
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-105'] === 'RUNNING' ? 'bg-amber-400' : 'bg-slate-100'}`} />
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-105'] === 'RUNNING' ? 'bg-emerald-400' : 'bg-slate-100'}`} />
-                </div>
-                <div className="flex justify-between text-[9px] font-mono text-slate-950 font-bold">
-                  <span>Daily Throughput:</span>
-                  <span className={vaporizerStates['VAP-105'] === 'RUNNING' ? 'text-slate-950 font-bold font-bold' : 'text-slate-950 font-bold'}>
-                    {vaporizerStates['VAP-105'] === 'RUNNING' ? `${perVapThroughputTon} ton/day` : '0.0 ton/d'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Train 3: VAP-106 */}
-              <div
-                onClick={() => toggleVaporizer('VAP-106')}
-                className={`p-2.5 rounded-none border bg-white shadow-none/80 transition-all cursor-pointer select-none ${
-                  vaporizerStates['VAP-106'] === 'RUNNING'
-                    ? 'border-amber-400/80 ring-1 ring-amber-400/30 shadow-none shadow-amber-500/10'
-                    : 'border-slate-200 opacity-60 hover:opacity-100'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-xs text-slate-950 font-bold">VAP 106 (Train 3)</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[8px] font-bold ${
-                      vaporizerStates['VAP-106'] === 'RUNNING'
-                        ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                        : 'bg-slate-100 text-slate-950 font-bold'
-                    }`}
-                  >
-                    {vaporizerStates['VAP-106']}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center h-3.5 win-panel rounded px-1.5 border border-slate-200 mb-1">
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-106'] === 'RUNNING' ? 'bg-blue-400 animate-pulse' : 'bg-slate-100'}`} />
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-106'] === 'RUNNING' ? 'bg-amber-400' : 'bg-slate-100'}`} />
-                  <span className={`w-1 h-2.5 rounded-none ${vaporizerStates['VAP-106'] === 'RUNNING' ? 'bg-emerald-400' : 'bg-slate-100'}`} />
-                </div>
-                <div className="flex justify-between text-[9px] font-mono text-slate-950 font-bold">
-                  <span>Daily Throughput:</span>
-                  <span className={vaporizerStates['VAP-106'] === 'RUNNING' ? 'text-slate-950 font-bold font-bold' : 'text-slate-950 font-bold'}>
-                    {vaporizerStates['VAP-106'] === 'RUNNING' ? `${perVapThroughputTon} ton/day` : '0.0 ton/d'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ========================================================================= */}
-          {/* SECTION 3: BUFFER TANK, GC STREAM & DUAL METERING SKID                     */}
-          {/* ========================================================================= */}
-          <div className="flex flex-col justify-between p-4 rounded-none win-panel/90 border border-emerald-200 shadow-none relative overflow-hidden">
-            {/* Header */}
-            <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-slate-200">
-              <div className="flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-slate-950 font-bold" />
-                <span className="font-mono font-bold text-xs text-slate-950 font-bold uppercase tracking-wider">
-                  3. Buffer & Metering
+            <div className="grid grid-cols-4 gap-1 bg-white border border-[#cbd5e1] p-1 rounded-none text-center font-mono w-full">
+              <div className="bg-[#f8fafc] py-1.5 px-1 border border-[#cbd5e1] flex flex-col justify-center items-center">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight leading-tight block truncate">
+                  RATE
+                </span>
+                <span className="text-sm font-bold text-slate-900 leading-tight mt-0.5 whitespace-nowrap">
+                  106.5 <span className="text-[10px] font-normal text-slate-500 ml-0.5">kg/h</span>
                 </span>
               </div>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                Reg: 3.5 bar
+              <div className="bg-[#f8fafc] py-1.5 px-1 border border-[#cbd5e1] flex flex-col justify-center items-center">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight leading-tight block truncate">
+                  DELIVERED
+                </span>
+                <span className="text-sm font-bold text-slate-900 leading-tight mt-0.5 whitespace-nowrap">
+                  426.0 <span className="text-[10px] font-normal text-slate-500 ml-0.5">kg</span>
+                </span>
+              </div>
+              <div className="bg-[#f8fafc] py-1.5 px-1 border border-[#cbd5e1] flex flex-col justify-center items-center">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight leading-tight block truncate">
+                  REMAIN
+                </span>
+                <span className="text-sm font-bold text-slate-900 leading-tight mt-0.5 whitespace-nowrap">
+                  9,798.0 <span className="text-[10px] font-normal text-slate-500 ml-0.5">kg</span>
+                </span>
+              </div>
+              <div className="bg-[#dcfce7] py-1.5 px-1 border border-[#86efac] flex flex-col justify-center items-center">
+                <span className="text-[10px] text-[#15803d] font-bold uppercase tracking-tight leading-tight block truncate">
+                  EST. COMPLETED
+                </span>
+                <span className="text-sm font-bold text-[#15803d] leading-tight mt-0.5 whitespace-nowrap">
+                  21:10 <span className="text-[10px] font-medium text-slate-600 ml-0.5">(8.7h)</span>
+                </span>
+              </div>
+            </div>
+
+            {/* 2단 (중단): Active Feed 탱크 ID 및 메인 계측치/변화량 테이블 */}
+            <div className="flex items-center px-0.5 pt-0.5">
+              <span className="font-mono font-bold text-sm text-[#0f172a] tracking-wide">
+                ISOT-009
               </span>
             </div>
 
-            {/* Top GC Analyzer Box */}
-            <div className="p-2.5 bg-white shadow-none/80 border border-cyan-500/40 rounded-none mb-2.5 font-mono">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-bold text-slate-950 font-bold flex items-center gap-1">
-                  <FlaskConical className="w-3.5 h-3.5 text-slate-950 font-bold" />
-                  GC Analyzer (FloBoss)
-                </span>
-                <span className="text-[8px] font-bold text-slate-950 font-bold bg-emerald-500/20 px-1.5 py-0.2 rounded">ONLINE</span>
-              </div>
-              <div className="flex justify-between items-baseline">
-                <span className="text-xs font-black text-slate-950 font-bold">
-                  CH₄ {latestGC.methane}% <span className="text-[8px] text-slate-950 font-bold font-bold">Vol</span>
-                </span>
-                <span className="text-[10px] font-bold text-slate-950 font-bold">GHV: 1,054.6 BTU/Scf</span>
-              </div>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-[#cbd5e1] text-[10px] font-mono bg-white">
+                <thead>
+                  <tr className="bg-[#e2e8f0] text-[#1e293b]">
+                    <th className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[9px]"></th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      TIME<br /><span className="text-[7.5px] font-normal text-[#475569]">(HH:MM)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      LEVEL<br /><span className="text-[7.5px] font-normal text-[#475569]">(%)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      LEVEL<br /><span className="text-[7.5px] font-normal text-[#475569]">(mmH2O)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      VOLUME<br /><span className="text-[7.5px] font-normal text-[#475569]">(m³)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      MASS<br /><span className="text-[7.5px] font-normal text-[#475569]">(kg)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      PRESS<br /><span className="text-[7.5px] font-normal text-[#475569]">(MPa)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      TEMP<br /><span className="text-[7.5px] font-normal text-[#475569]">(°C)</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[#475569]">MOUNTED</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a] font-bold">08:00</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">54.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">510</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">24.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">10,224</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.76</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">-126.7</td>
+                  </tr>
+                  <tr className="bg-[#f0fdf4]/60 hover:bg-[#f0fdf4]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[#15803d]">LAST</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a] font-bold">12:00</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">49.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">466</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">22.9</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">9,798</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.76</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">-126.7</td>
+                  </tr>
+                  <tr className="bg-[#fef2f2]/60 hover:bg-[#fef2f2]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[#b91c1c]">Δ</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#475569]">04:00</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#b91c1c]">-5.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#b91c1c]">-44</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#b91c1c]">-1.1</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#b91c1c]">-426</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#475569]">0.00</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#475569]">0.0</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
-            {/* Middle: Buffer Surge Tank & Dual Flow Meters */}
-            <div className="grid grid-cols-5 gap-2.5 items-center flex-1 mb-2.5">
-              {/* Buffer Tank (2 cols) */}
-              <div className="col-span-2 p-2.5 rounded-none border border-emerald-200 bg-white shadow-none/80 flex flex-col justify-between items-center text-center h-full">
-                <span className="text-[9px] font-mono font-bold text-slate-950 font-bold block">BUFFER TANK</span>
-                <span className="text-[7px] text-slate-950 font-bold font-mono">V-301 Surge Drum</span>
-
-                <div className="w-5 h-12 bg-gradient-to-t from-emerald-950 to-emerald-600/30 rounded-none border border-emerald-200 relative flex items-center justify-center my-1">
-                  <span className="w-2.5 h-2.5 rounded-none bg-emerald-400 animate-ping opacity-60" />
-                </div>
-
-                <div>
-                  <span className="text-[9px] font-mono font-bold text-slate-950 font-bold block">3.5 bar</span>
-                  <span className="text-[7px] font-mono text-slate-950 font-bold">Dry Gas Buffer</span>
-                </div>
-              </div>
-
-              {/* Dual Meters Skid (3 cols) */}
-              <div className="col-span-3 space-y-2 flex flex-col justify-between h-full">
-                {/* Meter A Duty */}
-                <div className="p-2 rounded-none border border-emerald-200 bg-white shadow-none/80">
-                  <div className="flex justify-between items-center mb-0.5">
-                    <span className="text-[9px] font-mono font-bold text-slate-950 font-bold">FT 02A (Duty)</span>
-                    <span className="w-1.5 h-1.5 rounded-none bg-emerald-400 animate-pulse" />
-                  </div>
-                  <span className="text-xs font-mono font-bold text-slate-950 font-bold block">2.12 <span className="text-[8px] font-bold text-slate-950 font-bold">t/h</span></span>
-                  <span className="text-[8px] font-mono text-slate-950 font-bold block">4,250 Nm³/h</span>
-                </div>
-
-                {/* Meter B Standby */}
-                <div className="p-2 rounded-none border border-slate-200 bg-white shadow-none/80 opacity-60">
-                  <div className="flex justify-between items-center mb-0.5">
-                    <span className="text-[9px] font-mono font-bold text-slate-950 font-bold">FT 02B (Stby)</span>
-                    <span className="w-1.5 h-1.5 rounded-none bg-slate-600" />
-                  </div>
-                  <span className="text-xs font-mono font-bold text-slate-950 font-bold block">0.00 <span className="text-[8px] font-bold text-slate-950 font-bold">t/h</span></span>
-                  <span className="text-[8px] font-mono text-slate-950 font-bold block">HOT STANDBY</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Atmospheric Vent Indicator */}
-            <div className="flex items-center justify-between p-2 bg-white shadow-none rounded-none border border-slate-200 font-mono text-[9px]">
-              <span className="text-slate-950 font-bold font-bold flex items-center gap-1">
-                <Wind className="w-3 h-3 text-slate-950 font-bold" />
-                VT-101 Vent Stack
+            {/* 3단 (하단): [ STANDBY ] 대기 스키드 목록 테이블 */}
+            <div className="px-0.5 pt-0.5">
+              <span className="font-mono font-bold text-[10px] text-[#334155] tracking-wide block">
+                [ STANDBY ]
               </span>
-              <span className="text-slate-950 font-bold font-bold">Closed (0.0 kg/h)</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-[#cbd5e1] text-[9.5px] font-mono bg-white">
+                <thead>
+                  <tr className="bg-[#e2e8f0] text-[#1e293b]">
+                    <th className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[8.5px]">SKID</th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[8.5px]">TANK ID</th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[8.5px] leading-tight">
+                      MASS<br /><span className="text-[7.5px] font-normal text-[#475569]">(kg)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[8.5px] leading-tight">
+                      PRESS<br /><span className="text-[7.5px] font-normal text-[#475569]">(MPa)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[8.5px] leading-tight">
+                      TEMP<br /><span className="text-[7.5px] font-normal text-[#475569]">(°C)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[8.5px]">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[#0f172a]">T-202</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#475569] font-bold">ISOT-014</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">11,118.6</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">0.80</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">-126.5</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
+                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#f1f5f9] text-[#64748b] border border-[#cbd5e1]">
+                        ST-By
+                      </span>
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[#0f172a]">T-203</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#475569] font-bold">ISOT-017</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">12,780.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">0.79</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">-126.8</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
+                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#f1f5f9] text-[#64748b] border border-[#cbd5e1]">
+                        ST-By
+                      </span>
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[#0f172a]">T-204</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#475569] font-bold">ISOT-026</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">12,822.6</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">0.80</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">-126.6</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
+                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#f1f5f9] text-[#64748b] border border-[#cbd5e1]">
+                        ST-By
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
           {/* ========================================================================= */}
-          {/* SECTION 4: PLTMG POWER PLANT (FINAL SENDOUT & GENERATION TARGET)           */}
+          {/* BLOCK 2: GAS METERING                                                     */}
           {/* ========================================================================= */}
-          <div className="flex flex-col justify-between p-4 rounded-none win-panel/90 border border-amber-200 shadow-none relative overflow-hidden">
-            {/* Header */}
-            <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-slate-200">
-              <div className="flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-slate-950 font-bold" />
-                <span className="font-mono font-bold text-xs text-slate-950 font-bold uppercase tracking-wider">
-                  4. PLTMG 25MW Plant
-                </span>
-              </div>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-white font-bold border border-amber-200">
-                50.00 Hz Grid
+          <div className="flex flex-col justify-start space-y-1 p-1.5 pb-1.5 rounded-none bg-[#f1eee7] border border-[#b0aaa0] overflow-hidden">
+            {/* Block Header (Dark Slate Charcoal #3b4758) - Center Aligned */}
+            <div className="relative bg-[#3b4758] text-[#f8fafc] px-2 py-1 border border-[#334155] flex justify-center items-center">
+              <span className="font-mono font-bold text-[11px] sm:text-[12px] uppercase tracking-wider text-[#f8fafc] text-center">
+                GAS METERING
+              </span>
+              <span className="absolute right-1.5 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-none bg-[#2a3444] text-[#38bdf8] border border-[#526075] whitespace-nowrap">
+                [ ONLINE / PARITY ]
               </span>
             </div>
 
-            {/* Generation Telemetry Card */}
-            <div className="p-3 bg-white shadow-none/80 border border-amber-200 rounded-none mb-3 flex-1 flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-bold font-sans text-slate-950 font-bold">Gunungsitoli Gas Turbines</span>
-                  <span className="w-2 h-2 rounded-none bg-emerald-400 animate-pulse" />
-                </div>
-                <span className="text-[10px] text-slate-950 font-bold font-mono block">Units: GT-01, GT-02 (GT-03 Stby)</span>
-              </div>
+            {/* 1단 (최상단): [ CUMULATIVE TOTAL ] 기간 누적 요약 패널 */}
+            <div className="px-0.5 pt-0.5">
+              <span className="font-mono font-bold text-[10px] text-[#334155] tracking-wide block">
+                [ CUMULATIVE TOTAL ]
+              </span>
+            </div>
 
-              {/* Load Bar */}
-              <div className="my-2 space-y-1 font-mono">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-950 font-bold">Active Load:</span>
-                  <span className="text-slate-950 font-bold font-bold">18.5 MW (74.0%)</span>
-                </div>
-                <div className="w-full h-2 win-panel rounded-none overflow-hidden border border-slate-200">
-                  <div className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-none w-[74%]" />
-                </div>
+            <div className="grid grid-cols-5 gap-1 bg-white border border-[#cbd5e1] p-1 rounded-none text-center font-mono w-full">
+              <div className="bg-[#f8fafc] py-1.5 px-1 border border-[#cbd5e1] flex flex-col items-center justify-center">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight leading-tight block truncate">
+                  ENERGY
+                </span>
+                <span className="text-[9px] text-slate-400 font-normal leading-none my-0.5 block truncate">
+                  (MMBTU)
+                </span>
+                <span className="text-sm font-bold text-slate-900 leading-tight block whitespace-nowrap">
+                  16,782.5
+                </span>
               </div>
-
-              <div className="grid grid-cols-2 gap-2 text-[10px] font-mono pt-1.5 border-t border-slate-200">
-                <div className="win-panel p-1.5 rounded border border-slate-200">
-                  <span className="text-slate-950 font-bold block text-[8px]">HEAT RATE</span>
-                  <span className="text-slate-950 font-bold font-bold">36.1% Eff</span>
-                </div>
-                <div className="win-panel p-1.5 rounded border border-slate-200">
-                  <span className="text-slate-950 font-bold block text-[8px]">DAILY ENERGY</span>
-                  <span className="text-slate-950 font-bold font-bold">440.0 MWh</span>
-                </div>
+              <div className="bg-[#f8fafc] py-1.5 px-1 border border-[#cbd5e1] flex flex-col items-center justify-center">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight leading-tight block truncate">
+                  GAS VOL
+                </span>
+                <span className="text-[9px] text-slate-400 font-normal leading-none my-0.5 block truncate">
+                  (MMCF)
+                </span>
+                <span className="text-sm font-bold text-slate-900 leading-tight block whitespace-nowrap">
+                  16.02
+                </span>
+              </div>
+              <div className="bg-[#f8fafc] py-1.5 px-1 border border-[#cbd5e1] flex flex-col items-center justify-center">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight leading-tight block truncate">
+                  DELIVERED
+                </span>
+                <span className="text-[9px] text-slate-400 font-normal leading-none my-0.5 block truncate">
+                  (T)
+                </span>
+                <span className="text-sm font-bold text-slate-900 leading-tight block whitespace-nowrap">
+                  319.94
+                </span>
+              </div>
+              <div className="bg-[#f8fafc] py-1.5 px-1 border border-[#cbd5e1] flex flex-col items-center justify-center">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight leading-tight block truncate">
+                  GHV
+                </span>
+                <span className="text-[9px] text-slate-400 font-normal leading-none my-0.5 block truncate">
+                  (BTU)
+                </span>
+                <span className="text-sm font-bold text-slate-900 leading-tight block whitespace-nowrap">
+                  1048.2
+                </span>
+              </div>
+              <div className="bg-[#f8fafc] py-1.5 px-1 border border-[#cbd5e1] flex flex-col items-center justify-center">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight leading-tight block truncate">
+                  CH₄
+                </span>
+                <span className="text-[9px] text-slate-400 font-normal leading-none my-0.5 block truncate">
+                  (%)
+                </span>
+                <span className="text-sm font-bold text-slate-900 leading-tight block whitespace-nowrap">
+                  96.64
+                </span>
               </div>
             </div>
 
-            {/* Footer Summary in Sec 4 */}
-            <div className="p-2 bg-white shadow-none rounded-none border border-slate-200 text-center font-mono text-[9px] text-slate-950 font-bold">
-              <span className="text-slate-950 font-bold font-bold">3.5 bar</span> Direct Superheated Natural Gas Feed
+            {/* 2단 (중단): [ DAILY GAS METERING ] 메인 계측 테이블 (수치 전체 중앙 정렬) */}
+            <div className="px-0.5 pt-0.5">
+              <span className="font-mono font-bold text-[10px] text-[#334155] tracking-wide block">
+                [ DAILY GAS METERING ]
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-[#cbd5e1] text-[10px] font-mono bg-white">
+                <thead>
+                  <tr className="bg-[#e2e8f0] text-[#1e293b]">
+                    <th className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[9px]"></th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      UVOL<br /><span className="text-[7.5px] font-normal text-[#475569]">(MMCF)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      CVOL<br /><span className="text-[7.5px] font-normal text-[#475569]">(MMCF)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      MASS<br /><span className="text-[7.5px] font-normal text-[#475569]">(Tonne)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      ENERGY<br /><span className="text-[7.5px] font-normal text-[#475569]">(MMBTU)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      PRESS<br /><span className="text-[7.5px] font-normal text-[#475569]">(BARG)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      TEMP<br /><span className="text-[7.5px] font-normal text-[#475569]">(°C)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      GHV<br /><span className="text-[7.5px] font-normal text-[#475569]">(BTU/SCF)</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[#0f172a]">M-101A</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.01</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.01</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.02</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">1.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">7.05</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">+32.8</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">1049.7</td>
+                  </tr>
+                  <tr className="bg-[#f0fdf4]/60 hover:bg-[#f0fdf4]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[#15803d]">M-101B</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.50</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.50</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">10.02</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">523.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">2.18</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">+23.4</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">1049.7</td>
+                  </tr>
+                  <tr className="bg-[#f8fafc] hover:bg-[#f1f5f9]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-1 text-center font-bold text-[#0f172a]">STATION</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.51</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.51</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">10.04</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">524.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">3.50</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">+28.4</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">1049.7</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* 3단 (최하단): [ GAS COMPOSITION ] 성분별 몰 분율 테이블 */}
+            <div className="flex items-center justify-between px-0.5 pt-0.5">
+              <span className="font-mono font-bold text-[10px] text-[#334155] tracking-wide block">
+                [ GAS COMPOSITION ]
+              </span>
+              <span className="font-mono text-[8.5px] font-semibold text-[#64748b]">
+                (Mol %)
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-[#cbd5e1] text-[10px] font-mono bg-white">
+                <thead>
+                  <tr className="bg-[#e2e8f0] text-[#1e293b]">
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px]">CH₄</th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px]">C₂H₆</th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px]">C₃H₈</th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px]">i-C₄</th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px]">n-C₄</th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px]">N₂</th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px]">CO₂</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">96.53</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">2.71</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.51</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.07</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.08</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.03</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">0.00</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
-        </div>
-      </div>
+          {/* ========================================================================= */}
+          {/* BLOCK 3: PLTMG POWER OUTPUT                                               */}
+          {/* ========================================================================= */}
+          <div className="flex flex-col justify-start space-y-1 p-1.5 pb-1.5 rounded-none bg-[#f1eee7] border border-[#b0aaa0] overflow-hidden">
+            {/* Block Header (Dark Slate Charcoal #3b4758) - Center Aligned */}
+            <div className="relative bg-[#3b4758] text-[#f8fafc] px-2 py-1 border border-[#334155] flex justify-center items-center">
+              <span className="font-mono font-bold text-[11px] sm:text-[12px] uppercase tracking-wider text-[#f8fafc] text-center">
+                PLTMG POWER OUTPUT
+              </span>
+              <span className="absolute right-1.5 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-none bg-[#2a3444] text-[#f8fafc] border border-[#526075] whitespace-nowrap">
+                [ 4/5 RUN / 60.0% MCR ]
+              </span>
+            </div>
 
-      {/* 4. Full Width Daily Reconciled Operational KPI Bar (Bottom Grid) */}
-      <div className="w-full bg-white border-t border-slate-300 px-4 sm:px-6 py-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-        {/* KPI 1: Cumulative Daily Gas Sendout */}
-        <div className="p-3 win-panel rounded-xs border border-slate-300 flex flex-col justify-between">
-          <span className="text-[11px] font-bold text-slate-800 block mb-1">
-            Daily Cumulative Gas Sendout (FloBoss)
-          </span>
-          <div className="flex items-baseline gap-1.5 my-1">
-            <span className="font-mono text-2xl sm:text-3xl font-black text-slate-950">
-              {totalDailySendoutNm3.toLocaleString()}
-            </span>
-            <span className="text-xs font-mono text-slate-900 font-bold">Nm³/day</span>
-          </div>
-          <span className="text-[10px] font-mono text-slate-700 font-bold block pt-1 border-t border-slate-200">
-            LNG Mass: {totalDailySendoutTon} ton/day
-          </span>
-        </div>
+            {/* 1단 (상단): [ COMBINED SUMMARY ] 플랜트 종합 요약 그리드 */}
+            <div className="px-0.5 pt-0.5">
+              <span className="font-mono font-bold text-[10px] text-[#334155] tracking-wide block">
+                [ COMBINED SUMMARY ]
+              </span>
+            </div>
 
-        {/* KPI 2: Daily Power Generation */}
-        <div className="p-3 win-panel rounded-xs border border-slate-300 flex flex-col justify-between">
-          <span className="text-[11px] font-bold text-slate-800 block mb-1">
-            Daily Gross Power Output (PLTMG)
-          </span>
-          <div className="flex items-baseline gap-1.5 my-1">
-            <span className="font-mono text-2xl sm:text-3xl font-black text-slate-950">
-              {totalDailyGenMwh.toFixed(1)}
-            </span>
-            <span className="text-xs font-mono text-slate-900 font-bold">MWh/day</span>
-          </div>
-          <span className="text-[10px] font-mono text-slate-700 font-bold block pt-1 border-t border-slate-200">
-            Thermal Energy: 531.2 MMBtu/d
-          </span>
-        </div>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-[#cbd5e1] text-[10px] font-mono bg-white">
+                <thead>
+                  <tr className="bg-[#e2e8f0] text-[#1e293b]">
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      OUTPUT<br /><span className="text-[7.5px] font-normal text-[#475569]">(MW)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      RUN<br /><span className="text-[7.5px] font-normal text-[#475569]">(ACTIVE / TOTAL)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      LOAD<br /><span className="text-[7.5px] font-normal text-[#475569]">(% MCR)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      GAS<br /><span className="text-[7.5px] font-normal text-[#475569]">(MW / %)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      DIESEL<br /><span className="text-[7.5px] font-normal text-[#475569]">(MW / %)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[9px] leading-tight">
+                      TOTAL GAS FLOW<br /><span className="text-[7.5px] font-normal text-[#475569]">(Nm³/h)</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-black text-[#0f172a]">22.05</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">4 / 5</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">60.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#15803d]">22.05 (100%)</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#64748b]">0.00 (0%)</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-black text-[#0f172a]">5,631.2</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-        {/* KPI 3: Operating Load & Efficiency */}
-        <div className="p-3 win-panel rounded-xs border border-slate-300 flex flex-col justify-between">
-          <span className="text-[11px] font-bold text-slate-800 block mb-1">
-            Avg Operating Load / Heat Efficiency
-          </span>
-          <div className="flex items-baseline gap-1.5 my-1">
-            <span className="font-mono text-2xl sm:text-3xl font-black text-slate-950">
-              18.5 MW
-            </span>
-            <span className="text-xs font-mono text-slate-900 font-bold">@ 36.1%</span>
-          </div>
-          <span className="text-[10px] font-mono text-slate-700 font-bold block pt-1 border-t border-slate-200">
-            Feed Pressure: 3.5 bar (Regulated)
-          </span>
-        </div>
+            {/* 2단 (하단): [ GENERATOR UNITS ] 개별 엔진 스키드 상태 테이블 */}
+            <div className="px-0.5 pt-0.5">
+              <span className="font-mono font-bold text-[10px] text-[#334155] tracking-wide block">
+                [ GENERATOR UNITS ]
+              </span>
+            </div>
 
-        {/* KPI 4: Active Vaporizers & Unit Distribution */}
-        <div className="p-3 win-panel rounded-xs border border-slate-300 flex flex-col justify-between">
-          <span className="text-[11px] font-bold text-slate-800 block mb-1">
-            Active Vaporizer Units & Distribution
-          </span>
-          <div className="flex items-baseline gap-1.5 my-1">
-            <span className="font-mono text-2xl sm:text-3xl font-black text-slate-950">
-              {activeVapCount} / 4 Units
-            </span>
-            <span className="text-xs font-mono text-slate-900 font-bold">Active</span>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-[#cbd5e1] text-[9.5px] font-mono bg-white">
+                <thead>
+                  <tr className="bg-[#e2e8f0] text-[#1e293b]">
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[8.5px]">ENGINE ID</th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[8.5px]">MODE</th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[8.5px]">STATUS</th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[8.5px] leading-tight">
+                      OUTPUT<br /><span className="text-[7.5px] font-normal text-[#475569]">(kW)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[8.5px] leading-tight">
+                      LOAD<br /><span className="text-[7.5px] font-normal text-[#475569]">(%)</span>
+                    </th>
+                    <th className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[8.5px] leading-tight">
+                      GAS FLOW<br /><span className="text-[7.5px] font-normal text-[#475569]">(Nm³/h)</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">GEN-01</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#475569]">Gas</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
+                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#dcfce7] text-[#15803d] border border-[#86efac]">
+                        RUN
+                      </span>
+                    </td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">5,513</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">75.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">1,407.8</td>
+                  </tr>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">GEN-02</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#475569]">Gas</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
+                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#dcfce7] text-[#15803d] border border-[#86efac]">
+                        RUN
+                      </span>
+                    </td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">5,513</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">75.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">1,407.8</td>
+                  </tr>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">GEN-03</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#475569]">Gas</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
+                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#dcfce7] text-[#15803d] border border-[#86efac]">
+                        RUN
+                      </span>
+                    </td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">5,513</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">75.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">1,407.8</td>
+                  </tr>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">GEN-04</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#475569]">Gas</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
+                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#dcfce7] text-[#15803d] border border-[#86efac]">
+                        RUN
+                      </span>
+                    </td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">5,513</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">75.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">1,407.8</td>
+                  </tr>
+                  <tr className="hover:bg-[#f8fafc]">
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#64748b]">GEN-05</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#64748b]">Diesel</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
+                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#f1f5f9] text-[#64748b] border border-[#cbd5e1]">
+                        STOP
+                      </span>
+                    </td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#64748b]">0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#64748b]">0.0</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#64748b]">0.0</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-          <span className="text-[10px] font-mono text-slate-700 font-bold block pt-1 border-t border-slate-200">
-            Unit Load: ~{perVapThroughputTon} ton/day per unit
-          </span>
+
         </div>
       </div>
     </div>

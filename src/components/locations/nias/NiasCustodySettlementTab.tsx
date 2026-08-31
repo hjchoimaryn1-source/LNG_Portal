@@ -203,46 +203,30 @@ export default function NiasCustodySettlementTab() {
   };
 
   return (
-    <div className="w-full space-y-5 animate-in fade-in duration-200 text-slate-950 font-bold font-sans">
-      {/* 1. Top Header & Action Controls Bar */}
-      <div className="bg-white shadow-none border border-slate-200 rounded-none p-4 sm:p-5 shadow-none flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-none text-[10px] font-mono font-bold bg-amber-500/15 text-white font-bold border border-amber-200">
-              <Scale className="w-3.5 h-3.5" />
-              DOMAIN 2 · SUB-TAB 4: CUSTODY HEAT SETTLEMENT
-            </span>
-            <span className="text-xs font-mono text-slate-950 font-bold win-panel px-2.5 py-0.5 rounded border border-slate-200 font-bold">
-              PLN & PAG Monthly Custody Transfer Statement
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-mono px-2.5 py-0.5 rounded border bg-emerald-50 text-emerald-700 text-slate-950 font-bold border-emerald-200">
-              <ShieldCheck className="w-3.5 h-3.5 text-slate-950 font-bold" />
-              Reconciliation Status: VERIFIED
-            </span>
-          </div>
-
-          <h3 className="text-sm sm:text-base font-bold text-slate-950 font-bold flex items-center gap-2 mt-2">
-            <Flame className="w-4 h-4 text-slate-950 font-bold" />
-            Official Monthly Gas Custody Metering & LNG Terminal Stock Master Audit
+    <div className="w-full space-y-4 animate-in fade-in duration-150 font-sans pb-10">
+      {/* 1. Top Header & Action Controls Bar (Classic Slate Header) */}
+      <div className="bg-[#334155] text-white border-2 border-slate-600 rounded-none p-3 sm:py-2.5 sm:px-4 shadow-2xs flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <h3 className="text-xs sm:text-sm font-black text-white font-mono uppercase tracking-wide">
+            MONTHLY REPORT
           </h3>
-          <p className="text-xs text-slate-950 font-bold mt-0.5">
-            Synchronized with Meter Runs M-101A/B, Unloading Skids, PLTMG Gas-to-Power acceptance, and 3-Hub stock matrices.
-          </p>
+          <span className="inline-flex items-center text-xs font-mono bg-[#1e293b] text-emerald-300 px-2 py-0.5 border border-slate-500 shadow-2xs font-bold">
+            Status: VERIFIED (NO DISPUTE)
+          </span>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2.5 flex-wrap self-start lg:self-center">
+        <div className="flex items-center gap-2 flex-wrap self-start lg:self-center font-mono text-xs">
           {/* Month Selector */}
-          <div className="flex items-center gap-1.5 win-panel px-3 py-1.5 rounded-none border border-slate-200 font-mono text-xs text-slate-950 font-bold">
-            <Calendar className="w-3.5 h-3.5 text-slate-950 font-bold" />
+          <div className="flex items-center bg-[#f1f5f9] text-slate-900 border border-slate-400 px-2.5 py-1 rounded shadow-xs font-bold">
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-transparent text-slate-950 font-bold font-bold focus:outline-none cursor-pointer"
+              className="bg-transparent text-slate-900 font-bold focus:outline-none cursor-pointer [color-scheme:light]"
             >
-              <option value="2026-07" className="bg-white shadow-none">2026-07 (July)</option>
-              <option value="2026-08" className="bg-white shadow-none">2026-08 (August)</option>
-              <option value="2026-06" className="bg-white shadow-none">2026-06 (June)</option>
+              <option value="2026-07">2026-07 (July)</option>
+              <option value="2026-08">2026-08 (August)</option>
+              <option value="2026-06">2026-06 (June)</option>
             </select>
           </div>
 
@@ -250,23 +234,21 @@ export default function NiasCustodySettlementTab() {
           <button
             type="button"
             onClick={() => setIsTrendOpen(!isTrendOpen)}
-            className={`px-3.5 py-1.5 rounded-none border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+            className={`px-3 py-1.5 border font-bold rounded shadow-xs cursor-pointer transition-colors ${
               isTrendOpen
-                ? 'bg-cyan-600/30 text-slate-950 font-bold border-cyan-500/50 shadow-none shadow-cyan-500/20'
-                : 'win-panel hover:bg-slate-100 text-slate-950 font-bold border-cyan-500/30'
+                ? 'bg-[#0284c7] text-white border-[#0369a1]'
+                : 'bg-[#e2e8f0] hover:bg-slate-300 active:bg-slate-400 text-slate-900 border-slate-400'
             }`}
           >
-            <LineChartIcon className="w-3.5 h-3.5 text-slate-950 font-bold" />
-            <span>{isTrendOpen ? 'Hide Trend Charts ▲' : '📈 Monthly Trend Charts (6-Axis) ▼'}</span>
+            <span>{isTrendOpen ? 'Hide Trend Charts' : 'Monthly Trend Charts'}</span>
           </button>
 
           {/* Save Report Button */}
           <button
             type="button"
             onClick={handleSaveReport}
-            className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 rounded-none text-xs font-black shadow-none shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 bg-[#059669] hover:bg-[#047857] active:bg-[#065f46] text-white border border-[#047857] shadow-xs font-black rounded cursor-pointer transition-colors"
           >
-            <Save className="w-3.5 h-3.5" />
             <span>Save Report</span>
           </button>
 
@@ -274,9 +256,8 @@ export default function NiasCustodySettlementTab() {
           <button
             type="button"
             onClick={exportAllLogsToExcel}
-            className="px-3 py-1.5 win-panel hover:bg-slate-100 text-slate-950 font-bold hover:text-slate-950 rounded-none border border-slate-200 text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3 py-1.5 bg-[#e2e8f0] hover:bg-slate-300 active:bg-slate-400 text-slate-900 border border-slate-400 shadow-xs font-bold rounded cursor-pointer transition-colors"
           >
-            <Download className="w-3.5 h-3.5 text-slate-950 font-bold" />
             <span>Export (.xlsx)</span>
           </button>
         </div>
@@ -284,8 +265,7 @@ export default function NiasCustodySettlementTab() {
 
       {/* Save Notification Toast */}
       {toastMessage && (
-        <div className="p-3 bg-emerald-500/15 border border-emerald-200 rounded-none text-xs font-mono text-white font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150 shadow-none">
-          <CheckCircle2 className="w-4 h-4 text-slate-950 font-bold shrink-0" />
+        <div className="p-2.5 bg-emerald-100 border-2 border-emerald-600 text-emerald-950 text-xs font-mono font-bold text-center shadow-xs">
           <span>{toastMessage}</span>
         </div>
       )}
@@ -294,134 +274,123 @@ export default function NiasCustodySettlementTab() {
       {/* 6-Axis Monthly Trend Charts (Collapsible / Expandable Panel)          */}
       {/* ===================================================================== */}
       {isTrendOpen && (
-        <div className="bg-white shadow-none/95 border border-cyan-500/40 rounded-3xl p-5 sm:p-6 shadow-none space-y-5 animate-in fade-in slide-in-from-top-3 duration-200">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-200 pb-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-none bg-cyan-500/15 border border-cyan-500/30">
-                <LineChartIcon className="w-5 h-5 text-slate-950 font-bold" />
-              </div>
-              <div>
-                <h4 className="text-sm sm:text-base font-bold text-slate-950 font-bold">
-                  July 2026 Complete 31-Day 6-Axis Custody & Inventory Trend Charts
-                </h4>
-                <p className="text-xs text-slate-950 font-bold">
-                  Full monthly curve: Daily Flow, Supply Pressure, Thermal Energy, Liquid Stock, Tank Balance & Cumulative Energy.
-                </p>
-              </div>
-            </div>
+        <div className="bg-white border-2 border-slate-600 rounded-none p-3.5 shadow-2xs space-y-3 animate-in fade-in duration-150 font-mono">
+          <div className="flex justify-between items-center border-b border-slate-300 pb-2">
+            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide">
+              {selectedMonth} 31-Day Custody &amp; Inventory Trend Charts
+            </h4>
             <button
               type="button"
               onClick={() => setIsTrendOpen(false)}
-              className="text-xs font-mono text-slate-950 font-bold hover:text-slate-950 px-3 py-1 win-panel rounded-none border border-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
+              className="text-xs font-mono text-slate-700 hover:text-slate-950 px-2.5 py-1 bg-slate-200 hover:bg-slate-300 rounded border border-slate-400 cursor-pointer"
             >
-              <XCircle className="w-3.5 h-3.5" />
-              <span>Close Charts</span>
+              Close
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
             {/* Chart 1: Total Flow Consumption (MSCF) */}
-            <div className="p-4 win-panel/90 rounded-none border border-slate-200 font-mono space-y-2">
+            <div className="p-3 bg-[#f8fafc] border border-slate-400 rounded-none space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-slate-950 font-bold">1. Total Flow Consumption (MSCF)</span>
-                <span className="text-[10px] text-slate-950 font-bold">Daily Gas Sendout</span>
+                <span className="font-bold text-slate-900">1. Total Flow Consumption (MSCF)</span>
+                <span className="text-[10px] text-slate-600 font-bold">Daily Sendout</span>
               </div>
-              <div className="h-52 w-full">
+              <div className="h-44 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                  <AreaChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorFlow" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.0} />
+                        <stop offset="5%" stopColor="#0284c7" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#0284c7" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-                    <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 9 }} interval={4} />
-                    <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} domain={['auto', 'auto']} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '11px', borderRadius: '8px' }} />
-                    <Area type="monotone" dataKey="flowMscf" stroke="#06b6d4" strokeWidth={2} fillOpacity={1} fill="url(#colorFlow)" name="Flow (MSCF)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                    <XAxis dataKey="day" tick={{ fill: '#475569', fontSize: 9 }} interval={4} />
+                    <YAxis tick={{ fill: '#475569', fontSize: 9 }} domain={['auto', 'auto']} />
+                    <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#94a3b8', fontSize: '11px' }} />
+                    <Area type="monotone" dataKey="flowMscf" stroke="#0284c7" strokeWidth={2} fillOpacity={1} fill="url(#colorFlow)" name="Flow (MSCF)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* Chart 2: Pressure Supply (Barg) */}
-            <div className="p-4 win-panel/90 rounded-none border border-slate-200 font-mono space-y-2">
+            <div className="p-3 bg-[#f8fafc] border border-slate-400 rounded-none space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-slate-950 font-bold">2. Pressure Supply (Barg)</span>
-                <span className="text-[10px] text-slate-950 font-bold">Header Pressure</span>
+                <span className="font-bold text-slate-900">2. Pressure Supply (Barg)</span>
+                <span className="text-[10px] text-slate-600 font-bold">Header Pressure</span>
               </div>
-              <div className="h-52 w-full">
+              <div className="h-44 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={trendData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-                    <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 9 }} interval={4} />
-                    <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} domain={[1.8, 2.5]} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '11px', borderRadius: '8px' }} />
-                    <Bar dataKey="pressureBarg" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Press (Barg)" />
+                  <BarChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                    <XAxis dataKey="day" tick={{ fill: '#475569', fontSize: 9 }} interval={4} />
+                    <YAxis tick={{ fill: '#475569', fontSize: 9 }} domain={[1.8, 2.5]} />
+                    <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#94a3b8', fontSize: '11px' }} />
+                    <Bar dataKey="pressureBarg" fill="#d97706" radius={[2, 2, 0, 0]} name="Press (Barg)" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* Chart 3: Total Energy (MMBTU) */}
-            <div className="p-4 win-panel/90 rounded-none border border-slate-200 font-mono space-y-2">
+            <div className="p-3 bg-[#f8fafc] border border-slate-400 rounded-none space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-slate-950 font-bold">3. Total Energy (MMBTU)</span>
-                <span className="text-[10px] text-slate-950 font-bold">Daily Heat Transfer</span>
+                <span className="font-bold text-slate-900">3. Total Energy (MMBTU)</span>
+                <span className="text-[10px] text-slate-600 font-bold">Daily Heat</span>
               </div>
-              <div className="h-52 w-full">
+              <div className="h-44 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-                    <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 9 }} interval={4} />
-                    <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} domain={['auto', 'auto']} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '11px', borderRadius: '8px' }} />
-                    <Line type="monotone" dataKey="energyMmbtu" stroke="#10b981" strokeWidth={2.5} dot={{ r: 2 }} name="Energy (MMBTU)" />
+                  <LineChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                    <XAxis dataKey="day" tick={{ fill: '#475569', fontSize: 9 }} interval={4} />
+                    <YAxis tick={{ fill: '#475569', fontSize: 9 }} domain={['auto', 'auto']} />
+                    <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#94a3b8', fontSize: '11px' }} />
+                    <Line type="monotone" dataKey="energyMmbtu" stroke="#059669" strokeWidth={2} dot={{ r: 2 }} name="Energy (MMBTU)" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* Chart 4: Total Stock LNG (m³ Liq) */}
-            <div className="p-4 win-panel/90 rounded-none border border-slate-200 font-mono space-y-2">
+            <div className="p-3 bg-[#f8fafc] border border-slate-400 rounded-none space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-slate-950 font-bold">4. Total Stock LNG (m³ Liq)</span>
-                <span className="text-[10px] text-slate-950 font-bold">Onsite Terminal Stock</span>
+                <span className="font-bold text-slate-900">4. Total Stock LNG (m³ Liq)</span>
+                <span className="text-[10px] text-slate-600 font-bold">Terminal Stock</span>
               </div>
-              <div className="h-52 w-full">
+              <div className="h-44 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                  <AreaChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorStock" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-                    <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 9 }} interval={4} />
-                    <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} domain={[0, 600]} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '11px', borderRadius: '8px' }} />
-                    <Area type="monotone" dataKey="stockM3Liq" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorStock)" name="Stock (m³ Liq)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                    <XAxis dataKey="day" tick={{ fill: '#475569', fontSize: 9 }} interval={4} />
+                    <YAxis tick={{ fill: '#475569', fontSize: 9 }} domain={[0, 600]} />
+                    <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#94a3b8', fontSize: '11px' }} />
+                    <Area type="monotone" dataKey="stockM3Liq" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#colorStock)" name="Stock (m³)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* Chart 5: Laden vs Empty Tank Balance */}
-            <div className="p-4 win-panel/90 rounded-none border border-slate-200 font-mono space-y-2">
+            <div className="p-3 bg-[#f8fafc] border border-slate-400 rounded-none space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-slate-950 font-bold">5. Laden vs Empty Tank Balance</span>
-                <span className="text-[10px] text-slate-950 font-bold">Daily 24-Tank Yard State</span>
+                <span className="font-bold text-slate-900">5. Laden vs Empty Tank Balance</span>
+                <span className="text-[10px] text-slate-600 font-bold">Yard State</span>
               </div>
-              <div className="h-52 w-full">
+              <div className="h-44 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={trendData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-                    <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 9 }} interval={4} />
-                    <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} domain={[0, 24]} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '11px', borderRadius: '8px' }} />
-                    <Bar dataKey="ladenTanks" stackId="a" fill="#10b981" name="Laden (Full)" />
+                  <BarChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                    <XAxis dataKey="day" tick={{ fill: '#475569', fontSize: 9 }} interval={4} />
+                    <YAxis tick={{ fill: '#475569', fontSize: 9 }} domain={[0, 24]} />
+                    <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#94a3b8', fontSize: '11px' }} />
+                    <Bar dataKey="ladenTanks" stackId="a" fill="#059669" name="Laden" />
                     <Bar dataKey="emptyTanks" stackId="a" fill="#64748b" name="Empty" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -429,25 +398,25 @@ export default function NiasCustodySettlementTab() {
             </div>
 
             {/* Chart 6: Total Energy Accumulative (MMBTU) */}
-            <div className="p-4 win-panel/90 rounded-none border border-slate-200 font-mono space-y-2">
+            <div className="p-3 bg-[#f8fafc] border border-slate-400 rounded-none space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-slate-950 font-bold">6. Total Energy Accumulative (MMBTU)</span>
-                <span className="text-[10px] text-slate-950 font-bold">Monthly Accumulated Total</span>
+                <span className="font-bold text-slate-900">6. Cumulative Energy (MMBTU)</span>
+                <span className="text-[10px] text-slate-600 font-bold">Monthly Accumulation</span>
               </div>
-              <div className="h-52 w-full">
+              <div className="h-44 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                  <AreaChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorCum" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0} />
+                        <stop offset="5%" stopColor="#e11d48" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#e11d48" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-                    <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 9 }} interval={4} />
-                    <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} domain={['auto', 'auto']} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '11px', borderRadius: '8px' }} />
-                    <Area type="monotone" dataKey="cumEnergyMmbtu" stroke="#f43f5e" strokeWidth={2} fillOpacity={1} fill="url(#colorCum)" name="Cum. Energy (MMBTU)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                    <XAxis dataKey="day" tick={{ fill: '#475569', fontSize: 9 }} interval={4} />
+                    <YAxis tick={{ fill: '#475569', fontSize: 9 }} domain={['auto', 'auto']} />
+                    <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#94a3b8', fontSize: '11px' }} />
+                    <Area type="monotone" dataKey="cumEnergyMmbtu" stroke="#e11d48" strokeWidth={2} fillOpacity={1} fill="url(#colorCum)" name="Cum. MMBTU" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -457,116 +426,117 @@ export default function NiasCustodySettlementTab() {
       )}
 
       {/* ===================================================================== */}
-      {/* 2. Official 4 Data Matrices (Always-Visible View)                     */}
+      {/* 2. Official Data Matrices (Always-Visible View)                        */}
       {/* ===================================================================== */}
 
       {/* MATRIX 1: Dual Metering Runs (Meter A & Meter B Side-by-Side) */}
-      <div className="space-y-3">
-        <div className="flex justify-between items-center px-1">
-          <h4 className="text-xs sm:text-sm font-bold text-slate-950 font-bold flex items-center gap-2">
-            <Layers className="w-4 h-4 text-slate-950 font-bold" />
-            <span>Matrix 1: Joint Metering Runs (M-101A Custody & M-101B Check Meter)</span>
+      <div className="space-y-2.5">
+        <div className="flex justify-between items-center px-1 font-mono">
+          <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wide">
+            Matrix 1: Joint Metering Runs (M-101A Custody &amp; M-101B Check Meter)
           </h4>
-          <span className="text-[11px] font-mono text-slate-950 font-bold">
-            Flow Computer Integration: Floboss S600+ Standard
+          <span className="text-xs text-slate-600 font-bold">
+            Floboss S600+ Standard
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
           {/* Meter A Panel */}
-          <div className="p-4 bg-white shadow-none rounded-none border border-cyan-500/30 shadow-none space-y-3">
-            <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-              <span className="text-sm font-bold text-slate-950 font-bold flex items-center gap-1.5">
-                <Gauge className="w-4 h-4 text-slate-950 font-bold" />
+          <div className="bg-white border-2 border-slate-600 rounded-none shadow-2xs overflow-hidden">
+            <div className="bg-[#334155] text-white p-2.5 flex justify-between items-center border-b-2 border-slate-600">
+              <span className="font-black text-xs uppercase tracking-wide">
                 Metering Run A (M-101A) - Primary Custody
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950/80 text-slate-950 font-bold border border-cyan-500/40">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1e293b] text-cyan-300 border border-slate-500">
                 ACTIVE CUSTODY
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="p-2.5 win-panel rounded-none border border-slate-200/80">
-                <span className="text-[10px] text-slate-950 font-bold block mb-0.5">Totalizer Flow</span>
-                <span className="text-base font-black text-slate-950 font-bold block">14,820.5 MSCF</span>
-                <span className="text-[9px] text-slate-950 font-bold block">Cum: 246.3 MMSCF</span>
+            <div className="p-3 space-y-2.5">
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-2 bg-[#f8fafc] border border-slate-400 rounded-none text-center">
+                  <span className="text-[10px] text-slate-600 font-bold uppercase block mb-0.5">Totalizer Flow</span>
+                  <span className="text-base font-black text-slate-900 block text-center">14,820.5 MSCF</span>
+                  <span className="text-[10px] text-slate-500 block text-center">Cum: 246.3 MMSCF</span>
+                </div>
+                <div className="p-2 bg-[#f8fafc] border border-slate-400 rounded-none text-center">
+                  <span className="text-[10px] text-slate-600 font-bold uppercase block mb-0.5">Energy Flow</span>
+                  <span className="text-base font-black text-slate-900 block text-center">15,539.4 MMBTU</span>
+                  <span className="text-[10px] text-slate-500 block text-center">Cum: 258,240 MMBTU</span>
+                </div>
               </div>
-              <div className="p-2.5 win-panel rounded-none border border-slate-200/80">
-                <span className="text-[10px] text-slate-950 font-bold block mb-0.5">Energy Flow</span>
-                <span className="text-base font-black text-slate-950 font-bold block">15,539.4 MMBTU</span>
-                <span className="text-[9px] text-slate-950 font-bold block">Cum: 258,240 MMBTU</span>
-              </div>
-            </div>
 
-            <div className="p-2.5 win-panel rounded-none border border-slate-200/80 space-y-1.5 text-[11px]">
-              <div className="flex justify-between text-slate-950 font-bold">
-                <span>Supply Pressure:</span>
-                <span className="text-slate-950 font-bold font-bold">2.18 Barg</span>
-              </div>
-              <div className="flex justify-between text-slate-950 font-bold">
-                <span>Gas Temperature:</span>
-                <span className="text-slate-950 font-bold font-bold">24.5 °C</span>
-              </div>
-              <div className="flex justify-between text-slate-950 font-bold">
-                <span>Gas Density:</span>
-                <span className="text-slate-950 font-bold font-bold">2.18 kg/m³</span>
-              </div>
-              <div className="flex justify-between text-slate-950 font-bold">
-                <span>GHV / Heating Value:</span>
-                <span className="text-slate-950 font-bold font-bold">1,048.5 BTU/SCF</span>
-              </div>
-              <div className="flex justify-between text-slate-950 font-bold">
-                <span>Differential Pressure:</span>
-                <span className="text-slate-950 font-bold font-bold">14.2 inH2O</span>
+              <div className="p-2.5 bg-[#f1f5f9] border border-slate-300 rounded text-xs space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Supply Pressure:</span>
+                  <span className="text-slate-900 font-bold">2.18 Barg</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Gas Temperature:</span>
+                  <span className="text-slate-900 font-bold">24.5 °C</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Gas Density:</span>
+                  <span className="text-slate-900 font-bold">2.18 kg/m³</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">GHV / Heating Value:</span>
+                  <span className="text-slate-900 font-bold">1,048.5 BTU/SCF</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Differential Pressure:</span>
+                  <span className="text-slate-900 font-bold">14.2 inH2O</span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Meter B Panel */}
-          <div className="p-4 bg-white shadow-none rounded-none border border-slate-200 shadow-none space-y-3">
-            <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-              <span className="text-sm font-bold text-slate-950 font-bold flex items-center gap-1.5">
-                <Gauge className="w-4 h-4 text-slate-950 font-bold" />
+          <div className="bg-white border-2 border-slate-600 rounded-none shadow-2xs overflow-hidden">
+            <div className="bg-[#334155] text-white p-2.5 flex justify-between items-center border-b-2 border-slate-600">
+              <span className="font-black text-xs uppercase tracking-wide">
                 Metering Run B (M-101B) - Check Meter
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-950 font-bold border border-slate-200">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-800 border border-slate-400">
                 CHECK STANDBY
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="p-2.5 win-panel rounded-none border border-slate-200/80">
-                <span className="text-[10px] text-slate-950 font-bold block mb-0.5">Totalizer Flow</span>
-                <span className="text-base font-black text-slate-950 font-bold block">14,815.2 MSCF</span>
-                <span className="text-[9px] text-slate-950 font-bold block">Delta: -0.04%</span>
+            <div className="p-3 space-y-2.5">
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-2 bg-[#f8fafc] border border-slate-400 rounded-none text-center">
+                  <span className="text-[10px] text-slate-600 font-bold uppercase block mb-0.5">Totalizer Flow</span>
+                  <span className="text-base font-black text-slate-900 block text-center">14,815.2 MSCF</span>
+                  <span className="text-[10px] text-slate-500 block text-center">Delta: -0.04%</span>
+                </div>
+                <div className="p-2 bg-[#f8fafc] border border-slate-400 rounded-none text-center">
+                  <span className="text-[10px] text-slate-600 font-bold uppercase block mb-0.5">Energy Flow</span>
+                  <span className="text-base font-black text-slate-900 block text-center">15,533.8 MMBTU</span>
+                  <span className="text-[10px] text-slate-500 block text-center">Delta: -5.6 MMBTU</span>
+                </div>
               </div>
-              <div className="p-2.5 win-panel rounded-none border border-slate-200/80">
-                <span className="text-[10px] text-slate-950 font-bold block mb-0.5">Energy Flow</span>
-                <span className="text-base font-black text-slate-950 font-bold block">15,533.8 MMBTU</span>
-                <span className="text-[9px] text-slate-950 font-bold block">Delta: -5.6 MMBTU</span>
-              </div>
-            </div>
 
-            <div className="p-2.5 win-panel rounded-none border border-slate-200/80 space-y-1.5 text-[11px]">
-              <div className="flex justify-between text-slate-950 font-bold">
-                <span>Supply Pressure:</span>
-                <span className="text-slate-950 font-bold font-bold">2.16 Barg</span>
-              </div>
-              <div className="flex justify-between text-slate-950 font-bold">
-                <span>Gas Temperature:</span>
-                <span className="text-slate-950 font-bold font-bold">24.2 °C</span>
-              </div>
-              <div className="flex justify-between text-slate-950 font-bold">
-                <span>Gas Density:</span>
-                <span className="text-slate-950 font-bold font-bold">2.18 kg/m³</span>
-              </div>
-              <div className="flex justify-between text-slate-950 font-bold">
-                <span>GHV / Heating Value:</span>
-                <span className="text-slate-950 font-bold font-bold">1,048.5 BTU/SCF</span>
-              </div>
-              <div className="flex justify-between text-slate-950 font-bold">
-                <span>Differential Pressure:</span>
-                <span className="text-slate-950 font-bold font-bold">13.8 inH2O</span>
+              <div className="p-2.5 bg-[#f1f5f9] border border-slate-300 rounded text-xs space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Supply Pressure:</span>
+                  <span className="text-slate-900 font-bold">2.16 Barg</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Gas Temperature:</span>
+                  <span className="text-slate-900 font-bold">24.2 °C</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Gas Density:</span>
+                  <span className="text-slate-900 font-bold">2.18 kg/m³</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">GHV / Heating Value:</span>
+                  <span className="text-slate-900 font-bold">1,048.5 BTU/SCF</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Differential Pressure:</span>
+                  <span className="text-slate-900 font-bold">13.8 inH2O</span>
+                </div>
               </div>
             </div>
           </div>
@@ -574,194 +544,187 @@ export default function NiasCustodySettlementTab() {
       </div>
 
       {/* MATRIX 2 & 4: Unloading Summary & Financial Settlement Ledger */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 font-mono text-xs">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 font-mono text-xs">
         {/* MATRIX 2: Unloading LNG ISO Tank & PLTMG Fuel Gas Summary */}
-        <div className="p-4 bg-white shadow-none rounded-none border border-slate-200 shadow-none space-y-3 flex flex-col justify-between">
+        <div className="bg-white border-2 border-slate-600 rounded-none shadow-2xs flex flex-col justify-between overflow-hidden">
           <div>
-            <div className="flex justify-between items-center border-b border-slate-200 pb-2 mb-3">
-              <span className="text-sm font-bold text-slate-950 font-bold flex items-center gap-1.5">
-                <Droplets className="w-4 h-4 text-slate-950 font-bold" />
-                Matrix 2: Unloading ISO Tank & PLTMG Fuel Gas Acceptance
+            <div className="bg-[#334155] text-white p-2.5 flex justify-between items-center border-b-2 border-slate-600">
+              <span className="font-black text-xs uppercase tracking-wide">
+                Matrix 2: Unloading ISO Tank &amp; PLTMG Fuel Gas Acceptance
               </span>
-              <span className="text-[10px] text-slate-950 font-bold">Monthly Net Batch</span>
+              <span className="text-[10px] text-slate-300 font-bold">Monthly Net Batch</span>
             </div>
 
-            <div className="space-y-2.5">
-              <div className="p-3 win-panel rounded-none border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-950 font-bold">ISO Tanks Offloaded in Month:</span>
-                <span className="text-slate-950 font-bold font-bold text-sm">28 Tanks</span>
+            <div className="p-3 space-y-2">
+              <div className="p-2.5 bg-[#f8fafc] border border-slate-300 flex justify-between items-center">
+                <span className="text-slate-700 font-bold">ISO Tanks Offloaded in Month:</span>
+                <span className="text-slate-900 font-black text-xs">28 Tanks</span>
               </div>
-              <div className="p-3 win-panel rounded-none border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-950 font-bold">Total Liquid Vaporized:</span>
-                <span className="text-slate-950 font-bold font-bold text-sm">1,153.6 m³ Liq (≈ 29,226 MSCF)</span>
+              <div className="p-2.5 bg-[#f8fafc] border border-slate-300 flex justify-between items-center">
+                <span className="text-slate-700 font-bold">Total Liquid Vaporized:</span>
+                <span className="text-slate-900 font-black text-xs">1,153.6 m³ Liq (≈ 29,226 MSCF)</span>
               </div>
-              <div className="p-3 win-panel rounded-none border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-950 font-bold">Avg Offload Pressure & Temp:</span>
-                <span className="text-slate-950 font-bold font-bold text-sm">0.76 MPa | -156.4 °C</span>
+              <div className="p-2.5 bg-[#f8fafc] border border-slate-300 flex justify-between items-center">
+                <span className="text-slate-700 font-bold">Avg Offload Press &amp; Temp:</span>
+                <span className="text-slate-900 font-black text-xs">0.76 MPa | -156.4 °C</span>
               </div>
-              <div className="p-3 win-panel rounded-none border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-950 font-bold">PLTMG Custody Energy Received:</span>
-                <span className="text-slate-950 font-bold font-black text-sm">{monthlyMetrics.totalEnergyMmbtu.toLocaleString()} MMBTU</span>
+              <div className="p-2.5 bg-[#f8fafc] border border-slate-300 flex justify-between items-center">
+                <span className="text-slate-700 font-bold">PLTMG Custody Energy Received:</span>
+                <span className="text-slate-900 font-black text-xs">{monthlyMetrics.totalEnergyMmbtu.toLocaleString()} MMBTU</span>
               </div>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-200/80 flex justify-between items-center text-[10px] text-slate-950 font-bold">
+          <div className="p-2.5 bg-[#e2e8f0] border-t border-slate-300 flex justify-between items-center text-[10px] text-slate-700 font-bold">
             <span>Terminal Sendout Efficiency:</span>
-            <span className="text-slate-950 font-bold font-bold">98.50% (Line Loss: 1.50%)</span>
+            <span className="text-slate-900 font-black">98.50% (Line Loss: 1.50%)</span>
           </div>
         </div>
 
         {/* MATRIX 4: Custody Heat Settlement & Billing Ledger */}
-        <div className="p-4 bg-white shadow-none rounded-none border border-amber-200 shadow-none space-y-3 flex flex-col justify-between">
+        <div className="bg-white border-2 border-slate-600 rounded-none shadow-2xs flex flex-col justify-between overflow-hidden">
           <div>
-            <div className="flex justify-between items-center border-b border-slate-200 pb-2 mb-3">
-              <span className="text-sm font-bold text-slate-950 font-bold flex items-center gap-1.5">
-                <DollarSign className="w-4 h-4 text-slate-950 font-bold" />
-                Matrix 4: Heat Settlement & Financial Invoice Reconciliation
+            <div className="bg-[#334155] text-white p-2.5 flex justify-between items-center border-b-2 border-slate-600">
+              <span className="font-black text-xs uppercase tracking-wide">
+                Matrix 4: Heat Settlement &amp; Invoice Reconciliation
               </span>
-              <span className="text-[10px] text-slate-950 font-bold">Rate: ${unitPriceUSD.toFixed(2)}/MMBTU</span>
+              <span className="text-[10px] text-slate-300 font-bold">Rate: ${unitPriceUSD.toFixed(2)}/MMBTU</span>
             </div>
 
-            <div className="space-y-2.5">
-              <div className="p-3 win-panel rounded-none border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-950 font-bold">Gross Invoiced Heat (PAG):</span>
-                <span className="text-slate-950 font-bold font-black text-sm">
+            <div className="p-3 space-y-2">
+              <div className="p-2.5 bg-[#f8fafc] border border-slate-300 flex justify-between items-center">
+                <span className="text-slate-700 font-bold">Gross Invoiced Heat (PAG):</span>
+                <span className="text-slate-900 font-black text-xs">
                   ${monthlyMetrics.totalInvoicedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
                 </span>
               </div>
-              <div className="p-3 win-panel rounded-none border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-950 font-bold">Accepted Heat Payment (PLN):</span>
-                <span className="text-slate-950 font-bold font-black text-sm">
+              <div className="p-2.5 bg-[#f8fafc] border border-slate-300 flex justify-between items-center">
+                <span className="text-slate-700 font-bold">Accepted Heat Payment (PLN):</span>
+                <span className="text-slate-900 font-black text-xs">
                   ${monthlyMetrics.acceptedAmountUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
                 </span>
               </div>
-              <div className="p-3 win-panel rounded-none border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-950 font-bold">Variance & Reconciliation Gap:</span>
-                <span className="text-slate-950 font-bold font-bold text-sm">
+              <div className="p-2.5 bg-[#f8fafc] border border-slate-300 flex justify-between items-center">
+                <span className="text-slate-700 font-bold">Variance &amp; Reconciliation Gap:</span>
+                <span className="text-slate-900 font-black text-xs">
                   ${monthlyMetrics.varianceUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD ({monthlyMetrics.varianceMmbtu} MMBTU)
                 </span>
               </div>
-              <div className="p-3 win-panel rounded-none border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-950 font-bold">Audit Status / Penalty Flag:</span>
-                <span className="text-slate-950 font-bold font-bold text-sm flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+              <div className="p-2.5 bg-[#f8fafc] border border-slate-300 flex justify-between items-center">
+                <span className="text-slate-700 font-bold">Audit Status / Penalty Flag:</span>
+                <span className="text-emerald-700 font-black text-xs">
                   NO DISPUTE (Variance ≤ 2.0%)
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-200/80 flex justify-between items-center text-[10px] text-slate-950 font-bold">
+          <div className="p-2.5 bg-[#e2e8f0] border-t border-slate-300 flex justify-between items-center text-[10px] text-slate-700 font-bold">
             <span>Billing Cycle:</span>
-            <span className="text-slate-950 font-bold font-bold">Monthly Calendar Cut-off (24:00 WIB)</span>
+            <span className="text-slate-900 font-black">Monthly Calendar Cut-off (24:00 WIB)</span>
           </div>
         </div>
       </div>
 
       {/* MATRIX 3: LNG Stock Location Matrix (3-Hub Table View) */}
-      <div className="space-y-3">
-        <div className="flex justify-between items-center px-1">
-          <h4 className="text-xs sm:text-sm font-bold text-slate-950 font-bold flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-slate-950 font-bold" />
-            <span>Matrix 3: 3-Hub LNG Stock Location & ISO Tank Distribution Matrix</span>
+      <div className="space-y-2.5">
+        <div className="flex justify-between items-center px-1 font-mono">
+          <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wide">
+            Matrix 3: 3-Hub LNG Stock Location &amp; ISO Tank Distribution Matrix
           </h4>
-          <span className="text-[11px] font-mono text-slate-950 font-bold">
-            Total Fleet Size: 120 Units (40ft/45ft ISO Tanks)
+          <span className="text-xs text-slate-600 font-bold">
+            Total Fleet: 120 Units
           </span>
         </div>
 
-        <div className="overflow-x-auto rounded-none border border-slate-200 shadow-none bg-white shadow-none font-mono text-xs">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto border-2 border-slate-600 rounded-none bg-white shadow-2xs font-mono text-xs">
+          <table className="w-full text-center border-collapse">
             <thead>
-              <tr className="win-panel text-slate-950 font-bold border-b border-slate-200 text-[10px] uppercase font-bold tracking-wider">
-                <th className="px-1.5 py-0.5">Location & Facility Stream</th>
-                <th className="px-3 py-3 text-center">Laden (Full)</th>
-                <th className="px-3 py-3 text-center">Empty</th>
-                <th className="px-3 py-3 text-center text-slate-950 font-bold">Total Tanks</th>
-                <th className="px-3 py-3 text-right text-slate-950 font-bold">Stock (m³ Liq)</th>
-                <th className="px-3 py-3 text-right text-slate-950 font-bold font-bold">Stock (MSCF)</th>
-                <th className="px-3 py-3 text-right">Avg Press (MPa)</th>
-                <th className="px-3 py-3 text-right">Avg Temp (°C)</th>
-                <th className="px-1.5 py-0.5 text-center">Hub Status</th>
+              <tr className="bg-[#cbd5e1] text-slate-900 border-b-2 border-slate-600 text-[10px] uppercase font-black tracking-wider">
+                <th className="px-2 py-2 border-r border-slate-400 text-center">Location &amp; Facility Stream</th>
+                <th className="px-2 py-2 border-r border-slate-400 text-center">Laden (Full)</th>
+                <th className="px-2 py-2 border-r border-slate-400 text-center">Empty</th>
+                <th className="px-2 py-2 border-r border-slate-400 text-center">Total Tanks</th>
+                <th className="px-2 py-2 border-r border-slate-400 text-center">Stock (m³ Liq)</th>
+                <th className="px-2 py-2 border-r border-slate-400 text-center">Stock (MSCF)</th>
+                <th className="px-2 py-2 border-r border-slate-400 text-center">Avg Press (MPa)</th>
+                <th className="px-2 py-2 border-r border-slate-400 text-center">Avg Temp (°C)</th>
+                <th className="px-2 py-2 text-center">Hub Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-950 font-bold">
+            <tbody className="divide-y divide-slate-300 text-slate-900">
               {/* Hub 1: On Site (Nias Terminal) */}
-              <tr className="hover:bg-slate-100/40">
-                <td className="px-1.5 py-0.5 font-bold text-slate-950 font-bold flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-none bg-emerald-400 animate-pulse" />
-                  <span>On Site (Nias Yard & Vaporizer Bays)</span>
+              <tr className="hover:bg-slate-100">
+                <td className="px-2 py-2 font-bold border-r border-slate-300 text-center">
+                  On Site (Nias Yard &amp; Vaporizer Bays)
                 </td>
-                <td className="px-3 py-3 text-center font-bold text-slate-950 font-bold">{stockInventory.onsite.laden}</td>
-                <td className="px-3 py-3 text-center text-slate-950 font-bold">{stockInventory.onsite.empty}</td>
-                <td className="px-3 py-3 text-center font-bold text-slate-950 font-bold">{stockInventory.onsite.total}</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold font-bold">{stockInventory.onsite.volM3.toFixed(1)} m³</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold font-black">{stockInventory.onsite.mscf.toLocaleString()}</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold">{stockInventory.onsite.press.toFixed(2)}</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold">{stockInventory.onsite.temp.toFixed(1)}</td>
-                <td className="px-1.5 py-0.5 text-center">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 text-slate-950 font-bold border border-emerald-200">
+                <td className="px-2 py-2 border-r border-slate-300 font-bold text-center">{stockInventory.onsite.laden}</td>
+                <td className="px-2 py-2 border-r border-slate-300 text-center">{stockInventory.onsite.empty}</td>
+                <td className="px-2 py-2 border-r border-slate-300 font-bold text-center">{stockInventory.onsite.total}</td>
+                <td className="px-2 py-2 border-r border-slate-300 font-bold text-center">{stockInventory.onsite.volM3.toFixed(1)} m³</td>
+                <td className="px-2 py-2 border-r border-slate-300 font-black text-center">{stockInventory.onsite.mscf.toLocaleString()}</td>
+                <td className="px-2 py-2 border-r border-slate-300 text-center">{stockInventory.onsite.press.toFixed(2)}</td>
+                <td className="px-2 py-2 border-r border-slate-300 text-center">{stockInventory.onsite.temp.toFixed(1)}</td>
+                <td className="px-2 py-2 text-center">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-400">
                     DISCHARGING
                   </span>
                 </td>
               </tr>
 
               {/* Hub 2: On Ship (MV Saviour) */}
-              <tr className="hover:bg-slate-100/40">
-                <td className="px-1.5 py-0.5 font-bold text-slate-950 font-bold flex items-center gap-2">
-                  <Ship className="w-4 h-4 text-slate-950 font-bold" />
-                  <span>On Ship (MV. Saviour Marine Deck)</span>
+              <tr className="hover:bg-slate-100">
+                <td className="px-2 py-2 font-bold border-r border-slate-300 text-center">
+                  On Ship (MV. Saviour Marine Deck)
                 </td>
-                <td className="px-3 py-3 text-center font-bold text-slate-950 font-bold">{stockInventory.ship.laden}</td>
-                <td className="px-3 py-3 text-center text-slate-950 font-bold">{stockInventory.ship.empty}</td>
-                <td className="px-3 py-3 text-center font-bold text-slate-950 font-bold">{stockInventory.ship.total}</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold font-bold">{stockInventory.ship.volM3.toFixed(1)} m³</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold font-black">{stockInventory.ship.mscf.toLocaleString()}</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold">{stockInventory.ship.press.toFixed(2)}</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold">{stockInventory.ship.temp.toFixed(1)}</td>
-                <td className="px-1.5 py-0.5 text-center">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950/80 text-slate-950 font-bold border border-blue-200">
+                <td className="px-2 py-2 border-r border-slate-300 font-bold text-center">{stockInventory.ship.laden}</td>
+                <td className="px-2 py-2 border-r border-slate-300 text-center">{stockInventory.ship.empty}</td>
+                <td className="px-2 py-2 border-r border-slate-300 font-bold text-center">{stockInventory.ship.total}</td>
+                <td className="px-2 py-2 border-r border-slate-300 font-bold text-center">{stockInventory.ship.volM3.toFixed(1)} m³</td>
+                <td className="px-2 py-2 border-r border-slate-300 font-black text-center">{stockInventory.ship.mscf.toLocaleString()}</td>
+                <td className="px-2 py-2 border-r border-slate-300 text-center">{stockInventory.ship.press.toFixed(2)}</td>
+                <td className="px-2 py-2 border-r border-slate-300 text-center">{stockInventory.ship.temp.toFixed(1)}</td>
+                <td className="px-2 py-2 text-center">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-400">
                     IN TRANSIT
                   </span>
                 </td>
               </tr>
 
               {/* Hub 3: On Perta Arun Gas */}
-              <tr className="hover:bg-slate-100/40">
-                <td className="px-1.5 py-0.5 font-bold text-slate-950 font-bold flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-slate-950 font-bold" />
-                  <span>On Perta Arun Gas (Arun Hub Yard)</span>
+              <tr className="hover:bg-slate-100">
+                <td className="px-2 py-2 font-bold border-r border-slate-300 text-center">
+                  On Perta Arun Gas (Arun Hub Yard)
                 </td>
-                <td className="px-3 py-3 text-center font-bold text-slate-950 font-bold">{stockInventory.arun.laden}</td>
-                <td className="px-3 py-3 text-center text-slate-950 font-bold">{stockInventory.arun.empty}</td>
-                <td className="px-3 py-3 text-center font-bold text-slate-950 font-bold">{stockInventory.arun.total}</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold font-bold">{stockInventory.arun.volM3.toFixed(1)} m³</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold font-black">{stockInventory.arun.mscf.toLocaleString()}</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold">{stockInventory.arun.press.toFixed(2)}</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold">{stockInventory.arun.temp.toFixed(1)}</td>
-                <td className="px-1.5 py-0.5 text-center">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 text-slate-950 font-bold border border-amber-200">
+                <td className="px-2 py-2 border-r border-slate-300 font-bold text-center">{stockInventory.arun.laden}</td>
+                <td className="px-2 py-2 border-r border-slate-300 text-center">{stockInventory.arun.empty}</td>
+                <td className="px-2 py-2 border-r border-slate-300 font-bold text-center">{stockInventory.arun.total}</td>
+                <td className="px-2 py-2 border-r border-slate-300 font-bold text-center">{stockInventory.arun.volM3.toFixed(1)} m³</td>
+                <td className="px-2 py-2 border-r border-slate-300 font-black text-center">{stockInventory.arun.mscf.toLocaleString()}</td>
+                <td className="px-2 py-2 border-r border-slate-300 text-center">{stockInventory.arun.press.toFixed(2)}</td>
+                <td className="px-2 py-2 border-r border-slate-300 text-center">{stockInventory.arun.temp.toFixed(1)}</td>
+                <td className="px-2 py-2 text-center">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-400">
                     LOADING / BUFFER
                   </span>
                 </td>
               </tr>
 
               {/* Summary Total Row */}
-              <tr className="win-panel/90 font-bold border-t-2 border-slate-200">
-                <td className="px-1.5 py-0.5 text-slate-950 font-bold">Total 120 Fleet Distribution:</td>
-                <td className="px-3 py-3 text-center text-slate-950 font-bold font-black">
+              <tr className="bg-[#94a3b8] text-slate-950 font-black border-t-2 border-slate-600">
+                <td className="px-2 py-2 text-center border-r border-slate-500">Total 120 Fleet Distribution:</td>
+                <td className="px-2 py-2 text-center border-r border-slate-500">
                   {stockInventory.onsite.laden + stockInventory.ship.laden + stockInventory.arun.laden}
                 </td>
-                <td className="px-3 py-3 text-center text-slate-950 font-bold">
+                <td className="px-2 py-2 text-center border-r border-slate-500">
                   {stockInventory.onsite.empty + stockInventory.ship.empty + stockInventory.arun.empty}
                 </td>
-                <td className="px-3 py-3 text-center text-slate-950 font-black">{stockInventory.totalFleetTanks}</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold font-black">{stockInventory.totalFleetVolM3.toFixed(1)} m³</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold font-black">{stockInventory.totalFleetMscf.toLocaleString()} MSCF</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold">-</td>
-                <td className="px-3 py-3 text-right text-slate-950 font-bold">-</td>
-                <td className="px-1.5 py-0.5 text-center text-slate-950 font-bold">100% RECONCILED</td>
+                <td className="px-2 py-2 text-center border-r border-slate-500">{stockInventory.totalFleetTanks}</td>
+                <td className="px-2 py-2 text-center border-r border-slate-500">{stockInventory.totalFleetVolM3.toFixed(1)} m³</td>
+                <td className="px-2 py-2 text-center border-r border-slate-500">{stockInventory.totalFleetMscf.toLocaleString()} MSCF</td>
+                <td className="px-2 py-2 text-center border-r border-slate-500">-</td>
+                <td className="px-2 py-2 text-center border-r border-slate-500">-</td>
+                <td className="px-2 py-2 text-center">100% RECONCILED</td>
               </tr>
             </tbody>
           </table>

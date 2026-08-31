@@ -11,6 +11,7 @@ import NiasTankMassBalanceTab from './nias/NiasTankMassBalanceTab';
 import NiasProcessPIDDiagram from './nias/NiasProcessPIDDiagram';
 import NiasOperationalOverviewTab from './nias/NiasOperationalOverviewTab';
 import NiasGasQualityTab from './nias/NiasGasQualityTab';
+import NiasGasQualityLedgerTab from './nias/NiasGasQualityLedgerTab';
 import NiasPowerThermalTab from './nias/NiasPowerThermalTab';
 import NiasCustodySettlementTab from './nias/NiasCustodySettlementTab';
 import { exportToCSV } from '../../utils/exportCsv';
@@ -115,6 +116,7 @@ export type NiasTankSubTab =
 export type NiasRegasSubTab =
   | 'GAS_PROCESS_TELEMETRY'
   | 'GC_GAS_QUALITY'
+  | 'GAS_METERING_LEDGER'
   | 'PLTMG_POWER_OUTPUT'
   | 'CUSTODY_HEAT_SETTLEMENT';
 
@@ -193,6 +195,8 @@ export default function NiasTerminalView({
     if (
       initialSubTab === 'GAS_PROCESS_TELEMETRY' ||
       initialSubTab === 'GC_GAS_QUALITY' ||
+      initialSubTab === 'GAS_METERING_LEDGER' ||
+      initialSubTab === 'NIAS_GAS_METERING_LEDGER' ||
       initialSubTab === 'PLTMG_POWER_OUTPUT' ||
       initialSubTab === 'CUSTODY_HEAT_SETTLEMENT' ||
       initialSubTab === 'FOUR_BAY_REGAS_GC' ||
@@ -237,7 +241,8 @@ export default function NiasTerminalView({
 
   // Determine initial regas sub-tab
   const resolveInitialRegasTab = (): NiasRegasSubTab => {
-    if (initialSubTab === 'GC_GAS_QUALITY') return 'GC_GAS_QUALITY';
+    if (initialSubTab === 'GC_GAS_QUALITY' || initialSubTab === 'NIAS_GC_GAS_QUALITY') return 'GC_GAS_QUALITY';
+    if (initialSubTab === 'GAS_METERING_LEDGER' || initialSubTab === 'NIAS_GAS_METERING_LEDGER') return 'GAS_METERING_LEDGER';
     if (initialSubTab === 'PLTMG_POWER_OUTPUT') return 'PLTMG_POWER_OUTPUT';
     if (initialSubTab === 'CUSTODY_HEAT_SETTLEMENT' || initialSubTab === 'HEAT_SETTLEMENT') {
       return 'CUSTODY_HEAT_SETTLEMENT';
@@ -1964,7 +1969,7 @@ export default function NiasTerminalView({
                 regasSubTab === 'GAS_PROCESS_TELEMETRY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
               }`}
             >
-              Gas Process &amp; State Telemetry
+              GAS PROCESS
             </button>
 
             <button
@@ -1974,7 +1979,17 @@ export default function NiasTerminalView({
                 regasSubTab === 'GC_GAS_QUALITY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
               }`}
             >
-              GC &amp; Gas Quality Stream
+              GAS METERING - LOG
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setRegasSubTab('GAS_METERING_LEDGER')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
+                regasSubTab === 'GAS_METERING_LEDGER' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+              }`}
+            >
+              GAS METERING (LEDGER)
             </button>
 
             <button
@@ -1984,7 +1999,7 @@ export default function NiasTerminalView({
                 regasSubTab === 'PLTMG_POWER_OUTPUT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
               }`}
             >
-              PLTMG Power &amp; Thermal Output
+              PLTMG POWER
             </button>
 
             <button
@@ -1994,7 +2009,7 @@ export default function NiasTerminalView({
                 regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
               }`}
             >
-              Custody Heat Settlement
+              MONTHLY REPORT
               {disputeCount > 0 && (
                 <span className="ml-1 px-1.5 py-0.2 bg-red-600 text-white font-mono text-[9px] font-bold">
                   {disputeCount} Alert
@@ -5084,79 +5099,26 @@ export default function NiasTerminalView({
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 1: 📊 GAS PROCESS & STATE TELEMETRY (ROLLBACK)    */}
+      {/* DOMAIN 2 - SUB-TAB 1: 1. PROCESS TELEMETRY                            */}
       {/* ==================================================================== */}
       {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_PROCESS_TELEMETRY' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white shadow-none/80 border border-slate-200 rounded-none p-4 sm:p-5">
-            <div>
-              <h3 className="text-sm sm:text-base font-bold text-slate-950 font-bold flex items-center gap-2">
-                <Activity className="w-4 h-4 text-slate-950 font-bold" />
-                End-to-End Gas Process & Cryogenic State Transformation Telemetry
-              </h3>
-              <p className="text-xs text-slate-950 font-bold">
-                Continuous physical state tracking: HP Cryo Liquid (-126°C, 0.81 MPa) ➔ Ambient Phase Change ➔ Regulated Header (28°C, 0.35 MPa) ➔ PLTMG Turbines
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-bold bg-emerald-500/15 text-white font-bold border border-emerald-200">
-                <span className="w-2 h-2 rounded-none bg-emerald-400 animate-ping" />
-                Continuous Vaporization Active
-              </span>
-            </div>
-          </div>
-
-          {/* Interactive SCADA P&ID Process Diagram */}
+        <div className="animate-in fade-in duration-200">
           <NiasProcessPIDDiagram />
-
-          {/* Detailed Sendout Gauges */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
-              <span className="text-[11px] text-slate-950 font-bold font-bold block mb-1">Total Daily Sendout</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-slate-950 font-bold">108,000</span>
-                <span className="text-xs text-slate-950 font-bold">Nm³/day</span>
-              </div>
-              <span className="text-[10px] text-slate-950 font-bold">Mass: 54.0 Tons LNG</span>
-            </div>
-
-            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
-              <span className="text-[11px] text-slate-950 font-bold font-bold block mb-1">Sendout Header Pressure</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-slate-950 font-bold">0.35</span>
-                <span className="text-xs text-slate-950 font-bold">MPa (50.8 PSI)</span>
-              </div>
-              <span className="text-[10px] text-slate-950 font-bold">Target Turbine Regulator</span>
-            </div>
-
-            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
-              <span className="text-[11px] text-slate-950 font-bold font-bold block mb-1">Sendout Gas Temperature</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-slate-950 font-bold">+28.4</span>
-                <span className="text-xs text-slate-950 font-bold">°C</span>
-              </div>
-              <span className="text-[10px] text-slate-950 font-bold">Ambient Superheat Margin</span>
-            </div>
-
-            <div className="p-4 bg-white shadow-none/80 border border-slate-200 rounded-none">
-              <span className="text-[11px] text-slate-950 font-bold font-bold block mb-1">Pressure Drop Across Skid</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-black text-slate-950 font-bold">0.44</span>
-                <span className="text-xs text-slate-950 font-bold">MPa ΔP</span>
-              </div>
-              <span className="text-[10px] text-slate-950 font-bold">From 0.79 MPa Bay Inlet</span>
-            </div>
-          </div>
         </div>
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 2: 🔬 GC & GAS QUALITY STREAM                     */}
+      {/* DOMAIN 2 - SUB-TAB 2: ✍️ GAS METERING (ENTRY)                        */}
       {/* ==================================================================== */}
       {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GC_GAS_QUALITY' && (
         <NiasGasQualityTab />
+      )}
+
+      {/* ==================================================================== */}
+      {/* DOMAIN 2 - SUB-TAB 3: 📊 GAS METERING (LEDGER)                       */}
+      {/* ==================================================================== */}
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_METERING_LEDGER' && (
+        <NiasGasQualityLedgerTab />
       )}
 
       {/* ==================================================================== */}

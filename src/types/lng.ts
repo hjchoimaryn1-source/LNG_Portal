@@ -38,6 +38,7 @@ export type SubProcessKey =
   // Nias Regas Terminal - Domain 2: Regas System & Gas-to-Power
   | 'NIAS_GAS_PROCESS_TELEMETRY'
   | 'NIAS_GC_GAS_QUALITY'
+  | 'NIAS_GAS_METERING_LEDGER'
   | 'NIAS_PLTMG_POWER_OUTPUT'
   | 'NIAS_HEAT_SETTLEMENT'
   // Legacy Aliases for Backwards Compatibility

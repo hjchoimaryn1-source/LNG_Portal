@@ -153,7 +153,13 @@ const SUBPROCESS_TITLES: Record<
   },
   NIAS_GC_GAS_QUALITY: {
     location: 'LNG-Process',
-    process: 'Nias Regas Unit > Regas & Power > GC Gas Quality Stream',
+    process: 'Nias Regas Unit > Regas & Power > Gas Metering - Log',
+    icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  NIAS_GAS_METERING_LEDGER: {
+    location: 'LNG-Process',
+    process: 'Nias Regas Unit > Regas & Power > Gas Metering (Ledger)',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
@@ -403,6 +409,7 @@ function LNGPortalInner() {
       key === 'NIAS_LAYDOWN_3_HEEL' ||
       key === 'NIAS_GAS_PROCESS_TELEMETRY' ||
       key === 'NIAS_GC_GAS_QUALITY' ||
+      key === 'NIAS_GAS_METERING_LEDGER' ||
       key === 'NIAS_PLTMG_POWER_OUTPUT' ||
       key === 'NIAS_HEAT_SETTLEMENT'
     ) {
@@ -726,6 +733,9 @@ function LNGPortalInner() {
               )}
               {(activeKey === 'NIAS_GC_GAS_QUALITY' || activeSubTab === 'NIAS_GC_GAS_QUALITY') && (
                 <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="GC_GAS_QUALITY" />
+              )}
+              {(activeKey === 'NIAS_GAS_METERING_LEDGER' || activeSubTab === 'NIAS_GAS_METERING_LEDGER') && (
+                <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="GAS_METERING_LEDGER" />
               )}
               {(activeKey === 'NIAS_PLTMG_POWER_OUTPUT' || activeSubTab === 'NIAS_PLTMG_POWER_OUTPUT') && (
                 <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="PLTMG_POWER_OUTPUT" />

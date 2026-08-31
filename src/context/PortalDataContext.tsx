@@ -17,6 +17,8 @@ import {
   SettlementLedgerEntry,
   VoyageHeelLoss,
 } from '../types/lng';
+import { GasQualityMasterRecord } from '../types/gasQuality';
+import { INITIAL_GAS_QUALITY_MASTER_RECORDS } from '../data/gasQualityMasterData';
 import {
   loadAllPortalData,
   parseRawCSV,
@@ -32,6 +34,7 @@ export const STORAGE_KEYS = {
   PLN_REGAS_CONSUMPTION_LOGS: 'nias_pln_regas_consumption_logs',
   FLEET_TANKS_STATE: 'nias_fleet_tanks_state',
   SETTLEMENT_RECORDS: 'nias_settlement_records',
+  GAS_QUALITY_MASTER_RECORDS: 'nias_gas_quality_master_records',
 };
 
 // Safe LocalStorage Getter
@@ -111,9 +114,11 @@ interface PortalDataContextType {
   gasCompositions: GasCompositionComparison[];
   activeBays: ActiveBayState[];
   ingestionStatuses: DataIngestionStatus[];
+  gasQualityRecords: GasQualityMasterRecord[];
   isLoading: boolean;
   error: string | null;
   // Actions
+  saveGasQualityRecord: (record: GasQualityMasterRecord) => void;
   updateTankLog: (tankNo: string, updatedFields: Partial<FleetTankItem>) => void;
   moveTankLocation: (
     tankIdOrNo: string,
@@ -165,9 +170,28 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
   const [gasCompositions, setGasCompositions] = useState<GasCompositionComparison[]>([]);
   const [activeBays, setActiveBays] = useState<ActiveBayState[]>([]);
   const [ingestionStatuses, setIngestionStatuses] = useState<DataIngestionStatus[]>([]);
+  const [gasQualityRecords, setGasQualityRecords] = useState<GasQualityMasterRecord[]>(() =>
+    loadFromStorage(STORAGE_KEYS.GAS_QUALITY_MASTER_RECORDS, INITIAL_GAS_QUALITY_MASTER_RECORDS)
+  );
   const [rawFileContents, setRawFileContents] = useState<Record<string, Record<string, string>[]>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const saveGasQualityRecord = useCallback((newRecord: GasQualityMasterRecord) => {
+    setGasQualityRecords((prev) => {
+      const existingIndex = prev.findIndex((r) => r.date === newRecord.date);
+      let updated: GasQualityMasterRecord[];
+      if (existingIndex >= 0) {
+        updated = [...prev];
+        updated[existingIndex] = newRecord;
+      } else {
+        updated = [newRecord, ...prev];
+      }
+      updated.sort((a, b) => (b.date > a.date ? 1 : -1));
+      saveToStorage(STORAGE_KEYS.GAS_QUALITY_MASTER_RECORDS, updated);
+      return updated;
+    });
+  }, []);
 
   const initData = useCallback(async () => {
     setIsLoading(true);
@@ -1143,8 +1167,10 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
         gasCompositions,
         activeBays,
         ingestionStatuses,
+        gasQualityRecords,
         isLoading,
         error,
+        saveGasQualityRecord,
         updateTankLog,
         moveTankLocation,
         batchTransitionTanks,

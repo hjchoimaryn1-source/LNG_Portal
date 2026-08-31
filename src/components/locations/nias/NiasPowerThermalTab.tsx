@@ -386,36 +386,20 @@ export default function NiasPowerThermalTab() {
   }, [engines, activeDischargingTank, yardInventorySummary, engineSpec]);
 
   return (
-    <div className="w-full space-y-5 animate-in fade-in duration-200 text-slate-950 font-bold font-sans">
-      {/* 1. Top Experion DCS Command Banner */}
-      <div className="bg-white shadow-none border border-slate-200 rounded-none p-4 sm:p-5 shadow-none flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-none text-[10px] font-mono font-bold bg-amber-500/15 text-white font-bold border border-amber-200">
-              <Zap className="w-3.5 h-3.5" />
-              PLTMG GUNUNGSITOLI (5 × {(engineSpec.mcrKwPerUnit / 1000).toFixed(2)} MW = {summary.totalPlantMcrMw.toFixed(2)} MW)
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs font-mono text-slate-950 font-bold win-panel px-2.5 py-0.5 rounded border border-slate-200 font-bold">
-              <ShieldCheck className="w-3.5 h-3.5 text-slate-950 font-bold" />
-              MAN 7L 51/60 DF (MCR {engineSpec.mcrKwPerUnit.toLocaleString()} kW | NCR {engineSpec.ncrKwPerUnit.toLocaleString()} kW)
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-mono px-2.5 py-0.5 rounded border win-panel text-slate-950 font-bold border-emerald-200 font-bold">
-              <Edit3 className="w-3.5 h-3.5 text-slate-950 font-bold" />
-              Daily Operational Entry Mode
-            </span>
-          </div>
-
-          <h3 className="text-sm sm:text-base font-bold text-slate-950 font-bold flex items-center gap-2 mt-2">
-            <Cpu className="w-4 h-4 text-slate-950 font-bold" />
-            MAN 7L 51/60 DF 5-Engine Generator Dispatch & Thermal Efficiency Log
+    <div className="w-full space-y-4 animate-in fade-in duration-150 font-sans pb-10">
+      {/* 1. Top Experion DCS Command Banner (Classic Slate Header) */}
+      <div className="bg-[#334155] text-white border-2 border-slate-600 rounded-none p-3 sm:py-2.5 sm:px-4 shadow-2xs flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <h3 className="text-xs sm:text-sm font-black text-white font-mono uppercase tracking-wide">
+            PLTMG MONITOR
           </h3>
-          <p className="text-xs text-slate-950 font-bold mt-0.5">
-            Live Feed: Active Discharging Tank <strong className="text-slate-950 font-bold">{activeDischargingTank.tankNo}</strong> ({activeDischargingTank.levelPct.toFixed(1)}% / {activeDischargingTank.remainingNm3.toLocaleString()} Nm³) | Yard Inventory: {yardInventorySummary.fullCount} Full Tanks ({(yardInventorySummary.totalRemainingNm3 / 1000).toFixed(1)}k Nm³).
-          </p>
+          <span className="inline-flex items-center text-xs font-mono bg-[#1e293b] text-emerald-300 px-2 py-0.5 border border-slate-500 shadow-2xs font-bold">
+            Active Tank: <strong>{activeDischargingTank.tankNo}</strong> ({activeDischargingTank.levelPct.toFixed(1)}%)
+          </span>
         </div>
 
         {/* Quick Action Controls */}
-        <div className="flex items-center gap-2.5 flex-wrap self-start lg:self-center">
+        <div className="flex items-center gap-2 flex-wrap self-start lg:self-center font-mono text-xs">
           {/* Spec Settings Modal Trigger */}
           <button
             type="button"
@@ -423,33 +407,30 @@ export default function NiasPowerThermalTab() {
               setDraftSpec({ ...engineSpec });
               setIsSpecModalOpen(true);
             }}
-            className="px-3 py-1.5 win-panel hover:bg-slate-100 text-slate-950 font-bold rounded-none border border-amber-200 text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer shadow-none hover:border-blue-400 transition-colors"
+            className="px-3 py-1.5 bg-[#e2e8f0] hover:bg-slate-300 active:bg-slate-400 text-slate-900 border border-slate-400 shadow-xs font-bold rounded cursor-pointer transition-colors"
           >
-            <Settings className="w-3.5 h-3.5 text-slate-950 font-bold" />
-            <span>⚙️ MAN Spec Settings</span>
+            <span>MAN Spec Settings</span>
           </button>
 
           {/* Reference Table Button */}
           <button
             type="button"
             onClick={() => setShowSpecTable(!showSpecTable)}
-            className={`px-3 py-1.5 rounded-none border text-xs font-mono flex items-center gap-1.5 cursor-pointer transition-colors ${
+            className={`px-3 py-1.5 border font-bold rounded shadow-xs cursor-pointer transition-colors ${
               showSpecTable
-                ? 'bg-cyan-600/30 text-slate-950 font-bold border-cyan-500/50 shadow-none'
-                : 'win-panel hover:bg-slate-100 text-slate-950 font-bold border-slate-200'
+                ? 'bg-[#0284c7] text-white border-[#0369a1]'
+                : 'bg-[#e2e8f0] hover:bg-slate-300 active:bg-slate-400 text-slate-900 border-slate-400'
             }`}
           >
-            <Table className="w-3.5 h-3.5 text-slate-950 font-bold" />
-            <span>{showSpecTable ? 'Hide Spec Table' : '📊 MAN 7L Spec Table'}</span>
+            <span>{showSpecTable ? 'Hide Spec Table' : 'MAN 7L Spec Table'}</span>
           </button>
 
           {/* Save Dispatch Log Button */}
           <button
             type="button"
             onClick={handleSaveDispatchLog}
-            className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 rounded-none text-xs font-black shadow-none shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 bg-[#059669] hover:bg-[#047857] active:bg-[#065f46] text-white border border-[#047857] shadow-xs font-black rounded cursor-pointer transition-colors"
           >
-            <Save className="w-3.5 h-3.5" />
             <span>Save Dispatch Log</span>
           </button>
 
@@ -457,124 +438,82 @@ export default function NiasPowerThermalTab() {
           <button
             type="button"
             onClick={() => setEngines(INITIAL_ENGINES)}
-            title="Reset 5 Engines to Default Nominal Values"
-            className="p-1.5 win-panel hover:bg-slate-100 text-slate-950 font-bold rounded-none border border-slate-200 transition-colors cursor-pointer"
+            title="Reset 5 Engines to Nominal Values"
+            className="px-2.5 py-1.5 bg-[#e2e8f0] hover:bg-slate-300 active:bg-slate-400 text-slate-900 border border-slate-400 shadow-xs font-bold rounded cursor-pointer transition-colors"
           >
-            <RefreshCw className="w-4 h-4 win-tab-inactive" />
+            <span>Reset</span>
           </button>
         </div>
       </div>
 
       {/* Save Notification Toast */}
       {toastMessage && (
-        <div className="p-3 bg-emerald-500/15 border border-emerald-200 rounded-none text-xs font-mono text-white font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150 shadow-none">
-          <CheckCircle2 className="w-4 h-4 text-slate-950 font-bold shrink-0" />
+        <div className="p-2.5 bg-emerald-100 border-2 border-emerald-600 text-emerald-950 text-xs font-mono font-bold text-center shadow-xs">
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* 2. Top Summary KPI Cards (Power Usage Summary) */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* Card 1: Total Combined Output */}
-        <div className="p-4 bg-white shadow-none rounded-none border border-amber-200 shadow-none font-mono flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] text-slate-950 font-bold font-bold uppercase tracking-wider block">
-                Total Combined Output
-              </span>
-              <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-amber-500/20 text-white font-bold border border-amber-200">
-                {summary.runningCount}/5 RUN
-              </span>
-            </div>
-            <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-950 font-bold">
-                {summary.totalMw.toFixed(2)}
-              </span>
-              <span className="text-xs text-slate-950 font-bold font-bold">MW</span>
-              <span className="text-xs text-slate-950 font-bold">({summary.totalKw.toLocaleString()} kW)</span>
-            </div>
+      {/* 2. Top Summary: 4 Unified Consolidated KPI Cards (Classic SCADA Style) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Card 1: TOTAL GENERATION & LOAD */}
+        <div className="bg-white border-2 border-slate-600 rounded-none overflow-hidden font-mono flex flex-col justify-between shadow-2xs">
+          <div className="bg-[#2d3748] text-white py-1 px-2 text-center text-[10px] font-bold uppercase tracking-wider flex justify-between items-center">
+            <span className="flex-1 text-center">TOTAL GENERATION &amp; LOAD</span>
+            <span className="bg-[#1e293b] text-amber-300 px-1.5 py-0.2 border border-slate-500 text-[9px] font-bold">
+              {summary.runningCount}/5 RUN
+            </span>
           </div>
-          <div className="mt-2 pt-2 border-t border-slate-200/80 flex justify-between items-center text-[10px]">
-            <span className="text-slate-950 font-bold">Plant Load Factor:</span>
-            <span className="text-slate-950 font-bold font-bold">
-              {summary.loadFactorPct.toFixed(1)}% of {summary.totalPlantMcrMw.toFixed(2)} MW MCR
+          <div className="p-3 flex flex-col items-center justify-center text-center">
+            <span className="text-xl sm:text-2xl font-black text-slate-900 block text-center">
+              {summary.totalMw.toFixed(2)} <span className="text-xs font-bold text-slate-500">MW</span>
+            </span>
+            <span className="text-[11px] text-slate-600 font-bold mt-1 text-center">
+              {summary.totalKw.toLocaleString()} kW ({summary.loadFactorPct.toFixed(1)}% of {summary.totalPlantMcrMw.toFixed(2)} MW)
             </span>
           </div>
         </div>
 
-        {/* Card 2: Power Usage by Gas */}
-        <div className="p-4 bg-white shadow-none rounded-none border border-emerald-200 shadow-none font-mono flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] text-slate-950 font-bold font-bold uppercase tracking-wider block">
-                Power Usage by Gas (LNG)
-              </span>
-              <Flame className="w-4 h-4 text-slate-950 font-bold" />
-            </div>
-            <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-950 font-bold">
-                {summary.gasMw.toFixed(2)}
-              </span>
-              <span className="text-xs text-slate-950 font-bold font-bold">MW</span>
-              <span className="text-xs text-slate-950 font-bold">({summary.gasKw.toLocaleString()} kW)</span>
-            </div>
+        {/* Card 2: FUEL POWER USAGE SHARE */}
+        <div className="bg-white border-2 border-slate-600 rounded-none overflow-hidden font-mono flex flex-col justify-between shadow-2xs">
+          <div className="bg-[#2d3748] text-white py-1 px-2 text-center text-[10px] font-bold uppercase tracking-wider">
+            FUEL POWER USAGE SHARE
           </div>
-          <div className="mt-2 pt-2 border-t border-slate-200/80 flex justify-between items-center text-[10px]">
-            <span className="text-slate-950 font-bold">Gas Dispatch Share:</span>
-            <span className="text-slate-950 font-bold font-bold">
-              {summary.totalKw > 0 ? ((summary.gasKw / summary.totalKw) * 100).toFixed(1) : '0.0'}%
+          <div className="p-3 flex flex-col items-center justify-center text-center">
+            <span className="text-xl sm:text-2xl font-black text-emerald-700 block text-center">
+              {summary.totalKw > 0 ? ((summary.gasKw / summary.totalKw) * 100).toFixed(1) : '0.0'}% <span className="text-xs font-bold text-slate-500">Gas</span>
+            </span>
+            <span className="text-[11px] text-slate-600 font-bold mt-1 text-center">
+              {summary.gasMw.toFixed(2)} MW Gas / {summary.dieselMw.toFixed(2)} MW Diesel
             </span>
           </div>
         </div>
 
-        {/* Card 3: Power Usage by Diesel */}
-        <div className="p-4 bg-white shadow-none rounded-none border border-slate-200 shadow-none font-mono flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] text-slate-950 font-bold font-bold uppercase tracking-wider block">
-                Power Usage by Diesel (HSD)
-              </span>
-              <Fuel className="w-4 h-4 text-slate-950 font-bold" />
-            </div>
-            <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-950 font-bold">
-                {summary.dieselMw.toFixed(2)}
-              </span>
-              <span className="text-xs text-slate-950 font-bold font-bold">MW</span>
-              <span className="text-xs text-slate-950 font-bold">({summary.dieselKw.toLocaleString()} kW)</span>
-            </div>
+        {/* Card 3: GAS DEMAND & CONSUMPTION */}
+        <div className="bg-white border-2 border-slate-600 rounded-none overflow-hidden font-mono flex flex-col justify-between shadow-2xs">
+          <div className="bg-[#2d3748] text-white py-1 px-2 text-center text-[10px] font-bold uppercase tracking-wider">
+            GAS DEMAND &amp; CONSUMPTION
           </div>
-          <div className="mt-2 pt-2 border-t border-slate-200/80 flex justify-between items-center text-[10px]">
-            <span className="text-slate-950 font-bold">Diesel Backup Share:</span>
-            <span className="text-slate-950 font-bold font-bold">
-              {summary.totalKw > 0 ? ((summary.dieselKw / summary.totalKw) * 100).toFixed(1) : '0.0'}%
+          <div className="p-3 flex flex-col items-center justify-center text-center">
+            <span className="text-xl sm:text-2xl font-black text-slate-900 block text-center">
+              {summary.totalGasFlowNm3h.toLocaleString(undefined, { maximumFractionDigits: 1 })} <span className="text-xs font-bold text-slate-500">Nm³/h</span>
+            </span>
+            <span className="text-[11px] text-slate-600 font-bold mt-1 text-center">
+              {summary.deliveredMmbtuDay.toLocaleString(undefined, { maximumFractionDigits: 1 })} MMBtu/d | {summary.deliveredMassTonneDay.toFixed(2)} T/d
             </span>
           </div>
         </div>
 
-        {/* Card 4: Specific Fuel Consumption & 2-Tier Autonomy Buffer */}
-        <div className="p-4 bg-white shadow-none rounded-none border border-cyan-500/30 shadow-none font-mono flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] text-slate-950 font-bold font-bold uppercase tracking-wider block">
-                SFC & Autonomy Buffer
-              </span>
-              <TrendingUp className="w-4 h-4 text-slate-950 font-bold" />
-            </div>
-            <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-950 font-bold">
-                {summary.activeTankAutonomyHours.toFixed(1)}
-              </span>
-              <span className="text-xs text-slate-950 font-bold font-bold">Hours</span>
-              <span className="text-[10px] text-slate-950 font-bold font-bold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
-                {activeDischargingTank.tankNo}
-              </span>
-            </div>
+        {/* Card 4: AUTONOMY BUFFER (TANK & YARD) */}
+        <div className="bg-white border-2 border-slate-600 rounded-none overflow-hidden font-mono flex flex-col justify-between shadow-2xs">
+          <div className="bg-[#2d3748] text-white py-1 px-2 text-center text-[10px] font-bold uppercase tracking-wider">
+            AUTONOMY BUFFER (TANK &amp; YARD)
           </div>
-          <div className="mt-2 pt-2 border-t border-slate-200/80 flex justify-between items-center text-[10px]">
-            <span className="text-slate-950 font-bold">Total Yard ({yardInventorySummary.fullCount} Tanks):</span>
-            <span className="text-slate-950 font-bold font-bold">
-              {summary.yardTotalAutonomyHours.toFixed(1)} Hours
+          <div className="p-3 flex flex-col items-center justify-center text-center">
+            <span className="text-xl sm:text-2xl font-black text-cyan-800 block text-center">
+              {summary.activeTankAutonomyHours.toFixed(1)} <span className="text-xs font-bold text-slate-500">Hours ({activeDischargingTank.tankNo})</span>
+            </span>
+            <span className="text-[11px] text-slate-600 font-bold mt-1 text-center">
+              Yard Total: {summary.yardTotalAutonomyHours.toFixed(1)} Hours ({yardInventorySummary.fullCount} Tanks)
             </span>
           </div>
         </div>
@@ -582,39 +521,36 @@ export default function NiasPowerThermalTab() {
 
       {/* Optional: Official Reference Load Curve Table */}
       {showSpecTable && (
-        <div className="p-4 sm:p-5 win-panel/90 rounded-none border border-cyan-500/30 shadow-none animate-in fade-in slide-in-from-top-2 duration-200 font-mono text-xs space-y-3">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Table className="w-4 h-4 text-slate-950 font-bold" />
-              <h4 className="font-bold text-slate-950 font-bold text-sm">
-                Official MAN 7L 51/60 DF Engine Load & Autonomy Reference Table
-              </h4>
-            </div>
-            <span className="text-[11px] text-slate-950 font-bold">
-              MCR {engineSpec.mcrKwPerUnit.toLocaleString()} kW | NCR {engineSpec.ncrKwPerUnit.toLocaleString()} kW | Heat Rate {engineSpec.heatRateKjKwh.toLocaleString()} kJ/kWh | Gas LHV {engineSpec.referenceLhvKjNm3.toLocaleString()} kJ/Nm³ | Active Tank: {activeDischargingTank.tankNo} ({activeDischargingTank.remainingNm3.toLocaleString()} Nm³)
+        <div className="bg-white border-2 border-slate-600 rounded-none p-3.5 shadow-2xs font-mono text-xs space-y-2.5">
+          <div className="flex justify-between items-center border-b border-slate-300 pb-2">
+            <h4 className="font-black text-slate-900 text-xs uppercase tracking-wide">
+              MAN 7L 51/60 DF Engine Load &amp; Autonomy Reference Table
+            </h4>
+            <span className="text-[11px] text-slate-600 font-bold">
+              MCR {engineSpec.mcrKwPerUnit.toLocaleString()} kW | Heat Rate {engineSpec.heatRateKjKwh.toLocaleString()} kJ/kWh
             </span>
           </div>
 
-          <div className="overflow-x-auto rounded-none border border-slate-200">
-            <table className="w-full text-xs text-left border-collapse font-mono">
+          <div className="overflow-x-auto border border-slate-400">
+            <table className="w-full text-xs text-center border-collapse font-mono">
               <thead>
-                <tr className="bg-white shadow-none text-slate-950 font-bold border-b border-slate-200 text-[10px] uppercase font-bold text-center">
-                  <th className="px-1.5 py-0.5 text-left">Load (% MCR)</th>
-                  <th className="px-1.5 py-0.5 text-right text-slate-950 font-bold">Output (kW)</th>
-                  <th className="px-1.5 py-0.5 text-right">Heat Rate (kJ/kWh)</th>
-                  <th className="px-1.5 py-0.5 text-right text-slate-950 font-bold font-bold">Gas Flow (Nm³/h)</th>
-                  <th className="px-1.5 py-0.5 text-right">SFC (Nm³/kWh)</th>
-                  <th className="px-1.5 py-0.5 text-right text-slate-950 font-bold">Active Tank ({activeDischargingTank.tankNo})</th>
-                  <th className="px-1.5 py-0.5 text-right text-slate-950 font-bold font-bold">{yardInventorySummary.fullCount} Yard Tanks Hours</th>
+                <tr className="bg-[#cbd5e1] text-slate-900 border-b border-slate-500 text-[10px] uppercase font-black">
+                  <th className="px-2 py-1.5 border-r border-slate-400 text-center">Load (% MCR)</th>
+                  <th className="px-2 py-1.5 border-r border-slate-400 text-center">Output (kW)</th>
+                  <th className="px-2 py-1.5 border-r border-slate-400 text-center">Heat Rate (kJ/kWh)</th>
+                  <th className="px-2 py-1.5 border-r border-slate-400 text-center">Gas Flow (Nm³/h)</th>
+                  <th className="px-2 py-1.5 border-r border-slate-400 text-center">SFC (Nm³/kWh)</th>
+                  <th className="px-2 py-1.5 border-r border-slate-400 text-center">Active Tank ({activeDischargingTank.tankNo})</th>
+                  <th className="px-2 py-1.5 text-center">Yard ({yardInventorySummary.fullCount} Tanks)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-950 font-bold">
+              <tbody className="divide-y divide-slate-300 text-slate-900">
                 {[
                   { pct: 25, label: '25% (Min Load)' },
                   { pct: 50, label: '50% (Part Load)' },
                   { pct: 75, label: '75% (Base Load)' },
                   { pct: 90, label: '90% (NCR Rating)' },
-                  { pct: 100, label: '100% (MCR 100%)' },
+                  { pct: 100, label: '100% (MCR)' },
                 ].map((item) => {
                   const kw = Math.round((engineSpec.mcrKwPerUnit * item.pct) / 100);
                   const flow = calcEngineGasFlowNm3h(kw, engineSpec.heatRateKjKwh, engineSpec.referenceLhvKjNm3);
@@ -622,14 +558,14 @@ export default function NiasPowerThermalTab() {
                   const tActive = flow > 0 ? activeDischargingTank.remainingNm3 / flow : 999;
                   const tYard = flow > 0 ? yardInventorySummary.totalRemainingNm3 / flow : 999;
                   return (
-                    <tr key={item.pct} className="hover:bg-white shadow-none/50">
-                      <td className="px-1.5 py-0.5 font-bold text-slate-950 font-bold">{item.label}</td>
-                      <td className="px-1.5 py-0.5 text-right text-slate-950 font-bold font-bold">{kw.toLocaleString()} kW</td>
-                      <td className="px-1.5 py-0.5 text-right text-slate-950 font-bold">{engineSpec.heatRateKjKwh.toLocaleString()}</td>
-                      <td className="px-1.5 py-0.5 text-right text-slate-950 font-bold font-bold">{flow.toFixed(1)} Nm³/h</td>
-                      <td className="px-1.5 py-0.5 text-right text-slate-950 font-bold">{sfc.toFixed(4)}</td>
-                      <td className="px-1.5 py-0.5 text-right text-slate-950 font-bold font-bold">{tActive.toFixed(1)} h</td>
-                      <td className="px-1.5 py-0.5 text-right text-slate-950 font-bold font-black">{tYard.toFixed(1)} h</td>
+                    <tr key={item.pct} className="hover:bg-slate-100">
+                      <td className="px-2 py-1 border-r border-slate-300 font-bold text-center">{item.label}</td>
+                      <td className="px-2 py-1 border-r border-slate-300 font-bold text-center">{kw.toLocaleString()} kW</td>
+                      <td className="px-2 py-1 border-r border-slate-300 text-center">{engineSpec.heatRateKjKwh.toLocaleString()}</td>
+                      <td className="px-2 py-1 border-r border-slate-300 font-bold text-center">{flow.toFixed(1)}</td>
+                      <td className="px-2 py-1 border-r border-slate-300 text-center">{sfc.toFixed(4)}</td>
+                      <td className="px-2 py-1 border-r border-slate-300 font-bold text-center">{tActive.toFixed(1)} h</td>
+                      <td className="px-2 py-1 text-center font-bold">{tYard.toFixed(1)} h</td>
                     </tr>
                   );
                 })}
@@ -640,18 +576,17 @@ export default function NiasPowerThermalTab() {
       )}
 
       {/* 3. 5-Engine Grid Cards (Generator Engine 1 ~ 5) */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-1">
-          <h4 className="text-xs sm:text-sm font-bold text-slate-950 font-bold flex items-center gap-2">
-            <Layers className="w-4 h-4 text-slate-950 font-bold" />
-            <span>Honeywell Experion DCS Generator Engine Skid Units (MAN 7L 51/60 DF 1 ~ 5)</span>
+      <div className="space-y-2.5">
+        <div className="flex justify-between items-center px-1">
+          <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase font-mono tracking-wide">
+            Generator Engine Skid Units (MAN 7L 51/60 DF 1 ~ 5)
           </h4>
-          <span className="text-[11px] font-mono text-slate-950 font-bold">
-            💡 Direct Dispatch Input: Type values or toggle Run/Stop & Fuel Mode
+          <span className="text-xs font-mono text-slate-600 font-bold">
+            Total Rated Plant: {summary.totalPlantMcrMw.toFixed(2)} MW
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
           {engines.map((eng) => {
             const isRunning = eng.status === 'RUN';
             const isGas = eng.fuelMode === 'GAS';
@@ -663,179 +598,144 @@ export default function NiasPowerThermalTab() {
             return (
               <div
                 key={eng.id}
-                className={`bg-white shadow-none/95 border rounded-none p-4 shadow-none flex flex-col justify-between transition-all duration-150 ${
-                  isRunning
-                    ? isGas
-                      ? 'border-emerald-200 shadow-emerald-950/20'
-                      : 'border-yellow-500/40 shadow-yellow-950/20'
-                    : 'border-slate-200 opacity-80'
-                }`}
+                className="bg-white border-2 border-slate-600 rounded-none shadow-2xs flex flex-col justify-between overflow-hidden"
               >
-                {/* Engine Card Header */}
-                <div>
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h5 className="font-bold text-sm text-slate-950 font-bold">{eng.name}</h5>
-                      <span className="text-[10px] text-slate-950 font-bold font-mono font-bold block">
-                        {eng.tag} (MAN 7L 51/60 DF)
-                      </span>
-                    </div>
+                {/* Engine Card Header Strip */}
+                <div className="bg-[#334155] text-white p-2.5 border-b-2 border-slate-600 font-mono space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <h5 className="font-black text-xs text-white uppercase tracking-wide">
+                      {eng.name.toUpperCase()} (GEN-{eng.id})
+                    </h5>
 
                     {/* Run / Stop Toggle Button */}
                     <button
                       type="button"
                       onClick={() => toggleEngineStatus(eng.id)}
-                      className={`px-2.5 py-1 rounded-none text-[10px] font-mono font-black border transition-all cursor-pointer flex items-center gap-1 ${
+                      className={`px-2 py-0.5 text-[10px] font-mono font-black border rounded cursor-pointer transition-colors ${
                         isRunning
-                          ? 'bg-emerald-500/20 text-white font-bold border-emerald-200 shadow-none shadow-emerald-500/20'
-                          : 'bg-slate-100 text-slate-950 font-bold border-slate-200 hover:bg-slate-100'
+                          ? 'bg-emerald-600 text-white border-emerald-700'
+                          : 'bg-slate-300 text-slate-800 border-slate-400 hover:bg-slate-400'
                       }`}
                     >
-                      <span
-                        className={`w-2 h-2 rounded-none ${
-                          isRunning ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'
-                        }`}
-                      />
                       <span>{eng.status}</span>
                     </button>
                   </div>
 
+                  {/* Centered Engine Spec without Parentheses */}
+                  <div className="text-[9.5px] text-slate-300 font-bold text-center border-t border-slate-500/60 pt-1">
+                    MAN 7L 51/60 DF - MCR {engineSpec.mcrKwPerUnit.toLocaleString()} kW | NCR {engineSpec.ncrKwPerUnit.toLocaleString()} kW
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="p-3 space-y-2.5 font-mono text-xs flex-1 flex flex-col justify-between">
                   {/* Fuel Mode Selector (Gas vs Diesel) */}
-                  <div className="win-panel p-1 rounded-none border border-slate-200 flex items-center justify-between mb-3 text-xs font-mono">
+                  <div className="bg-[#cbd5e1] p-0.5 rounded border border-slate-400 flex items-center justify-between text-xs">
                     <button
                       type="button"
                       onClick={() => setEngineFuelMode(eng.id, 'GAS')}
-                      className={`flex-1 py-1 rounded-none font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                      className={`flex-1 py-1 font-bold text-center rounded transition-colors cursor-pointer ${
                         isGas
-                          ? 'bg-emerald-600/30 text-white font-bold border border-emerald-200 shadow-none'
-                          : 'win-tab-inactive'
+                          ? 'bg-[#047857] text-white shadow-xs'
+                          : 'text-slate-700 hover:text-slate-950'
                       }`}
                     >
-                      <Flame className="w-3 h-3" />
-                      <span>Gas</span>
+                      <span>GAS</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setEngineFuelMode(eng.id, 'DIESEL')}
-                      className={`flex-1 py-1 rounded-none font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                      className={`flex-1 py-1 font-bold text-center rounded transition-colors cursor-pointer ${
                         !isGas
-                          ? 'bg-yellow-600/30 text-slate-950 font-bold border border-yellow-500/40 shadow-none'
-                          : 'win-tab-inactive'
+                          ? 'bg-[#b45309] text-white shadow-xs'
+                          : 'text-slate-700 hover:text-slate-950'
                       }`}
                     >
-                      <Fuel className="w-3 h-3" />
-                      <span>Diesel</span>
+                      <span>DIESEL</span>
                     </button>
                   </div>
 
                   {/* Main Active Power Display & Load % */}
-                  <div className="p-2.5 win-panel rounded-none border border-slate-200/80 mb-3 font-mono">
-                    <div className="flex justify-between items-center text-[10px] text-slate-950 font-bold mb-1">
-                      <span>Active Output:</span>
-                      <span className="text-slate-950 font-bold font-bold">
-                        MCR {(engineSpec.mcrKwPerUnit / 1000).toFixed(2)} MW
-                      </span>
+                  <div className="p-2.5 bg-[#f8fafc] border border-slate-400 rounded-none text-center">
+                    <span className="text-[10px] text-slate-600 font-bold uppercase block mb-1">
+                      Active Output (kW)
+                    </span>
+                    <input
+                      type="number"
+                      step="10"
+                      disabled={!isRunning}
+                      value={eng.activePowerKw === 0 ? '' : eng.activePowerKw}
+                      placeholder="0"
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        updateEngineField(eng.id, 'activePowerKw', val === '' ? 0 : parseFloat(val) || 0);
+                      }}
+                      className="w-full bg-white text-slate-900 font-black text-base px-2 py-1 rounded border border-slate-400 text-center focus:outline-none focus:border-amber-600 disabled:opacity-40"
+                    />
+                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-700 mt-1.5 px-0.5">
+                      <span>{engineLoadPct.toFixed(1)}% Load</span>
+                      <span>{isRunning && isGas ? `${engineGasFlow.toFixed(1)} Nm³/h` : '-'}</span>
                     </div>
-                    <div className="flex items-baseline justify-between">
-                      <div className="flex items-baseline gap-1">
-                        <input
-                          type="number"
-                          step="10"
-                          disabled={!isRunning}
-                          value={eng.activePowerKw === 0 ? '' : eng.activePowerKw}
-                          placeholder="0"
-                          onFocus={(e) => e.target.select()}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            updateEngineField(eng.id, 'activePowerKw', val === '' ? 0 : parseFloat(val) || 0);
-                          }}
-                          className="w-24 bg-white shadow-none text-slate-950 font-bold font-black text-lg px-1.5 py-0.5 rounded border border-slate-200 text-left focus:outline-none focus:border-amber-500 disabled:opacity-40"
-                        />
-                        <span className="text-[10px] text-slate-950 font-bold font-bold">kW</span>
-                      </div>
-                      <span className="text-xs font-bold text-slate-950 font-bold">
-                        {engineLoadPct.toFixed(1)}% Load
-                      </span>
-                    </div>
-
-                    {/* Gas Flow Rate Indicator */}
-                    {isRunning && isGas && (
-                      <div className="mt-2 pt-1.5 border-t border-slate-200/60 flex justify-between items-center text-[10px]">
-                        <span className="text-slate-950 font-bold">Gas Flow:</span>
-                        <span className="text-slate-950 font-bold font-bold">{engineGasFlow.toFixed(1)} Nm³/h</span>
-                      </div>
-                    )}
                   </div>
 
                   {/* Gas Inlet Parameters (Pressure & Temperature) */}
-                  <div className="space-y-2 font-mono text-xs">
+                  <div className="space-y-1.5 text-xs">
                     {/* Gas Press Inlet */}
-                    <div className="p-2 win-panel/80 rounded-none border border-slate-200/60 flex justify-between items-center">
-                      <span className="text-[10px] text-slate-950 font-bold flex items-center gap-1">
-                        <Gauge className="w-3 h-3 text-slate-950 font-bold" />
-                        Gas Press Inlet:
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="number"
-                          step="0.01"
-                          disabled={!isRunning || !isGas}
-                          value={eng.gasPressInletBar === 0 ? '' : eng.gasPressInletBar}
-                          placeholder="0.00"
-                          onFocus={(e) => e.target.select()}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            updateEngineField(eng.id, 'gasPressInletBar', val === '' ? 0 : parseFloat(val) || 0);
-                          }}
-                          className="w-16 bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs font-bold focus:outline-none focus:border-cyan-500 disabled:opacity-40"
-                        />
-                        <span className="text-[10px] text-slate-950 font-bold font-bold">bar</span>
-                      </div>
+                    <div className="p-1.5 bg-[#f1f5f9] border border-slate-300 rounded flex justify-between items-center">
+                      <span className="text-[10px] text-slate-700 font-bold">Press (bar):</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        disabled={!isRunning || !isGas}
+                        value={eng.gasPressInletBar === 0 ? '' : eng.gasPressInletBar}
+                        placeholder="0.00"
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          updateEngineField(eng.id, 'gasPressInletBar', val === '' ? 0 : parseFloat(val) || 0);
+                        }}
+                        className="w-18 bg-white text-slate-900 font-bold px-1 py-0.5 rounded border border-slate-400 text-center text-xs focus:outline-none focus:border-cyan-600 disabled:opacity-40"
+                      />
                     </div>
 
                     {/* Gas Temp Inlet */}
-                    <div className="p-2 win-panel/80 rounded-none border border-slate-200/60 flex justify-between items-center">
-                      <span className="text-[10px] text-slate-950 font-bold flex items-center gap-1">
-                        <Thermometer className="w-3 h-3 text-slate-950 font-bold" />
-                        Gas Temp Inlet:
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="number"
-                          step="0.1"
-                          disabled={!isRunning || !isGas}
-                          value={eng.gasTempInletC === 0 ? '' : eng.gasTempInletC}
-                          placeholder="0.0"
-                          onFocus={(e) => e.target.select()}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            updateEngineField(eng.id, 'gasTempInletC', val === '' ? 0 : parseFloat(val) || 0);
-                          }}
-                          className="w-16 bg-white shadow-none text-slate-950 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-right text-xs font-bold focus:outline-none focus:border-emerald-500 disabled:opacity-40"
-                        />
-                        <span className="text-[10px] text-slate-950 font-bold font-bold">°C</span>
-                      </div>
+                    <div className="p-1.5 bg-[#f1f5f9] border border-slate-300 rounded flex justify-between items-center">
+                      <span className="text-[10px] text-slate-700 font-bold">Temp (°C):</span>
+                      <input
+                        type="number"
+                        step="0.1"
+                        disabled={!isRunning || !isGas}
+                        value={eng.gasTempInletC === 0 ? '' : eng.gasTempInletC}
+                        placeholder="0.0"
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          updateEngineField(eng.id, 'gasTempInletC', val === '' ? 0 : parseFloat(val) || 0);
+                        }}
+                        className="w-18 bg-white text-slate-900 font-bold px-1 py-0.5 rounded border border-slate-400 text-center text-xs focus:outline-none focus:border-emerald-600 disabled:opacity-40"
+                      />
                     </div>
                   </div>
-                </div>
 
-                {/* Engine Operating Telemetry Sub-panel */}
-                <div className="mt-3 pt-2.5 border-t border-slate-200/80 font-mono text-[10px] text-slate-950 font-bold space-y-1">
-                  <div className="flex justify-between">
-                    <span>Rated Speed:</span>
-                    <span className="text-slate-950 font-bold font-bold">{eng.rpm} RPM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Exhaust Temp:</span>
-                    <span className="text-slate-950 font-bold font-bold">{eng.exhaustTempC} °C</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Bus Frequency:</span>
-                    <span className="text-slate-950 font-bold font-bold">{eng.frequencyHz.toFixed(2)} Hz</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Generator Voltage:</span>
-                    <span className="text-slate-950 font-bold font-bold">{eng.voltageKv.toFixed(1)} kV</span>
+                  {/* Engine Operating Telemetry Sub-panel */}
+                  <div className="p-2 bg-[#e2e8f0] border border-slate-300 rounded text-[10px] space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Rated Speed:</span>
+                      <span className="text-slate-900 font-bold">{eng.rpm} RPM</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Exhaust Temp:</span>
+                      <span className="text-slate-900 font-bold">{eng.exhaustTempC} °C</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Frequency:</span>
+                      <span className="text-slate-900 font-bold">{eng.frequencyHz.toFixed(2)} Hz</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Voltage:</span>
+                      <span className="text-slate-900 font-bold">{eng.voltageKv.toFixed(1)} kV</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -844,131 +744,35 @@ export default function NiasPowerThermalTab() {
         </div>
       </div>
 
-      {/* 4. Tab 2 Linked Thermal Heat & Regas Reconciliation Panel */}
-      <div className="bg-white shadow-none border border-slate-200 rounded-none p-4 sm:p-5 shadow-none space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-white font-bold text-[10px] font-bold font-mono border border-amber-200">
-              DOMAIN 1 & 2 LINKED RECONCILIATION
-            </span>
-            <h4 className="text-xs sm:text-sm font-bold text-slate-950 font-bold flex items-center gap-1.5">
-              <Activity className="w-4 h-4 text-slate-950 font-bold" />
-              PLTMG Fuel Gas Demand & Real-Time ISO Tank Inventory Autonomy
-            </h4>
-          </div>
-          <span className="text-[11px] font-mono text-slate-950 font-bold">
-            Active Feed Tank: <strong className="text-slate-950 font-bold">{activeDischargingTank.tankNo}</strong> ({activeDischargingTank.bayName})
-          </span>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
-          {/* Item 1 */}
-          <div className="p-3.5 win-panel rounded-none border border-slate-200">
-            <span className="text-[10px] text-slate-950 font-bold block mb-1">Fuel Gas Flow Rate (Total)</span>
-            <span className="text-lg font-black text-slate-950 font-bold block">
-              {summary.totalGasFlowNm3h.toLocaleString(undefined, { maximumFractionDigits: 1 })} Nm³/h
-            </span>
-            <span className="text-[10px] text-slate-950 font-bold mt-0.5 block">
-              ≈ {((summary.totalGasFlowNm3h * 35.3147) / 1000).toFixed(1)} kSCFH
-            </span>
-          </div>
-
-          {/* Item 2 */}
-          <div className="p-3.5 win-panel rounded-none border border-slate-200">
-            <span className="text-[10px] text-slate-950 font-bold block mb-1">Daily Gas Heat Demand</span>
-            <span className="text-lg font-black text-slate-950 font-bold block">
-              {summary.deliveredMmbtuDay.toLocaleString(undefined, { maximumFractionDigits: 1 })} MMBtu/day
-            </span>
-            <span className="text-[10px] text-slate-950 font-bold mt-0.5 block">
-              At {engineSpec.referenceLhvKjNm3.toLocaleString()} kJ/Nm³ LHV (1,048.5 BTU/SCF)
-            </span>
-          </div>
-
-          {/* Item 3 */}
-          <div className="p-3.5 win-panel rounded-none border border-slate-200">
-            <span className="text-[10px] text-slate-950 font-bold block mb-1">LNG Mass Consumption</span>
-            <span className="text-lg font-black text-slate-950 font-bold block">
-              {summary.deliveredMassTonneDay.toFixed(2)} Tonne/day
-            </span>
-            <span className="text-[10px] text-slate-950 font-bold mt-0.5 block">
-              ≈ {(summary.deliveredMassTonneDay * 1000).toLocaleString(undefined, { maximumFractionDigits: 0 })} kg/day
-            </span>
-          </div>
-
-          {/* Item 4: 2-Tier Autonomy Buffer */}
-          <div className="p-3.5 win-panel rounded-none border border-cyan-500/30 space-y-1.5">
-            <div className="flex justify-between items-center text-[10px]">
-              <span className="text-slate-950 font-bold">Active Tank Autonomy:</span>
-              <span className="text-slate-950 font-bold font-bold bg-emerald-50 text-emerald-700 px-1.5 py-0.2 rounded border border-emerald-200">
-                {activeDischargingTank.tankNo} ({activeDischargingTank.levelPct.toFixed(1)}%)
-              </span>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <span className="text-xl font-black text-slate-950 font-bold">
-                {summary.activeTankAutonomyHours.toFixed(1)} Hours
-              </span>
-              <span className="text-[11px] text-slate-950 font-bold">
-                {activeDischargingTank.remainingNm3.toLocaleString()} Nm³
-              </span>
-            </div>
-            <div className="pt-1.5 border-t border-slate-200/80 flex justify-between items-center text-[10px]">
-              <span className="text-slate-950 font-bold">Total Yard ({yardInventorySummary.fullCount} Tanks):</span>
-              <span className="text-slate-950 font-bold font-bold">
-                {summary.yardTotalAutonomyHours.toFixed(1)} Hours ({(yardInventorySummary.totalRemainingNm3 / 1000).toFixed(1)}k Nm³)
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* ========================================================================= */}
-      {/* MAN 7L 51/60 DF Dedicated Specification Configuration Modal (Wide View)   */}
+      {/* MAN 7L 51/60 DF Dedicated Specification Configuration Modal               */}
       {/* ========================================================================= */}
       {isSpecModalOpen && (
-        <div className="fixed inset-0 z-50 win-panel/85 backdrop-blur-md flex items-center justify-center p-4 md:p-6">
-          <div className="bg-white border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-3xl max-w-4xl w-full p-8 md:p-10 shadow-none animate-in zoom-in-95 font-sans space-y-6 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white border-2 border-slate-700 rounded-none max-w-3xl w-full p-6 shadow-2xs font-mono text-xs space-y-4 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex justify-between items-start border-b border-slate-200 pb-5">
-              <div>
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-none bg-amber-500/15 border border-amber-200">
-                    <Settings className="w-7 h-7 text-slate-950 font-bold" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl md:text-2xl font-bold text-slate-950 font-bold">
-                      MAN 7L 51/60 DF Engine Specification Settings
-                    </h3>
-                    <p className="text-sm text-slate-950 font-bold mt-1">
-                      Fine-tune thermodynamic constants: MCR, NCR, gas consumption rate, reference LHV, and nominal ISO tank volume.
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div className="flex justify-between items-center border-b-2 border-slate-600 pb-3">
+              <h3 className="text-sm font-black text-slate-900 uppercase">
+                MAN 7L 51/60 DF Engine Specification Settings
+              </h3>
               <button
                 type="button"
                 onClick={() => setIsSpecModalOpen(false)}
-                className="text-slate-950 font-bold hover:text-slate-950 p-2 rounded-none hover:bg-slate-100 transition-colors cursor-pointer"
+                className="text-slate-600 hover:text-slate-950 font-black text-sm px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 cursor-pointer"
               >
-                <XCircle className="w-6 h-6" />
+                ✕
               </button>
             </div>
 
-            {/* Fixed Engine Model Banner */}
-            <div className="py-3.5 px-6 win-panel rounded-none border border-cyan-500/30 flex items-center justify-between flex-wrap gap-3 font-mono text-sm">
-              <span className="text-slate-950 font-bold font-bold tracking-wide">Locked Base Generator Engine:</span>
-              <span className="text-base font-bold text-slate-950 font-bold px-4 py-1.5 bg-cyan-950/70 rounded-none border border-cyan-500/40 flex items-center gap-2 shadow-none">
-                <ShieldCheck className="w-5 h-5 text-slate-950 font-bold" />
-                MAN 7L 51/60 DF (Standard PLTMG Dual-Fuel Unit)
-              </span>
-            </div>
-
             {/* Modal Form Fields */}
-            <form onSubmit={handleSaveEngineSpec} className="space-y-6 font-mono text-sm">
+            <form onSubmit={handleSaveEngineSpec} className="space-y-4 font-mono">
               {/* Row 1: MCR and NCR */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Field 1: Unit MCR Power (kW) */}
-                <div className="space-y-2">
-                  <label className="text-xs md:text-sm font-bold tracking-wider text-slate-950 font-bold uppercase block">
+                <div className="p-3 bg-[#f8fafc] border border-slate-400 space-y-1.5 text-center">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase block">
                     Unit MCR Rated Power (kW)
                   </label>
                   <input
@@ -984,20 +788,20 @@ export default function NiasPowerThermalTab() {
                       setDraftSpec({
                         ...draftSpec,
                         mcrKwPerUnit: newMcr,
-                        ncrKwPerUnit: Math.round(newMcr * 0.9), // Auto-suggest 90% NCR
+                        ncrKwPerUnit: Math.round(newMcr * 0.9),
                       });
                     }}
-                    className="w-full h-13 py-3 px-4 win-panel border border-slate-200 text-slate-950 font-bold text-xl md:text-2xl font-mono font-black rounded-none focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner"
+                    className="w-full py-1.5 px-2 bg-white border border-slate-400 text-slate-900 text-center text-lg font-black rounded focus:outline-none focus:border-amber-600"
                   />
-                  <span className="text-xs text-slate-950 font-bold block pl-1">
-                    Plant Total Capability (5 Units): <strong className="text-slate-950 font-bold">{((draftSpec.mcrKwPerUnit * 5) / 1000).toFixed(2)} MW</strong>
+                  <span className="text-[10px] text-slate-500 block">
+                    5 Units Plant: {((draftSpec.mcrKwPerUnit * 5) / 1000).toFixed(2)} MW
                   </span>
                 </div>
 
                 {/* Field 2: Unit NCR Power (kW) */}
-                <div className="space-y-2">
-                  <label className="text-xs md:text-sm font-bold tracking-wider text-slate-950 font-bold uppercase block">
-                    Unit NCR Normal Continuous Rating (kW)
+                <div className="p-3 bg-[#f8fafc] border border-slate-400 space-y-1.5 text-center">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase block">
+                    Unit NCR Rating (kW)
                   </label>
                   <input
                     type="number"
@@ -1010,20 +814,20 @@ export default function NiasPowerThermalTab() {
                       const val = e.target.value;
                       setDraftSpec({ ...draftSpec, ncrKwPerUnit: val === '' ? 0 : parseFloat(val) || 0 });
                     }}
-                    className="w-full h-13 py-3 px-4 win-panel border border-slate-200 text-slate-950 font-bold text-xl md:text-2xl font-mono font-black rounded-none focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner"
+                    className="w-full py-1.5 px-2 bg-white border border-slate-400 text-slate-900 text-center text-lg font-black rounded focus:outline-none focus:border-amber-600"
                   />
-                  <span className="text-xs text-slate-950 font-bold block pl-1">
-                    Continuous Target: <strong className="text-slate-950 font-bold">{draftSpec.mcrKwPerUnit > 0 ? ((draftSpec.ncrKwPerUnit / draftSpec.mcrKwPerUnit) * 100).toFixed(1) : 90}%</strong> of MCR ({((draftSpec.ncrKwPerUnit * 5) / 1000).toFixed(2)} MW Total)
+                  <span className="text-[10px] text-slate-500 block">
+                    {draftSpec.mcrKwPerUnit > 0 ? ((draftSpec.ncrKwPerUnit / draftSpec.mcrKwPerUnit) * 100).toFixed(1) : 90}% of MCR
                   </span>
                 </div>
               </div>
 
               {/* Row 2: Heat Rate & Gas LHV */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                {/* Field 3: Gas Consumption Rate (kJ/kWh) */}
-                <div className="space-y-2">
-                  <label className="text-xs md:text-sm font-bold tracking-wider text-slate-950 font-bold uppercase block">
-                    Gas Consumption Rate / Heat Rate (kJ/kWh)
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Field 3: Heat Rate */}
+                <div className="p-3 bg-[#f8fafc] border border-slate-400 space-y-1.5 text-center">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase block">
+                    Heat Rate (kJ/kWh)
                   </label>
                   <input
                     type="number"
@@ -1036,16 +840,16 @@ export default function NiasPowerThermalTab() {
                       const val = e.target.value;
                       setDraftSpec({ ...draftSpec, heatRateKjKwh: val === '' ? 0 : parseFloat(val) || 0 });
                     }}
-                    className="w-full h-13 py-3 px-4 win-panel border border-slate-200 text-slate-950 font-bold text-xl md:text-2xl font-mono font-black rounded-none focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all shadow-inner"
+                    className="w-full py-1.5 px-2 bg-white border border-slate-400 text-slate-900 text-center text-lg font-black rounded focus:outline-none focus:border-cyan-600"
                   />
-                  <span className="text-xs text-slate-950 font-bold block pl-1">
-                    Thermal Efficiency: <strong className="text-slate-950 font-bold">{draftSpec.heatRateKjKwh > 0 ? ((3600 / draftSpec.heatRateKjKwh) * 100).toFixed(2) : 0}%</strong> (LHV Electrical)
+                  <span className="text-[10px] text-slate-500 block">
+                    Thermal Efficiency: {draftSpec.heatRateKjKwh > 0 ? ((3600 / draftSpec.heatRateKjKwh) * 100).toFixed(2) : 0}%
                   </span>
                 </div>
 
-                {/* Field 4: Reference Gas LHV (kJ/Nm3) */}
-                <div className="space-y-2">
-                  <label className="text-xs md:text-sm font-bold tracking-wider text-slate-950 font-bold uppercase block">
+                {/* Field 4: Gas LHV */}
+                <div className="p-3 bg-[#f8fafc] border border-slate-400 space-y-1.5 text-center">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase block">
                     Design Fuel Gas LHV (kJ/Nm³)
                   </label>
                   <input
@@ -1059,18 +863,18 @@ export default function NiasPowerThermalTab() {
                       const val = e.target.value;
                       setDraftSpec({ ...draftSpec, referenceLhvKjNm3: val === '' ? 0 : parseFloat(val) || 0 });
                     }}
-                    className="w-full h-13 py-3 px-4 win-panel border border-slate-200 text-slate-950 font-bold text-xl md:text-2xl font-mono font-black rounded-none focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner"
+                    className="w-full py-1.5 px-2 bg-white border border-slate-400 text-slate-900 text-center text-lg font-black rounded focus:outline-none focus:border-amber-600"
                   />
-                  <span className="text-xs text-slate-950 font-bold block pl-1">
-                    Equivalent Heating Value: <strong className="text-slate-950 font-bold">{(draftSpec.referenceLhvKjNm3 * 0.037446).toFixed(1)} BTU/SCF</strong>
+                  <span className="text-[10px] text-slate-500 block">
+                    ≈ {(draftSpec.referenceLhvKjNm3 * 0.037446).toFixed(1)} BTU/SCF
                   </span>
                 </div>
               </div>
 
               {/* Row 3: Nominal ISO Tank Volume */}
-              <div className="space-y-2">
-                <label className="text-xs md:text-sm font-bold tracking-wider text-slate-950 font-bold uppercase block">
-                  Nominal ISO Tank Usable Gas Volume (Default Baseline Nm³/tank)
+              <div className="p-3 bg-[#f8fafc] border border-slate-400 space-y-1.5 text-center">
+                <label className="text-[11px] font-bold text-slate-700 uppercase block">
+                  Nominal ISO Tank Usable Gas Volume (Nm³/tank)
                 </label>
                 <input
                   type="number"
@@ -1083,39 +887,34 @@ export default function NiasPowerThermalTab() {
                     const val = e.target.value;
                     setDraftSpec({ ...draftSpec, isoTankGasVolumeNm3: val === '' ? 0 : parseFloat(val) || 0 });
                   }}
-                  className="w-full h-13 py-3 px-4 win-panel border border-slate-200 text-slate-950 font-bold text-xl md:text-2xl font-mono font-black rounded-none focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all shadow-inner"
+                  className="w-full py-1.5 px-2 bg-white border border-slate-400 text-slate-900 text-center text-lg font-black rounded focus:outline-none focus:border-emerald-600"
                 />
-                <span className="text-xs text-slate-950 font-bold block pl-1 leading-relaxed">
-                  💡 Used as fallback baseline when individual tank telemetry is unavailable. Actual real-time calculations prioritize active Bay tank live loaded volume & yard inventory.
-                </span>
               </div>
 
               {/* Modal Action Buttons Bar */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-200">
+              <div className="flex justify-between items-center pt-3 border-t border-slate-300">
                 <button
                   type="button"
                   onClick={() => setDraftSpec(DEFAULT_ENGINE_SPEC_CONFIG)}
-                  className="w-full sm:w-auto h-12 px-6 win-panel hover:bg-slate-100 text-slate-950 font-bold hover:text-slate-950 rounded-none border border-slate-200 text-sm font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-none"
+                  className="px-4 py-2 bg-[#e2e8f0] hover:bg-slate-300 text-slate-900 font-bold rounded border border-slate-400 cursor-pointer transition-colors"
                 >
-                  <RotateCcw className="w-4 h-4 text-slate-950 font-bold" />
-                  <span>Restore Official MAN</span>
+                  Restore MAN Defaults
                 </button>
 
-                <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setIsSpecModalOpen(false)}
-                    className="flex-1 sm:flex-none h-12 px-6 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none text-sm font-bold transition-colors cursor-pointer"
+                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded cursor-pointer transition-colors"
                   >
                     Cancel
                   </button>
 
                   <button
                     type="submit"
-                    className="flex-1 sm:flex-none h-12 px-8 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 rounded-none text-base font-black shadow-none shadow-amber-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+                    className="px-5 py-2 bg-[#059669] hover:bg-[#047857] text-white font-black rounded border border-[#047857] cursor-pointer transition-colors shadow-xs"
                   >
-                    <Save className="w-4 h-4" />
-                    <span>Save Configuration</span>
+                    Save Configuration
                   </button>
                 </div>
               </div>
