@@ -16,6 +16,8 @@ import MaintenanceHubView from './MaintenanceHubView';
 import DataIngestionHub from './DataIngestionHub';
 import GlobalFleetHubView from './GlobalFleetHubView';
 import ManpowerRosterView from './manpower/ManpowerRosterView';
+import PTWManagementView from './manpower/PTWManagementView';
+import { INITIAL_MANPOWER_MASTER_RECORDS } from '../data/manpowerMasterData';
 import {
   RefreshCw,
   Monitor,
@@ -30,6 +32,7 @@ import {
   ClipboardList,
   Sliders,
   ShieldCheck,
+  Shield,
   Users,
 } from 'lucide-react';
 
@@ -38,37 +41,67 @@ const SUBPROCESS_TITLES: Record<
   { location: string; process: string; icon: React.ReactNode; color: string }
 > = {
   MANPOWER_SHIFT_ROSTER: {
-    location: 'Work Order & Maintenance',
-    process: 'Manpower & Shift Roster (3:1 Rotation Management)',
+    location: 'Site Manning & Roster',
+    process: 'Site Manning & Shift Roster',
     icon: <Users className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   MANPOWER_DAILY_SHIFT: {
-    location: 'Work Order & Maintenance',
-    process: 'Manpower & Shift Roster > Daily Shift Board (Alpha / Bravo / Charlie)',
+    location: 'Site Manning & Roster',
+    process: 'Daily Operations Board',
     icon: <Users className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   MANPOWER_ROTATION_TRACKER: {
-    location: 'Work Order & Maintenance',
-    process: 'Manpower & Shift Roster > 3:1 Rotation Cycle Tracker',
+    location: 'Site Manning & Roster',
+    process: 'Rotation',
     icon: <Users className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   MANPOWER_MONTHLY_GRID: {
-    location: 'Work Order & Maintenance',
-    process: 'Manpower & Shift Roster > Monthly Roster Grid (August 2026 ~)',
+    location: 'Site Manning & Roster',
+    process: 'Monthly Plan',
     icon: <Users className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
+  MANPOWER_TRAINING_MATRIX: {
+    location: 'Site Manning & Roster',
+    process: 'Training Matrix',
+    icon: <Users className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  MANPOWER_PTW: {
+    location: 'Safety & PTW',
+    process: 'PTW Master Register',
+    icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  PTW_PERMITS: {
+    location: 'Safety & PTW',
+    process: 'PTW Master Register',
+    icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  SAFETY_GAS_TESTING: {
+    location: 'Safety & PTW',
+    process: 'Gas Testing Log',
+    icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  SAFETY_ERT_READINESS: {
+    location: 'Safety & PTW',
+    process: 'ERT Readiness',
+    icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
   WORK_ORDER_DIRECTORY: {
-    location: 'Work Order & Maintenance',
+    location: 'Maintenance & Work Orders',
     process: 'Work Order Directory',
     icon: <Sliders className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   PM_SCHEDULES: {
-    location: 'Work Order & Maintenance',
+    location: 'Maintenance & Work Orders',
     process: 'Preventive Maintenance Schedules',
     icon: <Sliders className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
@@ -427,14 +460,24 @@ function LNGPortalInner() {
     }
   };
 
-  // Determine current active top module (1 to 4)
+  // Determine current active top module (1 to 5)
   const currentModuleId =
-    activeKey === 'EQUIPMENT_ASSET_REGISTRY' || activeKey === 'GLOBAL_FLEET_HUB' || activeKey === 'DATA_INGESTION_HUB'
-      ? 'MOD_2_EQUIPMENT'
-      : activeKey.startsWith('WORK_ORDER') || activeKey.startsWith('MANPOWER') || activeKey === 'PM_SCHEDULES'
+    activeKey === 'PTW_PERMITS' ||
+    activeKey === 'MANPOWER_PTW' ||
+    activeKey === 'SAFETY_GAS_TESTING' ||
+    activeKey === 'SAFETY_ERT_READINESS'
+      ? 'MOD_5_SAFETY_PTW'
+      : activeKey.startsWith('MANPOWER')
+      ? 'MOD_4_MANPOWER'
+      : activeKey === 'WORK_ORDER_DIRECTORY' ||
+        activeKey === 'WORK_ORDER_MAINTENANCE' ||
+        activeKey === 'PM_SCHEDULES' ||
+        (activeKey === 'MAINTENANCE_MRO_HUB' && activeMenu !== 'lng-process')
       ? 'MOD_3_WORK_ORDER'
-      : activeKey === 'CALIBRATION_COMPLIANCE'
-      ? 'MOD_4_CALIBRATION'
+      : activeKey === 'EQUIPMENT_ASSET_REGISTRY' ||
+        activeKey === 'GLOBAL_FLEET_HUB' ||
+        activeKey === 'DATA_INGESTION_HUB'
+      ? 'MOD_2_EQUIPMENT'
       : 'MOD_1_LNG_PROCESS';
 
   return (
@@ -606,7 +649,7 @@ function LNGPortalInner() {
               </>
             )}
 
-            {/* Sub-Tabs for Work Order & Maintenance */}
+            {/* Sub-Tabs for Maintenance & Work Orders */}
             {currentModuleId === 'MOD_3_WORK_ORDER' && (
               <>
                 <button
@@ -638,13 +681,6 @@ function LNGPortalInner() {
                 </button>
 
                 <button
-                  onClick={() => handleSelectSubProcess('MANPOWER_SHIFT_ROSTER')}
-                  className={activeKey.startsWith('MANPOWER') ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
-                >
-                  <span>Manpower & Roster (3:1)</span>
-                </button>
-
-                <button
                   onClick={() => handleSelectSubProcess('MAINTENANCE_MRO_HUB')}
                   className={activeKey === 'MAINTENANCE_MRO_HUB' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
@@ -653,32 +689,61 @@ function LNGPortalInner() {
               </>
             )}
 
-            {/* Sub-Tabs for Calibration & Compliance */}
-            {currentModuleId === 'MOD_4_CALIBRATION' && (
+            {/* Sub-Tabs for Site Manning & Roster (Promoted) */}
+            {currentModuleId === 'MOD_4_MANPOWER' && (
               <>
                 <button
-                  onClick={() => setCalibrationFilter('ALL')}
-                  className={calibrationFilter === 'ALL' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                  onClick={() => handleSelectSubProcess('MANPOWER_DAILY_SHIFT')}
+                  className={activeKey === 'MANPOWER_DAILY_SHIFT' || activeKey === 'MANPOWER_SHIFT_ROSTER' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>All Certificates</span>
+                  <span>Daily Operations Board</span>
                 </button>
+
                 <button
-                  onClick={() => setCalibrationFilter('INSTRUMENT')}
-                  className={calibrationFilter === 'INSTRUMENT' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                  onClick={() => handleSelectSubProcess('MANPOWER_MONTHLY_GRID')}
+                  className={activeKey === 'MANPOWER_MONTHLY_GRID' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>Instrument Calibration</span>
+                  <span>Monthly Plan</span>
                 </button>
+
                 <button
-                  onClick={() => setCalibrationFilter('PRV')}
-                  className={calibrationFilter === 'PRV' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                  onClick={() => handleSelectSubProcess('MANPOWER_ROTATION_TRACKER')}
+                  className={activeKey === 'MANPOWER_ROTATION_TRACKER' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>PRV Safety Valves</span>
+                  <span>Rotation</span>
                 </button>
+
                 <button
-                  onClick={() => setCalibrationFilter('AUDIT')}
-                  className={calibrationFilter === 'AUDIT' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                  onClick={() => handleSelectSubProcess('MANPOWER_TRAINING_MATRIX')}
+                  className={activeKey === 'MANPOWER_TRAINING_MATRIX' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>Regulatory Audits</span>
+                  <span>Training Matrix</span>
+                </button>
+              </>
+            )}
+
+            {/* Sub-Tabs for Safety & PTW (Promoted) */}
+            {currentModuleId === 'MOD_5_SAFETY_PTW' && (
+              <>
+                <button
+                  onClick={() => handleSelectSubProcess('PTW_PERMITS')}
+                  className={activeKey === 'PTW_PERMITS' || activeKey === 'MANPOWER_PTW' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                >
+                  <span>PTW Master Register</span>
+                </button>
+
+                <button
+                  onClick={() => handleSelectSubProcess('SAFETY_GAS_TESTING')}
+                  className={activeKey === 'SAFETY_GAS_TESTING' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                >
+                  <span>Gas Testing Log</span>
+                </button>
+
+                <button
+                  onClick={() => handleSelectSubProcess('SAFETY_ERT_READINESS')}
+                  className={activeKey === 'SAFETY_ERT_READINESS' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                >
+                  <span>ERT Readiness</span>
                 </button>
               </>
             )}
@@ -769,13 +834,8 @@ function LNGPortalInner() {
                 <MvSaviourView initialSubTab="STOWAGE_PLAN" />
               )}
 
-              {/* Maintenance & Depot */}
-              {activeKey === 'MAINTENANCE_MRO_HUB' && (
-                <MaintenanceHubView />
-              )}
-
               {/* ========================================================= */}
-              {/* MODULE 2: EQUIPMENT & ASSET REGISTRY                      */}
+              {/* MODULE 2: EQUIPMENT & ASSET                               */}
               {/* ========================================================= */}
               {activeKey === 'EQUIPMENT_ASSET_REGISTRY' && (
                 <EquipmentRegistryView filter={equipmentFilter} />
@@ -788,13 +848,20 @@ function LNGPortalInner() {
               )}
 
               {/* ========================================================= */}
-              {/* MODULE 3: WORK ORDER & MAINTENANCE & MANPOWER ROSTER      */}
+              {/* MODULE 3: MAINTENANCE & WORK ORDERS                       */}
               {/* ========================================================= */}
               {(activeKey === 'WORK_ORDER_MAINTENANCE' || activeKey === 'WORK_ORDER_DIRECTORY' || activeKey === 'PM_SCHEDULES') && (
                 <WorkOrderView filter={activeKey === 'PM_SCHEDULES' ? 'PMS' : workOrderFilter} />
               )}
-              {activeKey === 'MANPOWER_SHIFT_ROSTER' && (
-                <ManpowerRosterView initialSubView="MONTHLY_GRID" />
+              {activeKey === 'MAINTENANCE_MRO_HUB' && (
+                <MaintenanceHubView />
+              )}
+
+              {/* ========================================================= */}
+              {/* MODULE 4: SITE MANNING & ROSTER (PRIMARY PROMOTED)        */}
+              {/* ========================================================= */}
+              {(activeKey === 'MANPOWER_SHIFT_ROSTER' || activeKey === 'MANPOWER_DAILY_SHIFT') && (
+                <ManpowerRosterView initialSubView="DAILY_SHIFT_BOARD" />
               )}
               {activeKey === 'MANPOWER_MONTHLY_GRID' && (
                 <ManpowerRosterView initialSubView="MONTHLY_GRID" />
@@ -802,12 +869,33 @@ function LNGPortalInner() {
               {activeKey === 'MANPOWER_ROTATION_TRACKER' && (
                 <ManpowerRosterView initialSubView="ROTATION_TRACKER" />
               )}
-              {activeKey === 'MANPOWER_DAILY_SHIFT' && (
-                <ManpowerRosterView initialSubView="DAILY_SHIFT_BOARD" />
+              {activeKey === 'MANPOWER_TRAINING_MATRIX' && (
+                <ManpowerRosterView initialSubView="TRAINING_MATRIX" />
               )}
 
               {/* ========================================================= */}
-              {/* MODULE 4: CALIBRATION & COMPLIANCE                        */}
+              {/* MODULE 5: SAFETY & PTW (PRIMARY PROMOTED)                 */}
+              {/* ========================================================= */}
+              {(activeKey === 'MANPOWER_PTW' ||
+                activeKey === 'PTW_PERMITS' ||
+                activeKey === 'SAFETY_GAS_TESTING' ||
+                activeKey === 'SAFETY_ERT_READINESS') && (
+                <PTWManagementView
+                  personnelList={INITIAL_MANPOWER_MASTER_RECORDS}
+                  isERTMet={true}
+                  ertSummary={{
+                    icCount: 1,
+                    fireChiefCount: 2,
+                    firstAiderCount: 3,
+                    gasResponseCount: 4,
+                  }}
+                  onNavigateToMatrix={() => handleSelectSubProcess('MANPOWER_TRAINING_MATRIX')}
+                  onNavigateToDailyShift={() => handleSelectSubProcess('MANPOWER_DAILY_SHIFT')}
+                />
+              )}
+
+              {/* ========================================================= */}
+              {/* MODULE FALLBACK: CALIBRATION & COMPLIANCE                 */}
               {/* ========================================================= */}
               {activeKey === 'CALIBRATION_COMPLIANCE' && (
                 <CalibrationComplianceView filter={calibrationFilter} />

@@ -38,7 +38,7 @@ html, body {
 }
 
 .win-panel-sunken, .win-sunken {
-  background-color: #ffffff;
+  background-color: #d4d0c8;
   border-top: 2px solid #808080;
   border-left: 2px solid #808080;
   border-right: 2px solid #ffffff;
@@ -157,7 +157,7 @@ html, body {
   padding: 2px 5px;
   font-weight: bold;
   font-family: 'Segoe UI', Tahoma, sans-serif;
-  text-align: left;
+  text-align: center;
   white-space: nowrap;
   user-select: none;
 }
@@ -169,11 +169,8 @@ html, body {
 }
 
 .win-grid tr:hover {
-  background-color: #000080 !important;
-  color: #ffffff !important;
-}
-.win-grid tr:hover td {
-  color: #ffffff !important;
+  background-color: rgba(224, 242, 254, 0.85);
+  transition: background-color 150ms ease;
 }
 
 .win-input {

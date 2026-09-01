@@ -1,7 +1,8 @@
 // src/components/manpower/ManpowerRosterView.tsx
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import Papa from 'papaparse';
 import {
   Users,
   Calendar,
@@ -20,477 +21,840 @@ import {
   Briefcase,
   ArrowRightLeft,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
+  Award,
+  ShieldAlert,
+  ShieldCheck,
+  BookOpen,
+  GraduationCap,
+  AlertOctagon,
+  Flame,
+  HeartPulse,
+  Wind,
+  Check,
+  X,
+  UserPlus,
+  ArrowUpDown,
+  UserCog,
+  CheckCheck,
+  Lock,
 } from 'lucide-react';
 import { exportToCSV } from '../../utils/exportCsv';
+import {
+  DepartmentCode,
+  StaffPersonnel,
+  ShiftCode,
+  TeamNameStandard,
+  CompetencyCertification,
+  ERTRole,
+} from '../../types/lng';
+import {
+  INITIAL_MANPOWER_MASTER_RECORDS,
+  generateRosterPattern,
+  AUGUST_DAYS,
+  getDaysInMonth,
+  generateMonthlyRoster,
+  getStaffExpiryStatusForMonth,
+  getStaffCompetencyStatus,
+} from '../../data/manpowerMasterData';
+import TrainingMatrixView from './TrainingMatrixView';
 
-export type ShiftCode = 'D' | 'N' | 'Off' | 'On' | 'AL' | 'O';
-
-export interface StaffPersonnel {
-  id: string;
-  name: string;
-  role: string;
-  department: 'MANAGEMENT' | 'OP_ALPHA' | 'OP_BRAVO' | 'OP_CHARLIE' | 'MAINTENANCE' | 'HSSE' | 'LOGISTICS';
-  teamName: string;
-  currentStatus: 'ON_SITE' | 'OFF_DUTY' | 'MOBILIZING' | 'HANDOVER_PENDING';
-  todayShift: ShiftCode;
-  onSiteDays: number; // accumulated days on-site in current 3-month cycle (target ~90)
-  targetCycleDays: number; // 90
-  cycleStartDate: string;
-  nextRotationDueDate: string;
-  relieverName: string;
-  contactNo: string;
-  radioChannel: string;
-  rosterDays: ShiftCode[]; // 31 days for August 2026
-}
-
-const AUGUST_DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
-
-// Generate August 2026 Roster Pattern for 3 Operation Teams & Support
-function generateRosterPattern(dept: string, indexInDept: number): ShiftCode[] {
-  return AUGUST_DAYS.map((day) => {
-    // Team Alpha: Days 1-7 D, 8-14 N, 15-21 Off, 22-28 D, 29-31 N
-    if (dept === 'OP_ALPHA') {
-      const cycleDay = ((day - 1) % 21) + 1;
-      if (cycleDay <= 7) return 'D';
-      if (cycleDay <= 14) return 'N';
-      return 'Off';
-    }
-    // Team Bravo: Days 1-7 N, 8-14 Off, 15-21 D, 22-28 N, 29-31 Off (Today Day 27: D)
-    if (dept === 'OP_BRAVO') {
-      const cycleDay = ((day + 6) % 21) + 1;
-      if (cycleDay <= 7) return 'D';
-      if (cycleDay <= 14) return 'N';
-      return 'Off';
-    }
-    // Team Charlie: Days 1-7 Off, 8-14 D, 15-21 N, 22-28 Off, 29-31 D (Today Day 27: N)
-    if (dept === 'OP_CHARLIE') {
-      const cycleDay = ((day + 13) % 21) + 1;
-      if (cycleDay <= 7) return 'D';
-      if (cycleDay <= 14) return 'N';
-      return 'Off';
-    }
-    // Management & General Support: Standard D (Mon-Sat), Off (Sun)
-    if (dept === 'MANAGEMENT' || dept === 'LOGISTICS' || dept === 'HSSE' || dept === 'MAINTENANCE') {
-      const dayOfWeek = (day + 5) % 7; // Aug 1 2026 was Saturday
-      if (dayOfWeek === 1) return 'Off'; // Sunday
-      return 'D';
-    }
-    return 'D';
-  });
-}
-
-export const MANPOWER_DIRECTORY: StaffPersonnel[] = [
-  // 1. Management
-  {
-    id: 'EMP-001',
-    name: 'Edi Hermawan',
-    role: 'Site Terminal Manager',
-    department: 'MANAGEMENT',
-    teamName: 'Management',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 64,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-25',
-    nextRotationDueDate: '2026-09-22',
-    relieverName: 'HQ Delegate',
-    contactNo: '+62 812-7001-9001',
-    radioChannel: 'CH-01 (CMD)',
-    rosterDays: generateRosterPattern('MANAGEMENT', 0),
-  },
-  {
-    id: 'EMP-002',
-    name: 'Shadiq M. Shalih',
-    role: 'Sr. Operation Leader & Plant Supt',
-    department: 'MANAGEMENT',
-    teamName: 'Management / Alpha Lead',
-    currentStatus: 'ON_SITE',
-    todayShift: 'Off',
-    onSiteDays: 82,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-07',
-    nextRotationDueDate: '2026-09-04',
-    relieverName: 'Asman Sampeaman',
-    contactNo: '+62 811-6502-3341',
-    radioChannel: 'CH-01 (CMD)',
-    rosterDays: generateRosterPattern('OP_ALPHA', 0),
-  },
-
-  // 2. Operation Team Alpha
-  {
-    id: 'EMP-003',
-    name: 'Yusuf',
-    role: 'Cryogenic Field Operator',
-    department: 'OP_ALPHA',
-    teamName: 'Team Alpha',
-    currentStatus: 'ON_SITE',
-    todayShift: 'Off',
-    onSiteDays: 45,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-07-14',
-    nextRotationDueDate: '2026-10-11',
-    relieverName: 'Muradi',
-    contactNo: '+62 813-8822-1044',
-    radioChannel: 'CH-02 (OPS)',
-    rosterDays: generateRosterPattern('OP_ALPHA', 1),
-  },
-  {
-    id: 'EMP-004',
-    name: 'Erwin Supriatna',
-    role: 'DCS / SCADA Control Technician',
-    department: 'OP_ALPHA',
-    teamName: 'Team Alpha',
-    currentStatus: 'ON_SITE',
-    todayShift: 'Off',
-    onSiteDays: 77,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-12',
-    nextRotationDueDate: '2026-09-09',
-    relieverName: 'Ripal Fadiah',
-    contactNo: '+62 812-4433-8890',
-    radioChannel: 'CH-02 (OPS)',
-    rosterDays: generateRosterPattern('OP_ALPHA', 2),
-  },
-
-  // 3. Operation Team Bravo (Today: Day Shift)
-  {
-    id: 'EMP-005',
-    name: 'Asman Sampeaman',
-    role: 'Shift Operation Leader (Bravo)',
-    department: 'OP_BRAVO',
-    teamName: 'Team Bravo',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 28,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-07-31',
-    nextRotationDueDate: '2026-10-28',
-    relieverName: 'Juli Surungan',
-    contactNo: '+62 812-9900-1122',
-    radioChannel: 'CH-02 (OPS)',
-    rosterDays: generateRosterPattern('OP_BRAVO', 0),
-  },
-  {
-    id: 'EMP-006',
-    name: 'Muradi',
-    role: 'Cryogenic Bay & Decanting Operator',
-    department: 'OP_BRAVO',
-    teamName: 'Team Bravo',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 54,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-07-05',
-    nextRotationDueDate: '2026-10-02',
-    relieverName: 'Danang',
-    contactNo: '+62 813-1122-3344',
-    radioChannel: 'CH-02 (OPS)',
-    rosterDays: generateRosterPattern('OP_BRAVO', 1),
-  },
-  {
-    id: 'EMP-007',
-    name: 'Ripal Fadiah',
-    role: 'PRSS & Vaporizer Panel Technician',
-    department: 'OP_BRAVO',
-    teamName: 'Team Bravo',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 36,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-07-23',
-    nextRotationDueDate: '2026-10-20',
-    relieverName: 'Uliyansyah',
-    contactNo: '+62 812-3344-5566',
-    radioChannel: 'CH-02 (OPS)',
-    rosterDays: generateRosterPattern('OP_BRAVO', 2),
-  },
-
-  // 4. Operation Team Charlie (Today: Night Shift)
-  {
-    id: 'EMP-008',
-    name: 'Juli Surungan',
-    role: 'Shift Operation Leader (Charlie)',
-    department: 'OP_CHARLIE',
-    teamName: 'Team Charlie',
-    currentStatus: 'ON_SITE',
-    todayShift: 'N',
-    onSiteDays: 15,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-08-13',
-    nextRotationDueDate: '2026-11-10',
-    relieverName: 'Shadiq M. Shalih',
-    contactNo: '+62 811-7788-9900',
-    radioChannel: 'CH-02 (OPS)',
-    rosterDays: generateRosterPattern('OP_CHARLIE', 0),
-  },
-  {
-    id: 'EMP-009',
-    name: 'Danang',
-    role: 'Cryogenic Bay & Decanting Operator',
-    department: 'OP_CHARLIE',
-    teamName: 'Team Charlie',
-    currentStatus: 'ON_SITE',
-    todayShift: 'N',
-    onSiteDays: 62,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-27',
-    nextRotationDueDate: '2026-09-24',
-    relieverName: 'Yusuf',
-    contactNo: '+62 813-9988-7766',
-    radioChannel: 'CH-02 (OPS)',
-    rosterDays: generateRosterPattern('OP_CHARLIE', 1),
-  },
-  {
-    id: 'EMP-010',
-    name: 'Uliyansyah',
-    role: 'DCS / SCADA Control Technician',
-    department: 'OP_CHARLIE',
-    teamName: 'Team Charlie',
-    currentStatus: 'HANDOVER_PENDING',
-    todayShift: 'N',
-    onSiteDays: 88,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-01',
-    nextRotationDueDate: '2026-08-29',
-    relieverName: 'Erwin Supriatna',
-    contactNo: '+62 812-6655-4433',
-    radioChannel: 'CH-02 (OPS)',
-    rosterDays: generateRosterPattern('OP_CHARLIE', 2),
-  },
-
-  // 5. Maintenance & Engineering
-  {
-    id: 'EMP-011',
-    name: 'Indra',
-    role: 'Mechanical Lead Engineer',
-    department: 'MAINTENANCE',
-    teamName: 'Maintenance',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 50,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-07-09',
-    nextRotationDueDate: '2026-10-06',
-    relieverName: 'M. Taufik',
-    contactNo: '+62 813-4455-6677',
-    radioChannel: 'CH-03 (MAINT)',
-    rosterDays: generateRosterPattern('MAINTENANCE', 0),
-  },
-  {
-    id: 'EMP-012',
-    name: 'Aginawari',
-    role: 'Electrical Systems Engineer',
-    department: 'MAINTENANCE',
-    teamName: 'Maintenance',
-    currentStatus: 'OFF_DUTY',
-    todayShift: 'AL',
-    onSiteDays: 90,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-05-30',
-    nextRotationDueDate: '2026-08-28',
-    relieverName: 'Prabayugo',
-    contactNo: '+62 812-7766-5544',
-    radioChannel: 'CH-03 (MAINT)',
-    rosterDays: AUGUST_DAYS.map((d) => (d >= 20 ? 'AL' : 'D')),
-  },
-  {
-    id: 'EMP-013',
-    name: 'Prabayugo',
-    role: 'Instrumentation & Gas Detector Tech',
-    department: 'MAINTENANCE',
-    teamName: 'Maintenance',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 12,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-08-16',
-    nextRotationDueDate: '2026-11-14',
-    relieverName: 'Aginawari',
-    contactNo: '+62 811-2233-4455',
-    radioChannel: 'CH-03 (MAINT)',
-    rosterDays: generateRosterPattern('MAINTENANCE', 2),
-  },
-  {
-    id: 'EMP-014',
-    name: 'M. Taufik',
-    role: 'Rigger & Cryogenic Valve Mechanic',
-    department: 'MAINTENANCE',
-    teamName: 'Maintenance',
-    currentStatus: 'OFF_DUTY',
-    todayShift: 'AL',
-    onSiteDays: 90,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-05-25',
-    nextRotationDueDate: '2026-08-24',
-    relieverName: 'Indra',
-    contactNo: '+62 813-7788-9911',
-    radioChannel: 'CH-03 (MAINT)',
-    rosterDays: AUGUST_DAYS.map((d) => (d >= 15 ? 'AL' : 'D')),
-  },
-
-  // 6. HSSE & Safety
-  {
-    id: 'EMP-015',
-    name: 'Arsyan AN',
-    role: 'HSSE Plant Safety Officer',
-    department: 'HSSE',
-    teamName: 'HSSE Team',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 40,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-07-19',
-    nextRotationDueDate: '2026-10-16',
-    relieverName: 'Chandra R.D',
-    contactNo: '+62 812-1144-7788',
-    radioChannel: 'CH-04 (HSSE)',
-    rosterDays: generateRosterPattern('HSSE', 0),
-  },
-  {
-    id: 'EMP-016',
-    name: 'Chandra R.D',
-    role: 'HSSE Supervisor & Fire Chief',
-    department: 'HSSE',
-    teamName: 'HSSE Team',
-    currentStatus: 'OFF_DUTY',
-    todayShift: 'AL',
-    onSiteDays: 90,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-05-28',
-    nextRotationDueDate: '2026-08-27',
-    relieverName: 'Arsyan AN',
-    contactNo: '+62 811-9988-1122',
-    radioChannel: 'CH-04 (HSSE)',
-    rosterDays: AUGUST_DAYS.map((d) => (d >= 18 ? 'AL' : 'D')),
-  },
-
-  // 7. Logistics, Transport & General Affairs
-  {
-    id: 'EMP-017',
-    name: 'Albert A. Gea',
-    role: 'Cryo ISO Tank Inventory Controller',
-    department: 'LOGISTICS',
-    teamName: 'Logistics',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 55,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-07-04',
-    nextRotationDueDate: '2026-10-01',
-    relieverName: 'Jefi R. Zega',
-    contactNo: '+62 813-6655-2211',
-    radioChannel: 'CH-05 (LOG)',
-    rosterDays: generateRosterPattern('LOGISTICS', 0),
-  },
-  {
-    id: 'EMP-018',
-    name: 'Jefi R. Zega',
-    role: 'HR & Site General Affairs Coordinator',
-    department: 'LOGISTICS',
-    teamName: 'HR/GA',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 22,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-08-06',
-    nextRotationDueDate: '2026-11-03',
-    relieverName: 'Albert A. Gea',
-    contactNo: '+62 812-8899-0011',
-    radioChannel: 'CH-05 (LOG)',
-    rosterDays: generateRosterPattern('LOGISTICS', 1),
-  },
-  {
-    id: 'EMP-019',
-    name: 'Buyung',
-    role: 'Heavy Prime Mover Driver (ISOT Truck 1)',
-    department: 'LOGISTICS',
-    teamName: 'Logistics / Transport',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 68,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-21',
-    nextRotationDueDate: '2026-09-18',
-    relieverName: 'Zulham',
-    contactNo: '+62 813-2211-4433',
-    radioChannel: 'CH-05 (LOG)',
-    rosterDays: generateRosterPattern('LOGISTICS', 2),
-  },
-  {
-    id: 'EMP-020',
-    name: 'Zulham',
-    role: 'Heavy Prime Mover Driver (ISOT Truck 2)',
-    department: 'LOGISTICS',
-    teamName: 'Logistics / Transport',
-    currentStatus: 'OFF_DUTY',
-    todayShift: 'AL',
-    onSiteDays: 90,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-05-26',
-    nextRotationDueDate: '2026-08-25',
-    relieverName: 'Buyung',
-    contactNo: '+62 812-4455-9988',
-    radioChannel: 'CH-05 (LOG)',
-    rosterDays: AUGUST_DAYS.map((d) => (d >= 10 ? 'AL' : 'D')),
-  },
-  {
-    id: 'EMP-021',
-    name: 'Rahmat Hidayat',
-    role: 'Super Cargo & Jetty Marine Inspector',
-    department: 'LOGISTICS',
-    teamName: 'Logistics / Marine',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 30,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-07-29',
-    nextRotationDueDate: '2026-10-26',
-    relieverName: 'Port Agent',
-    contactNo: '+62 811-3344-5566',
-    radioChannel: 'CH-06 (JETTY)',
-    rosterDays: generateRosterPattern('LOGISTICS', 3),
-  },
-  {
-    id: 'EMP-022',
-    name: 'Ferry Irawan',
-    role: '50T Hydraulic Crane Operator',
-    department: 'LOGISTICS',
-    teamName: 'Logistics / Heavy Lifting',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 72,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-17',
-    nextRotationDueDate: '2026-09-14',
-    relieverName: 'Subcon Rigger',
-    contactNo: '+62 813-7700-1199',
-    radioChannel: 'CH-05 (LOG)',
-    rosterDays: generateRosterPattern('LOGISTICS', 4),
-  },
-];
+export {
+  INITIAL_MANPOWER_MASTER_RECORDS as MANPOWER_DIRECTORY,
+  generateRosterPattern,
+};
+export type { StaffPersonnel, DepartmentCode, ShiftCode, TeamNameStandard };
 
 interface ManpowerRosterViewProps {
-  initialSubView?: 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD';
+  initialSubView?: 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX';
 }
 
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+// Helper: Standardize Position Titles to concise, professional industry names
+export function normalizePositionTitle(rawTitle: string): string {
+  if (!rawTitle) return '';
+  const t = rawTitle.trim();
+  const lower = t.toLowerCase();
+  if (lower === '-' || lower === '') return '';
+
+  if (lower.includes('site manager')) return 'Site Manager';
+  if (lower.includes('team leader') || lower.includes('lead engineer') || lower.includes('mechanical engineer') || lower.includes('mech. team leader')) {
+    if (lower.includes('mech')) return 'Mechanical Lead Engineer';
+    return 'OP Team Leader';
+  }
+  if (lower.includes('dcs') || lower.includes('scada')) return 'DCS Control Technician';
+  if (lower.includes('valve mechanic') || lower.includes('mechanical tech') || lower.includes('cryogenic valve') || lower.includes('mech. team') || lower.includes('mechanic')) return 'Mechanical Technician';
+  if (lower.includes('sr. hse') || lower.includes('senior hse') || lower.includes('fire chief')) return 'Senior HSE Officer';
+  if (lower.includes('hse') || lower.includes('hsse')) return 'HSE Officer';
+  if (lower.includes('electrical')) return 'Electrical Systems Engineer';
+  if (lower.includes('instrumentation') || lower.includes('gas detector')) return 'Instrumentation Technician';
+  if (lower.includes('coordinator') || lower.includes('admin staff')) return 'HR / GA Coordinator';
+  if (lower.includes('hr') || lower.includes('ga')) return 'HR / GA Officer';
+  if (lower.includes('truck driver')) return 'Truck Driver';
+  if (lower.includes('super cargo')) return 'Super Cargo';
+  if (lower.includes('reach stacker')) return 'Reach Stacker Operator';
+  if (lower.includes('field operator')) return 'Field Operator';
+
+  return t;
+}
+
+// Helper: Calculate Rotation Due (AL Start Date) = Cycle_Start_Date + 89 Days (90-day on-site threshold)
+const calcRotationDueDate = (startDateStr: string): string => {
+  if (!startDateStr || startDateStr === 'N/A' || startDateStr === '-') return '-';
+  const parts = startDateStr.split('-').map(Number);
+  if (parts.length < 3 || isNaN(parts[0])) return '-';
+  const [y, m, d] = parts;
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + 89);
+  const ry = dt.getFullYear();
+  const rm = String(dt.getMonth() + 1).padStart(2, '0');
+  const rd = String(dt.getDate()).padStart(2, '0');
+  return `${ry}-${rm}-${rd}`;
+};
+
+// Helper: Calculate dynamic On-Site Days = (Today - Cycle_Start_Date) + 1
+const calcOnSiteDays = (startDateStr: string, todayStr: string = '2026-09-01'): number => {
+  if (!startDateStr || startDateStr === 'N/A' || startDateStr === '-') return 0;
+  const sParts = startDateStr.split('-').map(Number);
+  const tParts = todayStr.split('-').map(Number);
+  if (sParts.length < 3 || isNaN(sParts[0])) return 0;
+  const [sy, sm, sd] = sParts;
+  const [ty, tm, td] = tParts;
+  const startDt = new Date(sy, sm - 1, sd);
+  const todayDt = new Date(ty, tm - 1, td);
+  const diffTime = todayDt.getTime() - startDt.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  const cycleDay = ((diffDays % 120) + 120) % 120;
+  return cycleDay;
+};
+
 export default function ManpowerRosterView({
-  initialSubView = 'MONTHLY_GRID',
+  initialSubView = 'DAILY_SHIFT_BOARD',
 }: ManpowerRosterViewProps) {
-  const [activeTab, setActiveTab] = useState<'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD'>(initialSubView);
+  const [activeTab, setActiveTab] = useState<'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX'>(initialSubView);
+
+  // Always sync activeTab when initialSubView prop updates
+  useEffect(() => {
+    if (initialSubView) {
+      setActiveTab(initialSubView);
+    }
+  }, [initialSubView]);
   const [selectedDept, setSelectedDept] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [manpowerData, setManpowerData] = useState<StaffPersonnel[]>(INITIAL_MANPOWER_MASTER_RECORDS);
 
-  // Top KPI Metrics
-  const totalStaff = MANPOWER_DIRECTORY.length; // 22
-  const onSiteCount = MANPOWER_DIRECTORY.filter((m) => m.currentStatus === 'ON_SITE' || m.currentStatus === 'HANDOVER_PENDING').length; // 18
-  const offDutyCount = MANPOWER_DIRECTORY.filter((m) => m.currentStatus === 'OFF_DUTY').length; // 4
-  const dayShiftCount = MANPOWER_DIRECTORY.filter((m) => m.todayShift === 'D' && (m.currentStatus === 'ON_SITE' || m.currentStatus === 'HANDOVER_PENDING')).length;
-  const nightShiftCount = MANPOWER_DIRECTORY.filter((m) => m.todayShift === 'N' && (m.currentStatus === 'ON_SITE' || m.currentStatus === 'HANDOVER_PENDING')).length;
+  // Accordion Collapsible States for Daily Shift Board
+  const [isErtGateExpanded, setIsErtGateExpanded] = useState<boolean>(false);
+  const [isHandoverExpanded, setIsHandoverExpanded] = useState<boolean>(false);
+  const [isFatigueExpanded, setIsFatigueExpanded] = useState<boolean>(false);
+  const [isHandoverProtocolModalOpen, setIsHandoverProtocolModalOpen] = useState<boolean>(false);
 
-  // Filtered List
+  // Multi-Month State for Tab 1
+  const [selectedYear, setSelectedYear] = useState<number>(2026);
+  const [selectedMonth, setSelectedMonth] = useState<number>(9); // 1-indexed (9 = September 2026 / Current)
+  const [monthOverrides, setMonthOverrides] = useState<Record<string, ShiftCode[]>>({});
+
+  // Rotation Tab Status Sorting Mode: OFF_FIRST <-> ONSITE_FIRST
+  const [statusSortMode, setStatusSortMode] = useState<'OFF_FIRST' | 'ONSITE_FIRST'>('OFF_FIRST');
+
+  // 1. Cross-Tab Deep Linking State
+  const [selectedEmpId, setSelectedEmpId] = useState<string | null>(null);
+
+  // Crosshair Highlight State for Monthly Plan Grid (hoveredRowStaffId, hoveredColDay)
+  const [hoveredRowStaffId, setHoveredRowStaffId] = useState<string | null>(null);
+  const [hoveredColDay, setHoveredColDay] = useState<number | null>(null);
+
+  // 2. Interactive Handover & Delegation Protocol Modal State
+  const [handoverModalStaff, setHandoverModalStaff] = useState<StaffPersonnel | null>(null);
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string>('');
+  const [handoverSuccessToast, setHandoverSuccessToast] = useState<{
+    offGoingName: string;
+    relieverName: string;
+    roleTitle: string;
+  } | null>(null);
+
+  // 5. Fatigue Limit Hard-Lock Alert Modal
+  const [fatigueAlertModal, setFatigueAlertModal] = useState<{
+    staffName: string;
+    dayNum: number;
+    violationReason: string;
+  } | null>(null);
+
+  // 6. Site Manager Exception Rest (R) Approval Modal
+  const [siteManagerApprovalModal, setSiteManagerApprovalModal] = useState<{
+    staff: StaffPersonnel;
+    dayIndex: number;
+    dayNum: number;
+    reason: string;
+  } | null>(null);
+  const [approvalReason, setApprovalReason] = useState<string>('Medical');
+  const [siteManagerRestToast, setSiteManagerRestToast] = useState<{
+    staffName: string;
+    dayNum: number;
+  } | null>(null);
+
+  // 7. Monthly Plan Past Date / Daily Shift Board Read-Only Lock State
+  const [pastDateLockModal, setPastDateLockModal] = useState<{
+    dateStr: string;
+    staffName: string;
+    isConfirmedToday?: boolean;
+  } | null>(null);
+  const [confirmedDailyDates, setConfirmedDailyDates] = useState<string[]>(['2026-09-01']);
+  const [dailyShiftSavedToast, setDailyShiftSavedToast] = useState<boolean>(false);
+
+  // 8. Daily Shift Board (Tab 3) Stand-down / Rest Request & Standby Cover State
+  const [dailyRestModalOpen, setDailyRestModalOpen] = useState<boolean>(false);
+  const [dailyRestApplicantId, setDailyRestApplicantId] = useState<string>('EMP-005');
+  const [dailyRestReason, setDailyRestReason] = useState<'Medical' | 'Emergency' | 'Fatigue 154h'>('Medical');
+  const [dailyRestCoverId, setDailyRestCoverId] = useState<string>('EMP-003');
+  const [dailyRestSmApproved, setDailyRestSmApproved] = useState<boolean>(true);
+  const [dailyRestAssignments, setDailyRestAssignments] = useState<{
+    [staffId: string]: {
+      reason: string;
+      coveringStaffId: string;
+      approvedAt: string;
+    };
+  }>({});
+  const [fatigueOverrideApproved, setFatigueOverrideApproved] = useState<boolean>(false);
+
+  // 9. Pre-Shift Handover Checklist & Sign-off State for Tab 3
+  const [handoverChecklist, setHandoverChecklist] = useState({
+    bogNormal: true,
+    bayStatus: true,
+    ptwReviewed: true,
+    ertCleared: true,
+    esdArmed: true,
+  });
+  const [handoverSignatures, setHandoverSignatures] = useState({
+    offGoingSigned: true,
+    incomingSigned: true,
+    smApproved: true,
+  });
+  const [dailyRestSuccessToast, setDailyRestSuccessToast] = useState<{
+    applicantName: string;
+    coverName: string;
+    reason: string;
+  } | null>(null);
+
+  // Synchronize when initialSubView prop changes
+  useEffect(() => {
+    if (initialSubView) {
+      setActiveTab(initialSubView);
+    }
+  }, [initialSubView]);
+
+  // Dynamic CSV synchronization on mount
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/data/manpower_job_database.csv')
+      .then((res) => {
+        if (!res.ok) throw new Error('CSV not found');
+        return res.text();
+      })
+      .then((csvText) => {
+        if (!isMounted || !csvText) return;
+        const parsed = Papa.parse<Record<string, string>>(csvText, {
+          header: true,
+          skipEmptyLines: true,
+        });
+        if (parsed.data && parsed.data.length > 0) {
+          const records: StaffPersonnel[] = parsed.data
+            .filter((row) => row.Emp_ID || row.id || row.Name)
+            .map((row, idx) => {
+              const id = row.Emp_ID || row.id || `EMP-${String(idx + 1).padStart(3, '0')}`;
+              const name = row.Name || row.name || '';
+              const dept = (row.Department_Code || row.department || 'MANAGEMENT') as DepartmentCode;
+              const teamName = (row.Team_Name || row.teamName || 'Management') as TeamNameStandard;
+              const baseMaster = INITIAL_MANPOWER_MASTER_RECORDS.find((r) => r.id === id);
+              const rawRole =
+                row.Position ||
+                row.Role_Title ||
+                row.Position_Role_Title ||
+                row.position ||
+                row.role ||
+                baseMaster?.role ||
+                '';
+              const role = normalizePositionTitle(rawRole) || normalizePositionTitle(baseMaster?.role || '') || 'Field Operator';
+              const currentStatus = (row.Current_Status || row.currentStatus || 'ON_SITE') as StaffPersonnel['currentStatus'];
+              const todayShift = (row.Today_Shift || row.todayShift || 'D') as ShiftCode;
+              const onSiteDays = parseInt(row.OnSite_Days || row.onSiteDays || '0', 10) || 0;
+              const targetCycleDays = parseInt(row.Target_Cycle_Days || row.targetCycleDays || '90', 10) || 90;
+              const cycleStartDate = row.Cycle_Start_Date || row.cycleStartDate || '2026-06-01';
+              const nextRotationDueDate = row.Next_Rotation_Due_Date || row.nextRotationDueDate || calcRotationDueDate(cycleStartDate);
+              const relieverName = row.Reliever_Name || row.relieverName || '-';
+              const contactNo = row.Contact_No || row.contactNo || '';
+              const radioChannel = row.Radio_Channel || row.radioChannel || '';
+              const rosterDays = generateRosterPattern(dept, idx);
+
+              return {
+                id,
+                name,
+                role,
+                department: dept,
+                teamName,
+                currentStatus,
+                todayShift,
+                onSiteDays,
+                targetCycleDays,
+                cycleStartDate,
+                nextRotationDueDate,
+                relieverName,
+                contactNo,
+                radioChannel,
+                rosterDays,
+                competencies: baseMaster?.competencies || [],
+                complianceWarning: baseMaster?.complianceWarning || false,
+                ertRole: (row.ERT_Role as ERTRole) || baseMaster?.ertRole || 'None',
+              };
+            });
+          if (records.length > 0) {
+            setManpowerData(records);
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('[ManpowerRosterView] Fallback to INITIAL_MANPOWER_MASTER_RECORDS:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 1. Cross-Tab Deep Link Helper
+  const navigateToMatrix = useCallback((empId: string) => {
+    setSelectedEmpId(empId);
+    setActiveTab('TRAINING_MATRIX');
+  }, []);
+
+  // 2. Real-Time Certification Update & Approval Handler
+  const handleUpdatePersonnelCertification = useCallback(
+    (empId: string, certCode: string, updatedCert: CompetencyCertification) => {
+      setManpowerData((prev) =>
+        prev.map((staff) => {
+          if (staff.id !== empId) return staff;
+
+          const updatedCompetencies = (staff.competencies || []).map((c) =>
+            c.code === certCode ? updatedCert : c
+          );
+
+          // Check if any expired certs remain
+          const hasExpired = updatedCompetencies.some((c) => c.status === 'EXPIRED');
+
+          return {
+            ...staff,
+            competencies: updatedCompetencies,
+            complianceWarning: hasExpired,
+          };
+        })
+      );
+    },
+    []
+  );
+
+  // Dynamic Days in Selected Month
+  const daysInCurrentMonth = useMemo(
+    () => getDaysInMonth(selectedYear, selectedMonth),
+    [selectedYear, selectedMonth]
+  );
+
+  const daysArray = useMemo(
+    () => Array.from({ length: daysInCurrentMonth }, (_, i) => i + 1),
+    [daysInCurrentMonth]
+  );
+
+  // Compact Month Navigator Handlers
+  const handlePrevMonth = () => {
+    if (selectedMonth === 1) {
+      setSelectedYear((y) => y - 1);
+      setSelectedMonth(12);
+    } else {
+      setSelectedMonth((m) => m - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (selectedMonth === 12) {
+      setSelectedYear((y) => y + 1);
+      setSelectedMonth(1);
+    } else {
+      setSelectedMonth((m) => m + 1);
+    }
+  };
+
+  // Helper to get active roster for staff in (selectedYear, selectedMonth)
+  const getStaffRosterForSelectedMonth = useCallback(
+    (staff: StaffPersonnel) => {
+      const key = `${staff.id}_${selectedYear}_${selectedMonth}`;
+      if (monthOverrides[key]) {
+        return monthOverrides[key];
+      }
+      return generateMonthlyRoster(staff, selectedYear, selectedMonth);
+    },
+    [selectedYear, selectedMonth, monthOverrides]
+  );
+
+  // Top KPI Metrics (Dynamically Computed)
+  const totalStaff = manpowerData.length; // 22
+  const onSiteCount = manpowerData.filter((m) => m.currentStatus === 'ON_SITE' || m.currentStatus === 'HANDOVER_PENDING').length;
+  const offDutyCount = manpowerData.filter((m) => m.currentStatus === 'OFF_DUTY').length;
+  const dayShiftCount = manpowerData.filter((m) => m.todayShift === 'D' && (m.currentStatus === 'ON_SITE' || m.currentStatus === 'HANDOVER_PENDING')).length;
+  const nightShiftCount = manpowerData.filter((m) => m.todayShift === 'N' && (m.currentStatus === 'ON_SITE' || m.currentStatus === 'HANDOVER_PENDING')).length;
+
+  // Dynamic Shift Groups
+  const teamBPersonnel = useMemo(() => manpowerData.filter((m) => m.department === 'OP_BRAVO'), [manpowerData]);
+  const teamCPersonnel = useMemo(() => manpowerData.filter((m) => m.department === 'OP_CHARLIE'), [manpowerData]);
+  const teamAPersonnel = useMemo(() => manpowerData.filter((m) => m.department === 'OP_ALPHA' || m.id === 'EMP-002'), [manpowerData]);
+
+  // Cumulative 14-Day Hours of Service calculator
+  const get14dHours = useCallback((staff: StaffPersonnel) => {
+    if (staff.id === 'EMP-010') return 165; // Uliyansyah (Night DCS Tech, 88d on-site)
+    if (staff.id === 'EMP-004') return 154; // Erwin Supriatna (77d on-site)
+    if (staff.id === 'EMP-002') return 154; // Shadiq (82d on-site)
+    if (staff.onSiteDays >= 70) return 154;
+    return 132 + ((staff.onSiteDays % 3) * 11);
+  }, []);
+
+  // 3. ERT Manning & Compliance Gate Calculation (Dynamic with Rest & Covers)
+  const ertSummary = useMemo(() => {
+    const activeStaffIds = new Set<string>();
+
+    manpowerData.forEach((m) => {
+      if (m.currentStatus === 'OFF_DUTY') return;
+      const isResting = !!dailyRestAssignments[m.id];
+      if (!isResting) {
+        activeStaffIds.add(m.id);
+      }
+    });
+
+    // Add assigned standby covers
+    Object.values(dailyRestAssignments).forEach((assign) => {
+      if (assign.coveringStaffId) {
+        activeStaffIds.add(assign.coveringStaffId);
+      }
+    });
+
+    const activeCertifiedPersonnel = manpowerData.filter(
+      (m) => activeStaffIds.has(m.id) && !getStaffCompetencyStatus(m).hasExpired
+    );
+
+    const icCount = activeCertifiedPersonnel.filter((m) => m.ertRole === 'Incident Commander').length;
+    const fireChiefCount = activeCertifiedPersonnel.filter((m) => m.ertRole === 'Fire Chief').length;
+    const firstAiderCount = activeCertifiedPersonnel.filter((m) => m.ertRole === 'First Aider').length;
+    const gasResponseCount = activeCertifiedPersonnel.filter((m) => m.ertRole === 'Gas Leak Response').length;
+
+    const isICMet = icCount >= 1;
+    const isFireChiefMet = fireChiefCount >= 1;
+    const isFirstAiderMet = firstAiderCount >= 1;
+    const isGasResponseMet = gasResponseCount >= 2;
+
+    const isAllERTMet = isICMet && isFireChiefMet && isFirstAiderMet && isGasResponseMet;
+
+    return {
+      icCount,
+      fireChiefCount,
+      firstAiderCount,
+      gasResponseCount,
+      isICMet,
+      isFireChiefMet,
+      isFirstAiderMet,
+      isGasResponseMet,
+      isAllERTMet,
+    };
+  }, [manpowerData, dailyRestAssignments]);
+
+  // Active On-Duty Shift Personnel with 154h Fatigue Exceeded
+  const exceeded154hPersonnel = useMemo(() => {
+    const activeOnDutyStaff: StaffPersonnel[] = [];
+    
+    // Check Team B
+    teamBPersonnel.forEach((m) => {
+      if (!dailyRestAssignments[m.id]) {
+        activeOnDutyStaff.push(m);
+      }
+    });
+    // Check Team C
+    teamCPersonnel.forEach((m) => {
+      if (!dailyRestAssignments[m.id]) {
+        activeOnDutyStaff.push(m);
+      }
+    });
+    // Check Covers
+    Object.values(dailyRestAssignments).forEach((assign) => {
+      const cover = manpowerData.find((s) => s.id === assign.coveringStaffId);
+      if (cover) activeOnDutyStaff.push(cover);
+    });
+
+    return activeOnDutyStaff.filter((m) => get14dHours(m) >= 154);
+  }, [teamBPersonnel, teamCPersonnel, dailyRestAssignments, manpowerData, get14dHours]);
+
+  const has154hViolation = exceeded154hPersonnel.length > 0;
+
+  // 5. Fatigue & Hours of Service Validation Across All Roster
+  const fatigueViolationCount = useMemo(() => {
+    let violations = 0;
+    manpowerData.forEach((staff) => {
+      const roster = getStaffRosterForSelectedMonth(staff);
+      let consecutiveN = 0;
+      roster.forEach((code) => {
+        if (code === 'N') {
+          consecutiveN++;
+          if (consecutiveN > 7) {
+            violations++;
+          }
+        } else {
+          consecutiveN = 0;
+        }
+      });
+    });
+    return violations;
+  }, [manpowerData, getStaffRosterForSelectedMonth]);
+
+  // 5. Shift Cell Click with Past Date Lock, Fatigue Hard-Lock & Site Manager Approval Gate
+  const handleShiftCellClick = (staffId: string, dayIndex: number) => {
+    const target = manpowerData.find((s) => s.id === staffId);
+    if (!target) return;
+
+    const dayNum = dayIndex + 1;
+    const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+    const cellDate = new Date(selectedYear, selectedMonth - 1, dayNum);
+    const baselineDate = new Date(2026, 8, 1); // 2026-09-01 (Month 8 in 0-indexed JS Date)
+
+    // 1. Past Date Read-Only Lock & Daily Shift Board Confirmed Freeze
+    const isPastDate = cellDate < baselineDate;
+    const isConfirmedDate = confirmedDailyDates.includes(dateKey);
+
+    if (isPastDate || isConfirmedDate) {
+      setPastDateLockModal({
+        dateStr: `${MONTH_NAMES[selectedMonth - 1]} ${dayNum}, ${selectedYear}`,
+        staffName: target.name,
+        isConfirmedToday: isConfirmedDate && !isPastDate,
+      });
+      return;
+    }
+
+    const currentRoster = getStaffRosterForSelectedMonth(target);
+    const currentCode = currentRoster[dayIndex];
+    const nextCode: ShiftCode =
+      currentCode === 'D' ? 'N' : currentCode === 'N' ? 'Off' : currentCode === 'Off' ? 'AL' : 'D';
+
+    const isResident =
+      target.department === 'HR_GA' ||
+      target.id === 'EMP-017' ||
+      target.id === 'EMP-018' ||
+      target.cycleStartDate === 'N/A' ||
+      target.cycleStartDate === '-';
+
+    // 3:1 Continuous Operation Policy: Assigning Rest Day (R) during 90d on-site duty requires Site Manager Authorization
+    if (nextCode === 'Off' && !isResident) {
+      setSiteManagerApprovalModal({
+        staff: target,
+        dayIndex,
+        dayNum: dayIndex + 1,
+        reason: approvalReason,
+      });
+      return;
+    }
+
+    if (nextCode === 'N') {
+      const tempRoster = [...currentRoster];
+      tempRoster[dayIndex] = 'N';
+
+      let maxConsecutiveN = 0;
+      let runningN = 0;
+      tempRoster.forEach((c) => {
+        if (c === 'N') {
+          runningN++;
+          if (runningN > maxConsecutiveN) maxConsecutiveN = runningN;
+        } else {
+          runningN = 0;
+        }
+      });
+
+      if (maxConsecutiveN > 7) {
+        setFatigueAlertModal({
+          staffName: target.name,
+          dayNum: dayIndex + 1,
+          violationReason: `Proposed assignment creates ${maxConsecutiveN} consecutive night shifts in ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear} (Maximum allowed: 7 Days under SKK Migas Fatigue Policy).`,
+        });
+        return;
+      }
+    }
+
+    const updatedRoster = [...currentRoster];
+    updatedRoster[dayIndex] = nextCode;
+
+    const key = `${staffId}_${selectedYear}_${selectedMonth}`;
+    setMonthOverrides((prev) => ({
+      ...prev,
+      [key]: updatedRoster,
+    }));
+  };
+
+  const handleConfirmDailyShiftBoard = () => {
+    if (has154hViolation && !fatigueOverrideApproved) {
+      alert(`⚠️ 154h Fatigue Limit Violation:\n${exceeded154hPersonnel.map(s => `• ${s.name} (${s.role}): ${get14dHours(s)}h worked in 14 days`).join('\n')}\n\nSite Manager Fatigue Override authorization is required to submit and lock today's roster.`);
+      return;
+    }
+    const todayKey = '2026-09-01';
+    setConfirmedDailyDates((prev) => (prev.includes(todayKey) ? prev : [...prev, todayKey]));
+    setDailyShiftSavedToast(true);
+    setTimeout(() => setDailyShiftSavedToast(false), 4000);
+  };
+
+  const handleOpenDailyRestModal = () => {
+    const firstOnDuty = teamBPersonnel[0] || teamCPersonnel[0];
+    if (firstOnDuty) {
+      setDailyRestApplicantId(firstOnDuty.id);
+    }
+    const firstStandby = teamAPersonnel[0];
+    if (firstStandby) {
+      setDailyRestCoverId(firstStandby.id);
+    }
+    setDailyRestModalOpen(true);
+  };
+
+  const handleApplyDailyRestRequest = () => {
+    const applicant = manpowerData.find((m) => m.id === dailyRestApplicantId);
+    const cover = manpowerData.find((m) => m.id === dailyRestCoverId);
+    if (!applicant || !cover) return;
+
+    setDailyRestAssignments((prev) => ({
+      ...prev,
+      [applicant.id]: {
+        reason: dailyRestReason,
+        coveringStaffId: cover.id,
+        approvedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      },
+    }));
+
+    setDailyRestSuccessToast({
+      applicantName: applicant.name,
+      coverName: cover.name,
+      reason: dailyRestReason,
+    });
+    setTimeout(() => setDailyRestSuccessToast(null), 5000);
+    setDailyRestModalOpen(false);
+  };
+
+  const handleConfirmSiteManagerApproval = () => {
+    if (!siteManagerApprovalModal) return;
+    const { staff, dayIndex, dayNum } = siteManagerApprovalModal;
+    const currentRoster = getStaffRosterForSelectedMonth(staff);
+    const updatedRoster = [...currentRoster];
+    updatedRoster[dayIndex] = 'Off'; // Sets Site Manager Authorized Exception Rest (R)
+
+    const key = `${staff.id}_${selectedYear}_${selectedMonth}`;
+    setMonthOverrides((prev) => ({
+      ...prev,
+      [key]: updatedRoster,
+    }));
+
+    setSiteManagerRestToast({
+      staffName: staff.name,
+      dayNum,
+    });
+    setSiteManagerApprovalModal(null);
+  };
+
+  // 2. Rule-Based Delegation & Eligible Reliever Candidate Generator
+  const getEligibleRelieverCandidates = useCallback((targetStaff: StaffPersonnel) => {
+    const targetRole = targetStaff.role;
+    const targetDept = targetStaff.department;
+    const candidates: { staff: StaffPersonnel; label: string; isPrimary: boolean }[] = [];
+
+    // Rule 1: Site Manager (EMP-001) -> Sr. OP Team Leader as Primary Acting Delegate
+    if (targetStaff.id === 'EMP-001' || targetRole === 'Site Manager') {
+      const shadiq = manpowerData.find((m) => m.id === 'EMP-002');
+      if (shadiq) {
+        candidates.push({
+          staff: shadiq,
+          label: `${shadiq.name} (Acting Site Manager - Primary Delegate)`,
+          isPrimary: true,
+        });
+      }
+      manpowerData
+        .filter((m) => m.id !== 'EMP-001' && m.id !== 'EMP-002' && m.role.includes('OP Team Leader'))
+        .forEach((m) => {
+          candidates.push({
+            staff: m,
+            label: `${m.name} (OP Team Leader - Secondary Delegate)`,
+            isPrimary: false,
+          });
+        });
+      return candidates;
+    }
+
+    // Rule 2: Sr. OP Team Leader (EMP-002) -> Other OP Team Leaders as Rotation Relievers
+    if (targetStaff.id === 'EMP-002') {
+      manpowerData
+        .filter((m) => m.id !== 'EMP-002' && m.role.includes('OP Team Leader'))
+        .forEach((m) => {
+          candidates.push({
+            staff: m,
+            label: `${m.name} (OP Team Leader - Rotation Reliever)`,
+            isPrimary: true,
+          });
+        });
+      manpowerData
+        .filter((m) => m.role.includes('DCS'))
+        .forEach((m) => {
+          candidates.push({
+            staff: m,
+            label: `${m.name} (DCS Control Technician - Shift Lead Delegate)`,
+            isPrimary: false,
+          });
+        });
+      return candidates;
+    }
+
+    // Rule 3: OP Team Leaders (Asman, Juli) -> Other Team Leaders or Sr. DCS Control Technicians
+    if (targetRole.includes('OP Team Leader')) {
+      manpowerData
+        .filter((m) => m.id !== targetStaff.id && (m.role.includes('OP Team Leader') || m.id === 'EMP-002'))
+        .forEach((m) => {
+          candidates.push({
+            staff: m,
+            label: `${m.name} (OP Team Leader Pool)`,
+            isPrimary: true,
+          });
+        });
+      manpowerData
+        .filter((m) => m.role.includes('DCS'))
+        .forEach((m) => {
+          candidates.push({
+            staff: m,
+            label: `${m.name} (DCS Control Technician - Shift Lead Delegate)`,
+            isPrimary: false,
+          });
+        });
+      return candidates;
+    }
+
+    // Rule 4: Field Operator -> Only Field Operator & DCS Control Technician Pool
+    if (targetRole.includes('Field Operator')) {
+      manpowerData
+        .filter((m) => m.id !== targetStaff.id && (m.role.includes('Field Operator') || m.role.includes('DCS')))
+        .forEach((m) => {
+          candidates.push({
+            staff: m,
+            label: `${m.name} (${m.role} • ${m.teamName})`,
+            isPrimary: true,
+          });
+        });
+      return candidates;
+    }
+
+    // Rule 5: DCS Control Technician -> Same Operations DCS / Operator Pool
+    if (targetRole.includes('DCS Control Technician')) {
+      manpowerData
+        .filter((m) => m.id !== targetStaff.id && (m.role.includes('DCS') || m.role.includes('Field Operator')))
+        .forEach((m) => {
+          candidates.push({
+            staff: m,
+            label: `${m.name} (${m.role} • ${m.teamName})`,
+            isPrimary: true,
+          });
+        });
+      return candidates;
+    }
+
+    // Rule 6: HSSE Team -> Direct mutual cross-rotation (Arsyan AN <-> Chandra R.D)
+    if (targetDept === 'HSSE' || targetRole.includes('HSE')) {
+      manpowerData
+        .filter((m) => m.id !== targetStaff.id && (m.department === 'HSSE' || m.role.includes('HSE')))
+        .forEach((m) => {
+          candidates.push({
+            staff: m,
+            label: `${m.name} (${m.role} - Direct HSSE Cross-Rotation)`,
+            isPrimary: true,
+          });
+        });
+      return candidates;
+    }
+
+    // Rule 7: Maintenance, Logistics, HR/GA -> Same department acting/reliever pool
+    manpowerData
+      .filter((m) => m.id !== targetStaff.id && m.department === targetDept)
+      .forEach((m) => {
+        candidates.push({
+          staff: m,
+          label: `${m.name} (${m.role} • ${m.teamName})`,
+          isPrimary: true,
+        });
+      });
+
+    return candidates;
+  }, [manpowerData]);
+
+  // Click Handover button handler
+  const handleOpenHandoverModal = (staff: StaffPersonnel) => {
+    setHandoverModalStaff(staff);
+    const candidateList = getEligibleRelieverCandidates(staff);
+    // Find pre-assigned reliever or fallback to primary candidate
+    const existingMatch = candidateList.find((c) =>
+      c.staff.name.toLowerCase().includes(staff.relieverName.toLowerCase()) ||
+      staff.relieverName.toLowerCase().includes(c.staff.name.toLowerCase())
+    );
+    if (existingMatch) {
+      setSelectedCandidateId(existingMatch.staff.id);
+    } else if (candidateList.length > 0) {
+      setSelectedCandidateId(candidateList[0].staff.id);
+    } else {
+      setSelectedCandidateId('');
+    }
+  };
+
+  // Execute Handover Protocol
+  const handleExecuteHandover = (offGoingStaff: StaffPersonnel, relieverStaff: StaffPersonnel) => {
+    setManpowerData((prev) =>
+      prev.map((s) => (s.id === offGoingStaff.id ? { ...s, relieverName: relieverStaff.name } : s))
+    );
+    setHandoverSuccessToast({
+      offGoingName: offGoingStaff.name,
+      relieverName: relieverStaff.name,
+      roleTitle: offGoingStaff.role,
+    });
+    setHandoverModalStaff(null);
+  };
+
+  // Toggle Status Sort handler (2-stage: OFF_FIRST <-> ONSITE_FIRST)
+  const handleToggleStatusSort = () => {
+    setStatusSortMode((prev) => (prev === 'OFF_FIRST' ? 'ONSITE_FIRST' : 'OFF_FIRST'));
+  };
+
+  const deptCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      ALL: manpowerData.length,
+      MANAGEMENT: manpowerData.filter((m) => m.department === 'MANAGEMENT').length,
+      OP_ALPHA: manpowerData.filter((m) => m.department === 'OP_ALPHA').length,
+      OP_BRAVO: manpowerData.filter((m) => m.department === 'OP_BRAVO').length,
+      OP_CHARLIE: manpowerData.filter((m) => m.department === 'OP_CHARLIE').length,
+      MAINTENANCE: manpowerData.filter((m) => m.department === 'MAINTENANCE').length,
+      HSSE: manpowerData.filter((m) => m.department === 'HSSE').length,
+      HR_GA: manpowerData.filter((m) => m.department === 'HR_GA').length,
+      LOGISTICS: manpowerData.filter((m) => m.department === 'LOGISTICS').length,
+    };
+    return counts;
+  }, [manpowerData]);
+
   const filteredPersonnel = useMemo(() => {
-    return MANPOWER_DIRECTORY.filter((m) => {
+    return manpowerData.filter((m) => {
       const matchDept = selectedDept === 'ALL' || m.department === selectedDept;
       const matchSearch =
         searchQuery === '' ||
@@ -499,10 +863,41 @@ export default function ManpowerRosterView({
         m.teamName.toLowerCase().includes(searchQuery.toLowerCase());
       return matchDept && matchSearch;
     });
-  }, [selectedDept, searchQuery]);
+  }, [manpowerData, selectedDept, searchQuery]);
+
+  // Tab 2 Sorted List according to 2-stage statusSortMode (Off-Day vs On-Site)
+  const rotationPersonnelList = useMemo(() => {
+    const list = [...filteredPersonnel];
+
+    const getStatusWeight = (staff: StaffPersonnel) => {
+      const isResident =
+        staff.department === 'HR_GA' ||
+        staff.id === 'EMP-017' ||
+        staff.id === 'EMP-018' ||
+        staff.cycleStartDate === 'N/A' ||
+        staff.cycleStartDate === '-';
+
+      const days = isResident ? 0 : calcOnSiteDays(staff.cycleStartDate);
+      const isOffDuty = !isResident && (days >= 90 || staff.currentStatus === 'OFF_DUTY');
+
+      if (statusSortMode === 'OFF_FIRST') {
+        return isOffDuty ? 1 : 2;
+      }
+      return isOffDuty ? 2 : 1;
+    };
+
+    list.sort((a, b) => {
+      const wa = getStatusWeight(a);
+      const wb = getStatusWeight(b);
+      if (wa !== wb) return wa - wb;
+      return a.id.localeCompare(b.id);
+    });
+
+    return list;
+  }, [filteredPersonnel, statusSortMode]);
 
   const handleExportCSV = () => {
-    const csvData = MANPOWER_DIRECTORY.map((m) => ({
+    const csvData = manpowerData.map((m) => ({
       ID: m.id,
       Name: m.name,
       Role: m.role,
@@ -510,388 +905,564 @@ export default function ManpowerRosterView({
       Department: m.department,
       Status: m.currentStatus,
       Today_Shift: m.todayShift,
-      OnSite_Days: m.onSiteDays,
+      OnSite_Days: calcOnSiteDays(m.cycleStartDate),
       Target_Cycle: `${m.targetCycleDays} Days (3:1)`,
       Cycle_Start: m.cycleStartDate,
-      Next_Rotation: m.nextRotationDueDate,
+      Next_Rotation: calcRotationDueDate(m.cycleStartDate),
       Reliever: m.relieverName,
       Contact: m.contactNo,
       Radio: m.radioChannel,
+      ERT_Role: m.ertRole || 'None',
     }));
-    exportToCSV(`NIAS_CMMS_Manpower_Roster_August_2026.csv`, csvData);
+    exportToCSV(`NIAS_CMMS_Manpower_Roster_${MONTH_NAMES[selectedMonth - 1]}_${selectedYear}.csv`, csvData);
   };
 
   return (
-    <div className="h-full flex flex-col min-h-0 gap-1.5 w-full win-panel p-2 overflow-hidden select-none font-sans text-xs">
+    <div className="h-full flex flex-col min-h-0 gap-1.5 w-full bg-[#d4d0c8] p-2 overflow-hidden select-none font-sans text-xs">
       {/* ========================================================================= */}
-      {/* 1. Header Title Bar                                                       */}
       {/* ========================================================================= */}
-      <div className="win-titlebar px-2 py-1 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-1.5 text-white font-bold text-xs">
-          <Users className="w-4 h-4" />
-          <span>Manpower & Shift Roster - 3:1 Rotation Cycle Management (NIAS CMMS)</span>
+      {/* 1. Header Title Bar (Classic Gray 3D Raised Bevel with Action Buttons)    */}
+      {/* ========================================================================= */}
+      <div className="bg-[#d4d0c8] text-slate-900 font-extrabold text-xs px-3 py-1.5 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] tracking-wider uppercase flex items-center justify-between shadow-xs shrink-0 select-none">
+        <div className="flex items-center">
+          <span className="text-emerald-700 font-black mr-2 text-sm">■</span>
+          <span className="uppercase tracking-wider">DAILY OPERATIONS SUMMARY</span>
         </div>
         <div className="flex items-center gap-2">
+          {/* 1. Shift Handover & Delegation Protocol Button */}
           <button
-            onClick={handleExportCSV}
-            className="win-btn text-[11px] px-2 py-0.5 flex items-center gap-1 cursor-pointer"
-            title="Export Roster to CSV"
+            onClick={() => setIsHandoverProtocolModalOpen(true)}
+            className="win-btn text-xs font-bold px-3 py-1 text-slate-900 flex items-center gap-1.5 cursor-pointer"
+            title="Open Pre-Shift Handover & Safety Delegation Protocol (SOP NP07-03)"
           >
-            <Download className="w-3 h-3" />
-            <span>Export CSV</span>
+            <ArrowRightLeft className="w-3.5 h-3.5 text-blue-950" />
+            <span>Shift Handover &amp; Delegation</span>
+          </button>
+
+          {/* 2. Shift / Leave Request Button */}
+          <button
+            onClick={handleOpenDailyRestModal}
+            className="win-btn text-xs font-bold px-3 py-1 text-slate-900 flex items-center gap-1.5 cursor-pointer"
+            title="Apply for on-duty rest/stand-down, shift swap, or assign standby cover"
+          >
+            <UserPlus className="w-3.5 h-3.5 text-blue-950" />
+            <span>+ Shift / Leave Request</span>
+          </button>
+
+          {/* 3. Submit & Lock Roster Button */}
+          <button
+            onClick={handleConfirmDailyShiftBoard}
+            disabled={has154hViolation && !fatigueOverrideApproved}
+            className={`win-btn text-xs font-bold px-3 py-1 flex items-center gap-1.5 ${
+              has154hViolation && !fatigueOverrideApproved
+                ? 'opacity-60 cursor-not-allowed text-slate-500'
+                : 'text-slate-900 cursor-pointer'
+            }`}
+            title="Confirm shift muster and freeze record in Monthly Plan"
+          >
+            <Lock className="w-3.5 h-3.5 text-amber-700" />
+            <span>Submit &amp; Lock Roster</span>
           </button>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. Top KPI Summary Metric Cards (4 Cards)                                */}
+      {/* 2. Top KPI Summary Metric Cards (3 Cards - Shift Merged Layout)           */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-1.5 shrink-0">
-        {/* Card 1: On-site Total */}
-        <div className="win-panel p-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-700 font-bold text-[11px] mb-1">
-            <span className="flex items-center gap-1">
-              <UserCheck className="w-3.5 h-3.5 text-blue-900" />
-              On-Site Active
-            </span>
-            <span className="win-sunken px-1 text-[9px] bg-emerald-100 text-emerald-950 font-mono font-bold">
-              {((onSiteCount / totalStaff) * 100).toFixed(0)}%
-            </span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 shrink-0">
+        {/* Card 1: [ON-SITE TOTAL] */}
+        <div className="border-2 border-slate-400 bg-slate-200 overflow-hidden shadow-xs flex flex-col justify-between">
+          <div className="bg-[#183b6b] text-white font-bold text-xs px-2.5 py-1 text-center tracking-wide uppercase border-b border-slate-400">
+            ON-SITE TOTAL
           </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-black font-mono text-blue-950">{onSiteCount}</span>
-            <span className="text-xs font-mono text-slate-600">/ {totalStaff} Personnel</span>
-          </div>
-        </div>
-
-        {/* Card 2: 3:1 Off-Duty Leave */}
-        <div className="win-panel p-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-700 font-bold text-[11px] mb-1">
-            <span className="flex items-center gap-1">
-              <UserX className="w-3.5 h-3.5 text-amber-800" />
-              3:1 Off-Duty Leave
-            </span>
-            <span className="win-sunken px-1 text-[9px] bg-amber-100 text-amber-950 font-mono font-bold">
-              Off-Island
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-black font-mono text-amber-900">{offDutyCount}</span>
-            <span className="text-xs font-mono text-slate-600">Personnel on Leave</span>
+          <div className="p-1 space-y-0.5">
+            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
+              <span className="text-slate-700 font-medium whitespace-nowrap">Total Headcount</span>
+              <span className="text-slate-900 font-bold font-mono text-right">16 / 19 (84%)</span>
+            </div>
+            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
+              <span className="text-slate-700 font-medium whitespace-nowrap">Active Duty</span>
+              <span className="text-slate-900 font-bold font-mono text-right">13 Personnel</span>
+            </div>
+            <div className="flex justify-between items-center px-2.5 py-0.5 bg-slate-100 text-xs">
+              <span className="text-slate-700 font-medium whitespace-nowrap">ERT Compliance</span>
+              <span className="text-emerald-800 font-bold font-mono text-right">16 / 16 (100%)</span>
+            </div>
           </div>
         </div>
 
-        {/* Card 3: Today Day Shift Team */}
-        <div className="win-panel p-2 flex flex-col justify-between bg-blue-50/50">
-          <div className="flex items-center justify-between text-slate-800 font-bold text-[11px] mb-1">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-blue-900" />
-              Day Shift (08:00 - 20:00)
-            </span>
-            <span className="win-sunken px-1 text-[9px] bg-blue-900 text-white font-mono font-bold">
-              Team Bravo
-            </span>
+        {/* Card 2: [SHIFT OPERATIONS] */}
+        <div className="border-2 border-slate-400 bg-slate-200 overflow-hidden shadow-xs flex flex-col justify-between">
+          <div className="bg-[#183b6b] text-white font-bold text-xs px-2.5 py-1 text-center tracking-wide uppercase border-b border-slate-400">
+            SHIFT OPERATIONS
           </div>
-          <div className="flex justify-between items-baseline text-xs font-mono">
-            <span className="text-blue-950 font-bold">Asman S. / Muradi / Ripal</span>
-            <span className="font-bold text-blue-900">{dayShiftCount} On Duty</span>
-          </div>
-        </div>
-
-        {/* Card 4: Today Night Shift Team */}
-        <div className="win-panel p-2 flex flex-col justify-between bg-purple-50/50">
-          <div className="flex items-center justify-between text-slate-800 font-bold text-[11px] mb-1">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-purple-900" />
-              Night Shift (20:00 - 08:00)
-            </span>
-            <span className="win-sunken px-1 text-[9px] bg-purple-900 text-white font-mono font-bold">
-              Team Charlie
-            </span>
-          </div>
-          <div className="flex justify-between items-baseline text-xs font-mono">
-            <span className="text-purple-950 font-bold">Juli S. / Danang / Uli</span>
-            <span className="font-bold text-purple-900">{nightShiftCount} On Duty</span>
+          <div className="p-1 space-y-0.5">
+            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
+              <span className="text-slate-700 font-medium whitespace-nowrap">Day Shift (OP)</span>
+              <span className="text-slate-900 font-bold font-mono text-right">TEAM-B (3p) · Asman S.</span>
+            </div>
+            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
+              <span className="text-slate-700 font-medium whitespace-nowrap">Night Shift (OP)</span>
+              <span className="text-slate-900 font-bold font-mono text-right">TEAM-C (3p) · Juli S.</span>
+            </div>
+            <div className="flex justify-between items-center px-2.5 py-0.5 bg-slate-100 text-xs">
+              <span className="text-slate-700 font-medium whitespace-nowrap">Day Support</span>
+              <span className="text-slate-900 font-bold font-mono text-right">7 Staff (General)</span>
+            </div>
           </div>
         </div>
 
-        {/* Card 5: Standby / Rest Team */}
-        <div className="win-panel p-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-700 font-bold text-[11px] mb-1">
-            <span className="flex items-center gap-1">
-              <RotateCcw className="w-3.5 h-3.5 text-slate-700" />
-              Rest / Standby Team
-            </span>
-            <span className="win-sunken px-1 text-[9px] bg-slate-200 text-slate-800 font-mono font-bold">
-              Team Alpha
-            </span>
+        {/* Card 3: [LEAVE & SHORTAGE] */}
+        <div className="border-2 border-slate-400 bg-slate-200 overflow-hidden shadow-xs flex flex-col justify-between">
+          <div className="bg-[#183b6b] text-white font-bold text-xs px-2.5 py-1 text-center tracking-wide uppercase border-b border-slate-400">
+            LEAVE &amp; SHORTAGE
           </div>
-          <div className="text-xs font-mono text-slate-700 truncate font-semibold">
-            Shadiq M. / Yusuf / Erwin S.
+          <div className="p-1 space-y-0.5">
+            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
+              <span className="text-slate-700 font-medium whitespace-nowrap">Off-Duty Team</span>
+              <span className="text-slate-900 font-bold font-mono text-right">TEAM-A (3 Off-Island)</span>
+            </div>
+            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
+              <span className="text-slate-700 font-medium whitespace-nowrap">Unplanned Leave</span>
+              <span className={`font-mono font-bold text-right ${Object.keys(dailyRestAssignments).length > 0 ? 'text-amber-700' : 'text-slate-900'}`}>
+                {Object.keys(dailyRestAssignments).length} Sick / Emergency
+              </span>
+            </div>
+            <div className="flex justify-between items-center px-2.5 py-0.5 bg-slate-100 text-xs">
+              <span className="text-slate-700 font-medium whitespace-nowrap">Manning Status</span>
+              <span className="text-slate-900 font-bold font-mono text-right">
+                Normal (0 Deficit)
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. Sub-View Navigation Bar & Filters                                      */}
+      {/* 3. MAIN CONTENT AREA (Direct Tab Rendering without Duplicate Nav Bar)     */}
       {/* ========================================================================= */}
-      <div className="bg-[#e4e0d8] border border-slate-300 px-2 py-1 flex items-center justify-between gap-2 flex-wrap shrink-0">
-        {/* Left: View Tabs */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setActiveTab('MONTHLY_GRID')}
-            className={activeTab === 'MONTHLY_GRID' ? 'win-tab-active' : 'win-tab-inactive'}
-          >
-            <span>Monthly Roster Grid (August 2026)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('ROTATION_TRACKER')}
-            className={activeTab === 'ROTATION_TRACKER' ? 'win-tab-active' : 'win-tab-inactive'}
-          >
-            <span>3:1 Rotation Cycle Tracker</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('DAILY_SHIFT_BOARD')}
-            className={activeTab === 'DAILY_SHIFT_BOARD' ? 'win-tab-active' : 'win-tab-inactive'}
-          >
-            <span>Daily Shift Board (Alpha / Bravo / Charlie)</span>
-          </button>
-        </div>
-
-        {/* Right: Department Filter & Search */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <span className="text-[11px] font-bold text-slate-700">Dept:</span>
-            <select
-              value={selectedDept}
-              onChange={(e) => setSelectedDept(e.target.value)}
-              className="win-panel bg-white border border-slate-300 text-xs px-1.5 py-0.5 cursor-pointer font-bold"
-            >
-              <option value="ALL">All Departments (22)</option>
-              <option value="MANAGEMENT">Management (2)</option>
-              <option value="OP_ALPHA">Team Alpha (3)</option>
-              <option value="OP_BRAVO">Team Bravo (3)</option>
-              <option value="OP_CHARLIE">Team Charlie (3)</option>
-              <option value="MAINTENANCE">Maintenance (4)</option>
-              <option value="HSSE">HSSE Safety (2)</option>
-              <option value="LOGISTICS">Logistics & Support (5)</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <Search className="w-3.5 h-3.5 text-slate-600" />
-            <input
-              type="text"
-              placeholder="Search personnel..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="win-panel bg-white border border-slate-300 px-2 py-0.5 text-xs w-36 outline-none font-mono"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 4. MAIN CONTENT AREA (Tab Specific)                                       */}
-      {/* ========================================================================= */}
-      <div className="flex-1 min-h-0 overflow-y-auto win-sunken bg-white p-1">
+      <div className="flex-1 min-h-0 overflow-y-auto bg-[#d4d0c8] p-1.5">
         
         {/* ===================================================================== */}
-        {/* TAB 1: MONTHLY ROSTER GRID (August 2026 1-31 Spreadsheet View)        */}
+        {/* TAB 1: MONTHLY PLAN (Simplified Compact Controller & Single-Row Grid) */}
         {/* ===================================================================== */}
         {activeTab === 'MONTHLY_GRID' && (
-          <div className="overflow-x-auto min-w-full">
-            {/* Shift Legend Bar */}
-            <div className="bg-slate-100 p-1.5 border-b border-slate-300 flex items-center justify-between text-[11px] mb-1 font-mono flex-wrap gap-2">
-              <div className="flex items-center gap-3">
+          <div className="space-y-1">
+            {/* 1. Compact Single Month Navigator [ < ] September 2026 [ > ] */}
+            <div className="bg-[#e9e6df] border border-slate-300 px-2 py-1 flex items-center justify-between gap-2 flex-wrap text-xs">
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={handlePrevMonth}
+                  className="win-btn px-2.5 py-0.5 font-bold flex items-center cursor-pointer hover:bg-slate-200"
+                  title="Previous Month"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+
+                <div className="win-sunken px-4 py-0.5 bg-white font-mono font-bold text-xs text-blue-950 min-w-[150px] text-center border border-slate-300">
+                  {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
+                </div>
+
+                <button
+                  onClick={handleNextMonth}
+                  className="win-btn px-2.5 py-0.5 font-bold flex items-center cursor-pointer hover:bg-slate-200"
+                  title="Next Month"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Shift Codes Legend */}
+              <div className="flex items-center gap-3 font-mono text-[11px] flex-wrap">
                 <span className="font-bold text-slate-800">Shift Codes:</span>
                 <span className="inline-flex items-center gap-1">
-                  <span className="px-1.5 py-0.2 bg-blue-900 text-white font-bold text-[10px]">D</span> Day Shift (08:00 - 20:00)
+                  <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-[10px] rounded">D</span> Day
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  <span className="px-1.5 py-0.2 bg-purple-900 text-white font-bold text-[10px]">N</span> Night Shift (20:00 - 08:00)
+                  <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-900 border border-indigo-200 font-bold text-[10px] rounded">N</span> Night
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  <span className="px-1.5 py-0.2 bg-slate-300 text-slate-800 font-bold text-[10px]">Off</span> Rest / Off Duty
+                  <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 border border-slate-300 font-bold text-[10px] rounded">R</span> Rest
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  <span className="px-1.5 py-0.2 bg-amber-500 text-black font-bold text-[10px]">AL</span> 3:1 Annual Leave
+                  <span className="px-1.5 py-0.5 bg-amber-400 text-amber-950 border border-amber-500 font-black text-[10px] rounded shadow-sm">OFF</span> Leave
                 </span>
-              </div>
-              <div className="text-slate-600 font-bold">
-                Today: <span className="bg-yellow-200 px-1 text-black font-bold">Day 27 (2026-08-27)</span>
+                <span className="inline-flex items-center gap-1 text-red-700 font-bold">
+                  <span className="px-1.5 py-0.5 bg-rose-100 text-rose-800 border border-rose-400 font-bold text-[10px] rounded">Expired</span> Expired on Duty
+                </span>
               </div>
             </div>
 
-            <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
-              <thead>
-                <tr className="bg-slate-200 border-b border-slate-400 text-[10px]">
-                  <th className="p-1 border-r border-slate-300 w-20">Emp ID</th>
-                  <th className="p-1 border-r border-slate-300 w-36">Name</th>
-                  <th className="p-1 border-r border-slate-300 w-44">Position / Role</th>
-                  <th className="p-1 border-r border-slate-300 w-24">Team</th>
-                  <th className="p-1 border-r border-slate-300 text-center w-16">Today</th>
-                  {/* Days 1 to 31 */}
-                  {AUGUST_DAYS.map((day) => (
-                    <th
-                      key={day}
-                      className={`p-0.5 text-center border-r border-slate-300 min-w-[20px] ${
-                        day === 27 ? 'bg-yellow-300 font-black text-black' : ''
-                      }`}
-                    >
-                      {day}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPersonnel.map((m, i) => (
-                  <tr
-                    key={m.id}
-                    className={i % 2 === 0 ? 'bg-white hover:bg-slate-100' : 'bg-slate-50 hover:bg-slate-100'}
-                  >
-                    <td className="p-1 font-bold text-blue-950 border-r border-slate-300">{m.id}</td>
-                    <td className="p-1 font-bold text-slate-900 border-r border-slate-300 whitespace-nowrap">
-                      {m.name}
-                    </td>
-                    <td className="p-1 text-slate-700 border-r border-slate-300 whitespace-nowrap">{m.role}</td>
-                    <td className="p-1 border-r border-slate-300 whitespace-nowrap font-semibold">{m.teamName}</td>
-                    <td className="p-1 text-center border-r border-slate-300 font-bold">
-                      {m.todayShift === 'D' && <span className="bg-blue-900 text-white px-1.5 py-0.2">D</span>}
-                      {m.todayShift === 'N' && <span className="bg-purple-900 text-white px-1.5 py-0.2">N</span>}
-                      {m.todayShift === 'Off' && <span className="bg-slate-300 text-slate-800 px-1">Off</span>}
-                      {m.todayShift === 'AL' && <span className="bg-amber-500 text-black px-1">AL</span>}
-                    </td>
-                    {/* Render 31 day shift codes */}
-                    {m.rosterDays.map((code, dayIdx) => {
-                      const dayNum = dayIdx + 1;
-                      const isToday = dayNum === 27;
+            {/* Dynamic Monthly Grid Table (Single Row Numeric Header) */}
+            <div className="overflow-x-auto min-w-full">
+              <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
+                <thead>
+                  <tr className="bg-slate-200 border-b border-slate-400 text-[10px]">
+                    <th className="p-1 border-r border-slate-300 w-16 text-center">ID</th>
+                    <th className="p-1 border-r border-slate-300 w-36 text-center">Name</th>
+                    <th className="p-1 border-r border-slate-300 w-44 text-center">Position</th>
+                    <th className="p-1 border-r border-slate-300 w-28 text-center">Team</th>
+                    <th className="p-1 border-r border-slate-300 text-center w-16">Status</th>
+                    {/* Single-Row Numeric Date Columns (1, 2, 3 ... 30) */}
+                    {daysArray.map((day) => {
+                      const isToday = selectedYear === 2026 && selectedMonth === 9 && day === 1;
+                      const dateObj = new Date(selectedYear, selectedMonth - 1, day);
+                      const isSunday = dateObj.getDay() === 0;
+                      const isSaturday = dateObj.getDay() === 6;
+                      const isColHovered = hoveredColDay === day;
+                      const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                      const isPast = dateObj < new Date(2026, 8, 1);
+                      const isConfirmed = confirmedDailyDates.includes(dateKey);
+                      const isLocked = isPast || isConfirmed;
+
                       return (
-                        <td
-                          key={dayIdx}
-                          className={`p-0.5 text-center border-r border-slate-200 text-[10px] ${
-                            isToday ? 'bg-yellow-100 font-bold' : ''
+                        <th
+                          key={day}
+                          className={`p-0.5 text-center border-r border-slate-300 min-w-[24px] transition-colors select-none ${
+                            isColHovered
+                              ? 'bg-sky-200 text-sky-900 font-bold ring-1 ring-sky-400'
+                              : isToday
+                              ? 'bg-yellow-300 font-black text-black'
+                              : isSunday
+                              ? 'bg-red-100 text-red-800'
+                              : isSaturday
+                              ? 'bg-blue-100 text-blue-800'
+                              : isLocked
+                              ? 'bg-slate-100 text-slate-700'
+                              : ''
                           }`}
+                          title={`${MONTH_NAMES[selectedMonth - 1]} ${day}, ${selectedYear} ${isLocked ? '(🔒 Locked Record)' : ''}`}
                         >
-                          {code === 'D' && <span className="text-blue-900 font-bold">D</span>}
-                          {code === 'N' && <span className="text-purple-900 font-bold">N</span>}
-                          {code === 'Off' && <span className="text-slate-400">·</span>}
-                          {code === 'AL' && <span className="bg-amber-400 text-black px-0.5 font-bold">AL</span>}
-                        </td>
+                          <div className="flex items-center justify-center gap-0.5">
+                            <span>{day}</span>
+                            {isLocked && <Lock className="w-2 h-2 text-slate-500 shrink-0 opacity-70" />}
+                          </div>
+                        </th>
                       );
                     })}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredPersonnel.map((m, i) => {
+                    const expiryStatus = getStaffExpiryStatusForMonth(m, selectedYear, selectedMonth);
+                    const hasExpiredInMonth = expiryStatus.hasExpiredInMonth;
+                    const staffMonthlyRoster = getStaffRosterForSelectedMonth(m);
+
+                    const isSelected = selectedEmpId === m.id;
+                    const isRowHovered = hoveredRowStaffId === m.id;
+
+                    return (
+                      <tr
+                        key={m.id}
+                        onClick={() => setSelectedEmpId(m.id)}
+                        className={`cursor-pointer transition-colors duration-150 ${
+                          isSelected
+                            ? 'bg-sky-100/70 dark:bg-sky-950/40 border-l-4 border-sky-500'
+                            : isRowHovered
+                            ? 'bg-sky-50/80'
+                            : i % 2 === 0
+                            ? 'bg-white hover:bg-sky-50/80 dark:hover:bg-slate-800/50'
+                            : 'bg-slate-50 hover:bg-sky-50/80 dark:hover:bg-slate-800/50'
+                        }`}
+                      >
+                        {/* ID Column */}
+                        <td className={`p-1 font-bold text-blue-950 border-r border-slate-300 text-center transition-all ${
+                          isRowHovered ? 'bg-sky-100/90 border-l-4 border-sky-500 font-black text-sky-950' : ''
+                        }`}>
+                          {m.id}
+                        </td>
+
+                        {/* Name Column */}
+                        <td className={`p-1 font-bold text-slate-900 border-r border-slate-300 whitespace-nowrap transition-all ${
+                          isRowHovered ? 'bg-sky-50/90' : ''
+                        }`}>
+                          <div className="flex items-center justify-between gap-1">
+                            <span>{m.name}</span>
+                            {hasExpiredInMonth && (
+                              <button
+                                onClick={() => navigateToMatrix(m.id)}
+                                className="px-1 bg-red-600 hover:bg-red-700 text-white font-bold text-[8px] rounded animate-pulse cursor-pointer flex items-center gap-0.5"
+                                title={`Expired / Due in ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}: ${expiryStatus.expiredCerts.map(c => c.name).join(', ')}`}
+                              >
+                                <span>! CERT</span>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Position Column */}
+                        <td className={`p-1 text-slate-700 border-r border-slate-300 whitespace-nowrap transition-all ${
+                          isRowHovered ? 'bg-sky-50/90 font-semibold' : ''
+                        }`}>
+                          {normalizePositionTitle(m.role) || normalizePositionTitle(INITIAL_MANPOWER_MASTER_RECORDS.find((r) => r.id === m.id)?.role || '') || m.role || 'Field Operator'}
+                        </td>
+
+                        {/* Team Column */}
+                        <td className={`p-1 border-r border-slate-300 whitespace-nowrap font-semibold text-center transition-all ${
+                          isRowHovered ? 'bg-sky-50/90' : ''
+                        }`}>
+                          {m.teamName}
+                        </td>
+
+                        {/* Status Column */}
+                        <td className={`p-1 text-center border-r border-slate-300 font-bold transition-all ${
+                          isRowHovered ? 'bg-sky-50/90' : ''
+                        }`}>
+                          {m.currentStatus === 'OFF_DUTY' ? (
+                            <span className="bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 text-[9px] font-bold rounded whitespace-nowrap">OFF-Day</span>
+                          ) : (
+                            <span className="bg-emerald-100 text-emerald-950 border border-emerald-300 px-1.5 py-0.5 text-[9px] font-bold rounded whitespace-nowrap">On-Site</span>
+                          )}
+                        </td>
+
+                        {/* Dynamic Days Shift Codes (Filled Box Contrast Styling with Crosshair Interactivity) */}
+                        {staffMonthlyRoster.map((code, dayIdx) => {
+                          const dayNum = dayIdx + 1;
+                          const isToday = selectedYear === 2026 && selectedMonth === 9 && dayNum === 1;
+                          const cellDateObj = new Date(selectedYear, selectedMonth - 1, dayNum);
+                          const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                          const isPastLocked = cellDateObj < new Date(2026, 8, 1);
+                          const isConfirmedLocked = confirmedDailyDates.includes(dateKey);
+                          const isLocked = isPastLocked || isConfirmedLocked;
+
+                          const isWorkingShift = code === 'D' || code === 'N';
+                          const showInlineWarning = hasExpiredInMonth && isWorkingShift;
+                          const isColHovered = hoveredColDay === dayNum;
+                          const isCrosshairPoint = isRowHovered && isColHovered;
+
+                          return (
+                            <td
+                              key={dayIdx}
+                              onMouseEnter={() => {
+                                setHoveredRowStaffId(m.id);
+                                setHoveredColDay(dayNum);
+                              }}
+                              onMouseLeave={() => {
+                                setHoveredRowStaffId(null);
+                                setHoveredColDay(null);
+                              }}
+                              className={`p-0.5 text-center border-r border-slate-200 text-[10px] cursor-default transition-all ${
+                                isCrosshairPoint
+                                  ? 'bg-sky-100/90'
+                                  : isColHovered
+                                  ? 'bg-sky-50/80'
+                                  : isRowHovered
+                                  ? 'bg-sky-50/80'
+                                  : ''
+                              } ${
+                                isToday ? 'bg-yellow-50 ring-1 ring-yellow-400 font-bold' : ''
+                              }`}
+                              title={`${MONTH_NAMES[selectedMonth - 1]} ${dayNum}, ${selectedYear}: ${
+                                code === 'AL'
+                                  ? 'OFF (30d Leave)'
+                                  : code === 'Off'
+                                  ? 'Rest (R)'
+                                  : code === 'D'
+                                  ? 'Day Shift (D)'
+                                  : 'Night Shift (N)'
+                              }${isLocked ? ' (🔒 Locked Record)' : ''}`}
+                            >
+                              <div
+                                className={`w-full h-6 flex items-center justify-center rounded text-[10px] select-none transition-all relative ${
+                                  isCrosshairPoint ? 'ring-2 ring-sky-500 ring-inset z-20 font-black shadow-md scale-105' : ''
+                                } ${
+                                  isLocked ? 'opacity-95' : ''
+                                } ${
+                                  showInlineWarning
+                                    ? 'bg-rose-100 text-rose-800 font-bold border border-rose-400'
+                                    : code === 'D'
+                                    ? 'bg-emerald-100 text-emerald-900 font-bold border border-emerald-200'
+                                    : code === 'N'
+                                    ? 'bg-indigo-100 text-indigo-900 font-bold border border-indigo-200'
+                                    : code === 'AL'
+                                    ? 'bg-amber-400 text-amber-950 font-black border border-amber-500 shadow-sm'
+                                    : 'bg-slate-100 text-slate-400 font-medium'
+                                }`}
+                              >
+                                {showInlineWarning ? `${code}▲` : code === 'AL' ? 'OFF' : code === 'Off' ? 'R' : code}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
         {/* ===================================================================== */}
-        {/* TAB 2: 3:1 ROTATION CYCLE TRACKER (3 Months On / 1 Month Off)         */}
+        {/* TAB 2: ROTATION (8 Simplified Columns, Delegation & Compliance Gate)  */}
         {/* ===================================================================== */}
         {activeTab === 'ROTATION_TRACKER' && (
-          <div className="space-y-2 p-1">
-            <div className="bg-blue-50 border border-blue-200 p-2 text-slate-800 text-[11px] font-mono flex items-center justify-between">
-              <div>
-                <strong>3:1 Rotation Policy:</strong> 3 Months On-site Continuous Operations (approx. 90 days)
-                followed by 1 Month Paid Off-Duty Leave (approx. 30 days).
-              </div>
-              <div className="text-blue-950 font-bold">
-                Cycle Progress Overhaul Baseline: August 2026
-              </div>
-            </div>
-
+          <div className="overflow-x-auto min-w-full">
             <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
               <thead>
                 <tr className="bg-slate-200 border-b border-slate-400">
-                  <th className="p-1.5 border-r border-slate-300">Staff Personnel</th>
-                  <th className="p-1.5 border-r border-slate-300">Department / Role</th>
-                  <th className="p-1.5 border-r border-slate-300">Current Status</th>
-                  <th className="p-1.5 border-r border-slate-300 w-48">On-Site Progress (90 Days Target)</th>
-                  <th className="p-1.5 border-r border-slate-300">Cycle Start</th>
-                  <th className="p-1.5 border-r border-slate-300">Next Rotation Due</th>
-                  <th className="p-1.5 border-r border-slate-300">Designated Reliever</th>
-                  <th className="p-1.5 text-center">Action</th>
+                  {/* 1. Position */}
+                  <th className="p-1.5 border-r border-slate-300 w-48 text-center">Position</th>
+                  {/* 2. Personnel */}
+                  <th className="p-1.5 border-r border-slate-300 w-44 text-center">Personnel</th>
+                  {/* 3. Status (Interactive Sortable: Status ▲ / Status ▼) */}
+                  <th
+                    onClick={handleToggleStatusSort}
+                    className="p-1.5 border-r border-slate-300 cursor-pointer hover:bg-slate-300 transition-colors w-24 select-none text-center"
+                    title="Click to toggle Status sorting"
+                  >
+                    <span className="font-bold text-slate-800">
+                      Status {statusSortMode === 'OFF_FIRST' ? '▲' : '▼'}
+                    </span>
+                  </th>
+                  {/* 4. Start Date */}
+                  <th className="p-1.5 border-r border-slate-300 w-28 text-center">Start Date</th>
+                  {/* 5. Progress */}
+                  <th className="p-1.5 border-r border-slate-300 w-44 text-center">Progress</th>
+                  {/* 6. Leave Due */}
+                  <th className="p-1.5 border-r border-slate-300 w-28 text-center">Leave Due</th>
+                  {/* 7. Training & Due Date (Within 90 Days) */}
+                  <th className="p-1.5 text-center">Training & Due Date (Within 90 Days)</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredPersonnel.map((m, i) => {
-                  const pct = Math.min(100, Math.round((m.onSiteDays / m.targetCycleDays) * 100));
-                  const isDueSoon = m.onSiteDays >= 75 && m.currentStatus === 'ON_SITE';
-                  const isPending = m.currentStatus === 'HANDOVER_PENDING';
-                  const isOffDuty = m.currentStatus === 'OFF_DUTY';
+                {rotationPersonnelList.map((m, i) => {
+                  const isResident =
+                    m.department === 'HR_GA' ||
+                    m.id === 'EMP-017' ||
+                    m.id === 'EMP-018' ||
+                    m.cycleStartDate === 'N/A' ||
+                    m.cycleStartDate === '-';
+
+                  // Dynamic calculations based on Cycle_Start_Date (Single Source of Truth)
+                  const dynamicOnSiteDays = isResident ? 0 : calcOnSiteDays(m.cycleStartDate);
+                  const dynamicRotationDue = isResident ? '-' : calcRotationDueDate(m.cycleStartDate);
+                  const pct = Math.min(100, Math.round((dynamicOnSiteDays / 90) * 100));
+                  
+                  // Status based on 3:1 rotation timeline (Off-Day vs On-Site)
+                  const isOffDuty = !isResident && (dynamicOnSiteDays >= 90 || m.currentStatus === 'OFF_DUTY');
+                  const isPending = !isResident && !isOffDuty && dynamicOnSiteDays >= 85;
+                  const isDueSoon = !isResident && !isOffDuty && dynamicOnSiteDays >= 83; // Within 7 days of 90-day threshold
+                  const compStatus = getStaffCompetencyStatus(m);
+
+                  const isSelected = selectedEmpId === m.id;
 
                   return (
                     <tr
                       key={m.id}
-                      className={i % 2 === 0 ? 'bg-white hover:bg-slate-100' : 'bg-slate-50 hover:bg-slate-100'}
+                      onClick={() => setSelectedEmpId(m.id)}
+                      className={`cursor-pointer transition-colors duration-150 ${
+                        isSelected
+                          ? 'bg-sky-100/70 dark:bg-sky-950/40 border-l-4 border-sky-500'
+                          : i % 2 === 0
+                          ? 'bg-white hover:bg-sky-50/80 dark:hover:bg-slate-800/50'
+                          : 'bg-slate-50 hover:bg-sky-50/80 dark:hover:bg-slate-800/50'
+                      }`}
                     >
-                      <td className="p-1.5 font-bold border-r border-slate-300">
-                        <div className="text-blue-950">{m.name}</div>
-                        <div className="text-[10px] text-slate-500 font-normal">{m.id}</div>
+                      {/* 1열: Position (Standard Position Single-Line Only) */}
+                      <td className="p-1.5 border-r border-slate-300 font-bold text-slate-900 whitespace-nowrap">
+                        {normalizePositionTitle(m.role) || normalizePositionTitle(INITIAL_MANPOWER_MASTER_RECORDS.find((r) => r.id === m.id)?.role || '') || m.role || 'Field Operator'}
                       </td>
-                      <td className="p-1.5 border-r border-slate-300">
-                        <div className="font-semibold text-slate-900">{m.role}</div>
-                        <div className="text-[10px] text-slate-500">{m.teamName}</div>
+
+                      {/* 2열: Personnel (Name Only in bold, no ID) */}
+                      <td className="p-1.5 font-bold border-r border-slate-300 text-blue-950 whitespace-nowrap">
+                        {m.name}
                       </td>
-                      <td className="p-1.5 border-r border-slate-300">
+
+                      {/* 3열: Status (2-Status Standard: On-Site / Off-Day) */}
+                      <td className="p-1.5 border-r border-slate-300 font-mono text-center">
                         {isOffDuty ? (
-                          <span className="bg-amber-100 text-amber-900 px-1.5 py-0.5 font-bold border border-amber-300">
-                            3:1 Leave (Off-Duty)
-                          </span>
-                        ) : isPending ? (
-                          <span className="bg-red-100 text-red-900 px-1.5 py-0.5 font-bold border border-red-300 animate-pulse">
-                            Handover Ready (90d)
+                          <span className="bg-amber-50 text-amber-700 border border-amber-300 font-bold px-2 py-0.5 rounded text-xs inline-block min-w-[65px]">
+                            Off-Day
                           </span>
                         ) : (
-                          <span className="bg-emerald-100 text-emerald-950 px-1.5 py-0.5 font-bold border border-emerald-300">
-                            On-Site Active
+                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-300 font-bold px-2 py-0.5 rounded text-xs inline-block min-w-[65px]">
+                            On-Site
                           </span>
                         )}
                       </td>
-                      {/* Progress Bar */}
-                      <td className="p-1.5 border-r border-slate-300">
-                        <div className="flex justify-between items-center text-[10px] mb-1">
-                          <span className="font-bold">{m.onSiteDays} / 90 Days</span>
-                          <span className={pct >= 90 ? 'text-red-700 font-bold' : 'text-slate-700'}>{pct}%</span>
-                        </div>
-                        <div className="w-full bg-slate-200 h-2.5 border border-slate-400 overflow-hidden">
+
+                      {/* 4열: Start Date */}
+                      <td className="p-1.5 border-r border-slate-300 font-mono font-bold text-slate-800 whitespace-nowrap text-center">
+                        {isResident ? '-' : m.cycleStartDate}
+                      </td>
+
+                      {/* 5열: Progress (Center Aligned) */}
+                      <td className="p-1.5 border-r border-slate-300 text-center">
+                        {isResident ? (
+                          <div className="flex items-center justify-center text-[10px] p-1 bg-slate-100 border border-slate-300 font-bold text-slate-700 text-center">
+                            <span>Day Work</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center justify-center gap-2 text-[10px] mb-1">
+                              <span className="font-bold text-slate-900">{dynamicOnSiteDays} / 90 Days</span>
+                              <span className={`font-mono font-bold ${pct >= 90 ? 'text-rose-700' : 'text-slate-600'}`}>({pct}%)</span>
+                            </div>
+                            <div className="w-full bg-slate-200 h-2.5 border border-slate-400 overflow-hidden">
+                              <div
+                                className={`h-full ${
+                                  isOffDuty
+                                    ? 'bg-amber-500'
+                                    : pct >= 90
+                                    ? 'bg-rose-600'
+                                    : pct >= 75
+                                    ? 'bg-amber-500'
+                                    : 'bg-blue-800'
+                                }`}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </>
+                        )}
+                      </td>
+
+                      {/* 6열: Leave Due - Highlighted with Red Border Badge if within 7 Days */}
+                      <td className="p-1.5 border-r border-slate-300 font-mono font-bold whitespace-nowrap text-center">
+                        {isResident ? (
+                          <span className="text-slate-500 font-normal text-[10px]">-</span>
+                        ) : (
+                          <span
+                            className={
+                              isDueSoon || isPending
+                                ? 'text-rose-800 bg-rose-50 px-1.5 py-0.5 border border-rose-300 rounded font-bold'
+                                : 'text-slate-800'
+                            }
+                          >
+                            {dynamicRotationDue}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* 7열: Training & Due Date (Within 90 Days) */}
+                      <td className="p-1.5">
+                        {isResident || (!compStatus.hasExpired && !compStatus.hasExpiringSoon) ? (
+                          <div className="flex items-center justify-center">
+                            <span className="text-emerald-700 bg-emerald-50 px-2 py-1 rounded text-xs font-semibold inline-block border border-emerald-200">
+                              ✓ All Valid
+                            </span>
+                          </div>
+                        ) : compStatus.hasExpired ? (
                           <div
-                            className={`h-full ${
-                              isOffDuty
-                                ? 'bg-amber-500'
-                                : pct >= 90
-                                ? 'bg-red-600'
-                                : pct >= 75
-                                ? 'bg-amber-500'
-                                : 'bg-blue-800'
-                            }`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </td>
-                      <td className="p-1.5 border-r border-slate-300 font-mono text-slate-700">{m.cycleStartDate}</td>
-                      <td className="p-1.5 border-r border-slate-300 font-mono font-bold">
-                        <span className={isDueSoon || isPending ? 'text-red-800 bg-red-50 px-1 border border-red-200' : 'text-slate-800'}>
-                          {m.nextRotationDueDate}
-                        </span>
-                      </td>
-                      <td className="p-1.5 border-r border-slate-300 font-semibold text-slate-800">
-                        <div className="flex items-center gap-1">
-                          <ArrowRightLeft className="w-3 h-3 text-slate-500" />
-                          <span>{m.relieverName}</span>
-                        </div>
-                      </td>
-                      <td className="p-1.5 text-center">
-                        <button
-                          onClick={() => alert(`Rotation Handover workflow opened for ${m.name} (Reliever: ${m.relieverName})`)}
-                          className="win-btn text-[10px] px-2 py-0.5 cursor-pointer font-bold"
-                        >
-                          Handover
-                        </button>
+                            onClick={() => navigateToMatrix(m.id)}
+                            className="bg-rose-50 hover:bg-rose-100 border border-rose-300 px-2 py-1 rounded text-xs cursor-pointer transition-colors shadow-2xs"
+                            title="Click to open Training & Competency Matrix"
+                          >
+                            <span className="text-rose-900 font-bold">
+                              {compStatus.expiredCerts.map((c) => `❌ ${c.code}: ${c.name} (Expired: ${c.expiryDate})`).join(', ')}
+                            </span>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => navigateToMatrix(m.id)}
+                            className="bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2 py-1 rounded text-xs cursor-pointer transition-colors shadow-2xs"
+                            title="Click to open Training & Competency Matrix"
+                          >
+                            <span className="text-amber-900 font-bold">
+                              {compStatus.expiringCerts.map((c) => `⚠️ ${c.code}: ${c.name} (Due: ${c.expiryDate})`).join(', ')}
+                            </span>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );
@@ -902,41 +1473,224 @@ export default function ManpowerRosterView({
         )}
 
         {/* ===================================================================== */}
-        {/* TAB 3: DAILY SHIFT BOARD (Alpha / Bravo / Charlie Teams)               */}
+        {/* TAB 3: DAILY SHIFT BOARD (Unified Single Safety & Compliance Gate)    */}
         {/* ===================================================================== */}
         {activeTab === 'DAILY_SHIFT_BOARD' && (
-          <div className="space-y-3 p-2">
+          <div className="space-y-2 p-1.5 bg-[#d4d0c8]">
+            
+            {/* 1. Unified Single Safety & Compliance Gate Bar */}
+            <div className={`win-panel p-2 border-2 ${ertSummary.isAllERTMet ? 'border-emerald-800 bg-emerald-50/40' : 'border-red-600 bg-red-50/60'}`}>
+              <div
+                onClick={() => setIsErtGateExpanded(!isErtGateExpanded)}
+                className="flex items-center justify-between flex-wrap gap-2 cursor-pointer select-none hover:opacity-90 transition-opacity"
+                title="Click to expand/collapse details"
+              >
+                <div className="flex items-center gap-2 font-bold text-xs text-slate-900 flex-wrap">
+                  <span className="text-emerald-700 font-black">■</span>
+                  <span>SAFETY &amp; COMPLIANCE GATE:</span>
+                  <span className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded ${
+                    ertSummary.isAllERTMet ? 'bg-emerald-800 text-white' : 'bg-red-600 text-white animate-pulse'
+                  }`}>
+                    {ertSummary.isAllERTMet
+                      ? `[PASSED] ERT Minimum Manning Cleared (IC:${ertSummary.icCount}, FC:${ertSummary.fireChiefCount}, FA:${ertSummary.firstAiderCount}, Gas:${ertSummary.gasResponseCount})`
+                      : `[CRITICAL] ERT Deficit (IC:${ertSummary.icCount}/1, FC:${ertSummary.fireChiefCount}/1, FA:${ertSummary.firstAiderCount}/1, Gas:${ertSummary.gasResponseCount}/2)`}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {has154hViolation && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsFatigueExpanded(!isFatigueExpanded);
+                      }}
+                      className="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-rose-700 text-white flex items-center gap-1 cursor-pointer shadow-xs hover:bg-rose-800"
+                      title="Click to view 154h fatigue details and override"
+                    >
+                      <AlertTriangle className="w-3 h-3 text-amber-300 animate-pulse" />
+                      <span>154h Fatigue Alert: {exceeded154hPersonnel.length} Exceeded (Override Req.)</span>
+                    </span>
+                  )}
+                  <span className={`px-2 py-0.5 text-[10px] font-mono font-bold border ${
+                    ertSummary.isAllERTMet ? 'bg-white border-emerald-600 text-emerald-950' : 'bg-white border-red-600 text-red-900'
+                  }`}>
+                    {ertSummary.isAllERTMet ? '[OPERATION AUTHORIZED]' : '[OPERATION ON HOLD]'} {isErtGateExpanded ? '▲' : '▾'}
+                  </span>
+                </div>
+              </div>
+
+              {/* ERT Role Specific Headcount Chips (When expanded) */}
+              {isErtGateExpanded && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono mt-2 pt-2 border-t border-slate-300 animate-in fade-in duration-150">
+                  {/* 1. Incident Commander */}
+                  <div className={`p-1.5 border flex items-center justify-between ${ertSummary.isICMet ? 'bg-white border-emerald-300' : 'bg-red-100 border-red-400 font-bold'}`}>
+                    <span className="flex items-center gap-1 text-slate-800">
+                      <Shield className="w-3.5 h-3.5 text-blue-900" />
+                      Incident Commander (≥1):
+                    </span>
+                    <span className={`px-1.5 font-bold ${ertSummary.isICMet ? 'text-emerald-900' : 'text-red-700'}`}>
+                      {ertSummary.icCount} / 1 {ertSummary.isICMet ? '[OK]' : '[DEFICIT]'}
+                    </span>
+                  </div>
+
+                  {/* 2. Fire Chief */}
+                  <div className={`p-1.5 border flex items-center justify-between ${ertSummary.isFireChiefMet ? 'bg-white border-emerald-300' : 'bg-red-100 border-red-400 font-bold'}`}>
+                    <span className="flex items-center gap-1 text-slate-800">
+                      <Flame className="w-3.5 h-3.5 text-orange-600" />
+                      Fire Chief (≥1):
+                    </span>
+                    <span className={`px-1.5 font-bold ${ertSummary.isFireChiefMet ? 'text-emerald-900' : 'text-red-700'}`}>
+                      {ertSummary.fireChiefCount} / 1 {ertSummary.isFireChiefMet ? '[OK]' : '[DEFICIT]'}
+                    </span>
+                  </div>
+
+                  {/* 3. First Aider */}
+                  <div className={`p-1.5 border flex items-center justify-between ${ertSummary.isFirstAiderMet ? 'bg-white border-emerald-300' : 'bg-red-100 border-red-400 font-bold'}`}>
+                    <span className="flex items-center gap-1 text-slate-800">
+                      <HeartPulse className="w-3.5 h-3.5 text-rose-600" />
+                      First Aiders (≥1):
+                    </span>
+                    <span className={`px-1.5 font-bold ${ertSummary.isFirstAiderMet ? 'text-emerald-900' : 'text-red-700'}`}>
+                      {ertSummary.firstAiderCount} / 1 {ertSummary.isFirstAiderMet ? '[OK]' : '[DEFICIT]'}
+                    </span>
+                  </div>
+
+                  {/* 4. Gas Leak Response */}
+                  <div className={`p-1.5 border flex items-center justify-between ${ertSummary.isGasResponseMet ? 'bg-white border-emerald-300' : 'bg-red-100 border-red-400 font-bold'}`}>
+                    <span className="flex items-center gap-1 text-slate-800">
+                      <Wind className="w-3.5 h-3.5 text-cyan-700" />
+                      Gas Response (≥2):
+                    </span>
+                    <span className={`px-1.5 font-bold ${ertSummary.isGasResponseMet ? 'text-emerald-900' : 'text-red-700'}`}>
+                      {ertSummary.gasResponseCount} / 2 {ertSummary.isGasResponseMet ? '[OK]' : '[DEFICIT]'}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Shift Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               
-              {/* Column 1: Team Bravo (Active Day Shift 08:00 - 20:00) */}
-              <div className="win-panel p-2 flex flex-col justify-between border-2 border-blue-900">
+              {/* Column 1: TEAM-B (Active Day Shift 08:00 - 20:00) */}
+              <div className="bg-slate-200 border-2 border-slate-400 shadow-xs p-2 flex flex-col justify-between">
                 <div>
-                  <div className="win-titlebar bg-blue-900 text-white p-1 px-2 flex justify-between items-center mb-2">
-                    <span className="font-black text-xs flex items-center gap-1.5">
+                  <div className="bg-[#334155] text-white font-bold text-xs px-2.5 py-1 flex justify-between items-center mb-2 border-b border-slate-700 shadow-2xs">
+                    <span className="font-black text-xs flex items-center gap-1.5 text-white tracking-wide">
                       <Clock className="w-3.5 h-3.5 text-yellow-300" />
-                      Team Bravo - Day Shift
+                      TEAM-B - Day Shift
                     </span>
-                    <span className="text-[10px] font-mono bg-white text-blue-950 px-1 font-bold">
+                    <span className="text-[10px] font-mono bg-white text-slate-900 px-1.5 py-0.5 font-bold">
                       ACTIVE (08:00 - 20:00)
                     </span>
                   </div>
 
-                  <div className="space-y-1.5 mb-3">
-                    <div className="bg-blue-50 border border-blue-200 p-1.5">
-                      <div className="text-[10px] font-bold text-slate-600 uppercase">Shift Leader</div>
-                      <div className="text-xs font-bold text-blue-950">Asman Sampeaman</div>
-                      <div className="text-[10px] font-mono text-slate-600">Radio: CH-02 (OPS) | +62 812-9900-1122</div>
-                    </div>
-                    <div className="bg-slate-50 border border-slate-200 p-1.5">
-                      <div className="text-[10px] font-bold text-slate-600 uppercase">Field Decanting Operator</div>
-                      <div className="text-xs font-bold text-slate-900">Muradi</div>
-                      <div className="text-[10px] font-mono text-slate-600">Bay 01-04 Active Manifold Patrol</div>
-                    </div>
-                    <div className="bg-slate-50 border border-slate-200 p-1.5">
-                      <div className="text-[10px] font-bold text-slate-600 uppercase">DCS / SCADA Panel Tech</div>
-                      <div className="text-xs font-bold text-slate-900">Ripal Fadiah</div>
-                      <div className="text-[10px] font-mono text-slate-600">Vaporizer & PRSS Telemetry Watch</div>
-                    </div>
+                  {/* Safety Compliance Gate Header */}
+                  <div className={`p-1.5 mb-2 border font-mono text-[10px] flex items-center justify-between ${
+                    teamBPersonnel.some(m => getStaffCompetencyStatus(m).hasExpired)
+                      ? 'bg-red-100 border-red-400 text-red-950 font-bold'
+                      : 'bg-slate-100 border-slate-300 text-slate-900 font-bold'
+                  }`}>
+                    <span className="flex items-center gap-1">
+                      {teamBPersonnel.every(m => !getStaffCompetencyStatus(m).hasExpired) ? <ShieldCheck className="w-3.5 h-3.5 text-emerald-800" /> : <ShieldAlert className="w-3.5 h-3.5 text-red-700" />}
+                      Safety Compliance Gate:
+                    </span>
+                    <span className={`px-1 rounded text-[9px] ${
+                      teamBPersonnel.every(m => !getStaffCompetencyStatus(m).hasExpired) ? 'bg-emerald-800 text-white' : 'bg-red-600 text-white animate-pulse'
+                    }`}>
+                      {teamBPersonnel.every(m => !getStaffCompetencyStatus(m).hasExpired) ? '100% CLEARED' : 'ACTION REQUIRED'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 mb-3">
+                    {teamBPersonnel.map((member) => {
+                      const memberComp = getStaffCompetencyStatus(member);
+                      const isResting = !!dailyRestAssignments[member.id];
+                      const restAssign = dailyRestAssignments[member.id];
+                      const coverStaff = restAssign ? manpowerData.find((s) => s.id === restAssign.coveringStaffId) : null;
+                      const hours14d = get14dHours(member);
+                      const is154h = hours14d >= 154;
+
+                      return (
+                        <div key={member.id} className="space-y-1">
+                          <div
+                            className={`${
+                              isResting
+                                ? 'bg-amber-50 border-2 border-amber-400 opacity-90'
+                                : 'bg-slate-100 border border-slate-300'
+                            } p-1.5`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">{member.role}</span>
+                                {is154h && !isResting && (
+                                  <span className="px-1 bg-rose-600 text-white font-bold text-[8px] rounded animate-pulse" title={`${hours14d} hours worked in 14 days`}>
+                                    154h Exceeded
+                                  </span>
+                                )}
+                              </div>
+                              {isResting ? (
+                                <span className="px-1.5 py-0.5 bg-amber-500 text-black font-black text-[9px] rounded shadow-xs">
+                                  R (Approved Rest)
+                                </span>
+                              ) : memberComp.hasExpired ? (
+                                <button
+                                  onClick={() => navigateToMatrix(member.id)}
+                                  className="px-1 bg-red-600 text-white font-bold text-[8px] rounded animate-pulse cursor-pointer"
+                                  title="Click to open Matrix & approve certification renewal"
+                                >
+                                  EXPIRED CERT
+                                </button>
+                              ) : memberComp.hasExpiringSoon ? (
+                                <button
+                                  onClick={() => navigateToMatrix(member.id)}
+                                  className="px-1 bg-amber-500 text-black font-bold text-[8px] rounded cursor-pointer"
+                                  title="Click to open Matrix"
+                                >
+                                  REFRESH DUE
+                                </button>
+                              ) : (
+                                <span className="px-1 bg-emerald-700 text-white font-bold text-[8px] rounded">
+                                  CERTIFIED
+                                </span>
+                              )}
+                            </div>
+                            <div className={`text-xs font-bold ${member.role.toLowerCase().includes('leader') ? 'text-blue-950' : 'text-slate-900'} ${isResting ? 'line-through text-slate-500' : ''}`}>
+                              {member.name}
+                            </div>
+                            <div className="text-[10px] font-mono text-slate-600 flex justify-between">
+                              <span>{member.teamName} | Radio: {member.radioChannel}</span>
+                              <span className="font-bold text-slate-700">ERT: {member.ertRole}</span>
+                            </div>
+                            {isResting && (
+                              <div className="mt-1 bg-amber-100 text-amber-950 p-1 text-[9px] rounded font-bold flex justify-between items-center">
+                                <span>Stand-down: {restAssign.reason}</span>
+                                <span className="text-blue-900 font-bold">Cover: {coverStaff?.name || restAssign.coveringStaffId}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Standby Cover Swapped In Card */}
+                          {isResting && coverStaff && (
+                            <div className="bg-emerald-50 border-2 border-emerald-500 p-1.5 rounded ml-2 shadow-xs">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-bold text-emerald-800 uppercase">[Standby Cover Active]</span>
+                                <span className="px-1 bg-emerald-700 text-white font-bold text-[8px] rounded">
+                                  SWAPPED IN
+                                </span>
+                              </div>
+                              <div className="text-xs font-black text-emerald-950 flex items-center justify-between">
+                                <span>{coverStaff.name} ({coverStaff.role})</span>
+                              </div>
+                              <div className="text-[10px] font-mono text-emerald-800 flex justify-between">
+                                <span>Radio: {coverStaff.radioChannel}</span>
+                                <span className="font-bold">ERT: {coverStaff.ertRole}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -945,42 +1699,143 @@ export default function ManpowerRosterView({
                     <span>Shift Status:</span>
                     <span className="text-emerald-800 font-bold">RUNNING NORMAL</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Active PTW Permits:</span>
-                    <span className="font-bold">2 Hot Work / 1 Confined</span>
+                    <span className="font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300">
+                      2 Hot Work / 1 Confined
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Column 2: Team Charlie (Upcoming Night Shift 20:00 - 08:00) */}
-              <div className="win-panel p-2 flex flex-col justify-between border-2 border-purple-900">
+              {/* Column 2: TEAM-C (Upcoming Night Shift 20:00 - 08:00) */}
+              <div className="bg-slate-200 border-2 border-slate-400 shadow-xs p-2 flex flex-col justify-between">
                 <div>
-                  <div className="win-titlebar bg-purple-900 text-white p-1 px-2 flex justify-between items-center mb-2">
-                    <span className="font-black text-xs flex items-center gap-1.5">
+                  <div className="bg-[#334155] text-white font-bold text-xs px-2.5 py-1 flex justify-between items-center mb-2 border-b border-slate-700 shadow-2xs">
+                    <span className="font-black text-xs flex items-center gap-1.5 text-white tracking-wide">
                       <Clock className="w-3.5 h-3.5 text-yellow-300" />
-                      Team Charlie - Night Shift
+                      TEAM-C - Night Shift
                     </span>
-                    <span className="text-[10px] font-mono bg-white text-purple-950 px-1 font-bold">
+                    <span className="text-[10px] font-mono bg-white text-slate-900 px-1.5 py-0.5 font-bold">
                       STANDBY (20:00 - 08:00)
                     </span>
                   </div>
 
-                  <div className="space-y-1.5 mb-3">
-                    <div className="bg-purple-50 border border-purple-200 p-1.5">
-                      <div className="text-[10px] font-bold text-slate-600 uppercase">Shift Leader</div>
-                      <div className="text-xs font-bold text-purple-950">Juli Surungan</div>
-                      <div className="text-[10px] font-mono text-slate-600">Radio: CH-02 (OPS) | +62 811-7788-9900</div>
-                    </div>
-                    <div className="bg-slate-50 border border-slate-200 p-1.5">
-                      <div className="text-[10px] font-bold text-slate-600 uppercase">Field Decanting Operator</div>
-                      <div className="text-xs font-bold text-slate-900">Danang</div>
-                      <div className="text-[10px] font-mono text-slate-600">Night Log & Flare Staging Patrol</div>
-                    </div>
-                    <div className="bg-slate-50 border border-slate-200 p-1.5">
-                      <div className="text-[10px] font-bold text-slate-600 uppercase">DCS / SCADA Panel Tech</div>
-                      <div className="text-xs font-bold text-slate-900">Uliyansyah</div>
-                      <div className="text-[10px] font-mono text-slate-600">Night Peak GC Heat Balance</div>
-                    </div>
+                  {/* Safety Compliance Gate Header */}
+                  <div className={`p-1.5 mb-2 border font-mono text-[10px] flex items-center justify-between ${
+                    teamCPersonnel.some(m => getStaffCompetencyStatus(m).hasExpired)
+                      ? 'bg-red-100 border-red-400 text-red-950 font-bold'
+                      : teamCPersonnel.some(m => getStaffCompetencyStatus(m).hasExpiringSoon)
+                      ? 'bg-amber-100 border-amber-400 text-amber-950 font-bold'
+                      : 'bg-slate-100 border-slate-300 text-slate-900 font-bold'
+                  }`}>
+                    <span className="flex items-center gap-1">
+                      {teamCPersonnel.every(m => !getStaffCompetencyStatus(m).hasExpired) ? <ShieldCheck className="w-3.5 h-3.5 text-emerald-800" /> : <ShieldAlert className="w-3.5 h-3.5 text-red-700" />}
+                      Safety Compliance Gate:
+                    </span>
+                    <span className={`px-1 rounded text-[9px] ${
+                      teamCPersonnel.every(m => !getStaffCompetencyStatus(m).hasExpired)
+                        ? 'bg-emerald-800 text-white'
+                        : 'bg-red-600 text-white animate-pulse'
+                    }`}>
+                      {teamCPersonnel.every(m => !getStaffCompetencyStatus(m).hasExpired) ? '100% CLEARED' : 'EXPIRED CERT'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 mb-3">
+                    {teamCPersonnel.map((member) => {
+                      const memberComp = getStaffCompetencyStatus(member);
+                      const isResting = !!dailyRestAssignments[member.id];
+                      const restAssign = dailyRestAssignments[member.id];
+                      const coverStaff = restAssign ? manpowerData.find((s) => s.id === restAssign.coveringStaffId) : null;
+                      const hours14d = get14dHours(member);
+                      const is154h = hours14d >= 154;
+
+                      return (
+                        <div key={member.id} className="space-y-1">
+                          <div
+                            className={`${
+                              isResting
+                                ? 'bg-amber-50 border-2 border-amber-400 opacity-90'
+                                : 'bg-slate-100 border border-slate-300'
+                            } p-1.5`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">{member.role}</span>
+                                {is154h && !isResting && (
+                                  <span className="px-1 bg-rose-600 text-white font-bold text-[8px] rounded animate-pulse" title={`${hours14d} hours worked in 14 days`}>
+                                    154h Exceeded
+                                  </span>
+                                )}
+                              </div>
+                              {isResting ? (
+                                <span className="px-1.5 py-0.5 bg-amber-500 text-black font-black text-[9px] rounded shadow-xs">
+                                  R (Approved Rest)
+                                </span>
+                              ) : memberComp.hasExpired ? (
+                                <button
+                                  onClick={() => navigateToMatrix(member.id)}
+                                  className="px-1 bg-red-600 text-white font-bold text-[8px] rounded animate-pulse cursor-pointer"
+                                  title="Click to open Matrix & approve certification renewal"
+                                >
+                                  EXPIRED CERT
+                                </button>
+                              ) : memberComp.hasExpiringSoon ? (
+                                <button
+                                  onClick={() => navigateToMatrix(member.id)}
+                                  className="px-1 bg-amber-500 text-black font-bold text-[8px] rounded cursor-pointer"
+                                  title="Click to open Matrix"
+                                >
+                                  REFRESH DUE
+                                </button>
+                              ) : (
+                                <span className="px-1 bg-emerald-700 text-white font-bold text-[8px] rounded">
+                                  CERTIFIED
+                                </span>
+                              )}
+                            </div>
+                            <div className={`text-xs font-bold ${member.role.toLowerCase().includes('leader') ? 'text-purple-950' : 'text-slate-900'} ${isResting ? 'line-through text-slate-500' : ''}`}>
+                              {member.name}
+                            </div>
+                            <div className="text-[10px] font-mono text-slate-600 flex justify-between">
+                              <span>{member.teamName} | Radio: {member.radioChannel}</span>
+                              <span className="font-bold text-slate-700">ERT: {member.ertRole}</span>
+                            </div>
+                            {isResting && (
+                              <div className="mt-1 bg-amber-100 text-amber-950 p-1 text-[9px] rounded font-bold flex justify-between items-center">
+                                <span>Stand-down: {restAssign.reason}</span>
+                                <span className="text-blue-900 font-bold">Cover: {coverStaff?.name || restAssign.coveringStaffId}</span>
+                              </div>
+                            )}
+                            {memberComp.hasExpiringSoon && !isResting && (
+                              <div className="mt-1 bg-amber-100 border border-amber-300 text-amber-950 p-0.5 text-[9px] font-bold">
+                                Expiring: {memberComp.expiringCerts.map((c) => `${c.code} (${c.expiryDate})`).join(', ')}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Standby Cover Swapped In Card */}
+                          {isResting && coverStaff && (
+                            <div className="bg-emerald-50 border-2 border-emerald-500 p-1.5 rounded ml-2 shadow-xs">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-bold text-emerald-800 uppercase">[Standby Cover Active]</span>
+                                <span className="px-1 bg-emerald-700 text-white font-bold text-[8px] rounded">
+                                  SWAPPED IN
+                                </span>
+                              </div>
+                              <div className="text-xs font-black text-emerald-950 flex items-center justify-between">
+                                <span>{coverStaff.name} ({coverStaff.role})</span>
+                              </div>
+                              <div className="text-[10px] font-mono text-emerald-800 flex justify-between">
+                                <span>Radio: {coverStaff.radioChannel}</span>
+                                <span className="font-bold">ERT: {coverStaff.ertRole}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -996,35 +1851,73 @@ export default function ManpowerRosterView({
                 </div>
               </div>
 
-              {/* Column 3: Team Alpha (Rest / Off-Duty Shift) */}
-              <div className="win-panel p-2 flex flex-col justify-between border border-slate-400">
+              {/* Column 3: TEAM-A (Rest / Standby Shift) */}
+              <div className="bg-slate-200 border-2 border-slate-400 shadow-xs p-2 flex flex-col justify-between">
                 <div>
-                  <div className="win-titlebar bg-slate-700 text-white p-1 px-2 flex justify-between items-center mb-2">
-                    <span className="font-black text-xs flex items-center gap-1.5">
+                  <div className="bg-[#334155] text-white font-bold text-xs px-2.5 py-1 flex justify-between items-center mb-2 border-b border-slate-700 shadow-2xs">
+                    <span className="font-black text-xs flex items-center gap-1.5 text-white tracking-wide">
                       <RotateCcw className="w-3.5 h-3.5 text-slate-300" />
-                      Team Alpha - Rest Cycle
+                      TEAM-A - Rest / Standby Cycle
                     </span>
-                    <span className="text-[10px] font-mono bg-white text-slate-950 px-1 font-bold">
-                      OFF-DUTY REST
+                    <span className="text-[10px] font-mono bg-white text-slate-900 px-1.5 py-0.5 font-bold">
+                      STANDBY REST
+                    </span>
+                  </div>
+
+                  {/* Safety Compliance Gate Header */}
+                  <div className="p-1.5 mb-2 border border-slate-300 bg-slate-100 font-mono text-[10px] flex items-center justify-between text-slate-800">
+                    <span className="flex items-center gap-1">
+                      <Shield className="w-3.5 h-3.5 text-slate-600" />
+                      Rest Status:
+                    </span>
+                    <span className="bg-slate-300 text-slate-800 px-1 rounded text-[9px] font-bold">
+                      STANDBY COVER POOL
                     </span>
                   </div>
 
                   <div className="space-y-1.5 mb-3">
-                    <div className="bg-slate-50 border border-slate-200 p-1.5">
-                      <div className="text-[10px] font-bold text-slate-600 uppercase">Sr. Operation Leader</div>
-                      <div className="text-xs font-bold text-slate-900">Shadiq M. Shalih</div>
-                      <div className="text-[10px] font-mono text-slate-600">Emergency Standby On-Call</div>
-                    </div>
-                    <div className="bg-slate-50 border border-slate-200 p-1.5">
-                      <div className="text-[10px] font-bold text-slate-600 uppercase">Field Operator</div>
-                      <div className="text-xs font-bold text-slate-900">Yusuf</div>
-                      <div className="text-[10px] font-mono text-slate-600">Dormitory Rest (Camp Nias)</div>
-                    </div>
-                    <div className="bg-slate-50 border border-slate-200 p-1.5">
-                      <div className="text-[10px] font-bold text-slate-600 uppercase">DCS / SCADA Panel Tech</div>
-                      <div className="text-xs font-bold text-slate-900">Erwin Supriatna</div>
-                      <div className="text-[10px] font-mono text-slate-600">Dormitory Rest (Camp Nias)</div>
-                    </div>
+                    {teamAPersonnel.map((member) => {
+                      const memberComp = getStaffCompetencyStatus(member);
+                      const coveringAssign = Object.entries(dailyRestAssignments).find(([_, a]) => a.coveringStaffId === member.id);
+                      const replacedStaff = coveringAssign ? manpowerData.find(s => s.id === coveringAssign[0]) : null;
+
+                      return (
+                        <div
+                          key={member.id}
+                          className={`${
+                            coveringAssign
+                              ? 'bg-blue-50 border-2 border-blue-500'
+                              : 'bg-slate-100 border border-slate-300'
+                          } p-1.5`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-slate-600 uppercase">{member.role}</span>
+                            {coveringAssign ? (
+                              <span className="px-1 bg-blue-900 text-white font-bold text-[8px] rounded animate-pulse">
+                                COVERING: {replacedStaff?.name ? replacedStaff.name.split(' ')[0] : 'ACTIVE'}
+                              </span>
+                            ) : memberComp.hasExpired ? (
+                              <span className="px-1 bg-red-600 text-white font-bold text-[8px] rounded">
+                                EXPIRED
+                              </span>
+                            ) : memberComp.hasExpiringSoon ? (
+                              <span className="px-1 bg-amber-500 text-black font-bold text-[8px] rounded">
+                                REFRESH
+                              </span>
+                            ) : (
+                              <span className="px-1 bg-emerald-700 text-white font-bold text-[8px] rounded">
+                                VALID
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs font-bold text-slate-900">{member.name}</div>
+                          <div className="text-[10px] font-mono text-slate-600 flex justify-between">
+                            <span>{member.teamName} | Radio: {member.radioChannel}</span>
+                            <span className="font-bold text-slate-700">ERT: {member.ertRole}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -1033,18 +1926,780 @@ export default function ManpowerRosterView({
                     <span>Next Shift Call:</span>
                     <span className="text-slate-800 font-bold">Tomorrow 08:00 WIB</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Fatigue Compliance:</span>
-                    <span className="text-emerald-800 font-bold">100% (Passed)</span>
+                  <div className="flex justify-between items-center">
+                    <span>14-Day Limit (154h):</span>
+                    {has154hViolation ? (
+                      <span className="bg-rose-100 text-rose-900 px-1 py-0.5 border border-rose-300 rounded text-[9px] font-bold">
+                        154h Exceeded ({exceeded154hPersonnel.map(s => `${s.name.split(' ')[0]} ${get14dHours(s)}h`).join(', ')})
+                      </span>
+                    ) : (
+                      <span className="text-emerald-800 font-bold">100% (Passed)</span>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Site Manager Override:</span>
+                    <span className={fatigueOverrideApproved ? 'text-emerald-700 font-bold text-[10px]' : has154hViolation ? 'text-rose-700 font-bold text-[10px]' : 'text-slate-500 text-[10px]'}>
+                      {fatigueOverrideApproved ? 'AUTHORIZED (EMP-001)' : has154hViolation ? 'REQUIRED TO LOCK' : 'NOT REQUIRED'}
+                    </span>
                   </div>
                 </div>
               </div>
 
             </div>
+
           </div>
         )}
 
+        {/* ===================================================================== */}
+        {/* TAB 4: TRAINING & COMPETENCY MATRIX (With Deep Link & Workflow)       */}
+        {/* ===================================================================== */}
+        {activeTab === 'TRAINING_MATRIX' && (
+          <TrainingMatrixView
+            personnelList={filteredPersonnel}
+            highlightedEmpId={selectedEmpId}
+            onUpdatePersonnelCertification={handleUpdatePersonnelCertification}
+          />
+        )}
+
       </div>
+
+      {/* ========================================================================= */}
+      {/* 5. Modals & Protocol Interventions                   {/* 5-A: Rule-Based Handover & Delegation Protocol Modal */}
+      {handoverModalStaff && (() => {
+        const offGoing = handoverModalStaff;
+        const candidateList = getEligibleRelieverCandidates(offGoing);
+        const selectedCandidate = candidateList.find((c) => c.staff.id === selectedCandidateId)?.staff || candidateList[0]?.staff || null;
+        const candidateComp = selectedCandidate ? getStaffCompetencyStatus(selectedCandidate) : null;
+        const isBlocked = !selectedCandidate || (candidateComp ? candidateComp.hasExpired : false);
+
+        return (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+            <div className="win-panel p-6 sm:p-7 max-w-2xl w-full bg-white shadow-2xl border-2 border-blue-950 text-slate-900 font-sans rounded-xl overflow-hidden">
+              
+              {/* Header Title */}
+              <div className="win-titlebar bg-blue-950 text-white p-3 px-4 flex justify-between items-center rounded-lg mb-4 shadow-sm">
+                <span className="font-black text-lg flex items-center gap-2">
+                  <ArrowRightLeft className="w-5 h-5 text-amber-300 shrink-0" />
+                  <span>3:1 Rotation Handover Gate & Duty Delegation Protocol</span>
+                </span>
+                <button
+                  onClick={() => setHandoverModalStaff(null)}
+                  className="text-white font-black px-2.5 py-1 bg-red-600 hover:bg-red-700 text-xs rounded transition-colors cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4 text-sm font-sans">
+                
+                {/* 1. Off-Going Staff Details */}
+                <div className="bg-slate-50 p-4 border border-slate-300 rounded-lg space-y-2 shadow-xs">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">
+                    [Off-Going Personnel Information]
+                  </div>
+                  <div className="flex justify-between items-center flex-wrap gap-2">
+                    <div>
+                      <span className="text-base font-black text-blue-950">{offGoing.name}</span>
+                      <span className="ml-2 text-xs font-bold text-slate-600 font-mono">({offGoing.id})</span>
+                    </div>
+                    <div className="font-bold text-xs text-blue-950 bg-blue-100 px-3 py-1 border border-blue-300 rounded-md">
+                      {normalizePositionTitle(offGoing.role)} • {offGoing.teamName}
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-xs pt-1 text-slate-800 font-mono border-t border-slate-200">
+                    <span>On-Site Cumulative: <strong>{calcOnSiteDays(offGoing.cycleStartDate)} / 90 Days</strong></span>
+                    <span>Rotation Leave Due: <strong className="text-blue-900">{calcRotationDueDate(offGoing.cycleStartDate)}</strong></span>
+                  </div>
+                </div>
+
+                {/* 2. Acting & Reliever Candidate Selection Dropdown */}
+                <div className="bg-blue-50/70 p-4 border border-blue-200 rounded-lg space-y-2 shadow-xs">
+                  <label className="block text-sm font-bold text-blue-950 flex items-center gap-1.5">
+                    <UserCog className="w-4 h-4 text-blue-900" />
+                    <span>Select Qualified Reliever / Acting Delegate:</span>
+                  </label>
+                  
+                  {candidateList.length > 0 ? (
+                    <select
+                      value={selectedCandidateId}
+                      onChange={(e) => setSelectedCandidateId(e.target.value)}
+                      className="w-full h-11 bg-white border-2 border-slate-300 rounded-lg px-3 font-semibold text-slate-900 text-sm focus:border-blue-700 focus:outline-none cursor-pointer"
+                    >
+                      {candidateList.map((c) => (
+                        <option key={c.staff.id} value={c.staff.id}>
+                          {c.isPrimary ? '★ [PRIMARY DELEGATE] ' : '• [QUALIFIED POOL] '}
+                          {c.label} - {c.staff.id}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-rose-700 font-bold p-2 bg-rose-50 border border-rose-200 rounded text-xs">
+                      No matching personnel found in the active roster. Mobilize HQ delegate.
+                    </div>
+                  )}
+
+                  <div className="text-xs text-slate-600 leading-normal">
+                    * Selection applies statutory delegation hierarchy and cross-rotation rules for {offGoing.department}.
+                  </div>
+                </div>
+
+                {/* 3. Real-Time Competency & Compliance Verification Gate */}
+                {selectedCandidate && candidateComp && (
+                  <div>
+                    {candidateComp.hasExpired ? (
+                      <div className="bg-rose-50 border-2 border-rose-400 p-4 rounded-lg space-y-2 shadow-xs">
+                        <div className="text-rose-950 font-black text-sm flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <AlertOctagon className="w-4 h-4 text-rose-600 animate-pulse" />
+                            [COMPLIANCE GATE DEFICIT] Handover Blocked
+                          </span>
+                          <span className="bg-rose-600 text-white font-bold px-2 py-0.5 rounded text-xs">
+                            UNAUTHORIZED
+                          </span>
+                        </div>
+                        <div className="text-xs text-rose-900 leading-relaxed font-medium">
+                          Candidate <strong>{selectedCandidate.name}</strong> holds {candidateComp.expiredCerts.length} expired statutory certification(s):
+                        </div>
+                        <div className="bg-white p-2 border border-rose-200 rounded space-y-1 text-xs font-mono">
+                          {candidateComp.expiredCerts.map((c) => (
+                            <div key={c.code} className="text-rose-700 font-bold flex justify-between">
+                              <span>• {c.code}: {c.name}</span>
+                              <span>(Expired: {c.expiryDate})</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex justify-end pt-1">
+                          <button
+                            onClick={() => {
+                              navigateToMatrix(selectedCandidate.id);
+                              setHandoverModalStaff(null);
+                            }}
+                            className="text-blue-900 underline font-bold text-xs hover:text-blue-950 cursor-pointer"
+                          >
+                            Inspect & Approve Certification Renewal in Training Matrix ➔
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-emerald-50 border-2 border-emerald-400 p-4 rounded-lg space-y-2 shadow-xs">
+                        <div className="text-emerald-950 font-black text-sm flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                            [COMPLIANCE GATE CLEARED] 100% Valid Certifications
+                          </span>
+                          <span className="bg-emerald-800 text-white font-bold px-2.5 py-0.5 rounded text-xs">
+                            AUTHORIZED
+                          </span>
+                        </div>
+                        <div className="text-xs text-emerald-900 leading-relaxed font-medium">
+                          Candidate <strong>{selectedCandidate.name}</strong> satisfies all mandatory SKK Migas safety leadership, cryogenic, and PTW compliance standards ({candidateComp.validCount} / {candidateComp.totalCount} Valid).
+                        </div>
+                        {candidateComp.hasExpiringSoon && (
+                          <div className="text-xs text-amber-900 bg-amber-50 p-2 border border-amber-200 rounded mt-1 font-mono">
+                            Refresher Due Notice: {candidateComp.expiringCerts.map(c => `${c.code} (${c.expiryDate})`).join('; ')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 4. Action Buttons */}
+                <div className="flex justify-between items-center pt-3 border-t border-slate-300 flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      if (selectedCandidate) {
+                        navigateToMatrix(selectedCandidate.id);
+                        setHandoverModalStaff(null);
+                      }
+                    }}
+                    className="px-2 py-1 text-xs font-bold cursor-pointer text-blue-900 underline hover:text-blue-950"
+                  >
+                    View in Training Matrix ➔
+                  </button>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setHandoverModalStaff(null)}
+                      className="px-5 py-2.5 text-xs font-bold rounded-lg cursor-pointer hover:bg-slate-200 border border-slate-300 text-slate-800 transition-colors"
+                    >
+                      취소 (Cancel)
+                    </button>
+
+                    <button
+                      disabled={isBlocked}
+                      onClick={() => {
+                        if (selectedCandidate) {
+                          handleExecuteHandover(offGoing, selectedCandidate);
+                        }
+                      }}
+                      className={`px-6 py-2.5 text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1.5 shadow transition-all ${
+                        isBlocked
+                          ? 'bg-slate-300 text-slate-500 cursor-not-allowed border-slate-400'
+                          : 'bg-blue-950 text-white hover:bg-blue-900'
+                      }`}
+                    >
+                      <CheckCheck className="w-4 h-4 text-emerald-300" />
+                      <span>소장 승인 및 인수인계 확정 (Approve & Authorize)</span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* 5-B: Handover Success Confirmation Banner */}
+      {handoverSuccessToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-900 text-white p-3 rounded shadow-2xl border-2 border-emerald-400 font-mono text-xs flex items-center gap-3 animate-in fade-in slide-in-from-bottom duration-300">
+          <CheckCircle2 className="w-5 h-5 text-emerald-300 shrink-0" />
+          <div>
+            <div className="font-bold text-sm">Handover Protocol Authorized</div>
+            <div className="text-[11px] text-emerald-100">
+              {handoverSuccessToast.offGoingName} ({handoverSuccessToast.roleTitle}) ➔ Reliever: <strong>{handoverSuccessToast.relieverName}</strong>
+            </div>
+          </div>
+          <button
+            onClick={() => setHandoverSuccessToast(null)}
+            className="ml-2 bg-emerald-950 px-2 py-0.5 font-bold hover:bg-emerald-800 text-white rounded text-[10px]"
+          >
+            OK
+          </button>
+        </div>
+      )}
+
+      {/* 5-C: Fatigue Limit Exceeded Hard-Lock Modal */}
+      {fatigueAlertModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="win-panel p-3 max-w-md w-full bg-white shadow-2xl border-2 border-red-700 text-slate-900 font-sans">
+            <div className="win-titlebar bg-red-800 text-white p-1 px-2 flex justify-between items-center mb-2">
+              <span className="font-bold text-xs flex items-center gap-1.5">
+                <AlertOctagon className="w-4 h-4 text-yellow-300" />
+                [FATIGUE LIMIT EXCEEDED - Maximum 7 Consecutive Nights]
+              </span>
+              <button
+                onClick={() => setFatigueAlertModal(null)}
+                className="text-white font-bold px-1.5 py-0.2 bg-red-600 hover:bg-red-700 text-[10px]"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-2 text-xs font-mono">
+              <div className="bg-red-50 p-2 border border-red-300 text-red-950 space-y-1">
+                <div className="font-bold text-sm">Hard-Lock Intervention Activated:</div>
+                <div>Staff: <strong>{fatigueAlertModal.staffName}</strong> (Day {fatigueAlertModal.dayNum})</div>
+                <div className="text-[11px] text-red-900 pt-1">{fatigueAlertModal.violationReason}</div>
+              </div>
+
+              <div className="bg-slate-100 p-2 border border-slate-300 text-[10px] text-slate-700">
+                <strong>Statutory Regulation:</strong> Under SKK Migas & Indonesian Labor Law, consecutive night shift duty is strictly capped at 7 consecutive cycles without a mandatory 48-hour rest break to prevent cryogenic operational fatigue incidents.
+              </div>
+
+              <div className="flex justify-end gap-2 pt-1 border-t border-slate-200">
+                <button
+                  onClick={() => setFatigueAlertModal(null)}
+                  className="win-btn px-4 py-1 text-xs font-bold cursor-pointer bg-red-800 text-white hover:bg-red-900"
+                >
+                  Acknowledge & Revert
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5-D: 예외 휴무 신청서 (Rest Day Request Modal) */}
+      {siteManagerApprovalModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 animate-in fade-in duration-200">
+          <div className="win-panel max-w-xl w-full bg-white shadow-2xl border-2 border-blue-950 text-slate-900 rounded-xl overflow-hidden font-sans">
+            {/* Modal Titlebar */}
+            <div className="bg-blue-950 text-white px-5 py-3.5 flex justify-between items-center border-b border-blue-800">
+              <span className="font-bold text-base sm:text-lg flex items-center gap-2.5">
+                <FileText className="w-5 h-5 text-amber-400 shrink-0" />
+                <span>예외 휴무 신청서 (Rest Day Request)</span>
+              </span>
+              <button
+                onClick={() => setSiteManagerApprovalModal(null)}
+                className="text-white font-bold p-1 px-2.5 bg-slate-800 hover:bg-slate-700 rounded-md text-xs transition-colors cursor-pointer"
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 sm:p-7 space-y-5">
+              {/* Section 1: Clean Summary Block */}
+              <div className="bg-slate-50 border border-slate-300 rounded-lg p-4 space-y-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
+                    <span className="text-xs text-slate-500 font-semibold block mb-0.5">대상자 (Applicant)</span>
+                    <div className="text-sm sm:text-base font-bold text-slate-900">
+                      {siteManagerApprovalModal.staff.name}
+                    </div>
+                    <div className="text-xs text-blue-900 font-medium">
+                      {normalizePositionTitle(siteManagerApprovalModal.staff.role) || siteManagerApprovalModal.staff.role}
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
+                    <span className="text-xs text-slate-500 font-semibold block mb-0.5">대상일자 (Requested Date)</span>
+                    <div className="text-sm sm:text-base font-bold text-slate-900 font-mono">
+                      {selectedYear}-{String(selectedMonth).padStart(2, '0')}-{String(siteManagerApprovalModal.dayNum).padStart(2, '0')}
+                    </div>
+                    <div className="text-[11px] text-slate-500 font-medium mt-0.5">
+                      {MONTH_NAMES[selectedMonth - 1]} {siteManagerApprovalModal.dayNum}, {selectedYear}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 2: Reason Select Box */}
+                <div className="pt-1">
+                  <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
+                    휴무 사유 (Reason)
+                  </label>
+                  <select
+                    value={approvalReason}
+                    onChange={(e) => setApprovalReason(e.target.value)}
+                    className="w-full h-11 px-3 text-sm font-medium border border-slate-300 rounded-md bg-white shadow-xs focus:ring-2 focus:ring-blue-600 focus:outline-none cursor-pointer"
+                  >
+                    <option value="Medical">Medical (진료 / 건강 관리)</option>
+                    <option value="Emergency">Emergency (긴급 상황 / 개인 사유)</option>
+                    <option value="Special Task">Special Task (특별 업무 조정)</option>
+                    <option value="Fatigue">Fatigue (피로도 완화 / 안전 휴식)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Section 3: Audit Sign-off Bar */}
+              <div className="bg-blue-50/80 p-3 rounded-lg border border-blue-200 text-xs sm:text-sm text-blue-950 flex items-center justify-between flex-wrap gap-2">
+                <span>승인 권한: <strong>소장 (Site Manager)</strong></span>
+                <span className="text-emerald-700 font-bold flex items-center gap-1.5 text-xs sm:text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  소장 승인 로그 자동 기록
+                </span>
+              </div>
+
+              {/* Section 4: Action Buttons */}
+              <div className="flex justify-end items-center gap-3 pt-3 border-t border-slate-200">
+                <button
+                  onClick={() => setSiteManagerApprovalModal(null)}
+                  className="win-btn px-5 py-2.5 text-sm font-semibold cursor-pointer hover:bg-slate-200 rounded-md"
+                >
+                  취소 (Cancel)
+                </button>
+                <button
+                  onClick={handleConfirmSiteManagerApproval}
+                  className="win-btn px-6 py-2.5 text-sm font-bold cursor-pointer bg-blue-900 hover:bg-blue-950 text-white flex items-center gap-2 rounded-md shadow-md transition-all"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>소장 승인 및 등록 (Approve & Submit)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5-E: Site Manager Exception Rest Toast Banner */}
+      {siteManagerRestToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-blue-950 text-white p-3.5 rounded-lg shadow-2xl border-2 border-sky-400 font-mono text-xs flex items-center gap-3 animate-in fade-in slide-in-from-bottom duration-300">
+          <CheckCircle2 className="w-5 h-5 text-sky-300 shrink-0" />
+          <div>
+            <div className="font-bold text-sm">Site Manager Exception Authorized</div>
+            <div className="text-xs text-sky-100">
+              Rest Day (R) granted for <strong>{siteManagerRestToast.staffName}</strong> (Day {siteManagerRestToast.dayNum})
+            </div>
+          </div>
+          <button
+            onClick={() => setSiteManagerRestToast(null)}
+            className="ml-2 bg-blue-900 px-2.5 py-1 font-bold hover:bg-blue-800 text-white rounded text-xs cursor-pointer"
+          >
+            OK
+          </button>
+        </div>
+      )}
+
+      {/* 5-F: Past Operational Record Read-Only Lock Modal */}
+      {pastDateLockModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="win-panel p-4 max-w-lg w-full bg-white shadow-2xl border-2 border-slate-700 text-slate-900 rounded-lg overflow-hidden font-sans">
+            <div className="win-titlebar bg-slate-800 text-white p-2 px-3 flex justify-between items-center mb-3">
+              <span className="font-bold text-sm sm:text-base flex items-center gap-2">
+                <Lock className="w-4 h-4 text-amber-300" />
+                [RECORD LOCKED: Read-Only Historical Shift]
+              </span>
+              <button
+                onClick={() => setPastDateLockModal(null)}
+                className="text-white font-bold px-2 py-0.5 bg-slate-600 hover:bg-slate-700 rounded text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs sm:text-sm font-mono p-2">
+              <div className="bg-slate-50 p-3.5 border border-slate-300 text-slate-900 space-y-2 rounded">
+                <div className="font-bold text-sm sm:text-base text-blue-950 flex items-center gap-1.5">
+                  <ShieldAlert className="w-4 h-4 text-slate-700 shrink-0" />
+                  <span>Historical Record Locked (소급 수정 불가)</span>
+                </div>
+                <div className="text-xs sm:text-sm text-slate-700">
+                  Target: <strong>{pastDateLockModal.staffName}</strong> ({pastDateLockModal.dateStr})
+                </div>
+                <div className="text-xs sm:text-sm text-red-900 bg-red-50 p-2.5 border border-red-200 rounded leading-relaxed">
+                  과거 근무 실적은 Daily Shift Board에 의해 잠금(Locked) 처리되었습니다. 소급 수정은 관리자(HQ Admin) 승인이 필요합니다.
+                </div>
+              </div>
+
+              <div className="bg-slate-100 p-2.5 border border-slate-300 text-[11px] text-slate-600 leading-normal rounded">
+                <strong>Audit Compliance:</strong> Closed operational logs are permanently archived in the terminal ledger. Any alteration requires an official management change request (MOC) and HQ approval.
+              </div>
+
+              <div className="flex justify-end pt-2 border-t border-slate-200">
+                <button
+                  onClick={() => setPastDateLockModal(null)}
+                  className="win-btn px-5 py-2 text-xs sm:text-sm font-bold cursor-pointer bg-slate-800 text-white hover:bg-slate-900 rounded"
+                >
+                  확인 (Acknowledge)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5-H: Daily Shift Board Rest / Stand-down & Standby Cover Modal */}
+      {dailyRestModalOpen && (() => {
+        const onDutyCandidates = [...teamBPersonnel, ...teamCPersonnel].filter(m => !dailyRestAssignments[m.id]);
+        const standbyCoverCandidates = teamAPersonnel;
+        const currentApplicant = manpowerData.find(m => m.id === dailyRestApplicantId);
+        const currentCover = manpowerData.find(m => m.id === dailyRestCoverId);
+        const coverComp = currentCover ? getStaffCompetencyStatus(currentCover) : null;
+
+        return (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 animate-in fade-in duration-200">
+            <div className="win-panel max-w-xl w-full bg-white shadow-2xl border-2 border-blue-950 text-slate-900 rounded-xl overflow-hidden font-sans">
+              <div className="bg-blue-950 text-white px-5 py-3.5 flex justify-between items-center border-b border-blue-800">
+                <span className="font-bold text-base sm:text-lg flex items-center gap-2">
+                  <UserPlus className="w-5 h-5 text-amber-400 shrink-0" />
+                  <span>예외 휴무 신청 및 대체자 배정 (Daily Rest & Cover)</span>
+                </span>
+                <button
+                  onClick={() => setDailyRestModalOpen(false)}
+                  className="text-white font-bold p-1 px-2.5 bg-slate-800 hover:bg-slate-700 rounded text-xs transition-colors cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="p-6 sm:p-7 space-y-4 text-xs sm:text-sm">
+                {/* 1. Applicant Selection */}
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-slate-800">
+                    1. 휴무 신청 대상자 (Applicant - Active On-Duty):
+                  </label>
+                  <select
+                    value={dailyRestApplicantId}
+                    onChange={(e) => setDailyRestApplicantId(e.target.value)}
+                    className="w-full h-10 px-3 border border-slate-300 rounded-md bg-white font-medium cursor-pointer shadow-xs focus:ring-2 focus:ring-blue-500"
+                  >
+                    {onDutyCandidates.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} ({m.role} • {m.teamName}) - {m.ertRole} {get14dHours(m) >= 154 ? `[⚠️ ${get14dHours(m)}h/14d]` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 2. Reason Selection */}
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-slate-800">
+                    2. 휴무/비번 사유 (Reason for Stand-down):
+                  </label>
+                  <select
+                    value={dailyRestReason}
+                    onChange={(e) => setDailyRestReason(e.target.value as any)}
+                    className="w-full h-10 px-3 border border-slate-300 rounded-md bg-white font-medium cursor-pointer shadow-xs focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Medical">Medical (진료 / 건강 이상 및 관찰)</option>
+                    <option value="Emergency">Emergency (긴급 상황 / 개인 사유)</option>
+                    <option value="Fatigue 154h">Fatigue 154h (14일 누적 154시간 피로도 초과 안전 대기)</option>
+                  </select>
+                </div>
+
+                {/* 3. Standby Cover Selection */}
+                <div className="space-y-1.5 bg-blue-50/70 p-3 rounded-lg border border-blue-200">
+                  <label className="block font-bold text-blue-950">
+                    3. 비번 대기조 내 대체 투입자 (Standby Cover):
+                  </label>
+                  <select
+                    value={dailyRestCoverId}
+                    onChange={(e) => setDailyRestCoverId(e.target.value)}
+                    className="w-full h-10 px-3 border border-blue-300 rounded-md bg-white font-medium cursor-pointer shadow-xs focus:ring-2 focus:ring-blue-500"
+                  >
+                    {standbyCoverCandidates.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} ({m.role} • {m.teamName}) - ERT: {m.ertRole} (Radio: {m.radioChannel})
+                      </option>
+                    ))}
+                  </select>
+
+                  {currentCover && coverComp && (
+                    <div className="text-[11px] pt-1 flex justify-between items-center text-slate-700">
+                      <span>ERT Role: <strong>{currentCover.ertRole}</strong></span>
+                      <span className={coverComp.hasExpired ? 'text-red-700 font-bold' : 'text-emerald-700 font-bold'}>
+                        {coverComp.hasExpired ? 'Expired Cert' : '100% Certified Valid'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Site Manager Verification Checkbox */}
+                <div className="bg-amber-50 p-3 rounded-lg border border-amber-300">
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-amber-950">
+                    <input
+                      type="checkbox"
+                      checked={dailyRestSmApproved}
+                      onChange={(e) => setDailyRestSmApproved(e.target.checked)}
+                      className="w-4 h-4 cursor-pointer"
+                    />
+                    <span>소장(Site Manager) 예외 휴무 및 대체자 투입 승인 확인 (EMP-001)</span>
+                  </label>
+                  <div className="text-[10px] text-amber-900 mt-1 pl-6">
+                    승인 즉시 Daily Shift Board에 대체자가 반영되며, ERT 조직 적격성이 자동 재계산됩니다.
+                  </div>
+                </div>
+
+                {/* 5. Action Buttons */}
+                <div className="flex justify-end items-center gap-3 pt-3 border-t border-slate-200">
+                  <button
+                    onClick={() => setDailyRestModalOpen(false)}
+                    className="win-btn px-5 py-2 text-sm font-semibold cursor-pointer hover:bg-slate-200 rounded-md"
+                  >
+                    취소 (Cancel)
+                  </button>
+                  <button
+                    disabled={!dailyRestSmApproved}
+                    onClick={handleApplyDailyRestRequest}
+                    className={`win-btn px-6 py-2 text-sm font-bold flex items-center gap-2 rounded-md shadow-md transition-all ${
+                      !dailyRestSmApproved
+                        ? 'bg-slate-300 text-slate-500 cursor-not-allowed border-slate-400'
+                        : 'bg-blue-900 hover:bg-blue-950 text-white cursor-pointer'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>승인 및 대체 투입 (Approve &amp; Swap Cover)</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* 5-I: Daily Rest & Cover Success Toast */}
+      {dailyRestSuccessToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-blue-950 text-white p-3.5 rounded-lg shadow-2xl border-2 border-emerald-400 font-mono text-xs flex items-center gap-3 animate-in fade-in slide-in-from-bottom duration-300">
+          <CheckCircle2 className="w-5 h-5 text-emerald-300 shrink-0" />
+          <div>
+            <div className="font-bold text-sm">Stand-down &amp; Standby Cover Swapped</div>
+            <div className="text-xs text-sky-100">
+              {dailyRestSuccessToast.applicantName} (Rest: {dailyRestSuccessToast.reason}) ➔ Cover: <strong>{dailyRestSuccessToast.coverName}</strong>
+            </div>
+          </div>
+          <button
+            onClick={() => setDailyRestSuccessToast(null)}
+            className="ml-2 bg-blue-900 px-2.5 py-1 font-bold hover:bg-blue-800 text-white rounded text-xs cursor-pointer"
+          >
+            OK
+          </button>
+        </div>
+      )}
+
+      {/* 5-J: Pre-Shift Handover & Safety Delegation Protocol Modal Window */}
+      {isHandoverProtocolModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-150">
+          <div className="bg-white border-2 border-slate-700 shadow-2xl rounded-sm w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col font-sans">
+            {/* Modal Titlebar */}
+            <div className="bg-[#0f2d59] text-white px-3 py-2 flex items-center justify-between border-b border-[#1b437c]">
+              <div className="flex items-center gap-2">
+                <ArrowRightLeft className="w-4 h-4 text-emerald-400" />
+                <span className="font-bold text-sm tracking-wide">
+                  Pre-Shift Handover &amp; Safety Delegation Protocol (SOP NP07-03)
+                </span>
+              </div>
+              <button
+                onClick={() => setIsHandoverProtocolModalOpen(false)}
+                className="text-white hover:text-rose-300 font-bold text-sm px-2 cursor-pointer"
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 overflow-y-auto space-y-4 text-xs">
+              {/* Header Status Bar */}
+              <div className="bg-slate-100 border border-slate-300 p-2.5 rounded flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900">Shift Target:</span>
+                  <span className="font-mono bg-blue-900 text-white px-2 py-0.5 rounded text-[11px] font-bold">
+                    DAY SHIFT (TEAM-B) ➔ NIGHT SHIFT (TEAM-C)
+                  </span>
+                  <span className="text-slate-600 font-mono">Date: 2026-09-01</span>
+                </div>
+                <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded font-bold font-mono">
+                  {handoverSignatures.offGoingSigned && handoverSignatures.incomingSigned && handoverSignatures.smApproved
+                    ? '3-Party Handover Verified & Authorized'
+                    : 'Handover Pending Sign-Off'}
+                </span>
+              </div>
+
+              {/* Grid: 5-Point Checklist & Signatures */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                {/* Left: 5-Point Process & Safety Checklist */}
+                <div className="lg:col-span-7 space-y-2 bg-slate-50 p-3 border border-slate-300 rounded">
+                  <div className="font-bold text-slate-800 font-mono text-xs border-b border-slate-200 pb-1 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-blue-900" />
+                    <span>Process &amp; Safety Shift Handover Checklist:</span>
+                  </div>
+                  <div className="space-y-2 font-mono text-[11px] pt-1">
+                    <label className="flex items-start gap-2 cursor-pointer select-none bg-white p-2 border border-slate-200 rounded">
+                      <input
+                        type="checkbox"
+                        checked={handoverChecklist.bogNormal}
+                        onChange={(e) => setHandoverChecklist(prev => ({ ...prev, bogNormal: e.target.checked }))}
+                        className="cursor-pointer accent-blue-900 mt-0.5"
+                      />
+                      <span className={handoverChecklist.bogNormal ? 'text-slate-900 font-semibold' : 'text-slate-500'}>
+                        1. Cryogenic BOG Header Pressure Normal (&lt; 0.25 MPa) &amp; Comp running
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2 cursor-pointer select-none bg-white p-2 border border-slate-200 rounded">
+                      <input
+                        type="checkbox"
+                        checked={handoverChecklist.bayStatus}
+                        onChange={(e) => setHandoverChecklist(prev => ({ ...prev, bayStatus: e.target.checked }))}
+                        className="cursor-pointer accent-blue-900 mt-0.5"
+                      />
+                      <span className={handoverChecklist.bayStatus ? 'text-slate-900 font-semibold' : 'text-slate-500'}>
+                        2. Loading Bay 01 &amp; 02 Vaporizer Operational Status &amp; Mass Balance Verified
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2 cursor-pointer select-none bg-white p-2 border border-slate-200 rounded">
+                      <input
+                        type="checkbox"
+                        checked={handoverChecklist.ptwReviewed}
+                        onChange={(e) => setHandoverChecklist(prev => ({ ...prev, ptwReviewed: e.target.checked }))}
+                        className="cursor-pointer accent-blue-900 mt-0.5"
+                      />
+                      <span className={handoverChecklist.ptwReviewed ? 'text-slate-900 font-semibold' : 'text-slate-500'}>
+                        3. Active PTW Permits (2 Hot Work / 1 Confined) Handover Reviewed
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2 cursor-pointer select-none bg-white p-2 border border-slate-200 rounded">
+                      <input
+                        type="checkbox"
+                        checked={handoverChecklist.ertCleared}
+                        onChange={(e) => setHandoverChecklist(prev => ({ ...prev, ertCleared: e.target.checked }))}
+                        className="cursor-pointer accent-blue-900 mt-0.5"
+                      />
+                      <span className={handoverChecklist.ertCleared ? 'text-slate-900 font-semibold' : 'text-slate-500'}>
+                        4. ERT Minimum Manning Cleared (Incident Commander, Fire Chief, First Aider, Gas Response)
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2 cursor-pointer select-none bg-white p-2 border border-slate-200 rounded">
+                      <input
+                        type="checkbox"
+                        checked={handoverChecklist.esdArmed}
+                        onChange={(e) => setHandoverChecklist(prev => ({ ...prev, esdArmed: e.target.checked }))}
+                        className="cursor-pointer accent-blue-900 mt-0.5"
+                      />
+                      <span className={handoverChecklist.esdArmed ? 'text-slate-900 font-semibold' : 'text-slate-500'}>
+                        5. Plant Emergency Shutdown (ESD) Loops &amp; Gas Detection 100% Armed
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Right: Signatures & Delegation */}
+                <div className="lg:col-span-5 space-y-3 bg-slate-50 p-3 border border-slate-300 rounded">
+                  <div className="font-bold text-slate-800 font-mono text-xs border-b border-slate-200 pb-1 flex justify-between items-center">
+                    <span>3-Party Sign-off Authorization:</span>
+                  </div>
+                  <div className="space-y-2 font-mono text-[11px]">
+                    <div className="flex justify-between items-center bg-white p-2.5 border border-slate-200 rounded shadow-2xs">
+                      <div>
+                        <span className="font-bold text-slate-900">Off-Going (Day TL):</span>
+                        <div className="text-slate-600">Asman S. (TEAM-B)</div>
+                      </div>
+                      <span className="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded font-bold border border-emerald-300">
+                        Signed (19:40 WIB)
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center bg-white p-2.5 border border-slate-200 rounded shadow-2xs">
+                      <div>
+                        <span className="font-bold text-slate-900">Incoming (Night TL):</span>
+                        <div className="text-slate-600">Juli S. (TEAM-C)</div>
+                      </div>
+                      <span className="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded font-bold border border-emerald-300">
+                        Signed (19:45 WIB)
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center bg-white p-2.5 border border-slate-200 rounded shadow-2xs">
+                      <div>
+                        <span className="font-bold text-slate-900">Site Manager Gate:</span>
+                        <div className="text-slate-600">Ahmad Zarkasih (EMP-001)</div>
+                      </div>
+                      <span className="bg-blue-100 text-blue-950 px-2 py-0.5 rounded font-bold border border-blue-300">
+                        Authorized &amp; Locked
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200">
+                    <button
+                      onClick={() => {
+                        setIsHandoverProtocolModalOpen(false);
+                        handleOpenHandoverModal(manpowerData.find(s => s.id === 'EMP-004') || manpowerData[3]);
+                      }}
+                      className="w-full win-btn py-1.5 text-xs font-bold text-blue-950 bg-slate-200 hover:bg-slate-300 border border-slate-400 flex items-center justify-center gap-1.5 cursor-pointer rounded"
+                    >
+                      <ArrowRightLeft className="w-3.5 h-3.5" />
+                      <span>Open Staff Duty Delegation Gate...</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-slate-100 px-4 py-2.5 border-t border-slate-300 flex justify-end items-center gap-2">
+              <button
+                onClick={() => setIsHandoverProtocolModalOpen(false)}
+                className="win-btn px-4 py-1 text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 cursor-pointer border border-slate-400 rounded"
+              >
+                닫기 (Close)
+              </button>
+              <button
+                onClick={() => {
+                  setIsHandoverProtocolModalOpen(false);
+                }}
+                className="win-btn px-5 py-1 text-xs font-bold bg-blue-900 hover:bg-blue-950 text-white cursor-pointer border border-blue-950 rounded flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>체크리스트 저장 및 완료 (Confirm Handover)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

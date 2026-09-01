@@ -54,6 +54,12 @@ export const CSV_FILES_CONFIG = [
     title: 'Plant Gas Chromatograph (GC) Breakdown',
     description: 'M-101A & M-101B 11+ hydrocarbon and inert gas composition',
   },
+  {
+    key: 'manpower_job_db',
+    fileName: 'manpower_job_database.csv',
+    title: 'Manpower & Shift Roster Job Master DB',
+    description: '22 Personnel roster, positions, qualifications, contact info, and 3:1 rotation tracking',
+  },
 ];
 
 export function getRowValue(row: Record<string, string>, ...patterns: (string | RegExp)[]): string {

@@ -64,6 +64,11 @@ export type SubProcessKey =
   | 'MANPOWER_DAILY_SHIFT'
   | 'MANPOWER_ROTATION_TRACKER'
   | 'MANPOWER_MONTHLY_GRID'
+  | 'MANPOWER_TRAINING_MATRIX'
+  | 'MANPOWER_PTW'
+  | 'PTW_PERMITS'
+  | 'SAFETY_GAS_TESTING'
+  | 'SAFETY_ERT_READINESS'
   | 'CALIBRATION_COMPLIANCE';
 
 export interface OffloadHeelMetrics {
@@ -253,4 +258,117 @@ export interface GlobalPortalData {
   gasCompositions: GasCompositionComparison[];
   activeBays: ActiveBayState[];
   ingestionStatuses: DataIngestionStatus[];
+}
+
+export type ShiftCode = 'D' | 'N' | 'Off' | 'On' | 'AL' | 'O';
+
+export type DepartmentCode =
+  | 'MANAGEMENT'
+  | 'OP_ALPHA'
+  | 'OP_BRAVO'
+  | 'OP_CHARLIE'
+  | 'MAINTENANCE'
+  | 'HSSE'
+  | 'HR_GA'
+  | 'LOGISTICS';
+
+export type TeamNameStandard =
+  | 'Management'
+  | 'Management ( Team A )'
+  | 'TEAM-A'
+  | 'TEAM-B'
+  | 'TEAM-C'
+  | 'Maintenance'
+  | 'HSSE Team'
+  | 'HR / GA'
+  | 'Logistic Team';
+
+export type CompetencyStatus = 'VALID' | 'EXPIRING_SOON' | 'DUE_SOON' | 'EXPIRED' | 'PENDING_APPROVAL' | 'NOT_APPLICABLE';
+
+export type ERTRole = 'Incident Commander' | 'Fire Chief' | 'First Aider' | 'Gas Leak Response' | 'None';
+
+export interface CompetencyCertification {
+  code: string;
+  name: string;
+  category: 'SAFETY_HSE' | 'CRYOGENIC_OPS' | 'ELECTRICAL_INST' | 'MECHANICAL' | 'LOGISTICS_MARINE' | 'MANAGEMENT';
+  issueDate: string;
+  expiryDate: string;
+  certNumber: string;
+  issuingBody: string;
+  status: CompetencyStatus;
+  evidenceFileName?: string;
+  submittedDate?: string;
+}
+
+export interface StaffPersonnel {
+  id: string;
+  name: string;
+  role: string;
+  department: DepartmentCode;
+  teamName: TeamNameStandard | string;
+  currentStatus: 'ON_SITE' | 'OFF_DUTY' | 'MOBILIZING' | 'HANDOVER_PENDING';
+  todayShift: ShiftCode;
+  onSiteDays: number;
+  targetCycleDays: number;
+  cycleStartDate: string;
+  nextRotationDueDate: string;
+  relieverName: string;
+  contactNo: string;
+  radioChannel: string;
+  rosterDays: ShiftCode[];
+  competencies?: CompetencyCertification[];
+  complianceWarning?: boolean;
+  ertRole?: ERTRole;
+}
+
+export type PTWType =
+  | 'COLD_WORK'
+  | 'HOT_WORK'
+  | 'CONFINED_SPACE'
+  | 'ELECTRICAL'
+  | 'EXCAVATION'
+  | 'RADIOGRAPHY';
+
+export type PTWWorkflowStatus =
+  | 'DRAFT'
+  | 'PREPARED'
+  | 'APPROVED'
+  | 'ACTIVE'
+  | 'CLOSED';
+
+export interface PTWPermit {
+  id: string;
+  formNumber: string; // NP07-10 to NP07-15
+  type: PTWType;
+  title: string;
+  location: string;
+  status: PTWWorkflowStatus;
+  workLeaderId: string;
+  workLeaderName: string;
+  assignedWorkerIds: string[];
+  assignedWorkerNames: string[];
+  agtStaffId?: string;
+  approverStaffId?: string;
+  gasReadings: {
+    lelPercent: number;
+    o2Percent: number;
+    h2sPpm: number;
+    coPpm: number;
+    testedAt: string;
+    isSafeForWork: boolean;
+  };
+  safetyChecklist: {
+    fireWatchAssigned: boolean;
+    gasDetectorContinuous: boolean;
+    lotoApplied: boolean;
+    forcedVentilation: boolean;
+    ppeVerified: boolean;
+    barricadeSet: boolean;
+  };
+  validFrom: string;
+  validTo: string;
+  emergencyProtocol: string;
+  createdAt: string;
+  closedAt?: string;
+  hazardDescription: string;
 }
