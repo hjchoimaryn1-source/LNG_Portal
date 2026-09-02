@@ -64,6 +64,7 @@ import MonthlyPlanTab from './tabs/MonthlyPlanTab';
 import RotationPlanTab from './tabs/RotationPlanTab';
 import DailyBoardTab from './tabs/DailyBoardTab';
 import TrainingMatrixTab from './tabs/TrainingMatrixTab';
+import SiteManningOverviewTab from './tabs/SiteManningOverviewTab';
 
 export {
   INITIAL_MANPOWER_MASTER_RECORDS as MANPOWER_DIRECTORY,
@@ -72,7 +73,7 @@ export {
 export type { StaffPersonnel, DepartmentCode, ShiftCode, TeamNameStandard };
 
 interface ManpowerRosterViewProps {
-  initialSubView?: 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX';
+  initialSubView?: 'OVERVIEW' | 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX';
 }
 
 const MONTH_NAMES = [
@@ -163,9 +164,9 @@ const calcOnSiteDays = (startDateStr: string, todayStr: string = '2026-09-02'): 
 };
 
 export default function ManpowerRosterView({
-  initialSubView = 'DAILY_SHIFT_BOARD',
+  initialSubView = 'OVERVIEW',
 }: ManpowerRosterViewProps) {
-  const [activeTab, setActiveTab] = useState<'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX'>(initialSubView);
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX'>(initialSubView);
 
   // Always sync activeTab when initialSubView prop updates
   useEffect(() => {
@@ -1259,14 +1260,49 @@ export default function ManpowerRosterView({
     return list;
   }, [filteredPersonnel, statusSortMode]);
 
+  const subTabs = [
+    { key: 'OVERVIEW', label: 'Overview' },
+    { key: 'DAILY_SHIFT_BOARD', label: 'Daily Board' },
+    { key: 'MONTHLY_GRID', label: 'Monthly Plan' },
+    { key: 'ROTATION_TRACKER', label: 'Rotation' },
+    { key: 'TRAINING_MATRIX', label: 'Training Matrix' },
+  ] as const;
+
   return (
     <div className="h-full flex flex-col min-h-0 gap-1.5 w-full bg-[#d4d0c8] p-2 overflow-hidden select-none font-sans text-xs">
 
+      <div className="bg-[#d4d0c8] border-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] p-1 shadow-inner">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {subTabs.map(({ key, label }) => {
+            const isActive = activeTab === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setActiveTab(key as 'OVERVIEW' | 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX')}
+                className={`px-3 py-1.5 border-2 text-[10px] font-black uppercase tracking-[0.16em] transition-all ${
+                  isActive
+                    ? 'bg-[#183b6b] text-white border-t-[#5d6b7a] border-l-[#5d6b7a] border-r-[#0f172a] border-b-[#0f172a] shadow-inner'
+                    : 'bg-[#e2e8f0] text-slate-900 border-t-white border-l-white border-r-[#7c7c7c] border-b-[#7c7c7c] hover:bg-[#f1f5f9]'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* ========================================================================= */}
       {/* 3. MAIN CONTENT AREA (Direct Tab Rendering without Duplicate Nav Bar)     */}
       {/* ========================================================================= */}
       <div className="flex-1 min-h-0 overflow-y-auto bg-[#d4d0c8] p-1.5">
+
+        {/* ===================================================================== */}
+        {/* TAB 0: OVERVIEW (DCS Sunken Bevel KPI Gate) */}
+        {activeTab === 'OVERVIEW' && (
+          <SiteManningOverviewTab onNavigateTab={(nextTab) => setActiveTab(nextTab)} />
+        )}
 
         {/* ===================================================================== */}
         {/* TAB 1: MONTHLY PLAN (Simplified Compact Controller & Single-Row Grid) */}
