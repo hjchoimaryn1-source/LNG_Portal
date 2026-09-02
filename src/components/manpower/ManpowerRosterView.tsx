@@ -61,6 +61,7 @@ import {
 } from '../../data/manpowerMasterData';
 import TrainingMatrixView from './TrainingMatrixView';
 import MonthlyPlanTab from './tabs/MonthlyPlanTab';
+import RotationPlanTab from './tabs/RotationPlanTab';
 
 export {
   INITIAL_MANPOWER_MASTER_RECORDS as MANPOWER_DIRECTORY,
@@ -1287,202 +1288,15 @@ export default function ManpowerRosterView({
         {/* TAB 2: ROTATION (8 Simplified Columns, Delegation & Compliance Gate)  */}
         {/* ===================================================================== */}
         {activeTab === 'ROTATION_TRACKER' && (
-          <div className="overflow-x-auto min-w-full">
-            <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
-              <thead>
-                <tr className="bg-slate-200 border-b border-slate-400">
-                  {/* 1. Position */}
-                  <th className="p-1.5 border-r border-slate-300 w-48 text-center">Position</th>
-                  {/* 2. Personnel */}
-                  <th className="p-1.5 border-r border-slate-300 w-44 text-center">Personnel</th>
-                  {/* 3. Status (Interactive Sortable: Status ▲ / Status ▼) */}
-                  <th
-                    onClick={handleToggleStatusSort}
-                    className="p-1.5 border-r border-slate-300 cursor-pointer hover:bg-slate-300 transition-colors w-24 select-none text-center"
-                    title="Click to toggle Status sorting"
-                  >
-                    <span className="font-bold text-slate-800">
-                      Status {statusSortMode === 'OFF_FIRST' ? '▲' : '▼'}
-                    </span>
-                  </th>
-                  {/* 4. Start Date */}
-                  <th className="p-1.5 border-r border-slate-300 w-28 text-center">Start Date</th>
-                  {/* 5. Progress */}
-                  <th className="p-1.5 border-r border-slate-300 w-44 text-center">Progress</th>
-                  {/* 6. Leave Due */}
-                  <th className="p-1.5 border-r border-slate-300 w-28 text-center">Leave Due</th>
-                  {/* 7. Training & Due Date (Within 90 Days) */}
-                  <th className="p-1.5 text-center">Training & Due Date (Within 90 Days)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rotationPersonnelList.map((m, i) => {
-                  const isResident =
-                    m.department === 'HR_GA' ||
-                    m.id === 'EMP-017' ||
-                    m.id === 'EMP-018' ||
-                    m.cycleStartDate === 'N/A' ||
-                    m.cycleStartDate === '-';
-
-                  const isOpShift = m.department === 'OP_ALPHA' || m.department === 'OP_BRAVO' || m.department === 'OP_CHARLIE' || m.id === 'EMP-002';
-                  const targetCycle = isOpShift ? 42 : (m.targetCycleDays || 90);
-                  const isOffDuty = !isResident && m.currentStatus === 'OFF_DUTY';
-
-                  // Dynamic calculations based on Cycle_Start_Date (Single Source of Truth)
-                  const dynamicOnSiteDays = isResident || isOffDuty ? 0 : calcOnSiteDays(m.cycleStartDate, '2026-09-02');
-                  const dynamicRotationDue = isResident
-                    ? '-'
-                    : isOffDuty
-                      ? calcReturnDueDate(m.cycleStartDate, 14)
-                      : calcRotationDueDate(m.cycleStartDate, targetCycle);
-                  const pct = isOffDuty ? 0 : Math.min(100, Math.round((dynamicOnSiteDays / targetCycle) * 100));
-
-                  // Status warnings
-                  const isPending = !isResident && !isOffDuty && dynamicOnSiteDays >= (targetCycle - 5);
-                  const isDueSoon = !isResident && !isOffDuty && dynamicOnSiteDays >= (targetCycle - 7);
-                  const compStatus = getStaffCompetencyStatus(m);
-
-                  const isSelected = selectedEmpId === m.id;
-
-                  return (
-                    <tr
-                      key={m.id}
-                      onClick={() => setSelectedEmpId(m.id)}
-                      className={`cursor-pointer transition-colors duration-150 ${isSelected
-                        ? 'bg-sky-100/70 dark:bg-sky-950/40 border-l-4 border-sky-500'
-                        : i % 2 === 0
-                          ? 'bg-white hover:bg-sky-50/80 dark:hover:bg-slate-800/50'
-                          : 'bg-slate-50 hover:bg-sky-50/80 dark:hover:bg-slate-800/50'
-                        }`}
-                    >
-                      {/* 1열: Position (Standard Position Single-Line Only) */}
-                      <td className="p-1.5 border-r border-slate-300 font-bold text-slate-900 whitespace-nowrap">
-                        {normalizePositionTitle(m.role) || normalizePositionTitle(INITIAL_MANPOWER_MASTER_RECORDS.find((r) => r.id === m.id)?.role || '') || m.role || 'Field Operator'}
-                      </td>
-
-                      {/* 2열: Personnel (Name Only in bold, no ID) */}
-                      <td className="p-1.5 font-bold border-r border-slate-300 text-blue-950 whitespace-nowrap">
-                        {m.name}
-                      </td>
-
-                      {/* 3열: Status (2-Status Standard: On-Site / Off-Day) */}
-                      <td className="p-1.5 border-r border-slate-300 font-mono text-center">
-                        {isOffDuty ? (
-                          <span className="bg-amber-100 text-amber-900 border border-amber-400 font-bold px-2 py-0.5 rounded text-xs inline-block min-w-[65px]">
-                            Off-Day
-                          </span>
-                        ) : (
-                          <span className="bg-emerald-100 text-emerald-950 border border-emerald-400 font-bold px-2 py-0.5 rounded text-xs inline-block min-w-[65px]">
-                            On-Site
-                          </span>
-                        )}
-                      </td>
-
-                      {/* 4열: Start Date (Interactive Inline 3D Sunken Date Picker) */}
-                      <td className="p-1 border-r border-slate-300 font-mono text-center" onClick={(e) => e.stopPropagation()}>
-                        {isResident ? (
-                          <span className="text-slate-500 font-normal text-[10px]">-</span>
-                        ) : (
-                          <div className="inline-flex items-center justify-center win-sunken bg-white px-1.5 py-0.5 border border-slate-400">
-                            <input
-                              type="date"
-                              value={m.cycleStartDate}
-                              onChange={(e) => handleUpdateStartDate(m.id, e.target.value)}
-                              className="bg-transparent text-slate-900 font-mono font-extrabold text-[11px] focus:outline-none cursor-pointer text-center"
-                              title="Click to modify Cycle Start Date"
-                            />
-                          </div>
-                        )}
-                      </td>
-
-                      {/* 5열: Progress (Center Aligned with 42d vs 90d Cycle) */}
-                      <td className="p-1.5 border-r border-slate-300 text-center">
-                        {isResident ? (
-                          <div className="flex items-center justify-center text-[10px] p-1 bg-slate-100 border border-slate-300 font-bold text-slate-700 text-center">
-                            <span>Day Work</span>
-                          </div>
-                        ) : isOffDuty ? (
-                          <div className="flex items-center justify-center text-[10px] p-1 bg-amber-50 border border-amber-300 font-bold text-amber-900 text-center">
-                            <span>Off-Duty (Leave)</span>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex items-center justify-center gap-2 text-[10px] mb-1 font-mono">
-                              <span className="font-bold text-slate-900">{dynamicOnSiteDays} / {targetCycle} Days</span>
-                              <span className={`font-bold ${pct >= 90 ? 'text-rose-700' : 'text-slate-700'}`}>({pct}%)</span>
-                            </div>
-                            <div className="w-full bg-slate-200 h-2.5 border border-slate-400 overflow-hidden">
-                              <div
-                                className={`h-full ${pct >= 90
-                                  ? 'bg-rose-600'
-                                  : pct >= 75
-                                    ? 'bg-amber-500'
-                                    : 'bg-blue-800'
-                                  }`}
-                                style={{ width: `${pct}%` }}
-                              />
-                            </div>
-                          </>
-                        )}
-                      </td>
-
-                      {/* 6열: Leave Due / Return Due */}
-                      <td className="p-1.5 border-r border-slate-300 font-mono font-bold whitespace-nowrap text-center">
-                        {isResident ? (
-                          <span className="text-slate-500 font-normal text-[10px]">-</span>
-                        ) : isOffDuty ? (
-                          <span className="text-amber-950 bg-amber-100 px-1.5 py-0.5 border border-amber-300 rounded font-bold">
-                            Return: {dynamicRotationDue}
-                          </span>
-                        ) : (
-                          <span
-                            className={
-                              isDueSoon || isPending
-                                ? 'text-rose-800 bg-rose-50 px-1.5 py-0.5 border border-rose-300 rounded font-bold'
-                                : 'text-slate-900'
-                            }
-                          >
-                            {dynamicRotationDue}
-                          </span>
-                        )}
-                      </td>
-
-                      {/* 7열: Training & Due Date (Within 90 Days) */}
-                      <td className="p-1.5">
-                        {isResident || (!compStatus.hasExpired && !compStatus.hasExpiringSoon) ? (
-                          <div className="flex items-center justify-center">
-                            <span className="text-emerald-700 bg-emerald-50 px-2 py-1 rounded text-xs font-semibold inline-block border border-emerald-200">
-                              ✓ All Valid
-                            </span>
-                          </div>
-                        ) : compStatus.hasExpired ? (
-                          <div
-                            onClick={() => navigateToMatrix(m.id)}
-                            className="bg-rose-50 hover:bg-rose-100 border border-rose-300 px-2 py-1 rounded text-xs cursor-pointer transition-colors shadow-2xs"
-                            title="Click to open Training & Competency Matrix"
-                          >
-                            <span className="text-rose-900 font-bold">
-                              {compStatus.expiredCerts.map((c) => `❌ ${c.code}: ${c.name} (Expired: ${c.expiryDate})`).join(', ')}
-                            </span>
-                          </div>
-                        ) : (
-                          <div
-                            onClick={() => navigateToMatrix(m.id)}
-                            className="bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2 py-1 rounded text-xs cursor-pointer transition-colors shadow-2xs"
-                            title="Click to open Training & Competency Matrix"
-                          >
-                            <span className="text-amber-900 font-bold">
-                              {compStatus.expiringCerts.map((c) => `⚠️ ${c.code}: ${c.name} (Due: ${c.expiryDate})`).join(', ')}
-                            </span>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <RotationPlanTab
+            filteredPersonnel={rotationPersonnelList}
+            selectedEmpId={selectedEmpId}
+            statusSortMode={statusSortMode}
+            onToggleStatusSort={handleToggleStatusSort}
+            onSelectEmployee={(empId) => setSelectedEmpId(empId)}
+            onUpdateStartDate={handleUpdateStartDate}
+            onNavigateToMatrix={navigateToMatrix}
+          />
         )}
 
         {/* ===================================================================== */}
