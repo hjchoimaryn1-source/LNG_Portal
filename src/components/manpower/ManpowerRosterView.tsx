@@ -63,6 +63,7 @@ import TrainingMatrixView from './TrainingMatrixView';
 import MonthlyPlanTab from './tabs/MonthlyPlanTab';
 import RotationPlanTab from './tabs/RotationPlanTab';
 import DailyBoardTab from './tabs/DailyBoardTab';
+import TrainingMatrixTab from './tabs/TrainingMatrixTab';
 
 export {
   INITIAL_MANPOWER_MASTER_RECORDS as MANPOWER_DIRECTORY,
@@ -1343,7 +1344,7 @@ export default function ManpowerRosterView({
         {/* TAB 4: TRAINING & COMPETENCY MATRIX (With Deep Link & Workflow)       */}
         {/* ===================================================================== */}
         {activeTab === 'TRAINING_MATRIX' && (
-          <TrainingMatrixView
+          <TrainingMatrixTab
             personnelList={filteredPersonnel}
             highlightedEmpId={selectedEmpId}
             onUpdatePersonnelCertification={handleUpdatePersonnelCertification}
