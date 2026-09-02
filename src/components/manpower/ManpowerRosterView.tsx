@@ -72,8 +72,12 @@ export {
 };
 export type { StaffPersonnel, DepartmentCode, ShiftCode, TeamNameStandard };
 
+type ManpowerTabKey = 'OVERVIEW' | 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX';
+
 interface ManpowerRosterViewProps {
-  initialSubView?: 'OVERVIEW' | 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX';
+  initialSubView?: ManpowerTabKey;
+  activeTab?: ManpowerTabKey;
+  onTabChange?: (tab: ManpowerTabKey) => void;
 }
 
 const MONTH_NAMES = [
@@ -165,15 +169,26 @@ const calcOnSiteDays = (startDateStr: string, todayStr: string = '2026-09-02'): 
 
 export default function ManpowerRosterView({
   initialSubView = 'OVERVIEW',
+  activeTab: controlledTab,
+  onTabChange,
 }: ManpowerRosterViewProps) {
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX'>(initialSubView);
+  const [internalTab, setInternalTab] = useState<ManpowerTabKey>(initialSubView);
+
+  const activeTab = controlledTab ?? internalTab;
+  const setActiveTab = useCallback((nextTab: ManpowerTabKey) => {
+    if (onTabChange) {
+      onTabChange(nextTab);
+    } else {
+      setInternalTab(nextTab);
+    }
+  }, [onTabChange]);
 
   // Always sync activeTab when initialSubView prop updates
   useEffect(() => {
-    if (initialSubView) {
-      setActiveTab(initialSubView);
+    if (!controlledTab && initialSubView) {
+      setInternalTab(initialSubView);
     }
-  }, [initialSubView]);
+  }, [controlledTab, initialSubView]);
   const [selectedDept, setSelectedDept] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [manpowerData, setManpowerData] = useState<StaffPersonnel[]>(INITIAL_MANPOWER_MASTER_RECORDS);
@@ -1260,43 +1275,13 @@ export default function ManpowerRosterView({
     return list;
   }, [filteredPersonnel, statusSortMode]);
 
-  const subTabs = [
-    { key: 'OVERVIEW', label: 'Overview' },
-    { key: 'DAILY_SHIFT_BOARD', label: 'Daily Board' },
-    { key: 'MONTHLY_GRID', label: 'Monthly Plan' },
-    { key: 'ROTATION_TRACKER', label: 'Rotation' },
-    { key: 'TRAINING_MATRIX', label: 'Training Matrix' },
-  ] as const;
-
   return (
-    <div className="h-full flex flex-col min-h-0 gap-1.5 w-full bg-[#d4d0c8] p-2 overflow-hidden select-none font-sans text-xs">
-
-      <div className="bg-[#d4d0c8] border-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] p-1 shadow-inner">
-        <div className="flex flex-wrap items-center gap-1.5">
-          {subTabs.map(({ key, label }) => {
-            const isActive = activeTab === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setActiveTab(key as 'OVERVIEW' | 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX')}
-                className={`px-3 py-1.5 border-2 text-[10px] font-black uppercase tracking-[0.16em] transition-all ${
-                  isActive
-                    ? 'bg-[#183b6b] text-white border-t-[#5d6b7a] border-l-[#5d6b7a] border-r-[#0f172a] border-b-[#0f172a] shadow-inner'
-                    : 'bg-[#e2e8f0] text-slate-900 border-t-white border-l-white border-r-[#7c7c7c] border-b-[#7c7c7c] hover:bg-[#f1f5f9]'
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+    <div className="h-full w-full flex flex-col min-h-0 overflow-hidden bg-[#d4d0c8] select-none font-sans text-xs">
 
       {/* ========================================================================= */}
       {/* 3. MAIN CONTENT AREA (Direct Tab Rendering without Duplicate Nav Bar)     */}
       {/* ========================================================================= */}
-      <div className="flex-1 min-h-0 overflow-y-auto bg-[#d4d0c8] p-1.5">
+      <div className="flex-1 min-h-0 overflow-y-auto bg-[#d4d0c8] p-0">
 
         {/* ===================================================================== */}
         {/* TAB 0: OVERVIEW (DCS Sunken Bevel KPI Gate) */}

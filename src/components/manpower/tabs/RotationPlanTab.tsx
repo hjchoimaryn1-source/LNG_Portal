@@ -122,8 +122,16 @@ export default function RotationPlanTab({
   }, [filteredPersonnel, statusSortMode]);
 
   return (
-    <div className="overflow-x-auto min-w-full">
-      <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
+    <div className="space-y-1.5 bg-[#d4d0c8] p-1.5">
+      <div className="bg-[#d4d0c8] text-slate-900 font-extrabold text-xs px-3 py-1.5 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] tracking-wider uppercase flex items-center justify-between shadow-xs shrink-0 select-none">
+        <div className="flex items-center">
+          <span className="text-emerald-700 font-black mr-2 text-sm">■</span>
+          <span className="uppercase tracking-wider">Rotation &amp; Leave Tracker (3:1 Cycle)</span>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto min-w-full">
+        <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
         <thead>
           <tr className="bg-slate-200 border-b border-slate-400">
             <th className="p-1.5 border-r border-slate-300 w-48 text-center">Position</th>
@@ -304,6 +312,7 @@ export default function RotationPlanTab({
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

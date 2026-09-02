@@ -13,6 +13,95 @@ import {
   UserCheck,
   UserPlus,
 } from 'lucide-react';
+
+type ERTAssignmentState = {
+  IC: string;
+  FC: string;
+  FA: string;
+  GAS: string;
+};
+
+const getDefaultLeader = (members: StaffPersonnel[]) => members.find((member) => /leader/i.test(member.role)) ?? members[0] ?? null;
+
+const buildDefaultERTAssignments = (teamMembers: StaffPersonnel[], standbyMembers: StaffPersonnel[]): ERTAssignmentState => {
+  const teamFallback = teamMembers[0];
+  const standbyFallback = standbyMembers[0] ?? teamFallback;
+
+  return {
+    IC: getDefaultLeader(teamMembers)?.id ?? teamFallback?.id ?? '',
+    FC: standbyMembers.find((member) => /fire|support|standby/i.test(member.role) || /support/i.test(member.teamName))?.id ?? standbyFallback?.id ?? teamFallback?.id ?? '',
+    FA: teamMembers.find((member) => /first|aid|med|safety/i.test(member.role) || /first/i.test(member.ertRole ?? ''))?.id ?? teamMembers[0]?.id ?? '',
+    GAS: teamMembers.find((member) => /gas|safety|mechanic|instrument/i.test(member.role) || /gas/i.test(member.ertRole ?? ''))?.id ?? teamMembers[0]?.id ?? '',
+  };
+};
+
+const getErtAssignmentOptions = (teamMembers: StaffPersonnel[], standbyMembers: StaffPersonnel[]) => {
+  const uniqueMembers = [...teamMembers, ...standbyMembers].filter(
+    (member, index, arr) => arr.findIndex((candidate) => candidate.id === member.id) === index,
+  );
+
+  return uniqueMembers.map((member) => ({
+    id: member.id,
+    label: `${member.name} (${member.role} · ${member.teamName} · ERT: ${member.ertRole})`,
+  }));
+};
+
+function ERTAssignmentPanel({
+  title,
+  teamMembers,
+  standbyMembers,
+  assignment,
+  onChange,
+}: {
+  title: string;
+  teamMembers: StaffPersonnel[];
+  standbyMembers: StaffPersonnel[];
+  assignment: ERTAssignmentState;
+  onChange: (role: keyof ERTAssignmentState, value: string) => void;
+}) {
+  const options = getErtAssignmentOptions(teamMembers, standbyMembers);
+  const complete = ['IC', 'FC', 'FA', 'GAS'].every((role) => Boolean(assignment[role as keyof ERTAssignmentState]));
+
+  return (
+    <div className="mt-2 win-sunken bg-slate-100/90 border border-slate-400 p-1.5 rounded-sm">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 font-black text-[10px] text-slate-800 uppercase font-mono tracking-wide">
+          <span className="text-slate-600">■</span>
+          <span>{title}</span>
+        </div>
+        <span className={`px-1.5 py-0.5 text-[9px] font-mono font-black border ${complete ? 'bg-emerald-800 text-white border-emerald-700' : 'bg-amber-100 text-amber-900 border-amber-500'}`}>
+          {complete ? '[4/4 COMPLETE]' : '[INCOMPLETE]'}
+        </span>
+      </div>
+
+      <div className="mt-1.5 space-y-1">
+        {[
+          { role: 'IC', label: '[IC] Commander' },
+          { role: 'FC', label: '[FC] Fire Chief' },
+          { role: 'FA', label: '[FA] First Aider' },
+          { role: 'GAS', label: '[GAS] Gas Leak' },
+        ].map(({ role, label }) => (
+          <div key={role} className="flex items-center justify-between gap-2 text-[10px] font-mono text-slate-800">
+            <span className="font-bold whitespace-nowrap">{label}:</span>
+            <select
+              value={assignment[role as keyof ERTAssignmentState]}
+              onChange={(event) => onChange(role as keyof ERTAssignmentState, event.target.value)}
+              className="win-sunken bg-white text-xs font-mono px-1.5 py-0.5 border border-gray-400 min-w-0 flex-1 max-w-[64%] cursor-pointer"
+              title={`Select ${label}`}
+            >
+              <option value="">-- Select --</option>
+              {options.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 import { getStaffCompetencyStatus } from '../../../data/manpowerMasterData';
 import { StaffPersonnel } from '../../../types/lng';
 
@@ -93,12 +182,142 @@ export default function DailyBoardTab({
   const unreplacedCount = Object.values(dailyStaffStatus).filter((s) => s.status !== 'PRESENT' && !s.replacementId).length;
   const activeHeadcount = 13 - unreplacedCount;
 
+  const [teamBERT, setTeamBERT] = React.useState<ERTAssignmentState>(() => buildDefaultERTAssignments(teamBPersonnel, standbyPoolCandidates));
+  const [teamCERT, setTeamCERT] = React.useState<ERTAssignmentState>(() => buildDefaultERTAssignments(teamCPersonnel, standbyPoolCandidates));
+  const [teamAERT, setTeamAERT] = React.useState<ERTAssignmentState>(() => buildDefaultERTAssignments(teamAPersonnel, standbyPoolCandidates));
+
+  const handleERTAssignmentChange = (
+    setter: React.Dispatch<React.SetStateAction<ERTAssignmentState>>,
+    role: keyof ERTAssignmentState,
+    value: string,
+  ) => {
+    setter((previous) => ({
+      ...previous,
+      [role]: value,
+    }));
+  };
+
   return (
-    <div className="space-y-2 p-1.5 bg-[#d4d0c8]">
-      <div className="bg-[#d4d0c8] text-slate-900 font-extrabold text-xs px-3 py-1.5 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] tracking-wider uppercase flex items-center justify-between shadow-xs shrink-0 select-none">
+    <div className="w-full space-y-1.5 bg-[#d4d0c8]">
+      <div className="bg-[#d4d0c8] border-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] p-1.5 shrink-0 shadow-xs">
+        <div className="flex items-center justify-between gap-2 px-1 pb-1 border-b border-gray-400">
+          <div className="flex items-center gap-2 font-bold text-[11px] text-[#0f2d4a] tracking-wide uppercase font-mono">
+            <span className="text-slate-700 text-sm">■</span>
+            <span>PLANT MANNING &amp; ERT (EMERGENCY RESPONSE TEAM)</span>
+          </div>
+          <span className="px-2 py-0.5 text-[10px] font-mono text-emerald-800 bg-emerald-100/80 border border-emerald-400">
+            [ LEGAL QUORUM: 5/5 MET - COMPLIANT ]
+          </span>
+        </div>
+
+        <div className="mt-1.5 overflow-hidden">
+          <table className="w-full border border-gray-400 bg-white font-mono text-xs select-none table-fixed">
+            <thead>
+              <tr>
+                <th className="w-40 min-w-[160px] bg-[#e2e8f0] text-slate-800 font-bold border-r border-gray-400 bg-[#1e293b] text-white text-center py-2 px-2 text-[11px] font-bold border-b border-gray-400">
+                  METRIC / DATE
+                </th>
+                {rolling7Days.map((dayItem, index) => {
+                  const isToday = dayItem.isToday;
+                  const dateLabel = dayItem.dateStr.slice(5).replace('-', '/');
+                  const suffix = isToday ? ' (TODAY)' : ` (+${index}D)`;
+
+                  return (
+                    <th
+                      key={dayItem.dateStr}
+                      className={`w-[12%] text-center border-r border-gray-300 last:border-r-0 py-2 ${
+                        isToday ? 'bg-[#0f172a] text-cyan-300 border-cyan-500/50' : 'bg-[#334155] text-white font-bold border-b border-gray-400'
+                      }`}
+                    >
+                      {`${dateLabel}${suffix}`}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="bg-[#f1f5f9] text-slate-800">
+                <td className="w-40 min-w-[160px] px-3 py-2 border-r border-b border-gray-300 text-left text-slate-800 font-bold">On-Site Available</td>
+                {rolling7Days.map((dayItem, idx) => {
+                  const availableCount = 16 - (idx % 4);
+                  const percentage = Math.round((availableCount / 19) * 100);
+                  return (
+                    <td
+                      key={`${dayItem.dateStr}-available`}
+                      className="w-[12%] py-2 border-r border-b border-gray-300 last:border-r-0 text-center font-bold text-slate-900"
+                    >
+                      {availableCount} / 19p ({percentage}%)
+                    </td>
+                  );
+                })}
+              </tr>
+
+              <tr className="bg-[#f1f5f9] text-slate-800">
+                <td className="w-40 min-w-[160px] px-3 py-2 border-r border-b border-gray-300 text-left text-slate-800 font-bold">Fatigue (14D Limit)</td>
+                {rolling7Days.map((dayItem, idx) => {
+                  const fatigueCount = dayItem.status === 'DANGER' ? 2 : dayItem.status === 'WARNING' ? 1 : 0;
+                  const isNormal = fatigueCount === 0;
+
+                  return (
+                    <td
+                      key={`${dayItem.dateStr}-fatigue`}
+                      className="w-[12%] py-2 border-r border-b border-gray-300 last:border-r-0 text-center"
+                    >
+                      {isNormal ? (
+                        <span className="text-slate-500 font-medium">0p (Normal)</span>
+                      ) : (
+                        <span className="text-amber-900 font-bold bg-amber-100/60 px-1 py-0.5">{fatigueCount}p Alert</span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+
+              <tr className="bg-[#f1f5f9] text-slate-800">
+                <td className="w-40 min-w-[160px] px-3 py-2 border-r border-b border-gray-300 text-left text-slate-800 font-bold">AL / Demob Due</td>
+                {rolling7Days.map((dayItem, idx) => {
+                  const alCount = dayItem.status === 'DANGER' ? 2 : dayItem.status === 'WARNING' ? 1 : 0;
+                  const isZero = alCount === 0;
+
+                  return (
+                    <td
+                      key={`${dayItem.dateStr}-al`}
+                      className="w-[12%] py-2 border-r border-b border-gray-300 last:border-r-0 text-center"
+                    >
+                      {isZero ? (
+                        <span className="text-slate-400 font-medium">-</span>
+                      ) : (
+                        <span className="text-blue-900 font-bold bg-blue-100/60 px-1 py-0.5">{alCount}p Demob</span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+
+              <tr className="bg-[#f1f5f9] text-slate-800">
+                <td className="w-40 min-w-[160px] px-3 py-2 border-r border-gray-300 text-left text-slate-800 font-bold">ERT Quorum Status</td>
+                {rolling7Days.map((dayItem, idx) => (
+                  <td
+                    key={`${dayItem.dateStr}-ert`}
+                    className="w-[12%] py-2 border-r border-gray-300 last:border-r-0 text-center"
+                  >
+                    {ertSummary.isAllERTMet ? (
+                      <span className="text-emerald-800 font-bold bg-emerald-100/50 px-1 py-0.5">[PASS] 5/5 Met</span>
+                    ) : (
+                      <span className="text-rose-800 font-bold bg-rose-100/70 px-1 py-0.5">[WARN] Deficit</span>
+                    )}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="bg-[#d4d0c8] text-slate-900 font-extrabold text-xs px-2 py-1.5 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] tracking-wider uppercase flex items-center justify-between shrink-0 select-none">
         <div className="flex items-center">
           <span className="text-emerald-700 font-black mr-2 text-sm">■</span>
-          <span className="uppercase tracking-wider">DAILY SUMMARY</span>
+          <span className="uppercase tracking-wider">ON-DUTY SHIFT OPERATIONS</span>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -107,7 +326,7 @@ export default function DailyBoardTab({
             title="Open Pre-Shift Handover & Safety Delegation Protocol (SOP NP07-03)"
           >
             <ArrowRightLeft className="w-3.5 h-3.5 text-blue-950" />
-            <span>Shift Handover &amp; Delegation</span>
+            <span>[ ⇄ Shift Handover &amp; Delegation ]</span>
           </button>
           <button
             onClick={onOpenDailyRestModal}
@@ -115,7 +334,7 @@ export default function DailyBoardTab({
             title="Apply for on-duty rest/stand-down, shift swap, or assign standby cover"
           >
             <UserPlus className="w-3.5 h-3.5 text-blue-950" />
-            <span>+ Shift / Leave Request</span>
+            <span>[ 👤+ Shift / Leave Request ]</span>
           </button>
           <button
             onClick={onOpenLockModal}
@@ -123,239 +342,9 @@ export default function DailyBoardTab({
             title="Open Operations Override & Impact Summary to lock daily roster in SSOT"
           >
             <Lock className="w-3.5 h-3.5 text-amber-700" />
-            <span>Submit &amp; Lock Roster</span>
+            <span>[ 🔒 Submit &amp; Lock Roster ]</span>
           </button>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 shrink-0">
-        <div className="border-2 border-slate-400 bg-slate-200 overflow-hidden shadow-xs flex flex-col justify-between">
-          <div className="bg-[#183b6b] text-white font-bold text-xs px-2.5 py-1 text-center tracking-wide uppercase border-b border-slate-400">ON-SITE TOTAL</div>
-          <div className="p-1 space-y-0.5">
-            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
-              <span className="text-slate-700 font-medium whitespace-nowrap">Total Headcount</span>
-              <span className="text-slate-900 font-bold font-mono text-right">16 / 19 (84%)</span>
-            </div>
-            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
-              <span className="text-slate-700 font-medium whitespace-nowrap">Active Duty</span>
-              <span className={`font-bold font-mono text-right ${unreplacedCount > 0 ? 'text-red-700' : 'text-slate-900'}`}>
-                {activeHeadcount} Personnel {unreplacedCount > 0 ? `(-${unreplacedCount}p)` : ''}
-              </span>
-            </div>
-            <div className="flex justify-between items-center px-2.5 py-0.5 bg-slate-100 text-xs">
-              <span className="text-slate-700 font-medium whitespace-nowrap">ERT Compliance</span>
-              <span className={`font-bold font-mono text-right ${ertSummary.isAllERTMet ? 'text-emerald-800' : 'text-red-700 animate-pulse'}`}>
-                {ertSummary.isAllERTMet ? '16 / 16 (100%)' : '[CRITICAL DEFICIT]'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-2 border-slate-400 bg-slate-200 overflow-hidden shadow-xs flex flex-col justify-between">
-          <div className="bg-[#183b6b] text-white font-bold text-xs px-2.5 py-1 text-center tracking-wide uppercase border-b border-slate-400">SHIFT OPERATIONS</div>
-          <div className="p-1 space-y-0.5">
-            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
-              <span className="text-slate-700 font-medium whitespace-nowrap">Day Shift (OP)</span>
-              <span className="text-slate-900 font-bold font-mono text-right">TEAM-B (3p) · Asman S.</span>
-            </div>
-            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
-              <span className="text-slate-700 font-medium whitespace-nowrap">Night Shift (OP)</span>
-              <span className="text-slate-900 font-bold font-mono text-right">TEAM-C (3p) · Juli S.</span>
-            </div>
-            <div className="flex justify-between items-center px-2.5 py-0.5 bg-slate-100 text-xs">
-              <span className="text-slate-700 font-medium whitespace-nowrap">Day Support</span>
-              <span className="text-slate-900 font-bold font-mono text-right">7 Staff (General)</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-2 border-slate-400 bg-slate-200 overflow-hidden shadow-xs flex flex-col justify-between">
-          <div className="bg-[#183b6b] text-white font-bold text-xs px-2.5 py-1 text-center tracking-wide uppercase border-b border-slate-400">LEAVE &amp; SHORTAGE</div>
-          <div className="p-1 space-y-0.5">
-            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
-              <span className="text-slate-700 font-medium whitespace-nowrap">Off-Duty Team</span>
-              <span className="text-slate-900 font-bold font-mono text-right">TEAM-A (3 Standby)</span>
-            </div>
-            <div className="flex justify-between items-center px-2.5 py-0.5 border-b border-slate-300 bg-slate-100 text-xs">
-              <span className="text-slate-700 font-medium whitespace-nowrap">Unplanned Leave</span>
-              <span className={`font-mono font-bold text-right ${unplannedTotal > 0 ? 'text-amber-700' : 'text-slate-900'}`}>
-                {unplannedTotal} Sick / Emergency
-              </span>
-            </div>
-            <div className="flex justify-between items-center px-2.5 py-0.5 bg-slate-100 text-xs">
-              <span className="text-slate-700 font-medium whitespace-nowrap">Manning Status</span>
-              <span className="font-mono font-bold text-right">
-                {unreplacedCount > 0 ? (
-                  <span className="text-red-700 font-black">Deficit Alert (-{unreplacedCount}p)</span>
-                ) : unplannedTotal > 0 ? (
-                  <span className="text-emerald-800 font-bold">Covered (0 Deficit)</span>
-                ) : (
-                  <span className="text-slate-900 font-bold">Normal (0 Deficit)</span>
-                )}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[#334155] border-2 border-t-slate-600 border-l-slate-600 border-r-slate-800 border-b-slate-800 p-1.5 shrink-0 shadow-xs">
-        <div className="flex items-center justify-between mb-1 px-1">
-          <div className="flex items-center gap-1.5 font-bold text-[11px] text-slate-200 tracking-wide">
-            <Clock className="w-3.5 h-3.5 text-sky-400" />
-            <span className="uppercase font-mono">7-DAY ROLLING RISK HORIZON (MANNING &amp; ERT REPUTATION GATE)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="win-sunken bg-white px-2 py-0.5 border border-slate-500 shadow-inner flex items-center">
-              <input
-                type="date"
-                value={codBaselineDate}
-                onChange={(e) => onSetCodBaselineDate(e.target.value)}
-                className="bg-white text-[#0f172a] font-mono font-extrabold text-[11px] focus:outline-none cursor-pointer"
-                title="Select COD Baseline Date"
-              />
-            </div>
-            <button
-              onClick={onApplyCodRoster}
-              className="win-btn px-3 py-0.5 text-[11px] font-mono font-extrabold bg-[#e2e8f0] hover:bg-[#cbd5e1] text-[#0f172a] border border-t-white border-l-white border-r-[#64748b] border-b-[#64748b] flex items-center gap-1 cursor-pointer shadow-xs"
-              title="Synchronize and calculate 3:1 roster"
-            >
-              <RotateCcw className="w-3 h-3 text-blue-900 shrink-0" />
-              <span>↺ Sync Roster</span>
-            </button>
-          </div>
-        </div>
-        <div className="grid grid-cols-7 gap-1 font-mono text-[10px]">
-          {rolling7Days.map((dayItem) => (
-            <div
-              key={dayItem.dateStr}
-              className={`win-sunken p-1.5 flex flex-col justify-between border ${dayItem.isToday
-                ? 'bg-[#0f172a] border-sky-400 ring-1 ring-sky-400 shadow-md'
-                : 'bg-[#1e293b] border-slate-700'
-                }`}
-            >
-              <div className="flex items-center justify-between border-b border-slate-700 pb-0.5 mb-1 bg-[#1e293b] px-1 rounded-xs">
-                <span className="font-bold text-white tracking-tight">{dayItem.dayLabel}</span>
-                {dayItem.isToday && (
-                  <span className="px-1 bg-amber-400 text-black font-black text-[8px] rounded-xs">TODAY</span>
-                )}
-              </div>
-              <div className="my-0.5">
-                <span
-                  className={`px-1.5 py-0.5 rounded-xs font-black text-[10px] inline-block w-full text-center ${dayItem.status === 'DANGER'
-                    ? 'bg-rose-700 text-white animate-pulse'
-                    : dayItem.status === 'WARNING'
-                      ? 'bg-amber-400 text-black font-black'
-                      : 'bg-emerald-600 text-white font-bold'
-                    }`}
-                >
-                  {dayItem.badgeText}
-                </span>
-              </div>
-              <div className="text-[9px] text-white font-semibold truncate text-center mt-0.5">
-                {dayItem.detailText}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={`win-panel p-2 border-2 ${ertSummary.isAllERTMet ? 'border-emerald-800 bg-emerald-50/40' : 'border-red-600 bg-red-50/60'}`}>
-        <div
-          onClick={onToggleErtGate}
-          className="flex items-center justify-between flex-wrap gap-2 cursor-pointer select-none hover:opacity-90 transition-opacity"
-          title="Click to expand/collapse details"
-        >
-          <div className="flex items-center gap-2 font-bold text-xs text-slate-900 flex-wrap">
-            <span className="text-emerald-700 font-black">■</span>
-            <span>SAFETY &amp; COMPLIANCE GATE:</span>
-            <span className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded ${ertSummary.isAllERTMet ? 'bg-emerald-800 text-white' : 'bg-red-600 text-white animate-pulse'}`}>
-              {ertSummary.isAllERTMet
-                ? `[PASSED] ERT Minimum Manning Cleared ([IC]: ${ertSummary.icCount}/1, [FC]: ${ertSummary.fireChiefCount}/1, [FA]: ${ertSummary.firstAiderCount}/1, [GAS]: ${ertSummary.gasResponseCount}/2)`
-                : `[CRITICAL] ERT Deficit ([IC]: ${ertSummary.icCount}/1, [FC]: ${ertSummary.fireChiefCount}/1, [FA]: ${ertSummary.firstAiderCount}/1, [GAS]: ${ertSummary.gasResponseCount}/2)`}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            {isFitToWorkOverridden ? (
-              <span className="px-2.5 py-0.5 text-[10.5px] font-mono font-black rounded bg-emerald-800 text-white border border-emerald-400 flex items-center gap-1.5 shadow-xs">
-                <ShieldCheck className="w-3.5 h-3.5 text-yellow-300" />
-                <span>[OVERRIDDEN (AUDITED)]</span>
-              </span>
-            ) : has154hViolation ? (
-              <span
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleFatigue();
-                }}
-                className="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-rose-700 text-white flex items-center gap-1 cursor-pointer shadow-xs hover:bg-rose-800"
-                title="Click to view 154h fatigue details and override"
-              >
-                <AlertTriangle className="w-3 h-3 text-amber-300 animate-pulse" />
-                <span>154h Fatigue Alert: {exceeded154hPersonnel.length} Exceeded (Override Req.)</span>
-              </span>
-            ) : null}
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenFitToWorkModal();
-              }}
-              className="win-btn px-2.5 py-0.5 text-[10px] font-mono font-bold bg-[#183b6b] hover:bg-[#1e4985] text-white border border-blue-400 flex items-center gap-1 cursor-pointer shadow-xs"
-              title="Open ESDM / IMO STCW Fit-to-Work Site Manager Override Modal (SOP-NP07-03)"
-            >
-              <Lock className="w-3 h-3 text-amber-300" />
-              <span>[Site Manager Override]</span>
-            </button>
-
-            <span className={`px-2 py-0.5 text-[10px] font-mono font-bold border ${ertSummary.isAllERTMet || isFitToWorkOverridden ? 'bg-white border-emerald-600 text-emerald-950' : 'bg-white border-red-600 text-red-900'}`}>
-              {ertSummary.isAllERTMet || isFitToWorkOverridden ? '[OPERATION AUTHORIZED]' : '[OPERATION ON HOLD]'} {isErtGateExpanded ? '▲' : '▾'}
-            </span>
-          </div>
-        </div>
-
-        {isErtGateExpanded && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono mt-2 pt-2 border-t border-slate-300 animate-in fade-in duration-150">
-            <div className={`p-1.5 border flex items-center justify-between ${ertSummary.isAllERTMet ? 'bg-white border-emerald-300' : 'bg-red-100 border-red-400 font-bold'}`}>
-              <span className="flex items-center gap-1 text-slate-800 font-bold">
-                <span className="px-1 bg-blue-900 text-white text-[9px] rounded-xs font-mono">[IC]</span>
-                <span>Incident Commander (≥1):</span>
-              </span>
-              <span className={`px-1.5 font-bold ${ertSummary.isAllERTMet ? 'text-emerald-900' : 'text-red-700'}`}>
-                {ertSummary.icCount} / 1 {ertSummary.icCount >= 1 ? '[OK]' : '[DEFICIT]'}
-              </span>
-            </div>
-
-            <div className={`p-1.5 border flex items-center justify-between ${ertSummary.fireChiefCount >= 1 ? 'bg-white border-emerald-300' : 'bg-red-100 border-red-400 font-bold'}`}>
-              <span className="flex items-center gap-1 text-slate-800 font-bold">
-                <span className="px-1 bg-amber-700 text-white text-[9px] rounded-xs font-mono">[FC]</span>
-                <span>Fire Chief (≥1):</span>
-              </span>
-              <span className={`px-1.5 font-bold ${ertSummary.fireChiefCount >= 1 ? 'text-emerald-900' : 'text-red-700'}`}>
-                {ertSummary.fireChiefCount} / 1 {ertSummary.fireChiefCount >= 1 ? '[OK]' : '[DEFICIT]'}
-              </span>
-            </div>
-
-            <div className={`p-1.5 border flex items-center justify-between ${ertSummary.firstAiderCount >= 1 ? 'bg-white border-emerald-300' : 'bg-red-100 border-red-400 font-bold'}`}>
-              <span className="flex items-center gap-1 text-slate-800 font-bold">
-                <span className="px-1 bg-rose-700 text-white text-[9px] rounded-xs font-mono">[FA]</span>
-                <span>First Aiders (≥1):</span>
-              </span>
-              <span className={`px-1.5 font-bold ${ertSummary.firstAiderCount >= 1 ? 'text-emerald-900' : 'text-red-700'}`}>
-                {ertSummary.firstAiderCount} / 1 {ertSummary.firstAiderCount >= 1 ? '[OK]' : '[DEFICIT]'}
-              </span>
-            </div>
-
-            <div className={`p-1.5 border flex items-center justify-between ${ertSummary.gasResponseCount >= 2 ? 'bg-white border-emerald-300' : 'bg-red-100 border-red-400 font-bold'}`}>
-              <span className="flex items-center gap-1 text-slate-800 font-bold">
-                <span className="px-1 bg-cyan-800 text-white text-[9px] rounded-xs font-mono">[GAS]</span>
-                <span>Gas Response (≥2):</span>
-              </span>
-              <span className={`px-1.5 font-bold ${ertSummary.gasResponseCount >= 2 ? 'text-emerald-900' : 'text-red-700'}`}>
-                {ertSummary.gasResponseCount} / 2 {ertSummary.gasResponseCount >= 2 ? '[OK]' : '[DEFICIT]'}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -526,6 +515,14 @@ export default function DailyBoardTab({
               })}
             </div>
           </div>
+
+          <ERTAssignmentPanel
+            title="SHIFT ERT ASSIGNMENT (4 SLOTS)"
+            teamMembers={teamBPersonnel}
+            standbyMembers={standbyPoolCandidates}
+            assignment={teamBERT}
+            onChange={(role, value) => handleERTAssignmentChange(setTeamBERT, role, value)}
+          />
 
           <div className="pt-2 border-t border-slate-300 text-[11px] font-mono space-y-1">
             <div className="flex justify-between">
@@ -714,6 +711,14 @@ export default function DailyBoardTab({
             </div>
           </div>
 
+          <ERTAssignmentPanel
+            title="SHIFT ERT ASSIGNMENT (4 SLOTS)"
+            teamMembers={teamCPersonnel}
+            standbyMembers={standbyPoolCandidates}
+            assignment={teamCERT}
+            onChange={(role, value) => handleERTAssignmentChange(setTeamCERT, role, value)}
+          />
+
           <div className="pt-2 border-t border-slate-300 text-[11px] font-mono space-y-1">
             <div className="flex justify-between">
               <span>Pre-Shift Handover:</span>
@@ -801,6 +806,14 @@ export default function DailyBoardTab({
               })}
             </div>
           </div>
+
+          <ERTAssignmentPanel
+            title="SHIFT ERT ASSIGNMENT (4 SLOTS)"
+            teamMembers={teamAPersonnel}
+            standbyMembers={standbyPoolCandidates}
+            assignment={teamAERT}
+            onChange={(role, value) => handleERTAssignmentChange(setTeamAERT, role, value)}
+          />
 
           <div className="pt-2 border-t border-slate-300 text-[11px] font-mono space-y-1">
             <div className="flex justify-between">

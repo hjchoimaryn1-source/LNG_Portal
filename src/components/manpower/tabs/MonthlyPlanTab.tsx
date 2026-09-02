@@ -15,6 +15,11 @@ interface MonthlyPlanTabProps {
   onSelectEmployee: (empId: string) => void;
   setSelectedYear: React.Dispatch<React.SetStateAction<number>>;
   setSelectedMonth: React.Dispatch<React.SetStateAction<number>>;
+  codBaselineDate?: string;
+  onSetCodBaselineDate?: (value: string) => void;
+  onApplyCodRoster?: () => void;
+  setCodBaselineDate?: (value: string) => void;
+  handleApplyCodRoster?: (value?: string) => void;
 }
 
 export default function MonthlyPlanTab({
@@ -29,6 +34,11 @@ export default function MonthlyPlanTab({
   onSelectEmployee,
   setSelectedYear,
   setSelectedMonth,
+  codBaselineDate,
+  onSetCodBaselineDate,
+  onApplyCodRoster,
+  setCodBaselineDate,
+  handleApplyCodRoster,
 }: MonthlyPlanTabProps) {
   const [hoveredRowStaffId, setHoveredRowStaffId] = useState<string | null>(null);
   const [hoveredColDay, setHoveredColDay] = useState<number | null>(null);
@@ -123,12 +133,39 @@ export default function MonthlyPlanTab({
     };
   }, [getStaffRosterForSelectedMonth, manpowerData, selectedMonth, selectedYear]);
 
+  const syncDate = codBaselineDate || '2026-09-15';
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = e.target.value;
+    onSetCodBaselineDate?.(nextValue);
+    setCodBaselineDate?.(nextValue);
+  };
+
+  const handleSyncRoster = () => {
+    handleApplyCodRoster?.(syncDate);
+    onApplyCodRoster?.();
+  };
+
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5 bg-[#d4d0c8] p-1.5">
       <div className="bg-[#d4d0c8] text-slate-900 font-extrabold text-xs px-3 py-1.5 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] tracking-wider uppercase flex items-center justify-between shadow-xs shrink-0 select-none">
         <div className="flex items-center">
           <span className="text-emerald-700 font-black mr-2 text-sm">■</span>
-          <span className="uppercase tracking-wider">Monthly Plan Overview</span>
+          <span className="uppercase tracking-wider">MONTHLY PLAN OVERVIEW</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={syncDate}
+            onChange={handleDateChange}
+            className="win-sunken px-2 py-0.5 text-xs font-mono bg-white border border-gray-400"
+          />
+          <button
+            onClick={handleSyncRoster}
+            className="win-btn px-2.5 py-0.5 text-xs font-bold flex items-center gap-1 bg-[#d4d0c8] border border-gray-600 shadow-sm"
+          >
+            <span>🔄</span> Sync Roster
+          </button>
         </div>
       </div>
 

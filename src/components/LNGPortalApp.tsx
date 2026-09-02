@@ -36,6 +36,40 @@ import {
   Users,
 } from 'lucide-react';
 
+type ManpowerTabKey = 'OVERVIEW' | 'DAILY_SHIFT_BOARD' | 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'TRAINING_MATRIX';
+
+const MANPOWER_TAB_LABELS: Record<ManpowerTabKey, string> = {
+  OVERVIEW: 'Overview',
+  DAILY_SHIFT_BOARD: 'Daily Board',
+  MONTHLY_GRID: 'Monthly Plan',
+  ROTATION_TRACKER: 'Rotation',
+  TRAINING_MATRIX: 'Training Matrix',
+};
+
+const MANPOWER_TAB_KEY_MAP: Record<ManpowerTabKey, SubProcessKey> = {
+  OVERVIEW: 'MANPOWER_DAILY_SHIFT',
+  DAILY_SHIFT_BOARD: 'MANPOWER_SHIFT_ROSTER',
+  MONTHLY_GRID: 'MANPOWER_MONTHLY_GRID',
+  ROTATION_TRACKER: 'MANPOWER_ROTATION_TRACKER',
+  TRAINING_MATRIX: 'MANPOWER_TRAINING_MATRIX',
+};
+
+const NORMALIZE_MANPOWER_TAB = (value: string | undefined): ManpowerTabKey => {
+  switch (value) {
+    case 'DAILY_SHIFT_BOARD':
+      return 'DAILY_SHIFT_BOARD';
+    case 'MONTHLY_GRID':
+      return 'MONTHLY_GRID';
+    case 'ROTATION_TRACKER':
+      return 'ROTATION_TRACKER';
+    case 'TRAINING_MATRIX':
+      return 'TRAINING_MATRIX';
+    case 'OVERVIEW':
+    default:
+      return 'OVERVIEW';
+  }
+};
+
 const SUBPROCESS_TITLES: Record<
   string,
   { location: string; process: string; icon: React.ReactNode; color: string }
@@ -248,10 +282,10 @@ const SUBPROCESS_TITLES: Record<
 
 // Classic Windows 3D Bevel Outset (Inactive) & Inset Sunken (Active) Styles
 const WIN_TAB_ACTIVE =
-  "bg-[#e8e7e3] text-blue-900 font-extrabold text-xs px-3 py-1 border-t-2 border-l-2 border-r-2 border-b-2 border-t-[#404040] border-l-[#404040] border-r-white border-b-white shadow-inner cursor-pointer transition-none select-none";
+  "bg-[#e8e7e3] text-[#0f2d4a] font-extrabold text-[10px] px-3 py-1 border-t-2 border-l-2 border-r-2 border-b-2 border-t-[#707070] border-l-[#707070] border-r-white border-b-white shadow-inner cursor-pointer transition-none select-none";
 
 const WIN_TAB_INACTIVE =
-  "bg-[#d4d0c8] text-slate-800 font-semibold text-xs px-3 py-1 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#404040] border-b-[#404040] active:border-t-[#404040] active:border-l-[#404040] active:border-r-white active:border-b-white hover:bg-slate-200 cursor-pointer transition-none select-none";
+  "bg-[#d4d0c8] text-slate-700 font-semibold text-[10px] px-3 py-1 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#707070] border-b-[#707070] hover:bg-[#dfe5ea] active:border-t-[#707070] active:border-l-[#707070] active:border-r-white active:border-b-white cursor-pointer transition-none select-none";
 
 function EquipmentRegistryView({ filter = 'ALL' }: { filter?: string }) {
   const allAssets = [
@@ -425,10 +459,23 @@ function LNGPortalInner() {
 
   const { isLoading } = usePortalData();
 
-  const currentNav =
-    SUBPROCESS_TITLES[activeKey] ||
-    SUBPROCESS_TITLES[activeSubTab] ||
-    SUBPROCESS_TITLES['LNG_PROCESS_OVERVIEW'];
+  const currentNav = (() => {
+    if (activeKey.startsWith('MANPOWER')) {
+      const manpowerTab = NORMALIZE_MANPOWER_TAB(activeSubTab || 'OVERVIEW');
+      return {
+        location: 'Site Manning & Roster',
+        process: MANPOWER_TAB_LABELS[manpowerTab],
+        icon: <Users className="w-3.5 h-3.5 text-black font-bold" />,
+        color: 'text-black font-bold',
+      };
+    }
+
+    return (
+      SUBPROCESS_TITLES[activeKey] ||
+      SUBPROCESS_TITLES[activeSubTab] ||
+      SUBPROCESS_TITLES['LNG_PROCESS_OVERVIEW']
+    );
+  })();
 
   const handleSelectSubProcess = (key: SubProcessKey) => {
     setActiveKey(key);
@@ -454,10 +501,31 @@ function LNGPortalInner() {
     } else if (key === 'SAVIOUR_VOYAGE_MONITORING' || key === 'SAVIOUR_MARINE_PRESSURE') {
       setActiveMenu('saviour-transit');
       setActiveSubTab(key);
+    } else if (key === 'MANPOWER_DAILY_SHIFT') {
+      setActiveMenu('MANPOWER_SHIFT_ROSTER');
+      setActiveSubTab('OVERVIEW');
+    } else if (key === 'MANPOWER_SHIFT_ROSTER') {
+      setActiveMenu('MANPOWER_SHIFT_ROSTER');
+      setActiveSubTab('DAILY_SHIFT_BOARD');
+    } else if (key === 'MANPOWER_MONTHLY_GRID') {
+      setActiveMenu('MANPOWER_MONTHLY_GRID');
+      setActiveSubTab('MONTHLY_GRID');
+    } else if (key === 'MANPOWER_ROTATION_TRACKER') {
+      setActiveMenu('MANPOWER_ROTATION_TRACKER');
+      setActiveSubTab('ROTATION_TRACKER');
+    } else if (key === 'MANPOWER_TRAINING_MATRIX') {
+      setActiveMenu('MANPOWER_TRAINING_MATRIX');
+      setActiveSubTab('TRAINING_MATRIX');
     } else {
       setActiveMenu(key);
       setActiveSubTab(key);
     }
+  };
+
+  const handleManpowerSubTab = (tab: ManpowerTabKey) => {
+    setActiveSubTab(tab);
+    setActiveKey(MANPOWER_TAB_KEY_MAP[tab]);
+    setActiveMenu(MANPOWER_TAB_KEY_MAP[tab]);
   };
 
   // Determine current active top module (1 to 5)
@@ -485,6 +553,7 @@ function LNGPortalInner() {
       {/* Left Sidebar Navigation */}
       <SidebarNav
         activeKey={activeKey}
+        activeSubTab={activeSubTab}
         onSelectKey={handleSelectSubProcess}
         isOpenMobile={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
@@ -689,37 +758,26 @@ function LNGPortalInner() {
               </>
             )}
 
-            {/* Sub-Tabs for Site Manning & Roster (Promoted) */}
+            {/* Sub-Tabs for Site Manning & Roster */}
             {currentModuleId === 'MOD_4_MANPOWER' && (
-              <>
-                <button
-                  onClick={() => handleSelectSubProcess('MANPOWER_DAILY_SHIFT')}
-                  className={activeKey === 'MANPOWER_DAILY_SHIFT' || activeKey === 'MANPOWER_SHIFT_ROSTER' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
-                >
-                  <span>Daily Board</span>
-                </button>
-
-                <button
-                  onClick={() => handleSelectSubProcess('MANPOWER_MONTHLY_GRID')}
-                  className={activeKey === 'MANPOWER_MONTHLY_GRID' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
-                >
-                  <span>Monthly Plan</span>
-                </button>
-
-                <button
-                  onClick={() => handleSelectSubProcess('MANPOWER_ROTATION_TRACKER')}
-                  className={activeKey === 'MANPOWER_ROTATION_TRACKER' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
-                >
-                  <span>Rotation</span>
-                </button>
-
-                <button
-                  onClick={() => handleSelectSubProcess('MANPOWER_TRAINING_MATRIX')}
-                  className={activeKey === 'MANPOWER_TRAINING_MATRIX' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
-                >
-                  <span>Training Matrix</span>
-                </button>
-              </>
+              [
+                { key: 'OVERVIEW', label: 'Overview' },
+                { key: 'DAILY_SHIFT_BOARD', label: 'Daily Board' },
+                { key: 'MONTHLY_GRID', label: 'Monthly Plan' },
+                { key: 'ROTATION_TRACKER', label: 'Rotation' },
+                { key: 'TRAINING_MATRIX', label: 'Training Matrix' },
+              ].map(({ key, label }) => {
+                const isActive = NORMALIZE_MANPOWER_TAB(activeSubTab || 'OVERVIEW') === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => handleManpowerSubTab(key as ManpowerTabKey)}
+                    className={isActive ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                  >
+                    <span>{label}</span>
+                  </button>
+                );
+              })
             )}
 
             {/* Sub-Tabs for Safety & PTW (Promoted) */}
@@ -861,16 +919,32 @@ function LNGPortalInner() {
               {/* MODULE 4: SITE MANNING & ROSTER (PRIMARY PROMOTED)        */}
               {/* ========================================================= */}
               {(activeKey === 'MANPOWER_SHIFT_ROSTER' || activeKey === 'MANPOWER_DAILY_SHIFT') && (
-                <ManpowerRosterView initialSubView="DAILY_SHIFT_BOARD" />
+                <ManpowerRosterView
+                  activeTab={NORMALIZE_MANPOWER_TAB(activeSubTab || 'OVERVIEW')}
+                  onTabChange={(tab) => handleManpowerSubTab(tab)}
+                  initialSubView={NORMALIZE_MANPOWER_TAB(activeSubTab || 'OVERVIEW')}
+                />
               )}
               {activeKey === 'MANPOWER_MONTHLY_GRID' && (
-                <ManpowerRosterView initialSubView="MONTHLY_GRID" />
+                <ManpowerRosterView
+                  activeTab={NORMALIZE_MANPOWER_TAB(activeSubTab || 'MONTHLY_GRID')}
+                  onTabChange={(tab) => handleManpowerSubTab(tab)}
+                  initialSubView={NORMALIZE_MANPOWER_TAB(activeSubTab || 'MONTHLY_GRID')}
+                />
               )}
               {activeKey === 'MANPOWER_ROTATION_TRACKER' && (
-                <ManpowerRosterView initialSubView="ROTATION_TRACKER" />
+                <ManpowerRosterView
+                  activeTab={NORMALIZE_MANPOWER_TAB(activeSubTab || 'ROTATION_TRACKER')}
+                  onTabChange={(tab) => handleManpowerSubTab(tab)}
+                  initialSubView={NORMALIZE_MANPOWER_TAB(activeSubTab || 'ROTATION_TRACKER')}
+                />
               )}
               {activeKey === 'MANPOWER_TRAINING_MATRIX' && (
-                <ManpowerRosterView initialSubView="TRAINING_MATRIX" />
+                <ManpowerRosterView
+                  activeTab={NORMALIZE_MANPOWER_TAB(activeSubTab || 'TRAINING_MATRIX')}
+                  onTabChange={(tab) => handleManpowerSubTab(tab)}
+                  initialSubView={NORMALIZE_MANPOWER_TAB(activeSubTab || 'TRAINING_MATRIX')}
+                />
               )}
 
               {/* ========================================================= */}

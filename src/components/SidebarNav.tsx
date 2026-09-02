@@ -8,6 +8,7 @@ import { COMPANY_CONFIG } from '../config/siteConfig';
 
 interface SidebarNavProps {
   activeKey: SubProcessKey;
+  activeSubTab?: string;
   onSelectKey: (key: SubProcessKey) => void;
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
@@ -19,6 +20,7 @@ const SECTION_HEADER_BEVEL =
 
 export default function SidebarNav({
   activeKey,
+  activeSubTab,
   onSelectKey,
   isOpenMobile = false,
   onCloseMobile,
@@ -206,13 +208,34 @@ export default function SidebarNav({
           <div className="bg-[#d4d0c8]">
             {renderNavItem(
               'MANPOWER_DAILY_SHIFT',
+              'Overview',
+              19,
+              activeKey === 'MANPOWER_DAILY_SHIFT' && (activeSubTab === 'OVERVIEW' || !activeSubTab)
+            )}
+            {renderNavItem(
+              'MANPOWER_SHIFT_ROSTER',
               'Daily Board',
               undefined,
-              activeKey === 'MANPOWER_DAILY_SHIFT' || activeKey === 'MANPOWER_SHIFT_ROSTER'
+              activeKey === 'MANPOWER_SHIFT_ROSTER' && activeSubTab === 'DAILY_SHIFT_BOARD'
             )}
-            {renderNavItem('MANPOWER_MONTHLY_GRID', 'Monthly Plan')}
-            {renderNavItem('MANPOWER_ROTATION_TRACKER', 'Rotation')}
-            {renderNavItem('MANPOWER_TRAINING_MATRIX', 'Training Matrix')}
+            {renderNavItem(
+              'MANPOWER_MONTHLY_GRID',
+              'Monthly Plan',
+              undefined,
+              activeKey === 'MANPOWER_MONTHLY_GRID' && activeSubTab === 'MONTHLY_GRID'
+            )}
+            {renderNavItem(
+              'MANPOWER_ROTATION_TRACKER',
+              'Rotation',
+              undefined,
+              activeKey === 'MANPOWER_ROTATION_TRACKER' && activeSubTab === 'ROTATION_TRACKER'
+            )}
+            {renderNavItem(
+              'MANPOWER_TRAINING_MATRIX',
+              'Training Matrix',
+              undefined,
+              activeKey === 'MANPOWER_TRAINING_MATRIX' && activeSubTab === 'TRAINING_MATRIX'
+            )}
           </div>
         </div>
 
