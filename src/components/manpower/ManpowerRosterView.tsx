@@ -60,6 +60,7 @@ import {
   getStaffCompetencyStatus,
 } from '../../data/manpowerMasterData';
 import TrainingMatrixView from './TrainingMatrixView';
+import MonthlyPlanTab from './tabs/MonthlyPlanTab';
 
 export {
   INITIAL_MANPOWER_MASTER_RECORDS as MANPOWER_DIRECTORY,
@@ -175,7 +176,6 @@ export default function ManpowerRosterView({
 
   // Accordion Collapsible States for Daily Shift Board
   const [isErtGateExpanded, setIsErtGateExpanded] = useState<boolean>(false);
-  const [isHandoverExpanded, setIsHandoverExpanded] = useState<boolean>(false);
   const [isFatigueExpanded, setIsFatigueExpanded] = useState<boolean>(false);
   const [isHandoverProtocolModalOpen, setIsHandoverProtocolModalOpen] = useState<boolean>(false);
 
@@ -189,10 +189,6 @@ export default function ManpowerRosterView({
 
   // 1. Cross-Tab Deep Linking State
   const [selectedEmpId, setSelectedEmpId] = useState<string | null>(null);
-
-  // Crosshair Highlight State for Monthly Plan Grid (hoveredRowStaffId, hoveredColDay)
-  const [hoveredRowStaffId, setHoveredRowStaffId] = useState<string | null>(null);
-  const [hoveredColDay, setHoveredColDay] = useState<number | null>(null);
 
   // 2. Interactive Handover & Delegation Protocol Modal State
   const [handoverModalStaff, setHandoverModalStaff] = useState<StaffPersonnel | null>(null);
@@ -249,6 +245,7 @@ export default function ManpowerRosterView({
   const [dailyRestApplicantId, setDailyRestApplicantId] = useState<string>('EMP-005');
   const [dailyRestReason, setDailyRestReason] = useState<'Medical' | 'Emergency' | 'Fatigue 154h'>('Medical');
   const [dailyRestCoverId, setDailyRestCoverId] = useState<string>('EMP-003');
+  const [dailyRestSmApproved, setDailyRestSmApproved] = useState<boolean>(true);
   const [dailyRestAssignments, setDailyRestAssignments] = useState<
     Record<string, { reason: string; coveringStaffId: string; approvedAt: string }>
   >({});
@@ -264,13 +261,6 @@ export default function ManpowerRosterView({
     'Critical Operational Continuity during Island Shift Cover - SOP-NP07-03 Section 4.2 Exemption'
   );
   const [isFitToWorkOverridden, setIsFitToWorkOverridden] = useState<boolean>(false);
-  const [fitToWorkAuditLog, setFitToWorkAuditLog] = useState<{
-    timestamp: string;
-    signatory: string;
-    hsseOfficer: string;
-    reason: string;
-    personnel: string[];
-  } | null>(null);
 
   // 9. Pre-Shift Handover Checklist & Sign-off State for Tab 3
   const [handoverChecklist, setHandoverChecklist] = useState({
@@ -410,36 +400,6 @@ export default function ManpowerRosterView({
     },
     []
   );
-
-  // Dynamic Days in Selected Month
-  const daysInCurrentMonth = useMemo(
-    () => getDaysInMonth(selectedYear, selectedMonth),
-    [selectedYear, selectedMonth]
-  );
-
-  const daysArray = useMemo(
-    () => Array.from({ length: daysInCurrentMonth }, (_, i) => i + 1),
-    [daysInCurrentMonth]
-  );
-
-  // Compact Month Navigator Handlers
-  const handlePrevMonth = () => {
-    if (selectedMonth === 1) {
-      setSelectedYear((y) => y - 1);
-      setSelectedMonth(12);
-    } else {
-      setSelectedMonth((m) => m - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (selectedMonth === 12) {
-      setSelectedYear((y) => y + 1);
-      setSelectedMonth(1);
-    } else {
-      setSelectedMonth((m) => m + 1);
-    }
-  };
 
   // 3:1 Rotation Pattern Helper (2D-2N-2Off 6-day cycle from COD date)
   const get3to1Shift = useCallback((staff: StaffPersonnel, dateStr: string, codDate: string) => {
@@ -1251,21 +1211,6 @@ export default function ManpowerRosterView({
     });
   };
 
-  const deptCounts = useMemo(() => {
-    const counts: Record<string, number> = {
-      ALL: manpowerData.length,
-      MANAGEMENT: manpowerData.filter((m) => m.department === 'MANAGEMENT').length,
-      OP_ALPHA: manpowerData.filter((m) => m.department === 'OP_ALPHA').length,
-      OP_BRAVO: manpowerData.filter((m) => m.department === 'OP_BRAVO').length,
-      OP_CHARLIE: manpowerData.filter((m) => m.department === 'OP_CHARLIE').length,
-      MAINTENANCE: manpowerData.filter((m) => m.department === 'MAINTENANCE').length,
-      HSSE: manpowerData.filter((m) => m.department === 'HSSE').length,
-      HR_GA: manpowerData.filter((m) => m.department === 'HR_GA').length,
-      LOGISTICS: manpowerData.filter((m) => m.department === 'LOGISTICS').length,
-    };
-    return counts;
-  }, [manpowerData]);
-
   const filteredPersonnel = useMemo(() => {
     return manpowerData.filter((m) => {
       const matchDept = selectedDept === 'ALL' || m.department === selectedDept;
@@ -1311,27 +1256,6 @@ export default function ManpowerRosterView({
     return list;
   }, [filteredPersonnel, statusSortMode]);
 
-  const handleExportCSV = () => {
-    const csvData = manpowerData.map((m) => ({
-      ID: m.id,
-      Name: m.name,
-      Role: m.role,
-      Team: m.teamName,
-      Department: m.department,
-      Status: m.currentStatus,
-      Today_Shift: m.todayShift,
-      OnSite_Days: calcOnSiteDays(m.cycleStartDate),
-      Target_Cycle: `${m.targetCycleDays} Days (3:1)`,
-      Cycle_Start: m.cycleStartDate,
-      Next_Rotation: calcRotationDueDate(m.cycleStartDate),
-      Reliever: m.relieverName,
-      Contact: m.contactNo,
-      Radio: m.radioChannel,
-      ERT_Role: m.ertRole || 'None',
-    }));
-    exportToCSV(`NIAS_CMMS_Manpower_Roster_${MONTH_NAMES[selectedMonth - 1]}_${selectedYear}.csv`, csvData);
-  };
-
   return (
     <div className="h-full flex flex-col min-h-0 gap-1.5 w-full bg-[#d4d0c8] p-2 overflow-hidden select-none font-sans text-xs">
 
@@ -1344,289 +1268,19 @@ export default function ManpowerRosterView({
         {/* ===================================================================== */}
         {/* TAB 1: MONTHLY PLAN (Simplified Compact Controller & Single-Row Grid) */}
         {activeTab === 'MONTHLY_GRID' && (
-          <div className="space-y-1">
-
-            {/* ============================================================== */}
-            {/* LEVEL 1: Header bar — matches Daily Board bevel style exactly   */}
-            {/* ============================================================== */}
-            <div className="bg-[#d4d0c8] text-slate-900 font-extrabold text-xs px-3 py-1.5 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] tracking-wider uppercase flex items-center justify-between shadow-xs shrink-0 select-none">
-              <div className="flex items-center">
-                <span className="text-emerald-700 font-black mr-2 text-sm">■</span>
-                <span className="uppercase tracking-wider">Monthly Plan Overview</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="win-sunken bg-white px-2 py-0.5 border border-slate-400 shadow-inner flex items-center gap-1">
-                  <Calendar className="w-3 h-3 text-slate-500 shrink-0" />
-                  <input
-                    type="date"
-                    value={codBaselineDate}
-                    onChange={(e) => {
-                      setCodBaselineDate(e.target.value);
-                      setCodResetToast(`Baseline updated to ${e.target.value}.`);
-                      setTimeout(() => setCodResetToast(null), 3000);
-                    }}
-                    className="bg-white text-[#0f172a] font-mono font-extrabold text-[11px] focus:outline-none cursor-pointer"
-                    title="Select roster baseline date"
-                  />
-                </div>
-                <button
-                  onClick={handleApplyCodRoster}
-                  className="win-btn px-3 py-0.5 text-[11px] font-mono font-extrabold bg-[#e2e8f0] hover:bg-[#cbd5e1] text-[#0f172a] border border-t-white border-l-white border-r-[#64748b] border-b-[#64748b] flex items-center gap-1 cursor-pointer shadow-xs"
-                  title="Recalculate full monthly schedule from baseline date"
-                >
-                  <RotateCcw className="w-3 h-3 text-blue-900 shrink-0" />
-                  <span>↺ Sync Roster Engine</span>
-                </button>
-              </div>
-            </div>
-
-            {/* ============================================================== */}
-            {/* LEVEL 2: Monthly Macro KPI Strip (4 sunken DCS-style cards)    */}
-            {/* ============================================================== */}
-            {(() => {
-              const onSitePersonnel = manpowerData.filter(m => m.currentStatus !== 'OFF_DUTY');
-              const avgManning = onSitePersonnel.length;
-              const totalPersonnel = manpowerData.length;
-              const avgPct = totalPersonnel > 0 ? Math.round((avgManning / totalPersonnel) * 100) : 0;
-              const mobCount = manpowerData.filter(m => {
-                if (m.currentStatus !== 'OFF_DUTY') return false;
-                const returnDate = m.nextRotationDueDate;
-                if (!returnDate || returnDate === '-') return false;
-                const [ry, rm] = returnDate.split('-').map(Number);
-                return ry === selectedYear && rm === selectedMonth;
-              }).length;
-              const demobCount = manpowerData.filter(m => {
-                if (m.currentStatus === 'OFF_DUTY') return false;
-                const leaveDate = m.nextRotationDueDate;
-                if (!leaveDate || leaveDate === '-') return false;
-                const [ly, lm] = leaveDate.split('-').map(Number);
-                return ly === selectedYear && lm === selectedMonth;
-              }).length;
-              const fatiguePersonCount = manpowerData.filter(m => m.currentStatus !== 'OFF_DUTY' && get14dHours(m) >= 154).length;
-              const opCoverOk = ertSummary.isAllERTMet;
-              return (
-                <div className="grid grid-cols-4 gap-1">
-                  <div className="win-sunken bg-[#1a2a3a] border border-slate-600 px-3 py-1.5 flex flex-col justify-center min-h-[42px]">
-                    <div className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest mb-0.5">AVG ON-SITE MANNING</div>
-                    <div className="text-[13px] font-mono font-black text-cyan-300 leading-tight">
-                      {avgManning}.0 / {totalPersonnel}p<span className="text-[10px] text-slate-300 font-bold ml-1">({avgPct}%)</span>
-                    </div>
-                  </div>
-                  <div className="win-sunken bg-[#1a2a3a] border border-slate-600 px-3 py-1.5 flex flex-col justify-center min-h-[42px]">
-                    <div className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest mb-0.5">PLANNED ROTATION</div>
-                    <div className="text-[12px] font-mono font-black leading-tight">
-                      <span className="text-emerald-400">Mob: {mobCount}p</span><span className="text-slate-500 mx-1">|</span><span className="text-amber-400">Demob: {demobCount}p</span>
-                    </div>
-                  </div>
-                  <div className={`win-sunken border px-3 py-1.5 flex flex-col justify-center min-h-[42px] ${fatiguePersonCount > 0 ? 'bg-[#2a1a1a] border-rose-700' : 'bg-[#1a2a3a] border-slate-600'}`}>
-                    <div className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest mb-0.5">FIT-TO-WORK OVERRIDES</div>
-                    <div className={`text-[12px] font-mono font-black leading-tight ${fatiguePersonCount > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                      {fatiguePersonCount > 0 ? `${fatiguePersonCount}p Exceed 154h — SM Sign-off Req.` : '0 Override Required'}
-                    </div>
-                  </div>
-                  <div className={`win-sunken border px-3 py-1.5 flex flex-col justify-center min-h-[42px] ${opCoverOk ? 'bg-[#1a2a3a] border-slate-600' : 'bg-[#2a1a1a] border-rose-700'}`}>
-                    <div className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest mb-0.5">MIN. OP COVERAGE</div>
-                    <div className={`text-[12px] font-mono font-black leading-tight ${opCoverOk ? 'text-emerald-400' : 'text-rose-400 animate-pulse'}`}>
-                      {opCoverOk ? '100% Cleared (0 Deficit)' : '[CRITICAL] OP Manning Deficit'}
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* ============================================================== */}
-            {/* LEVEL 3: Table Toolbar — Month Nav (left) + Shift Legend (right)*/}
-            {/* ============================================================== */}
-            <div className="bg-[#e9e6df] border border-slate-300 px-2 py-1 flex items-center justify-between gap-2 flex-wrap text-xs">
-              <div className="flex items-center gap-1.5">
-                <button onClick={handlePrevMonth} className="win-btn px-2.5 py-0.5 font-bold flex items-center cursor-pointer hover:bg-slate-200" title="Previous Month">
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-                <div className="win-sunken px-4 py-0.5 bg-white font-mono font-bold text-xs text-blue-950 min-w-[150px] text-center border border-slate-300">
-                  {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
-                </div>
-                <button onClick={handleNextMonth} className="win-btn px-2.5 py-0.5 font-bold flex items-center cursor-pointer hover:bg-slate-200" title="Next Month">
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <div className="flex items-center gap-3 font-mono text-[11px] flex-wrap">
-                <span className="font-bold text-slate-800">Shift Codes:</span>
-                <span className="inline-flex items-center gap-1"><span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-[10px] rounded">D</span> Day</span>
-                <span className="inline-flex items-center gap-1"><span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-900 border border-indigo-200 font-bold text-[10px] rounded">N</span> Night</span>
-                <span className="inline-flex items-center gap-1"><span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 border border-slate-300 font-bold text-[10px] rounded">R</span> Rest</span>
-                <span className="inline-flex items-center gap-1"><span className="px-1.5 py-0.5 bg-amber-400 text-amber-950 border border-amber-500 font-black text-[10px] rounded shadow-sm">OFF</span> Leave</span>
-                <span className="inline-flex items-center gap-1 text-red-700 font-bold"><span className="px-1.5 py-0.5 bg-rose-100 text-rose-800 border border-rose-400 font-bold text-[10px] rounded">Expired</span> Expired on Duty</span>
-              </div>
-            </div>
-
-            {/* Dynamic Monthly Grid Table (Single Row Numeric Header) */}
-            <div className="overflow-x-auto min-w-full">
-              <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
-                <thead>
-                  <tr className="bg-slate-200 border-b border-slate-400 text-[10px]">
-                    <th className="p-1 border-r border-slate-300 w-16 text-center">ID</th>
-                    <th className="p-1 border-r border-slate-300 w-36 text-center">Name</th>
-                    <th className="p-1 border-r border-slate-300 w-44 text-center">Position</th>
-                    <th className="p-1 border-r border-slate-300 w-28 text-center">Team</th>
-                    <th className="p-1 border-r border-slate-300 text-center w-16">Status</th>
-                    {/* Single-Row Numeric Date Columns (1, 2, 3 ... 30) */}
-                    {daysArray.map((day) => {
-                      const isToday = selectedYear === 2026 && selectedMonth === 9 && day === 1;
-                      const dateObj = new Date(selectedYear, selectedMonth - 1, day);
-                      const isSunday = dateObj.getDay() === 0;
-                      const isSaturday = dateObj.getDay() === 6;
-                      const isColHovered = hoveredColDay === day;
-                      const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                      const isPast = dateObj < new Date(2026, 8, 1);
-                      const isConfirmed = confirmedDailyDates.includes(dateKey);
-                      const isLocked = isPast || isConfirmed;
-
-                      return (
-                        <th
-                          key={day}
-                          className={`p-0.5 text-center border-r border-slate-300 min-w-[24px] transition-colors select-none ${isColHovered
-                            ? 'bg-sky-200 text-sky-900 font-bold ring-1 ring-sky-400'
-                            : isToday
-                              ? 'bg-yellow-300 font-black text-black'
-                              : isSunday
-                                ? 'bg-red-100 text-red-800'
-                                : isSaturday
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : isLocked
-                                    ? 'bg-slate-100 text-slate-700'
-                                    : ''
-                            }`}
-                          title={`${MONTH_NAMES[selectedMonth - 1]} ${day}, ${selectedYear} ${isLocked ? '(🔒 Locked Record)' : ''}`}
-                        >
-                          <div className="flex items-center justify-center gap-0.5">
-                            <span>{day}</span>
-                            {isLocked && <Lock className="w-2 h-2 text-slate-500 shrink-0 opacity-70" />}
-                          </div>
-                        </th>
-                      );
-                    })}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPersonnel.map((m, i) => {
-                    const staffMonthlyRoster = getStaffRosterForSelectedMonth(m);
-
-                    const isSelected = selectedEmpId === m.id;
-                    const isRowHovered = hoveredRowStaffId === m.id;
-
-                    return (
-                      <tr
-                        key={m.id}
-                        onClick={() => setSelectedEmpId(m.id)}
-                        className={`cursor-pointer transition-colors duration-150 ${isSelected
-                          ? 'bg-sky-100/70 dark:bg-sky-950/40 border-l-4 border-sky-500'
-                          : isRowHovered
-                            ? 'bg-sky-50/80'
-                            : i % 2 === 0
-                              ? 'bg-white hover:bg-sky-50/80 dark:hover:bg-slate-800/50'
-                              : 'bg-slate-50 hover:bg-sky-50/80 dark:hover:bg-slate-800/50'
-                          }`}
-                      >
-                        {/* ID Column */}
-                        <td className={`p-1 font-bold text-blue-950 border-r border-slate-300 text-center transition-all ${isRowHovered ? 'bg-sky-100/90 border-l-4 border-sky-500 font-black text-sky-950' : ''
-                          }`}>
-                          {m.id}
-                        </td>
-
-                        {/* Name Column */}
-                        <td className={`p-1 font-bold text-slate-900 border-r border-slate-300 whitespace-nowrap transition-all ${isRowHovered ? 'bg-sky-50/90' : ''
-                          }`}>
-                          <span>{m.name}</span>
-                        </td>
-
-                        {/* Position Column */}
-                        <td className={`p-1 text-slate-700 border-r border-slate-300 whitespace-nowrap transition-all ${isRowHovered ? 'bg-sky-50/90 font-semibold' : ''
-                          }`}>
-                          {normalizePositionTitle(m.role) || normalizePositionTitle(INITIAL_MANPOWER_MASTER_RECORDS.find((r) => r.id === m.id)?.role || '') || m.role || 'Field Operator'}
-                        </td>
-
-                        {/* Team Column */}
-                        <td className={`p-1 border-r border-slate-300 whitespace-nowrap font-semibold text-center transition-all ${isRowHovered ? 'bg-sky-50/90' : ''
-                          }`}>
-                          {m.teamName}
-                        </td>
-
-                        {/* Status Column */}
-                        <td className={`p-1 text-center border-r border-slate-300 font-bold transition-all ${isRowHovered ? 'bg-sky-50/90' : ''
-                          }`}>
-                          {m.currentStatus === 'OFF_DUTY' ? (
-                            <span className="bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 text-[9px] font-bold rounded whitespace-nowrap">OFF-Day</span>
-                          ) : (
-                            <span className="bg-emerald-100 text-emerald-950 border border-emerald-300 px-1.5 py-0.5 text-[9px] font-bold rounded whitespace-nowrap">On-Site</span>
-                          )}
-                        </td>
-
-                        {/* Dynamic Days Shift Codes (Filled Box Contrast Styling with Crosshair Interactivity) */}
-                        {staffMonthlyRoster.map((code, dayIdx) => {
-                          const dayNum = dayIdx + 1;
-                          const isToday = selectedYear === 2026 && selectedMonth === 9 && dayNum === 1;
-                          const cellDateObj = new Date(selectedYear, selectedMonth - 1, dayNum);
-                          const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-                          const isPastLocked = cellDateObj < new Date(2026, 8, 1);
-                          const isConfirmedLocked = confirmedDailyDates.includes(dateKey);
-                          const isLocked = isPastLocked || isConfirmedLocked;
-
-                          const isColHovered = hoveredColDay === dayNum;
-                          const isCrosshairPoint = isRowHovered && isColHovered;
-
-                          return (
-                            <td
-                              key={dayIdx}
-                              onMouseEnter={() => {
-                                setHoveredRowStaffId(m.id);
-                                setHoveredColDay(dayNum);
-                              }}
-                              onMouseLeave={() => {
-                                setHoveredRowStaffId(null);
-                                setHoveredColDay(null);
-                              }}
-                              className={`p-0.5 text-center border-r border-slate-200 text-[10px] cursor-default transition-all ${isCrosshairPoint
-                                ? 'bg-sky-100/90'
-                                : isColHovered
-                                  ? 'bg-sky-50/80'
-                                  : isRowHovered
-                                    ? 'bg-sky-50/80'
-                                    : ''
-                                } ${isToday ? 'bg-yellow-50 ring-1 ring-yellow-400 font-bold' : ''
-                                }`}
-                              title={`${MONTH_NAMES[selectedMonth - 1]} ${dayNum}, ${selectedYear}: ${code === 'AL'
-                                ? 'OFF (30d Leave)'
-                                : code === 'Off'
-                                  ? 'Rest (R)'
-                                  : code === 'D'
-                                    ? 'Day Shift (D)'
-                                    : 'Night Shift (N)'
-                                }${isLocked ? ' (🔒 Locked Record)' : ''}`}
-                            >
-                              <div
-                                className={`w-full h-6 flex items-center justify-center rounded text-[10px] select-none transition-all relative ${isCrosshairPoint ? 'ring-2 ring-sky-500 ring-inset z-20 font-black shadow-md scale-105' : ''
-                                  } ${isLocked ? 'opacity-95' : ''
-                                  } ${code === 'D'
-                                    ? 'bg-emerald-100 text-emerald-900 font-bold border border-emerald-200'
-                                    : code === 'N'
-                                      ? 'bg-indigo-100 text-indigo-900 font-bold border border-indigo-200'
-                                      : code === 'AL'
-                                        ? 'bg-amber-400 text-amber-950 font-black border border-amber-500 shadow-sm'
-                                        : 'bg-slate-100 text-slate-400 font-medium'
-                                  }`}
-                              >
-                                {code === 'AL' ? 'OFF' : code === 'Off' ? 'R' : code}
-                              </div>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <MonthlyPlanTab
+            manpowerData={manpowerData}
+            filteredPersonnel={filteredPersonnel}
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+            selectedEmpId={selectedEmpId}
+            confirmedDailyDates={confirmedDailyDates}
+            monthNames={MONTH_NAMES}
+            getStaffRosterForSelectedMonth={getStaffRosterForSelectedMonth}
+            onSelectEmployee={(empId) => setSelectedEmpId(empId)}
+            setSelectedYear={setSelectedYear}
+            setSelectedMonth={setSelectedMonth}
+          />
         )}
 
         {/* ===================================================================== */}
@@ -3768,13 +3422,6 @@ export default function ManpowerRosterView({
                   disabled={!fitToWorkVitalsChecked || !fitToWorkRestChecked || !fitToWorkDrugsChecked}
                   onClick={() => {
                     setIsFitToWorkOverridden(true);
-                    setFitToWorkAuditLog({
-                      timestamp: new Date().toISOString(),
-                      signatory: 'Site Manager Edi Hermawan (EMP-001)',
-                      hsseOfficer: fitToWorkHsseOfficer,
-                      reason: fitToWorkReason,
-                      personnel: exceeded154hPersonnel.length > 0 ? exceeded154hPersonnel.map((s) => s.name) : ['Danang', 'Uliyansyah'],
-                    });
                     setIsFitToWorkModalOpen(false);
                     setCodResetToast('✓ [FIT-TO-WORK OVERRIDE] Site Manager Edi Hermawan authorized 154h exemption under SOP-NP07-03. Audit log saved.');
                     setTimeout(() => setCodResetToast(null), 5000);
