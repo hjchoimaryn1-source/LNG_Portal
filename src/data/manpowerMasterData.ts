@@ -275,34 +275,45 @@ export function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
 }
 
-// Generate August 2026 Roster Pattern for 3 Operation Teams & Support (Continuous 3:1 Rotation)
-export function generateRosterPattern(dept: string, indexInDept: number = 0): ShiftCode[] {
+// Generate August 2026 Roster Pattern for 3 Operation Teams & Support (Official Operation Manpower Arrangement)
+export function generateRosterPattern(dept: string, indexInDept: number = 0, staffId?: string): ShiftCode[] {
   return AUGUST_DAYS.map((day) => {
-    // Continuous 2-Shift Operations without regular rest on-site
-    if (dept === 'OP_ALPHA') {
-      const cycleDay = ((day - 1) % 14) + 1;
-      return cycleDay <= 7 ? 'D' : 'N';
+    // 0. Site Manager (EMP-001 Edi Hermawan): 8/1~8/20 D -> 8/21~8/31 AL (Shadiq takes over as Acting SM)
+    if (staffId === 'EMP-001' || (dept === 'MANAGEMENT' && indexInDept === 0)) {
+      return day <= 20 ? 'D' : 'AL';
     }
-    if (dept === 'OP_BRAVO') {
-      const cycleDay = ((day + 6) % 14) + 1;
-      return cycleDay <= 7 ? 'D' : 'N';
+
+    // 1. Team-A (EMP-002 Shadiq, EMP-003 Yusuf, EMP-004 Erwin): 100% 결속 스케줄
+    //    8/1~8/14 AL (Off-Duty 집중 휴가) -> 8/15~8/31 D (현장 주간 복귀, Shadiq Acting SM)
+    if (dept === 'OP_ALPHA' || staffId === 'EMP-002' || (dept === 'MANAGEMENT' && indexInDept === 1)) {
+      if (day <= 14) return 'AL';
+      return 'D';
     }
+
+    // 2. Team-C (Juli, Danang, Uliyansyah): 8/1~8/23 Worked (D/N) -> 8/24~8/31 AL (Off-Duty 2-week leave)
     if (dept === 'OP_CHARLIE') {
-      const cycleDay = ((day + 3) % 14) + 1;
-      return cycleDay <= 7 ? 'D' : 'N';
+      if (day >= 24) return 'AL';
+      return day <= 11 ? 'D' : 'N';
     }
+
+    // 3. Team-B (Asman, Muradi, Ripal): 8/1~8/31 On-Site Full Duty (D)
+    if (dept === 'OP_BRAVO') {
+      return 'D';
+    }
+
     // HR/GA Resident Day Workers: Mon-Fri D, Sat-Sun Off
     if (dept === 'HR_GA') {
       const dayOfWeek = (day + 5) % 7; // Aug 1 2026 was Saturday
       if (dayOfWeek === 0 || dayOfWeek === 1) return 'Off'; // Sat/Sun
       return 'D';
     }
-    // Support Departments (Management, Logistics, HSSE, Maintenance): Continuous Daily D on 3:1 cycle
+
+    // Support Departments (Logistics, HSSE, Maintenance): On-Site Continuous Duty
     return 'D';
   });
 }
 
-// Generate dynamic roster pattern with 3:1 continuous rotation cycle for any Year and Month
+// Generate dynamic roster pattern with 2-Team On-Site + 1-Team Off-Island (3:1) for any Year and Month
 export function generateMonthlyRoster(
   staff: StaffPersonnel,
   year: number,
@@ -331,50 +342,146 @@ export function generateMonthlyRoster(
     });
   }
 
-  const cycleStart = new Date(staff.cycleStartDate || '2026-06-01');
+  const isTeamA = staff.department === 'OP_ALPHA' || staff.id === 'EMP-002' || staff.id === 'EMP-003' || staff.id === 'EMP-004';
+  const isTeamB = staff.department === 'OP_BRAVO' || staff.id === 'EMP-005' || staff.id === 'EMP-006' || staff.id === 'EMP-007';
+  const isTeamC = staff.department === 'OP_CHARLIE' || staff.id === 'EMP-008' || staff.id === 'EMP-009' || staff.id === 'EMP-010';
+  const isSiteManager = staff.id === 'EMP-001';
 
+  // Support Teams (Logistics, HSSE, Maintenance): Continuous Daily Day Duty (D)
+  if (!isTeamA && !isTeamB && !isTeamC && !isSiteManager) {
+    return Array.from({ length: totalDays }, () => 'D');
+  }
+
+  // =========================================================================
+  // Unified 2-Team On-Site [3:1] Rotation Engine (Team-A, Team-B, Team-C & Site Manager)
+  // =========================================================================
   return Array.from({ length: totalDays }, (_, i) => {
     const day = i + 1;
     const currentDate = new Date(year, month - 1, day);
 
-    // Day difference from staff's cycleStartDate
-    const diffTime = currentDate.getTime() - cycleStart.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    // 120-day 3:1 rotation cycle (90 days On-site continuous duty, 30 days Off-duty leave)
-    const cycleDay = ((diffDays % 120) + 120) % 120; // 0 to 119
-
-    // If in the 30-day off-island leave block (Days 90 to 119)
-    if (cycleDay >= 90) {
-      return 'AL';
+    // -----------------------------------------------------------------------
+    // 1. August 2026 (Actual Performance Record)
+    // -----------------------------------------------------------------------
+    if (year === 2026 && month === 8) {
+      if (isSiteManager) {
+        return day <= 20 ? 'D' : 'AL'; // Edi leave on 8/21 (Shadiq Acting SM on-site)
+      }
+      if (isTeamA) {
+        // Team-A (Shadiq, Yusuf, Erwin): 8/1~8/14 AL -> 8/15~8/31 D (100% 동일)
+        if (day <= 14) return 'AL';
+        return 'D';
+      }
+      if (isTeamC) {
+        if (day >= 24) return 'AL';
+        return day <= 11 ? 'D' : 'N';
+      }
+      if (isTeamB) {
+        return 'D';
+      }
     }
 
-    // 3:1 Continuous On-Site Operations (Days 0 to 89: 90 Continuous Days)
-    const dept = staff.department;
-
-    // Operation Teams: Continuous rolling Day / Night schedule (No regular Rest days)
-    const baseRefDate = new Date(2026, 7, 1);
-    const refDiffDays = Math.floor((currentDate.getTime() - baseRefDate.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (dept === 'OP_ALPHA') {
-      const shiftPhase = ((refDiffDays % 14) + 14) % 14;
-      return shiftPhase < 7 ? 'D' : 'N';
+    // -----------------------------------------------------------------------
+    // 2. Early September 2026 (Pre-COD: 2026-09-01 ~ 2026-09-14)
+    //    Commissioning phase: Team-A Day, Team-B Night, Team-C returns 9/8.
+    //    No hardcoded rest overrides — engine drives all assignments.
+    // -----------------------------------------------------------------------
+    if (year === 2026 && month === 9 && day < 15) {
+      if (isSiteManager) {
+        return day <= 10 ? 'AL' : 'D'; // Edi returns 9/11 for COD commissioning
+      }
+      if (isTeamA) {
+        // Team-A (Shadiq, Yusuf, Erwin): 9/1~9/14 full Day Shift D — 100% in sync
+        return 'D';
+      }
+      if (isTeamC) {
+        return day <= 7 ? 'AL' : 'N'; // Team-C returns from leave 9/8, straight to Night
+      }
+      if (isTeamB) {
+        return 'N'; // Team-B: Night through to COD
+      }
     }
 
-    if (dept === 'OP_BRAVO') {
-      const shiftPhase = (((refDiffDays + 7) % 14) + 14) % 14;
-      return shiftPhase < 7 ? 'D' : 'N';
+    // -----------------------------------------------------------------------
+    // 3. Post-COD Perpetual Engine (from 2026-09-15)
+    //
+    // CYCLE MATH:
+    //   Each OP team has a 120-day personal cycle: 90 days ON-SITE → 30 days OFF.
+    //   The 3 teams are staggered so exactly 2 are always on-site:
+    //     Team-A anchor: COD + 0  days → ON days 0-89, OFF days 90-119, repeat
+    //     Team-B anchor: COD + 40 days → ON days 0-89 of its own cycle, OFF 90-119
+    //     Team-C anchor: COD + 80 days → ON days 0-89 of its own cycle, OFF 90-119
+    //   (Stagger = 120/3 = 40 days)
+    //
+    // 10-DAY D/N FLIP (within on-site window):
+    //   dayInOnSite = 0-89 (day within the 90-day on-site block, 0-indexed)
+    //   subBlock = floor(dayInOnSite / 10)   → 0..8  (9 sub-blocks of 10d each)
+    //   Team assignment at COD:
+    //     Team-A primary (starts Day):  even subBlock → D, odd subBlock → N
+    //     Team-B secondary (starts Night): opposite of Team-A
+    //     Team-C: tracks with Team-B (also secondary) when B is already off,
+    //             otherwise computed from its own on-site position.
+    //   When both Team-A and Team-B are on-site simultaneously (always, except
+    //   for the 30-day off windows), their sub-block positions differ because
+    //   their on-site clocks started on different absolute days.
+    // -----------------------------------------------------------------------
+    const COD = new Date(2026, 8, 15); // 2026-09-15 (month 8 = Sep in JS 0-idx)
+    const diffFromCOD = Math.floor(
+      (currentDate.getTime() - COD.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    // Helper: given an absolute day offset from COD and a team's stagger (0, 40, 80),
+    // return the team's current phase and sub-block.
+    function teamPhase(stagger: number) {
+      const teamDay = ((diffFromCOD - stagger) % 120 + 120) % 120; // 0-119
+      const isOnSite = teamDay < 90;
+      const subBlock10 = Math.floor(teamDay / 10); // 0..11 (only 0..8 matter when on-site)
+      return { isOnSite, teamDay, subBlock10 };
     }
 
-    if (dept === 'OP_CHARLIE') {
-      const shiftPhase = (((refDiffDays + 4) % 14) + 14) % 14;
-      return shiftPhase < 7 ? 'D' : 'N';
+    // Team stagger offsets from COD (days)
+    const phaseA = teamPhase(0);   // Team-A: on-site days 0-89, off 90-119
+    const phaseB = teamPhase(40);  // Team-B: on-site days 40-129 of COD scale
+    const phaseC = teamPhase(80);  // Team-C: on-site days 80-169 of COD scale
+
+    // Determine D/N for an on-site team based on its sub-block.
+    // Team-A starts Day on sub-block 0 → even sub-blocks = D, odd = N.
+    // Stagger is 40 days → 4 sub-blocks → Team-B starts on sub-block 4 of its own,
+    // which is even, so Team-B ALSO starts Day? No: we want them opposite at any point.
+    // Simple rule: if the two on-site teams must be opposite, derive one from the other.
+    // Use Team-A's subBlock as the absolute phase reference:
+    //   globalSubBlock = floor(diffFromCOD / 10)  → flips every 10 calendar days for everyone
+    const globalSubBlock = Math.floor(diffFromCOD / 10); // same clock for all
+
+    // D/N assignment: teams are opposite each other based on global 10-day clock.
+    // Team-A "primary": even globalSubBlock → D, odd → N
+    // Team-B "secondary": opposite of A
+    // Team-C "tertiary": same as A (they share the same parity relative to B)
+    const teamAShift: ShiftCode = globalSubBlock % 2 === 0 ? 'D' : 'N';
+    const teamBShift: ShiftCode = globalSubBlock % 2 === 0 ? 'N' : 'D';
+    const teamCShift: ShiftCode = globalSubBlock % 2 === 0 ? 'D' : 'N'; // same as A
+
+    // Return result per team
+    if (isTeamA) {
+      return phaseA.isOnSite ? teamAShift : 'AL';
+    }
+    if (isTeamB) {
+      return phaseB.isOnSite ? teamBShift : 'AL';
+    }
+    if (isTeamC) {
+      return phaseC.isOnSite ? teamCShift : 'AL';
     }
 
-    // Support Teams (Management, Maintenance, HSSE, Logistics): Continuous Daily Day Duty (D) for 90 Days
+    // Site Manager (EMP-001 Edi): on-site (D) whenever Team-A is off-island,
+    // otherwise on leave (AL) — Shadiq covers as Acting SM when on-site.
+    if (isSiteManager) {
+      return phaseA.isOnSite ? 'AL' : 'D';
+    }
+
     return 'D';
   });
 }
+
+
 
 // Proactive Future Expiry Check for specific Month & Year
 export function getStaffExpiryStatusForMonth(
@@ -401,24 +508,24 @@ export function getStaffExpiryStatusForMonth(
 }
 
 export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = [
-  // 1. Management (2)
+  // 1. Management (2) - 1:1 Mutual Interlock [3:1] Rotation
   {
     id: 'EMP-001',
     name: 'Edi Hermawan',
     role: 'Site Manager',
     department: 'MANAGEMENT',
     teamName: 'Management',
-    currentStatus: 'ON_SITE',
-    todayShift: 'D',
-    onSiteDays: 64,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-25',
-    nextRotationDueDate: '2026-09-22',
-    relieverName: 'HQ Delegate',
+    currentStatus: 'OFF_DUTY',
+    todayShift: 'AL',
+    onSiteDays: 0,
+    targetCycleDays: 42,
+    cycleStartDate: '2026-08-21',
+    nextRotationDueDate: '2026-09-11',
+    relieverName: 'Shadiq M. Shalih',
     contactNo: '+62 812-7001-9001',
     radioChannel: 'CH-01 (CMD)',
     ertRole: 'Incident Commander',
-    rosterDays: generateRosterPattern('MANAGEMENT', 0),
+    rosterDays: generateRosterPattern('MANAGEMENT', 0, 'EMP-001'),
     competencies: [
       { code: 'CERT-HSE-01', name: 'K3 Migas & Safety Leadership', category: 'SAFETY_HSE', issueDate: '2024-05-10', expiryDate: '2027-05-09', certNumber: 'BNSP-MIGAS-2024-0981', issuingBody: 'BNSP RI', status: 'VALID' },
       { code: 'CERT-CRY-02', name: 'Cryogenic LNG Regas Manager', category: 'CRYOGENIC_OPS', issueDate: '2024-06-15', expiryDate: '2026-12-14', certNumber: 'MIGAS-CRY-2024-0112', issuingBody: 'Ditjen Migas', status: 'VALID' },
@@ -433,16 +540,16 @@ export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = [
     department: 'MANAGEMENT',
     teamName: 'Management ( Team A )',
     currentStatus: 'ON_SITE',
-    todayShift: 'Off',
-    onSiteDays: 82,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-07',
-    nextRotationDueDate: '2026-09-04',
-    relieverName: 'Asman Sampeaman',
+    todayShift: 'D',
+    onSiteDays: 19,
+    targetCycleDays: 42,
+    cycleStartDate: '2026-08-15',
+    nextRotationDueDate: '2026-09-26',
+    relieverName: 'Edi Hermawan',
     contactNo: '+62 811-6502-3341',
     radioChannel: 'CH-01 (CMD)',
     ertRole: 'Incident Commander',
-    rosterDays: generateRosterPattern('OP_ALPHA', 0),
+    rosterDays: generateRosterPattern('MANAGEMENT', 1, 'EMP-002'),
     competencies: [
       { code: 'CERT-HSE-01', name: 'K3 Migas Safety Supervisor', category: 'SAFETY_HSE', issueDate: '2024-04-12', expiryDate: '2027-04-11', certNumber: 'BNSP-MIGAS-2024-1142', issuingBody: 'BNSP RI', status: 'VALID' },
       { code: 'CERT-CRY-02', name: 'Cryogenic LNG Decanting Lead', category: 'CRYOGENIC_OPS', issueDate: '2024-09-01', expiryDate: '2026-12-31', certNumber: 'MIGAS-CRY-2024-0451', issuingBody: 'Ditjen Migas', status: 'VALID' },
@@ -459,16 +566,16 @@ export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = [
     department: 'OP_ALPHA',
     teamName: 'TEAM-A',
     currentStatus: 'ON_SITE',
-    todayShift: 'Off',
-    onSiteDays: 45,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-07-14',
-    nextRotationDueDate: '2026-10-11',
+    todayShift: 'D',
+    onSiteDays: 19,
+    targetCycleDays: 42,
+    cycleStartDate: '2026-08-15',
+    nextRotationDueDate: '2026-09-26',
     relieverName: 'Muradi',
     contactNo: '+62 813-8822-1044',
     radioChannel: 'CH-02 (OPS)',
     ertRole: 'Gas Leak Response',
-    rosterDays: generateRosterPattern('OP_ALPHA', 1),
+    rosterDays: generateRosterPattern('OP_ALPHA', 1, 'EMP-003'),
     competencies: [
       { code: 'CERT-CRY-02', name: 'Cryogenic LNG Decanting Operator', category: 'CRYOGENIC_OPS', issueDate: '2024-11-20', expiryDate: '2026-11-19', certNumber: 'MIGAS-CRY-2024-0891', issuingBody: 'Ditjen Migas', status: 'VALID' },
       { code: 'CERT-PTW-03', name: 'Authorized Gas Tester (AGT)', category: 'SAFETY_HSE', issueDate: '2025-03-01', expiryDate: '2027-02-28', certNumber: 'AGT-2025-014', issuingBody: 'Nias Terminal', status: 'VALID' },
@@ -482,16 +589,16 @@ export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = [
     department: 'OP_ALPHA',
     teamName: 'TEAM-A',
     currentStatus: 'ON_SITE',
-    todayShift: 'Off',
-    onSiteDays: 77,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-12',
-    nextRotationDueDate: '2026-09-09',
+    todayShift: 'D',
+    onSiteDays: 19,
+    targetCycleDays: 42,
+    cycleStartDate: '2026-08-15',
+    nextRotationDueDate: '2026-09-26',
     relieverName: 'Ripal Fadiah',
     contactNo: '+62 812-4433-8890',
     radioChannel: 'CH-02 (OPS)',
     ertRole: 'First Aider',
-    rosterDays: generateRosterPattern('OP_ALPHA', 2),
+    rosterDays: generateRosterPattern('OP_ALPHA', 2, 'EMP-004'),
     competencies: [
       { code: 'CERT-TEC-05', name: 'DeltaV DCS & SCADA Operations', category: 'ELECTRICAL_INST', issueDate: '2024-07-10', expiryDate: '2027-07-09', certNumber: 'DCS-SCADA-2024-331', issuingBody: 'Emerson Process', status: 'VALID' },
       { code: 'CERT-PTW-03', name: 'PTW Receiver & Gas Safety', category: 'SAFETY_HSE', issueDate: '2024-09-18', expiryDate: '2026-09-17', certNumber: 'PTW-REC-2024-04', issuingBody: 'Nias Terminal', status: 'EXPIRING_SOON' },
@@ -509,9 +616,9 @@ export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = [
     currentStatus: 'ON_SITE',
     todayShift: 'D',
     onSiteDays: 28,
-    targetCycleDays: 90,
+    targetCycleDays: 42,
     cycleStartDate: '2026-07-31',
-    nextRotationDueDate: '2026-10-28',
+    nextRotationDueDate: '2026-09-11',
     relieverName: 'Juli Surungan',
     contactNo: '+62 812-9900-1122',
     radioChannel: 'CH-02 (OPS)',
@@ -532,10 +639,10 @@ export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = [
     teamName: 'TEAM-B',
     currentStatus: 'ON_SITE',
     todayShift: 'D',
-    onSiteDays: 54,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-07-05',
-    nextRotationDueDate: '2026-10-02',
+    onSiteDays: 33,
+    targetCycleDays: 42,
+    cycleStartDate: '2026-07-31',
+    nextRotationDueDate: '2026-09-11',
     relieverName: 'Danang',
     contactNo: '+62 813-1122-3344',
     radioChannel: 'CH-02 (OPS)',
@@ -555,10 +662,10 @@ export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = [
     teamName: 'TEAM-B',
     currentStatus: 'ON_SITE',
     todayShift: 'D',
-    onSiteDays: 36,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-07-23',
-    nextRotationDueDate: '2026-10-20',
+    onSiteDays: 33,
+    targetCycleDays: 42,
+    cycleStartDate: '2026-07-31',
+    nextRotationDueDate: '2026-09-11',
     relieverName: 'Uliyansyah',
     contactNo: '+62 812-3344-5566',
     radioChannel: 'CH-02 (OPS)',
@@ -578,12 +685,12 @@ export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = [
     role: 'OP Team Leader (TEAM-C)',
     department: 'OP_CHARLIE',
     teamName: 'TEAM-C',
-    currentStatus: 'ON_SITE',
-    todayShift: 'N',
-    onSiteDays: 15,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-08-13',
-    nextRotationDueDate: '2026-11-10',
+    currentStatus: 'OFF_DUTY',
+    todayShift: 'AL',
+    onSiteDays: 0,
+    targetCycleDays: 42,
+    cycleStartDate: '2026-08-24',
+    nextRotationDueDate: '2026-09-07',
     relieverName: 'Shadiq M. Shalih',
     contactNo: '+62 811-7788-9900',
     radioChannel: 'CH-02 (OPS)',
@@ -602,12 +709,12 @@ export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = [
     role: 'Field Operator',
     department: 'OP_CHARLIE',
     teamName: 'TEAM-C',
-    currentStatus: 'ON_SITE',
-    todayShift: 'N',
-    onSiteDays: 62,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-27',
-    nextRotationDueDate: '2026-09-24',
+    currentStatus: 'OFF_DUTY',
+    todayShift: 'AL',
+    onSiteDays: 0,
+    targetCycleDays: 42,
+    cycleStartDate: '2026-08-24',
+    nextRotationDueDate: '2026-09-07',
     relieverName: 'Yusuf',
     contactNo: '+62 813-9988-7766',
     radioChannel: 'CH-02 (OPS)',
@@ -625,12 +732,12 @@ export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = [
     role: 'DCS / SCADA Control Technician',
     department: 'OP_CHARLIE',
     teamName: 'TEAM-C',
-    currentStatus: 'HANDOVER_PENDING',
-    todayShift: 'N',
-    onSiteDays: 88,
-    targetCycleDays: 90,
-    cycleStartDate: '2026-06-01',
-    nextRotationDueDate: '2026-08-29',
+    currentStatus: 'OFF_DUTY',
+    todayShift: 'AL',
+    onSiteDays: 0,
+    targetCycleDays: 42,
+    cycleStartDate: '2026-08-24',
+    nextRotationDueDate: '2026-09-07',
     relieverName: 'Erwin Supriatna',
     contactNo: '+62 812-6655-4433',
     radioChannel: 'CH-02 (OPS)',

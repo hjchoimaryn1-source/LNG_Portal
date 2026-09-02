@@ -48,7 +48,7 @@ const SUBPROCESS_TITLES: Record<
   },
   MANPOWER_DAILY_SHIFT: {
     location: 'Site Manning & Roster',
-    process: 'Daily Operations Board',
+    process: 'Daily Board',
     icon: <Users className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
@@ -696,7 +696,7 @@ function LNGPortalInner() {
                   onClick={() => handleSelectSubProcess('MANPOWER_DAILY_SHIFT')}
                   className={activeKey === 'MANPOWER_DAILY_SHIFT' || activeKey === 'MANPOWER_SHIFT_ROSTER' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>Daily Operations Board</span>
+                  <span>Daily Board</span>
                 </button>
 
                 <button

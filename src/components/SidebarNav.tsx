@@ -206,7 +206,7 @@ export default function SidebarNav({
           <div className="bg-[#d4d0c8]">
             {renderNavItem(
               'MANPOWER_DAILY_SHIFT',
-              'Daily Operations Board',
+              'Daily Board',
               undefined,
               activeKey === 'MANPOWER_DAILY_SHIFT' || activeKey === 'MANPOWER_SHIFT_ROSTER'
             )}
