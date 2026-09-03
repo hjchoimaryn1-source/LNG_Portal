@@ -2,14 +2,8 @@ import React from 'react';
 import {
   AlertOctagon,
   AlertTriangle,
-  ArrowRightLeft,
   CheckCircle2,
-  Clock,
   Lock,
-  RotateCcw,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
   UserCheck,
   UserPlus,
 } from 'lucide-react';
@@ -127,6 +121,7 @@ interface DailyBoardTabProps {
     dayLabel: string;
     dayNum: number;
     isToday: boolean;
+    availableHeadcount: number;
     status: 'OK' | 'WARNING' | 'DANGER';
     badgeText: string;
     detailText: string;
@@ -214,22 +209,23 @@ export default function DailyBoardTab({
           <table className="w-full border border-gray-400 bg-white font-mono text-xs select-none table-fixed">
             <thead>
               <tr>
-                <th className="w-40 min-w-[160px] bg-[#e2e8f0] text-slate-800 font-bold border-r border-gray-400 bg-[#1e293b] text-white text-center py-2 px-2 text-[11px] font-bold border-b border-gray-400">
+                <th className="w-40 min-w-[160px] bg-slate-700 text-slate-100 font-bold uppercase tracking-wider border-r border-b-2 border-slate-600 text-center py-1 px-2 text-[12px]">
                   METRIC / DATE
                 </th>
-                {rolling7Days.map((dayItem, index) => {
+                {rolling7Days.map((dayItem) => {
                   const isToday = dayItem.isToday;
                   const dateLabel = dayItem.dateStr.slice(5).replace('-', '/');
-                  const suffix = isToday ? ' (TODAY)' : ` (+${index}D)`;
 
                   return (
                     <th
                       key={dayItem.dateStr}
-                      className={`w-[12%] text-center border-r border-gray-300 last:border-r-0 py-2 ${
-                        isToday ? 'bg-[#0f172a] text-cyan-300 border-cyan-500/50' : 'bg-[#334155] text-white font-bold border-b border-gray-400'
+                      className={`w-[12%] text-center whitespace-nowrap border-r border-b-2 border-slate-600 py-2 text-[12px] ${
+                        isToday
+                          ? 'bg-sky-800 text-white font-bold'
+                          : 'bg-slate-800 text-slate-200 font-semibold'
                       }`}
                     >
-                      {`${dateLabel}${suffix}`}
+                      {dateLabel}
                     </th>
                   );
                 })}
@@ -237,36 +233,52 @@ export default function DailyBoardTab({
             </thead>
             <tbody>
               <tr className="bg-[#f1f5f9] text-slate-800">
-                <td className="w-40 min-w-[160px] px-3 py-2 border-r border-b border-gray-300 text-left text-slate-800 font-bold">On-Site Available</td>
-                {rolling7Days.map((dayItem, idx) => {
-                  const availableCount = 16 - (idx % 4);
-                  const percentage = Math.round((availableCount / 19) * 100);
+                <td className="w-40 min-w-[160px] h-10 py-1 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 font-bold text-[12px] text-slate-800 dark:text-slate-200">ON-SITE POB</td>
+                {rolling7Days.map((dayItem) => {
+                  const availableCount = dayItem.availableHeadcount;
                   return (
                     <td
                       key={`${dayItem.dateStr}-available`}
-                      className="w-[12%] py-2 border-r border-b border-gray-300 last:border-r-0 text-center font-bold text-slate-900"
+                      className={`w-[12%] h-10 py-1 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 whitespace-nowrap text-[12px] font-bold text-slate-900 dark:text-slate-100 tabular-nums ${
+                        dayItem.isToday ? 'bg-cyan-500/5' : ''
+                      }`}
                     >
-                      {availableCount} / 19p ({percentage}%)
+                      {availableCount} / 19
                     </td>
                   );
                 })}
               </tr>
 
               <tr className="bg-[#f1f5f9] text-slate-800">
-                <td className="w-40 min-w-[160px] px-3 py-2 border-r border-b border-gray-300 text-left text-slate-800 font-bold">Fatigue (14D Limit)</td>
-                {rolling7Days.map((dayItem, idx) => {
-                  const fatigueCount = dayItem.status === 'DANGER' ? 2 : dayItem.status === 'WARNING' ? 1 : 0;
-                  const isNormal = fatigueCount === 0;
-
+                <td className="w-40 min-w-[160px] h-10 py-1 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 whitespace-nowrap">
+                  <span className="inline-flex items-center justify-center text-[12px] font-bold text-slate-800 dark:text-slate-200">
+                    WORK LIMIT
+                    <span className="ml-1 text-[10px] font-normal text-slate-400 dark:text-slate-500">( Max 154h )</span>
+                  </span>
+                </td>
+                {rolling7Days.map((dayItem) => {
                   return (
                     <td
-                      key={`${dayItem.dateStr}-fatigue`}
-                      className="w-[12%] py-2 border-r border-b border-gray-300 last:border-r-0 text-center"
+                      key={`${dayItem.dateStr}-work-limit`}
+                      className={`w-[12%] h-10 py-1 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 whitespace-nowrap text-[11px] ${
+                        dayItem.isToday ? 'bg-cyan-500/5' : ''
+                      }`}
                     >
-                      {isNormal ? (
-                        <span className="text-slate-500 font-medium">0p (Normal)</span>
+                      {exceeded154hPersonnel.length === 0 ? (
+                        <span className="text-slate-600 dark:text-slate-400 font-medium">SAFE 0P</span>
                       ) : (
-                        <span className="text-amber-900 font-bold bg-amber-100/60 px-1 py-0.5">{fatigueCount}p Alert</span>
+                        <div className="grid grid-cols-2 gap-1 w-full justify-items-center">
+                          {exceeded154hPersonnel.map((person) => (
+                            <span
+                              key={person.id}
+                              className={`whitespace-nowrap text-amber-600 dark:text-amber-400 text-[11px] font-bold ${
+                                exceeded154hPersonnel.length === 1 ? 'col-span-2' : ''
+                              }`}
+                            >
+                              {person.department === 'HSSE' ? 'HSSE' : 'OP'}-{person.id.replace(/^EMP-/, '')}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </td>
                   );
@@ -274,20 +286,23 @@ export default function DailyBoardTab({
               </tr>
 
               <tr className="bg-[#f1f5f9] text-slate-800">
-                <td className="w-40 min-w-[160px] px-3 py-2 border-r border-b border-gray-300 text-left text-slate-800 font-bold">AL / Demob Due</td>
-                {rolling7Days.map((dayItem, idx) => {
+                <td className="w-40 min-w-[160px] h-10 py-1 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 font-bold text-[12px] text-slate-800 dark:text-slate-200">ANNUAL LEAVE</td>
+                {rolling7Days.map((dayItem) => {
                   const alCount = dayItem.status === 'DANGER' ? 2 : dayItem.status === 'WARNING' ? 1 : 0;
-                  const isZero = alCount === 0;
 
                   return (
                     <td
                       key={`${dayItem.dateStr}-al`}
-                      className="w-[12%] py-2 border-r border-b border-gray-300 last:border-r-0 text-center"
+                      className={`w-[12%] h-10 py-1 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 whitespace-nowrap text-[11px] ${
+                        dayItem.isToday ? 'bg-cyan-500/5' : ''
+                      }`}
                     >
-                      {isZero ? (
+                      {alCount === 0 ? (
                         <span className="text-slate-400 font-medium">-</span>
                       ) : (
-                        <span className="text-blue-900 font-bold bg-blue-100/60 px-1 py-0.5">{alCount}p Demob</span>
+                        <span className="whitespace-nowrap text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                          AL {alCount}P
+                        </span>
                       )}
                     </td>
                   );
@@ -295,17 +310,37 @@ export default function DailyBoardTab({
               </tr>
 
               <tr className="bg-[#f1f5f9] text-slate-800">
-                <td className="w-40 min-w-[160px] px-3 py-2 border-r border-gray-300 text-left text-slate-800 font-bold">ERT Quorum Status</td>
-                {rolling7Days.map((dayItem, idx) => (
+                <td className="w-40 min-w-[160px] h-10 py-1 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 whitespace-nowrap">
+                  <span className="inline-flex items-center justify-center text-[12px] font-bold text-slate-800 dark:text-slate-200">
+                    ERT
+                    <span className="ml-1 text-[10px] font-normal text-slate-400 dark:text-slate-500">( Min. 5P )</span>
+                  </span>
+                </td>
+                {rolling7Days.map((dayItem) => (
                   <td
                     key={`${dayItem.dateStr}-ert`}
-                    className="w-[12%] py-2 border-r border-gray-300 last:border-r-0 text-center"
+                    className={`w-[12%] h-10 py-1 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 whitespace-nowrap text-[11px] ${
+                      dayItem.isToday ? 'bg-cyan-500/5' : ''
+                    }`}
                   >
-                    {ertSummary.isAllERTMet ? (
-                      <span className="text-emerald-800 font-bold bg-emerald-100/50 px-1 py-0.5">[PASS] 5/5 Met</span>
-                    ) : (
-                      <span className="text-rose-800 font-bold bg-rose-100/70 px-1 py-0.5">[WARN] Deficit</span>
-                    )}
+                    {(() => {
+                      const ertMetCount = [
+                        ertSummary.icCount >= 1,
+                        ertSummary.fireChiefCount >= 1,
+                        ertSummary.firstAiderCount >= 1,
+                        ertSummary.gasResponseCount >= 2,
+                      ].filter(Boolean).length + 1;
+
+                      return ertSummary.isAllERTMet ? (
+                        <span className="whitespace-nowrap text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+                          Ready {ertMetCount}P
+                        </span>
+                      ) : (
+                        <span className="whitespace-nowrap text-[11px] font-bold text-red-600 dark:text-red-400">
+                          Deficit {ertMetCount}P
+                        </span>
+                      );
+                    })()}
                   </td>
                 ))}
               </tr>
@@ -323,10 +358,9 @@ export default function DailyBoardTab({
           <button
             onClick={onOpenHandoverProtocol}
             className="win-btn text-xs font-bold px-3 py-1 text-slate-900 flex items-center gap-1.5 cursor-pointer"
-            title="Open Pre-Shift Handover & Safety Delegation Protocol (SOP NP07-03)"
+            title="Open Shift Handover Protocol (SOP NP07-03)"
           >
-            <ArrowRightLeft className="w-3.5 h-3.5 text-blue-950" />
-            <span>[ ⇄ Shift Handover &amp; Delegation ]</span>
+            <span>SHIFT HANDOVER</span>
           </button>
           <button
             onClick={onOpenDailyRestModal}
@@ -350,13 +384,12 @@ export default function DailyBoardTab({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="bg-slate-200 border-2 border-slate-400 shadow-xs p-2 flex flex-col justify-between">
           <div>
-            <div className="bg-[#334155] text-white font-bold text-xs px-2.5 py-1 flex justify-between items-center mb-2 border-b border-slate-700 shadow-2xs">
-              <span className="font-black text-xs flex items-center gap-1.5 text-white tracking-wide">
-                <Clock className="w-3.5 h-3.5 text-yellow-300" />
-                TEAM-B - Day Shift
+            <div className="relative bg-[#334155] text-slate-100 px-2.5 py-1 flex items-center justify-center mb-2 border-b border-slate-700 shadow-2xs">
+              <span className="text-center text-[13px] font-bold text-white uppercase tracking-wide">
+                DAY SHIFT
               </span>
-              <span className="text-[10px] font-mono bg-white text-slate-900 px-1.5 py-0.5 font-bold">
-                ACTIVE (08:00 - 20:00)
+              <span className="absolute right-2 bg-sky-900/60 border border-sky-600/50 text-sky-200 text-[11px] font-semibold px-2 py-0.5 rounded">
+                08:00 - 20:00
               </span>
             </div>
 
@@ -367,17 +400,17 @@ export default function DailyBoardTab({
               </div>
             )}
 
-            <div className={`p-1.5 mb-2 border font-mono text-[10px] flex items-center justify-between ${teamBPersonnel.some((m) => getStaffCompetencyStatus(m).hasExpired)
-              ? 'bg-red-100 border-red-400 text-red-950 font-bold'
-              : 'bg-slate-100 border-slate-300 text-slate-900 font-bold'
-              }`}>
-              <span className="flex items-center gap-1">
-                {teamBPersonnel.every((m) => !getStaffCompetencyStatus(m).hasExpired) ? <ShieldCheck className="w-3.5 h-3.5 text-emerald-800" /> : <ShieldAlert className="w-3.5 h-3.5 text-red-700" />}
-                Safety Compliance Gate:
-              </span>
-              <span className={`px-1 rounded text-[9px] ${teamBPersonnel.every((m) => !getStaffCompetencyStatus(m).hasExpired) ? 'bg-emerald-800 text-white' : 'bg-red-600 text-white animate-pulse'}`}>
-                {teamBPersonnel.every((m) => !getStaffCompetencyStatus(m).hasExpired) ? '100% CLEARED' : 'ACTION REQUIRED'}
-              </span>
+            <div className="p-1.5 mb-2 border border-slate-300 bg-slate-100 font-mono text-[10px] flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-slate-400">HSSE Clearance:</span>
+              {teamBPersonnel.every((m) => !getStaffCompetencyStatus(m).hasExpired) ? (
+                <span className="bg-emerald-950/40 border border-emerald-500 text-emerald-300 text-[11px] font-bold px-2 py-0.5 rounded">
+                  [ HSSE Clearance: 100% PASS ]
+                </span>
+              ) : (
+                <span className="bg-amber-950/40 border border-amber-500 text-amber-300 text-[11px] font-bold px-2 py-0.5 rounded">
+                  [ HSSE Clearance: PENDING ]
+                </span>
+              )}
             </div>
 
             <div className="space-y-2 mb-3">
@@ -456,8 +489,6 @@ export default function DailyBoardTab({
                         {member.name}
                       </div>
                       <div className={`text-[10px] font-mono flex justify-between ${isAbsence ? 'text-[#808080]' : 'text-slate-600'}`}>
-                        <span>{member.teamName} | Radio: {member.radioChannel}</span>
-                        <span className="font-bold text-slate-700">ERT: {member.ertRole}</span>
                       </div>
                     </div>
 
@@ -469,7 +500,7 @@ export default function DailyBoardTab({
                             <span>[Standby Pool 대체자 지정]</span>
                           </span>
                           <span className={`text-[9px] font-mono font-bold ${replacementStaff ? 'text-emerald-800' : 'text-red-700 animate-pulse'}`}>
-                            {replacementStaff ? 'Cover Assigned ✓' : '대체자 미지정 (Deficit)'}
+                          {replacementStaff ? 'Cover Assigned' : '대체자 미지정 (Deficit)'}
                           </span>
                         </div>
                         <select
@@ -483,7 +514,7 @@ export default function DailyBoardTab({
                             const isOver154 = coverHours >= 154;
                             return (
                               <option key={c.id} value={c.id}>
-                                {c.name} ({c.role} • {c.teamName}) | ERT: {c.ertRole} | 14d: {coverHours}h {isOver154 ? '[⚠️ 154h Risk]' : ''}
+                                {c.name} ({c.role} • {c.teamName}) | ERT: {c.ertRole} | 14d: {coverHours}h {isOver154 ? '[154h Risk]' : ''}
                               </option>
                             );
                           })}
@@ -501,10 +532,6 @@ export default function DailyBoardTab({
                                   154h Exceeded ({get14dHours(replacementStaff, true)}h)
                                 </span>
                               )}
-                            </div>
-                            <div className="text-[10px] font-mono text-emerald-800 flex justify-between mt-0.5">
-                              <span>Radio: {replacementStaff.radioChannel}</span>
-                              <span className="font-bold">ERT: {replacementStaff.ertRole}</span>
                             </div>
                           </div>
                         )}
@@ -540,13 +567,12 @@ export default function DailyBoardTab({
 
         <div className="bg-slate-200 border-2 border-slate-400 shadow-xs p-2 flex flex-col justify-between">
           <div>
-            <div className="bg-[#334155] text-white font-bold text-xs px-2.5 py-1 flex justify-between items-center mb-2 border-b border-slate-700 shadow-2xs">
-              <span className="font-black text-xs flex items-center gap-1.5 text-white tracking-wide">
-                <Clock className="w-3.5 h-3.5 text-yellow-300" />
-                TEAM-C - Night Shift
+            <div className="relative bg-[#334155] text-slate-100 px-2.5 py-1 flex items-center justify-center mb-2 border-b border-slate-700 shadow-2xs">
+              <span className="text-center text-[13px] font-bold text-white uppercase tracking-wide">
+                NIGHT SHIFT
               </span>
-              <span className="text-[10px] font-mono bg-white text-slate-900 px-1.5 py-0.5 font-bold">
-                STANDBY (20:00 - 08:00)
+              <span className="absolute right-2 bg-sky-900/60 border border-sky-600/50 text-sky-200 text-[11px] font-semibold px-2 py-0.5 rounded">
+                20:00 - 08:00
               </span>
             </div>
 
@@ -557,22 +583,17 @@ export default function DailyBoardTab({
               </div>
             )}
 
-            <div className={`p-1.5 mb-2 border font-mono text-[10px] flex items-center justify-between ${teamCPersonnel.some((m) => getStaffCompetencyStatus(m).hasExpired)
-              ? 'bg-red-100 border-red-400 text-red-950 font-bold'
-              : teamCPersonnel.some((m) => getStaffCompetencyStatus(m).hasExpiringSoon)
-                ? 'bg-amber-100 border-amber-400 text-amber-950 font-bold'
-                : 'bg-slate-100 border-slate-300 text-slate-900 font-bold'
-              }`}>
-              <span className="flex items-center gap-1">
-                {teamCPersonnel.every((m) => !getStaffCompetencyStatus(m).hasExpired) ? <ShieldCheck className="w-3.5 h-3.5 text-emerald-800" /> : <ShieldAlert className="w-3.5 h-3.5 text-red-700" />}
-                Safety Compliance Gate:
-              </span>
-              <span className={`px-1 rounded text-[9px] ${teamCPersonnel.every((m) => !getStaffCompetencyStatus(m).hasExpired)
-                ? 'bg-emerald-800 text-white'
-                : 'bg-red-600 text-white animate-pulse'
-                }`}>
-                {teamCPersonnel.every((m) => !getStaffCompetencyStatus(m).hasExpired) ? '100% CLEARED' : 'EXPIRED CERT'}
-              </span>
+            <div className="p-1.5 mb-2 border border-slate-300 bg-slate-100 font-mono text-[10px] flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-slate-400">HSSE Clearance:</span>
+              {teamCPersonnel.every((m) => !getStaffCompetencyStatus(m).hasExpired) ? (
+                <span className="bg-emerald-950/40 border border-emerald-500 text-emerald-300 text-[11px] font-bold px-2 py-0.5 rounded">
+                  [ HSSE Clearance: 100% PASS ]
+                </span>
+              ) : (
+                <span className="bg-amber-950/40 border border-amber-500 text-amber-300 text-[11px] font-bold px-2 py-0.5 rounded">
+                  [ HSSE Clearance: PENDING ]
+                </span>
+              )}
             </div>
 
             <div className="space-y-2 mb-3">
@@ -651,8 +672,6 @@ export default function DailyBoardTab({
                         {member.name}
                       </div>
                       <div className={`text-[10px] font-mono flex justify-between ${isAbsence ? 'text-[#808080]' : 'text-slate-600'}`}>
-                        <span>{member.teamName} | Radio: {member.radioChannel}</span>
-                        <span className="font-bold text-slate-700">ERT: {member.ertRole}</span>
                       </div>
                     </div>
 
@@ -664,7 +683,7 @@ export default function DailyBoardTab({
                             <span>[Standby Pool 대체자 지정]</span>
                           </span>
                           <span className={`text-[9px] font-mono font-bold ${replacementStaff ? 'text-emerald-800' : 'text-red-700 animate-pulse'}`}>
-                            {replacementStaff ? 'Cover Assigned ✓' : '대체자 미지정 (Deficit)'}
+                          {replacementStaff ? 'Cover Assigned' : '대체자 미지정 (Deficit)'}
                           </span>
                         </div>
                         <select
@@ -678,7 +697,7 @@ export default function DailyBoardTab({
                             const isOver154 = coverHours >= 154;
                             return (
                               <option key={c.id} value={c.id}>
-                                {c.name} ({c.role} • {c.teamName}) | ERT: {c.ertRole} | 14d: {coverHours}h {isOver154 ? '[⚠️ 154h Risk]' : ''}
+                                {c.name} ({c.role} • {c.teamName}) | ERT: {c.ertRole} | 14d: {coverHours}h {isOver154 ? '[154h Risk]' : ''}
                               </option>
                             );
                           })}
@@ -696,10 +715,6 @@ export default function DailyBoardTab({
                                   154h Exceeded ({get14dHours(replacementStaff, true)}h)
                                 </span>
                               )}
-                            </div>
-                            <div className="text-[10px] font-mono text-emerald-800 flex justify-between mt-0.5">
-                              <span>Radio: {replacementStaff.radioChannel}</span>
-                              <span className="font-bold">ERT: {replacementStaff.ertRole}</span>
                             </div>
                           </div>
                         )}
@@ -733,24 +748,26 @@ export default function DailyBoardTab({
 
         <div className="bg-slate-200 border-2 border-slate-400 shadow-xs p-2 flex flex-col justify-between">
           <div>
-            <div className="bg-[#334155] text-white font-bold text-xs px-2.5 py-1 flex justify-between items-center mb-2 border-b border-slate-700 shadow-2xs">
-              <span className="font-black text-xs flex items-center gap-1.5 text-white tracking-wide">
-                <RotateCcw className="w-3.5 h-3.5 text-slate-300" />
-                TEAM-A - Rest / Standby Cycle
+            <div className="relative bg-[#334155] text-slate-100 px-2.5 py-1 flex items-center justify-center mb-2 border-b border-slate-700 shadow-2xs">
+              <span className="text-center text-[13px] font-bold text-white uppercase tracking-wide">
+                REST / STANDBY CYCLE
               </span>
-              <span className="text-[10px] font-mono bg-white text-slate-900 px-1.5 py-0.5 font-bold">
-                STANDBY REST
+              <span className="absolute right-2 bg-sky-900/60 border border-sky-600/50 text-sky-200 text-[11px] font-semibold px-2 py-0.5 rounded">
+                STANDBY POOL
               </span>
             </div>
 
-            <div className="p-1.5 mb-2 border border-slate-300 bg-slate-100 font-mono text-[10px] flex items-center justify-between text-slate-800">
-              <span className="flex items-center gap-1">
-                <Shield className="w-3.5 h-3.5 text-slate-600" />
-                Rest Status:
-              </span>
-              <span className="bg-slate-300 text-slate-800 px-1 rounded text-[9px] font-bold">
-                STANDBY COVER POOL
-              </span>
+            <div className="p-1.5 mb-2 border border-slate-300 bg-slate-100 font-mono text-[10px] flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-slate-400">HSSE Clearance:</span>
+              {teamAPersonnel.every((m) => !getStaffCompetencyStatus(m).hasExpired) ? (
+                <span className="bg-emerald-950/40 border border-emerald-500 text-emerald-300 text-[11px] font-bold px-2 py-0.5 rounded">
+                  [ HSSE Clearance: 100% PASS ]
+                </span>
+              ) : (
+                <span className="bg-amber-950/40 border border-amber-500 text-amber-300 text-[11px] font-bold px-2 py-0.5 rounded">
+                  [ HSSE Clearance: PENDING ]
+                </span>
+              )}
             </div>
 
             <div className="space-y-1.5 mb-3">
@@ -797,10 +814,6 @@ export default function DailyBoardTab({
                       )}
                     </div>
                     <div className="text-xs font-bold text-slate-900">{member.name}</div>
-                    <div className="text-[10px] font-mono text-slate-600 flex justify-between">
-                      <span>{member.teamName} | Radio: {member.radioChannel}</span>
-                      <span className="font-bold text-slate-700">ERT: {member.ertRole}</span>
-                    </div>
                   </div>
                 );
               })}

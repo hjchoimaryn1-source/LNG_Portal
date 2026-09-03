@@ -4,44 +4,16 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Papa from 'papaparse';
 import {
-  Users,
-  Calendar,
-  Clock,
-  RotateCcw,
-  Shield,
-  Search,
-  Filter,
-  Download,
   CheckCircle2,
-  AlertTriangle,
-  Radio,
-  FileText,
-  UserCheck,
-  UserX,
-  Briefcase,
   ArrowRightLeft,
-  ChevronRight,
-  ChevronLeft,
-  ChevronDown,
-  Award,
   ShieldAlert,
-  ShieldCheck,
-  BookOpen,
-  GraduationCap,
   AlertOctagon,
-  Flame,
-  HeartPulse,
-  Wind,
-  Check,
-  X,
   UserPlus,
-  ArrowUpDown,
   UserCog,
   CheckCheck,
   Lock,
   Zap,
 } from 'lucide-react';
-import { exportToCSV } from '../../utils/exportCsv';
 import {
   DepartmentCode,
   StaffPersonnel,
@@ -53,24 +25,38 @@ import {
 import {
   INITIAL_MANPOWER_MASTER_RECORDS,
   generateRosterPattern,
-  AUGUST_DAYS,
   getDaysInMonth,
   generateMonthlyRoster,
-  getStaffExpiryStatusForMonth,
   getStaffCompetencyStatus,
+  MONTH_NAMES,
 } from '../../data/manpowerMasterData';
-import TrainingMatrixView from './TrainingMatrixView';
 import MonthlyPlanTab from './tabs/MonthlyPlanTab';
 import RotationPlanTab from './tabs/RotationPlanTab';
 import DailyBoardTab from './tabs/DailyBoardTab';
 import TrainingMatrixTab from './tabs/TrainingMatrixTab';
 import SiteManningOverviewTab from './tabs/SiteManningOverviewTab';
+import ShiftHandoverModal from './modals/ShiftHandoverModal';
+import RotationDelegationModal from './modals/RotationDelegationModal';
+import DailyRestCoverModal from './modals/DailyRestCoverModal';
+import FitToWorkOverrideModal from './modals/FitToWorkOverrideModal';
+import FatigueLimitModal from './modals/FatigueLimitModal';
+import ExceptionRestModal from './modals/ExceptionRestModal';
+import PastDateLockModal from './modals/PastDateLockModal';
+import OperationsOverrideModal from './modals/OperationsOverrideModal';
+import TeamShortageModal from './modals/TeamShortageModal';
+
+const getWibDate = () => {
+  const now = new Date();
+  return new Date(now.getTime() + 7 * 60 * 60 * 1000);
+};
+
+const formatIsoDate = (date: Date) => date.toISOString().slice(0, 10);
 
 export {
   INITIAL_MANPOWER_MASTER_RECORDS as MANPOWER_DIRECTORY,
   generateRosterPattern,
 };
-export type { StaffPersonnel, DepartmentCode, ShiftCode, TeamNameStandard };
+export type { StaffPersonnel, ShiftCode, TeamNameStandard };
 
 type ManpowerTabKey = 'OVERVIEW' | 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'DAILY_SHIFT_BOARD' | 'TRAINING_MATRIX';
 
@@ -79,21 +65,6 @@ interface ManpowerRosterViewProps {
   activeTab?: ManpowerTabKey;
   onTabChange?: (tab: ManpowerTabKey) => void;
 }
-
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
 
 // Helper: Standardize Position Titles to concise, professional industry names
 export function normalizePositionTitle(rawTitle: string): string {
@@ -189,8 +160,8 @@ export default function ManpowerRosterView({
       setInternalTab(initialSubView);
     }
   }, [controlledTab, initialSubView]);
-  const [selectedDept, setSelectedDept] = useState<string>('ALL');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedDept] = useState<string>('ALL');
+  const [searchQuery] = useState<string>('');
   const [manpowerData, setManpowerData] = useState<StaffPersonnel[]>(INITIAL_MANPOWER_MASTER_RECORDS);
 
   // Accordion Collapsible States for Daily Shift Board
@@ -262,7 +233,7 @@ export default function ManpowerRosterView({
   // 8. Daily Shift Board (Tab 3) Stand-down / Rest Request & Standby Cover State
   const [dailyRestModalOpen, setDailyRestModalOpen] = useState<boolean>(false);
   const [dailyRestApplicantId, setDailyRestApplicantId] = useState<string>('EMP-005');
-  const [dailyRestReason, setDailyRestReason] = useState<'Medical' | 'Emergency' | 'Fatigue 154h'>('Medical');
+  const [dailyRestReason, setDailyRestReason] = useState<'Medical' | 'Emergency' | 'Fatigue 154h' | 'Rotation Leave'>('Medical');
   const [dailyRestCoverId, setDailyRestCoverId] = useState<string>('EMP-003');
   const [dailyRestSmApproved, setDailyRestSmApproved] = useState<boolean>(true);
   const [dailyRestAssignments, setDailyRestAssignments] = useState<
@@ -282,18 +253,6 @@ export default function ManpowerRosterView({
   const [isFitToWorkOverridden, setIsFitToWorkOverridden] = useState<boolean>(false);
 
   // 9. Pre-Shift Handover Checklist & Sign-off State for Tab 3
-  const [handoverChecklist, setHandoverChecklist] = useState({
-    bogNormal: true,
-    bayStatus: true,
-    ptwReviewed: true,
-    ertCleared: true,
-    esdArmed: true,
-  });
-  const [handoverSignatures, setHandoverSignatures] = useState({
-    offGoingSigned: true,
-    incomingSigned: true,
-    smApproved: true,
-  });
   const [dailyRestSuccessToast, setDailyRestSuccessToast] = useState<{
     applicantName: string;
     coverName: string;
@@ -485,13 +444,6 @@ export default function ManpowerRosterView({
     },
     [selectedYear, selectedMonth, monthOverrides]
   );
-
-  // Top KPI Metrics (Dynamically Computed)
-  const totalStaff = manpowerData.length; // 22
-  const onSiteCount = manpowerData.filter((m) => m.currentStatus === 'ON_SITE' || m.currentStatus === 'HANDOVER_PENDING').length;
-  const offDutyCount = manpowerData.filter((m) => m.currentStatus === 'OFF_DUTY').length;
-  const dayShiftCount = manpowerData.filter((m) => m.todayShift === 'D' && (m.currentStatus === 'ON_SITE' || m.currentStatus === 'HANDOVER_PENDING')).length;
-  const nightShiftCount = manpowerData.filter((m) => m.todayShift === 'N' && (m.currentStatus === 'ON_SITE' || m.currentStatus === 'HANDOVER_PENDING')).length;
 
   // Update Staff Start Date & Recalculate Rotation Timeline
   const handleUpdateStartDate = useCallback((staffId: string, newDateStr: string) => {
@@ -690,7 +642,7 @@ export default function ManpowerRosterView({
 
   const has154hViolation = exceeded154hPersonnel.length > 0;
 
-  // 7-Day Rolling Horizon Risk Strip Forecast Calculator (Today 9/2 to +6 Days 9/8)
+  // 7-Day Rolling Horizon Risk Strip Forecast Calculator.
   const rolling7Days = useMemo(() => {
     const days: Array<{
       dateStr: string;
@@ -705,15 +657,20 @@ export default function ManpowerRosterView({
       detailText: string;
     }> = [];
 
-    const baseYear = 2026;
-    const baseMonth = 9;
-    const startDay = 2; // Sep 2 is today
+    const wibToday = getWibDate();
+    const baseYear = wibToday.getUTCFullYear();
+    const baseMonth = wibToday.getUTCMonth() + 1;
+    const startDay = wibToday.getUTCDate();
 
     for (let offset = 0; offset < 7; offset++) {
-      const currentDayNum = startDay + offset;
+      const horizonDate = new Date(Date.UTC(baseYear, baseMonth - 1, startDay + offset));
+      const currentDayNum = horizonDate.getUTCDate();
       const isToday = offset === 0;
-      const dateStr = `2026-09-${String(currentDayNum).padStart(2, '0')}`;
-      const dayLabel = isToday ? `09/${String(currentDayNum).padStart(2, '0')} (Today)` : `09/${String(currentDayNum).padStart(2, '0')} (+${offset}D)`;
+      const dateStr = formatIsoDate(horizonDate);
+      const monthLabel = String(horizonDate.getUTCMonth() + 1).padStart(2, '0');
+      const dayLabel = isToday
+        ? `${monthLabel}/${String(currentDayNum).padStart(2, '0')} (TODAY)`
+        : `${monthLabel}/${String(currentDayNum).padStart(2, '0')} (+${offset}D)`;
 
       if (isToday) {
         // Day 0 (Today SSOT): Evaluates active headcount, ERT compliance, and 154h fatigue
@@ -743,8 +700,8 @@ export default function ManpowerRosterView({
           dateStr,
           dayLabel,
           dayNum: currentDayNum,
-          month: baseMonth,
-          year: baseYear,
+          month: horizonDate.getUTCMonth() + 1,
+          year: horizonDate.getUTCFullYear(),
           isToday,
           availableHeadcount: activeHeadcount,
           status,
@@ -790,8 +747,8 @@ export default function ManpowerRosterView({
           dateStr,
           dayLabel,
           dayNum: currentDayNum,
-          month: baseMonth,
-          year: baseYear,
+          month: horizonDate.getUTCMonth() + 1,
+          year: horizonDate.getUTCFullYear(),
           isToday,
           availableHeadcount: onDutyCount,
           status,
@@ -893,118 +850,6 @@ export default function ManpowerRosterView({
     setTimeout(() => setDailyShiftSavedToast(false), 5000);
   };
 
-  // 5. Fatigue & Hours of Service Validation Across All Roster
-  const fatigueViolationCount = useMemo(() => {
-    let violations = 0;
-    manpowerData.forEach((staff) => {
-      const roster = getStaffRosterForSelectedMonth(staff);
-      let consecutiveN = 0;
-      roster.forEach((code) => {
-        if (code === 'N') {
-          consecutiveN++;
-          if (consecutiveN > 7) {
-            violations++;
-          }
-        } else {
-          consecutiveN = 0;
-        }
-      });
-    });
-    return violations;
-  }, [manpowerData, getStaffRosterForSelectedMonth]);
-
-  // 5. Shift Cell Click with Past Date Lock, Fatigue Hard-Lock & Site Manager Approval Gate
-  const handleShiftCellClick = (staffId: string, dayIndex: number) => {
-    const target = manpowerData.find((s) => s.id === staffId);
-    if (!target) return;
-
-    const dayNum = dayIndex + 1;
-    const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-    const cellDate = new Date(selectedYear, selectedMonth - 1, dayNum);
-    const baselineDate = new Date(2026, 8, 1); // 2026-09-01 (Month 8 in 0-indexed JS Date)
-
-    // 1. Past Date Read-Only Lock & Daily Shift Board Confirmed Freeze
-    const isPastDate = cellDate < baselineDate;
-    const isConfirmedDate = confirmedDailyDates.includes(dateKey);
-
-    if (isPastDate || isConfirmedDate) {
-      setPastDateLockModal({
-        dateStr: `${MONTH_NAMES[selectedMonth - 1]} ${dayNum}, ${selectedYear}`,
-        staffName: target.name,
-        isConfirmedToday: isConfirmedDate && !isPastDate,
-      });
-      return;
-    }
-
-    const currentRoster = getStaffRosterForSelectedMonth(target);
-    const currentCode = currentRoster[dayIndex];
-    const nextCode: ShiftCode =
-      currentCode === 'D' ? 'N' : currentCode === 'N' ? 'Off' : currentCode === 'Off' ? 'AL' : 'D';
-
-    const isResident =
-      target.department === 'HR_GA' ||
-      target.id === 'EMP-017' ||
-      target.id === 'EMP-018' ||
-      target.cycleStartDate === 'N/A' ||
-      target.cycleStartDate === '-';
-
-    // 3:1 Continuous Operation Policy: Assigning Rest Day (R) during 90d on-site duty requires Site Manager Authorization
-    if (nextCode === 'Off' && !isResident) {
-      setSiteManagerApprovalModal({
-        staff: target,
-        dayIndex,
-        dayNum: dayIndex + 1,
-        reason: approvalReason,
-      });
-      return;
-    }
-
-    if (nextCode === 'N') {
-      const tempRoster = [...currentRoster];
-      tempRoster[dayIndex] = 'N';
-
-      let maxConsecutiveN = 0;
-      let runningN = 0;
-      tempRoster.forEach((c) => {
-        if (c === 'N') {
-          runningN++;
-          if (runningN > maxConsecutiveN) maxConsecutiveN = runningN;
-        } else {
-          runningN = 0;
-        }
-      });
-
-      if (maxConsecutiveN > 7) {
-        setFatigueAlertModal({
-          staffName: target.name,
-          dayNum: dayIndex + 1,
-          violationReason: `Proposed assignment creates ${maxConsecutiveN} consecutive night shifts in ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear} (Maximum allowed: 7 Days under SKK Migas Fatigue Policy).`,
-        });
-        return;
-      }
-    }
-
-    const updatedRoster = [...currentRoster];
-    updatedRoster[dayIndex] = nextCode;
-
-    const key = `${staffId}_${selectedYear}_${selectedMonth}`;
-    setMonthOverrides((prev) => ({
-      ...prev,
-      [key]: updatedRoster,
-    }));
-  };
-
-  const handleConfirmDailyShiftBoard = () => {
-    if (has154hViolation && !fatigueOverrideApproved) {
-      alert(`⚠️ 154h Fatigue Limit Violation:\n${exceeded154hPersonnel.map(s => `• ${s.name} (${s.role}): ${get14dHours(s)}h worked in 14 days`).join('\n')}\n\nSite Manager Fatigue Override authorization is required to submit and lock today's roster.`);
-      return;
-    }
-    const todayKey = '2026-09-01';
-    setConfirmedDailyDates((prev) => (prev.includes(todayKey) ? prev : [...prev, todayKey]));
-    setDailyShiftSavedToast(true);
-    setTimeout(() => setDailyShiftSavedToast(false), 4000);
-  };
-
   const handleOpenDailyRestModal = () => {
     const firstOnDuty = teamBPersonnel[0] || teamCPersonnel[0];
     if (firstOnDuty) {
@@ -1020,7 +865,7 @@ export default function ManpowerRosterView({
   const handleApplyDailyRestRequest = () => {
     const applicant = manpowerData.find((m) => m.id === dailyRestApplicantId);
     const cover = manpowerData.find((m) => m.id === dailyRestCoverId);
-    if (!applicant || !cover) return;
+    if (!applicant || !cover || (dailyRestReason === 'Rotation Leave' && !dailyRestCoverId)) return;
 
     setDailyRestAssignments((prev) => ({
       ...prev,
@@ -1189,24 +1034,6 @@ export default function ManpowerRosterView({
 
     return candidates;
   }, [manpowerData]);
-
-  // Click Handover button handler
-  const handleOpenHandoverModal = (staff: StaffPersonnel) => {
-    setHandoverModalStaff(staff);
-    const candidateList = getEligibleRelieverCandidates(staff);
-    // Find pre-assigned reliever or fallback to primary candidate
-    const existingMatch = candidateList.find((c) =>
-      c.staff.name.toLowerCase().includes(staff.relieverName.toLowerCase()) ||
-      staff.relieverName.toLowerCase().includes(c.staff.name.toLowerCase())
-    );
-    if (existingMatch) {
-      setSelectedCandidateId(existingMatch.staff.id);
-    } else if (candidateList.length > 0) {
-      setSelectedCandidateId(candidateList[0].staff.id);
-    } else {
-      setSelectedCandidateId('');
-    }
-  };
 
   // Execute Handover Protocol
   const handleExecuteHandover = (offGoingStaff: StaffPersonnel, relieverStaff: StaffPersonnel) => {
@@ -1582,137 +1409,22 @@ export default function ManpowerRosterView({
       )}
 
       {/* 5-C: Fatigue Limit Exceeded Hard-Lock Modal */}
-      {fatigueAlertModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="win-panel p-3 max-w-md w-full bg-white shadow-2xl border-2 border-red-700 text-slate-900 font-sans">
-            <div className="win-titlebar bg-red-800 text-white p-1 px-2 flex justify-between items-center mb-2">
-              <span className="font-bold text-xs flex items-center gap-1.5">
-                <AlertOctagon className="w-4 h-4 text-yellow-300" />
-                [FATIGUE LIMIT EXCEEDED - Maximum 7 Consecutive Nights]
-              </span>
-              <button
-                onClick={() => setFatigueAlertModal(null)}
-                className="text-white font-bold px-1.5 py-0.2 bg-red-600 hover:bg-red-700 text-[10px]"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-2 text-xs font-mono">
-              <div className="bg-red-50 p-2 border border-red-300 text-red-950 space-y-1">
-                <div className="font-bold text-sm">Hard-Lock Intervention Activated:</div>
-                <div>Staff: <strong>{fatigueAlertModal.staffName}</strong> (Day {fatigueAlertModal.dayNum})</div>
-                <div className="text-[11px] text-red-900 pt-1">{fatigueAlertModal.violationReason}</div>
-              </div>
-
-              <div className="bg-slate-100 p-2 border border-slate-300 text-[10px] text-slate-700">
-                <strong>Statutory Regulation:</strong> Under SKK Migas & Indonesian Labor Law, consecutive night shift duty is strictly capped at 7 consecutive cycles without a mandatory 48-hour rest break to prevent cryogenic operational fatigue incidents.
-              </div>
-
-              <div className="flex justify-end gap-2 pt-1 border-t border-slate-200">
-                <button
-                  onClick={() => setFatigueAlertModal(null)}
-                  className="win-btn px-4 py-1 text-xs font-bold cursor-pointer bg-red-800 text-white hover:bg-red-900"
-                >
-                  Acknowledge & Revert
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <FatigueLimitModal
+        alert={fatigueAlertModal}
+        onClose={() => setFatigueAlertModal(null)}
+      />
 
       {/* 5-D: 예외 휴무 신청서 (Rest Day Request Modal) */}
-      {siteManagerApprovalModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 animate-in fade-in duration-200">
-          <div className="win-panel max-w-xl w-full bg-white shadow-2xl border-2 border-blue-950 text-slate-900 rounded-xl overflow-hidden font-sans">
-            {/* Modal Titlebar */}
-            <div className="bg-blue-950 text-white px-5 py-3.5 flex justify-between items-center border-b border-blue-800">
-              <span className="font-bold text-base sm:text-lg flex items-center gap-2.5">
-                <FileText className="w-5 h-5 text-amber-400 shrink-0" />
-                <span>예외 휴무 신청서 (Rest Day Request)</span>
-              </span>
-              <button
-                onClick={() => setSiteManagerApprovalModal(null)}
-                className="text-white font-bold p-1 px-2.5 bg-slate-800 hover:bg-slate-700 rounded-md text-xs transition-colors cursor-pointer"
-                title="Close"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-6 sm:p-7 space-y-5">
-              {/* Section 1: Clean Summary Block */}
-              <div className="bg-slate-50 border border-slate-300 rounded-lg p-4 space-y-3.5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
-                    <span className="text-xs text-slate-500 font-semibold block mb-0.5">대상자 (Applicant)</span>
-                    <div className="text-sm sm:text-base font-bold text-slate-900">
-                      {siteManagerApprovalModal.staff.name}
-                    </div>
-                    <div className="text-xs text-blue-900 font-medium">
-                      {normalizePositionTitle(siteManagerApprovalModal.staff.role) || siteManagerApprovalModal.staff.role}
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
-                    <span className="text-xs text-slate-500 font-semibold block mb-0.5">대상일자 (Requested Date)</span>
-                    <div className="text-sm sm:text-base font-bold text-slate-900 font-mono">
-                      {selectedYear}-{String(selectedMonth).padStart(2, '0')}-{String(siteManagerApprovalModal.dayNum).padStart(2, '0')}
-                    </div>
-                    <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-                      {MONTH_NAMES[selectedMonth - 1]} {siteManagerApprovalModal.dayNum}, {selectedYear}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 2: Reason Select Box */}
-                <div className="pt-1">
-                  <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
-                    휴무 사유 (Reason)
-                  </label>
-                  <select
-                    value={approvalReason}
-                    onChange={(e) => setApprovalReason(e.target.value)}
-                    className="w-full h-11 px-3 text-sm font-medium border border-slate-300 rounded-md bg-white shadow-xs focus:ring-2 focus:ring-blue-600 focus:outline-none cursor-pointer"
-                  >
-                    <option value="Medical">Medical (진료 / 건강 관리)</option>
-                    <option value="Emergency">Emergency (긴급 상황 / 개인 사유)</option>
-                    <option value="Special Task">Special Task (특별 업무 조정)</option>
-                    <option value="Fatigue">Fatigue (피로도 완화 / 안전 휴식)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Section 3: Audit Sign-off Bar */}
-              <div className="bg-blue-50/80 p-3 rounded-lg border border-blue-200 text-xs sm:text-sm text-blue-950 flex items-center justify-between flex-wrap gap-2">
-                <span>승인 권한: <strong>소장 (Site Manager)</strong></span>
-                <span className="text-emerald-700 font-bold flex items-center gap-1.5 text-xs sm:text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  소장 승인 로그 자동 기록
-                </span>
-              </div>
-
-              {/* Section 4: Action Buttons */}
-              <div className="flex justify-end items-center gap-3 pt-3 border-t border-slate-200">
-                <button
-                  onClick={() => setSiteManagerApprovalModal(null)}
-                  className="win-btn px-5 py-2.5 text-sm font-semibold cursor-pointer hover:bg-slate-200 rounded-md"
-                >
-                  취소 (Cancel)
-                </button>
-                <button
-                  onClick={handleConfirmSiteManagerApproval}
-                  className="win-btn px-6 py-2.5 text-sm font-bold cursor-pointer bg-blue-900 hover:bg-blue-950 text-white flex items-center gap-2 rounded-md shadow-md transition-all"
-                >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>소장 승인 및 등록 (Approve & Submit)</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ExceptionRestModal
+        request={siteManagerApprovalModal}
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
+        approvalReason={approvalReason}
+        normalizePositionTitle={normalizePositionTitle}
+        onApprovalReasonChange={setApprovalReason}
+        onClose={() => setSiteManagerApprovalModal(null)}
+        onConfirm={handleConfirmSiteManagerApproval}
+      />
 
       {/* 5-E: Site Manager Exception Rest Toast Banner */}
       {siteManagerRestToast && (
@@ -1734,58 +1446,15 @@ export default function ManpowerRosterView({
       )}
 
       {/* 5-F: Past Operational Record Read-Only Lock Modal */}
-      {pastDateLockModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="win-panel p-4 max-w-lg w-full bg-white shadow-2xl border-2 border-slate-700 text-slate-900 rounded-lg overflow-hidden font-sans">
-            <div className="win-titlebar bg-slate-800 text-white p-2 px-3 flex justify-between items-center mb-3">
-              <span className="font-bold text-sm sm:text-base flex items-center gap-2">
-                <Lock className="w-4 h-4 text-amber-300" />
-                [RECORD LOCKED: Read-Only Historical Shift]
-              </span>
-              <button
-                onClick={() => setPastDateLockModal(null)}
-                className="text-white font-bold px-2 py-0.5 bg-slate-600 hover:bg-slate-700 rounded text-xs cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs sm:text-sm font-mono p-2">
-              <div className="bg-slate-50 p-3.5 border border-slate-300 text-slate-900 space-y-2 rounded">
-                <div className="font-bold text-sm sm:text-base text-blue-950 flex items-center gap-1.5">
-                  <ShieldAlert className="w-4 h-4 text-slate-700 shrink-0" />
-                  <span>Historical Record Locked (소급 수정 불가)</span>
-                </div>
-                <div className="text-xs sm:text-sm text-slate-700">
-                  Target: <strong>{pastDateLockModal.staffName}</strong> ({pastDateLockModal.dateStr})
-                </div>
-                <div className="text-xs sm:text-sm text-red-900 bg-red-50 p-2.5 border border-red-200 rounded leading-relaxed">
-                  과거 근무 실적은 Daily Shift Board에 의해 잠금(Locked) 처리되었습니다. 소급 수정은 관리자(HQ Admin) 승인이 필요합니다.
-                </div>
-              </div>
-
-              <div className="bg-slate-100 p-2.5 border border-slate-300 text-[11px] text-slate-600 leading-normal rounded">
-                <strong>Audit Compliance:</strong> Closed operational logs are permanently archived in the terminal ledger. Any alteration requires an official management change request (MOC) and HQ approval.
-              </div>
-
-              <div className="flex justify-end pt-2 border-t border-slate-200">
-                <button
-                  onClick={() => setPastDateLockModal(null)}
-                  className="win-btn px-5 py-2 text-xs sm:text-sm font-bold cursor-pointer bg-slate-800 text-white hover:bg-slate-900 rounded"
-                >
-                  확인 (Acknowledge)
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <PastDateLockModal
+        lock={pastDateLockModal}
+        onClose={() => setPastDateLockModal(null)}
+      />
 
       {/* 5-H: Daily Shift Board Rest / Stand-down & Standby Cover Modal */}
       {dailyRestModalOpen && (() => {
         const onDutyCandidates = [...teamBPersonnel, ...teamCPersonnel].filter(m => !dailyRestAssignments[m.id]);
         const standbyCoverCandidates = teamAPersonnel;
-        const currentApplicant = manpowerData.find(m => m.id === dailyRestApplicantId);
         const currentCover = manpowerData.find(m => m.id === dailyRestCoverId);
         const coverComp = currentCover ? getStaffCompetencyStatus(currentCover) : null;
 
@@ -1831,12 +1500,13 @@ export default function ManpowerRosterView({
                   </label>
                   <select
                     value={dailyRestReason}
-                    onChange={(e) => setDailyRestReason(e.target.value as any)}
+                    onChange={(e) => setDailyRestReason(e.target.value as 'Medical' | 'Emergency' | 'Fatigue 154h' | 'Rotation Leave')}
                     className="w-full h-10 px-3 border border-slate-300 rounded-md bg-white font-medium cursor-pointer shadow-xs focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Medical">Medical (진료 / 건강 이상 및 관찰)</option>
                     <option value="Emergency">Emergency (긴급 상황 / 개인 사유)</option>
                     <option value="Fatigue 154h">Fatigue 154h (14일 누적 154시간 피로도 초과 안전 대기)</option>
+                    <option value="Rotation Leave">Rotation Leave (3:1 Rotation Handover)</option>
                   </select>
                 </div>
 
@@ -1866,6 +1536,26 @@ export default function ManpowerRosterView({
                     </div>
                   )}
                 </div>
+
+                {dailyRestReason === 'Rotation Leave' && (
+                  <div className="border-t border-slate-300 pt-3 space-y-2">
+                    <div className="font-bold text-slate-800 text-[11px] uppercase">
+                      3:1 Rotation Handover Gate &amp; Duty Delegation
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-600">Compliance Gate</span>
+                      <span className={coverComp?.hasExpired ? 'text-amber-700 font-bold' : 'text-emerald-700 font-bold'}>
+                        {coverComp?.hasExpired ? 'PENDING' : '[COMPLIANCE GATE CLEARED]'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-600">Site Manager Authorization</span>
+                      <span className={dailyRestSmApproved ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'}>
+                        {dailyRestSmApproved ? 'AUTHORIZED & SIGNED' : 'PENDING SIGN-OFF'}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* 4. Site Manager Verification Checkbox */}
                 <div className="bg-amber-50 p-3 rounded-lg border border-amber-300">
@@ -1928,415 +1618,38 @@ export default function ManpowerRosterView({
         </div>
       )}
 
-      {/* 5-J: Pre-Shift Handover & Safety Delegation Protocol Modal Window */}
-      {isHandoverProtocolModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border-2 border-slate-700 shadow-2xl rounded-sm w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col font-sans">
-            {/* Modal Titlebar */}
-            <div className="bg-[#0f2d59] text-white px-3 py-2 flex items-center justify-between border-b border-[#1b437c]">
-              <div className="flex items-center gap-2">
-                <ArrowRightLeft className="w-4 h-4 text-emerald-400" />
-                <span className="font-bold text-sm tracking-wide">
-                  Pre-Shift Handover &amp; Safety Delegation Protocol (SOP NP07-03)
-                </span>
-              </div>
-              <button
-                onClick={() => setIsHandoverProtocolModalOpen(false)}
-                className="text-white hover:text-rose-300 font-bold text-sm px-2 cursor-pointer"
-                title="Close"
-              >
-                ✕
-              </button>
-            </div>
+      <ShiftHandoverModal
+        isOpen={isHandoverProtocolModalOpen}
+        onClose={() => setIsHandoverProtocolModalOpen(false)}
+        dayShiftLeader={teamBPersonnel.find((member) => /leader/i.test(member.role)) ?? teamBPersonnel[0]}
+        nightShiftLeader={teamCPersonnel.find((member) => /leader/i.test(member.role)) ?? teamCPersonnel[0]}
+      />
 
-            {/* Modal Content */}
-            <div className="p-4 overflow-y-auto space-y-4 text-xs">
-              {/* Header Status Bar */}
-              <div className="bg-slate-100 border border-slate-300 p-2.5 rounded flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-900">Shift Target:</span>
-                  <span className="font-mono bg-blue-900 text-white px-2 py-0.5 rounded text-[11px] font-bold">
-                    DAY SHIFT (TEAM-B) ➔ NIGHT SHIFT (TEAM-C)
-                  </span>
-                  <span className="text-slate-600 font-mono">Date: 2026-09-01</span>
-                </div>
-                <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded font-bold font-mono">
-                  {handoverSignatures.offGoingSigned && handoverSignatures.incomingSigned && handoverSignatures.smApproved
-                    ? '3-Party Handover Verified & Authorized'
-                    : 'Handover Pending Sign-Off'}
-                </span>
-              </div>
-
-              {/* Grid: 5-Point Checklist & Signatures */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                {/* Left: 5-Point Process & Safety Checklist */}
-                <div className="lg:col-span-7 space-y-2 bg-slate-50 p-3 border border-slate-300 rounded">
-                  <div className="font-bold text-slate-800 font-mono text-xs border-b border-slate-200 pb-1 flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-blue-900" />
-                    <span>Process &amp; Safety Shift Handover Checklist:</span>
-                  </div>
-                  <div className="space-y-2 font-mono text-[11px] pt-1">
-                    <label className="flex items-start gap-2 cursor-pointer select-none bg-white p-2 border border-slate-200 rounded">
-                      <input
-                        type="checkbox"
-                        checked={handoverChecklist.bogNormal}
-                        onChange={(e) => setHandoverChecklist(prev => ({ ...prev, bogNormal: e.target.checked }))}
-                        className="cursor-pointer accent-blue-900 mt-0.5"
-                      />
-                      <span className={handoverChecklist.bogNormal ? 'text-slate-900 font-semibold' : 'text-slate-500'}>
-                        1. Cryogenic BOG Header Pressure Normal (&lt; 0.25 MPa) &amp; Comp running
-                      </span>
-                    </label>
-                    <label className="flex items-start gap-2 cursor-pointer select-none bg-white p-2 border border-slate-200 rounded">
-                      <input
-                        type="checkbox"
-                        checked={handoverChecklist.bayStatus}
-                        onChange={(e) => setHandoverChecklist(prev => ({ ...prev, bayStatus: e.target.checked }))}
-                        className="cursor-pointer accent-blue-900 mt-0.5"
-                      />
-                      <span className={handoverChecklist.bayStatus ? 'text-slate-900 font-semibold' : 'text-slate-500'}>
-                        2. Loading Bay 01 &amp; 02 Vaporizer Operational Status &amp; Mass Balance Verified
-                      </span>
-                    </label>
-                    <label className="flex items-start gap-2 cursor-pointer select-none bg-white p-2 border border-slate-200 rounded">
-                      <input
-                        type="checkbox"
-                        checked={handoverChecklist.ptwReviewed}
-                        onChange={(e) => setHandoverChecklist(prev => ({ ...prev, ptwReviewed: e.target.checked }))}
-                        className="cursor-pointer accent-blue-900 mt-0.5"
-                      />
-                      <span className={handoverChecklist.ptwReviewed ? 'text-slate-900 font-semibold' : 'text-slate-500'}>
-                        3. Active PTW Permits (2 Hot Work / 1 Confined) Handover Reviewed
-                      </span>
-                    </label>
-                    <label className="flex items-start gap-2 cursor-pointer select-none bg-white p-2 border border-slate-200 rounded">
-                      <input
-                        type="checkbox"
-                        checked={handoverChecklist.ertCleared}
-                        onChange={(e) => setHandoverChecklist(prev => ({ ...prev, ertCleared: e.target.checked }))}
-                        className="cursor-pointer accent-blue-900 mt-0.5"
-                      />
-                      <span className={handoverChecklist.ertCleared ? 'text-slate-900 font-semibold' : 'text-slate-500'}>
-                        4. ERT Minimum Manning Cleared (Incident Commander, Fire Chief, First Aider, Gas Response)
-                      </span>
-                    </label>
-                    <label className="flex items-start gap-2 cursor-pointer select-none bg-white p-2 border border-slate-200 rounded">
-                      <input
-                        type="checkbox"
-                        checked={handoverChecklist.esdArmed}
-                        onChange={(e) => setHandoverChecklist(prev => ({ ...prev, esdArmed: e.target.checked }))}
-                        className="cursor-pointer accent-blue-900 mt-0.5"
-                      />
-                      <span className={handoverChecklist.esdArmed ? 'text-slate-900 font-semibold' : 'text-slate-500'}>
-                        5. Plant Emergency Shutdown (ESD) Loops &amp; Gas Detection 100% Armed
-                      </span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Right: Signatures & Delegation */}
-                <div className="lg:col-span-5 space-y-3 bg-slate-50 p-3 border border-slate-300 rounded">
-                  <div className="font-bold text-slate-800 font-mono text-xs border-b border-slate-200 pb-1 flex justify-between items-center">
-                    <span>3-Party Sign-off Authorization:</span>
-                  </div>
-                  <div className="space-y-2 font-mono text-[11px]">
-                    <div className="flex justify-between items-center bg-white p-2.5 border border-slate-200 rounded shadow-2xs">
-                      <div>
-                        <span className="font-bold text-slate-900">Off-Going (Day TL):</span>
-                        <div className="text-slate-600">Asman S. (TEAM-B)</div>
-                      </div>
-                      <span className="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded font-bold border border-emerald-300">
-                        Signed (19:40 WIB)
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center bg-white p-2.5 border border-slate-200 rounded shadow-2xs">
-                      <div>
-                        <span className="font-bold text-slate-900">Incoming (Night TL):</span>
-                        <div className="text-slate-600">Juli S. (TEAM-C)</div>
-                      </div>
-                      <span className="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded font-bold border border-emerald-300">
-                        Signed (19:45 WIB)
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center bg-white p-2.5 border border-slate-200 rounded shadow-2xs">
-                      <div>
-                        <span className="font-bold text-slate-900">Site Manager Gate:</span>
-                        <div className="text-slate-600">Ahmad Zarkasih (EMP-001)</div>
-                      </div>
-                      <span className="bg-blue-100 text-blue-950 px-2 py-0.5 rounded font-bold border border-blue-300">
-                        Authorized &amp; Locked
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-200">
-                    <button
-                      onClick={() => {
-                        setIsHandoverProtocolModalOpen(false);
-                        handleOpenHandoverModal(manpowerData.find(s => s.id === 'EMP-004') || manpowerData[3]);
-                      }}
-                      className="w-full win-btn py-1.5 text-xs font-bold text-blue-950 bg-slate-200 hover:bg-slate-300 border border-slate-400 flex items-center justify-center gap-1.5 cursor-pointer rounded"
-                    >
-                      <ArrowRightLeft className="w-3.5 h-3.5" />
-                      <span>Open Staff Duty Delegation Gate...</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="bg-slate-100 px-4 py-2.5 border-t border-slate-300 flex justify-end items-center gap-2">
-              <button
-                onClick={() => setIsHandoverProtocolModalOpen(false)}
-                className="win-btn px-4 py-1 text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 cursor-pointer border border-slate-400 rounded"
-              >
-                닫기 (Close)
-              </button>
-              <button
-                onClick={() => {
-                  setIsHandoverProtocolModalOpen(false);
-                }}
-                className="win-btn px-5 py-1 text-xs font-bold bg-blue-900 hover:bg-blue-950 text-white cursor-pointer border border-blue-950 rounded flex items-center gap-1.5"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>체크리스트 저장 및 완료 (Confirm Handover)</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* ========================================================================= */}
       {/* ========================================================================= */}
       {/* 5-K: Operations Override & Impact Summary Modal (SSOT Confirmation)        */}
       {/* ========================================================================= */}
-      {isLockModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="win-panel p-5 max-w-2xl w-full bg-[#d4d0c8] shadow-2xl border-2 border-t-white border-l-white border-r-[#404040] border-b-[#404040] text-slate-900 font-sans">
-
-            {/* Titlebar */}
-            <div className="bg-[#183b6b] text-white p-2 px-3 flex justify-between items-center mb-3 shadow-xs">
-              <span className="font-bold text-xs flex items-center gap-2 tracking-wide">
-                <Lock className="w-4 h-4 text-amber-400" />
-                <span>OPERATIONS ROSTER LOCK &amp; IMPACT SUMMARY (2026-09-02)</span>
-              </span>
-              <button
-                onClick={() => setIsLockModalOpen(false)}
-                className="text-white font-bold px-2 py-0.5 bg-red-700 hover:bg-red-800 text-xs cursor-pointer rounded-xs"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-
-              {/* Section 1: Today's Variations */}
-              <div className="win-sunken bg-white p-3 border border-slate-400 space-y-1.5">
-                <div className="font-bold text-blue-950 font-mono text-[11px] border-b border-slate-200 pb-1 flex justify-between items-center">
-                  <span>[1. 당일 인원 변동 사항 요약 (Today's SSOT Variations)]</span>
-                  <span className="text-[10px] font-normal text-slate-600">
-                    Total Variations: {Object.keys(dailyStaffStatus).filter((k) => dailyStaffStatus[k].status !== 'PRESENT').length}p
-                  </span>
-                </div>
-
-                {Object.entries(dailyStaffStatus).filter(([_, s]) => s.status !== 'PRESENT').length === 0 ? (
-                  <div className="text-slate-600 italic py-1 font-mono text-[11px]">
-                    No unplanned absences recorded today. All scheduled shift personnel marked PRESENT (Standard Muster).
-                  </div>
-                ) : (
-                  <div className="space-y-1.5 pt-1">
-                    {Object.entries(dailyStaffStatus)
-                      .filter(([_, s]) => s.status !== 'PRESENT')
-                      .map(([staffId, s]) => {
-                        const staff = manpowerData.find((m) => m.id === staffId);
-                        const cover = s.replacementId ? manpowerData.find((m) => m.id === s.replacementId) : null;
-                        return (
-                          <div key={staffId} className="flex justify-between items-center p-1.5 bg-slate-50 border border-slate-300 font-mono text-[11px]">
-                            <div>
-                              <span className="font-bold text-slate-900">{staff?.name}</span>
-                              <span className="text-slate-500 text-[10px]"> ({staff?.role} • {staff?.teamName})</span>
-                              <span className="mx-1.5 font-bold text-rose-700">➔ {s.status}</span>
-                            </div>
-                            <div>
-                              {cover ? (
-                                <span className="bg-emerald-100 text-emerald-950 px-2 py-0.5 border border-emerald-300 rounded font-bold text-[10px]">
-                                  Cover: {cover.name} ({cover.teamName})
-                                </span>
-                              ) : (
-                                <span className="bg-red-100 text-red-800 px-2 py-0.5 border border-red-300 rounded font-bold text-[10px] animate-pulse">
-                                  ⚠️ UNCOVERED SHORTAGE
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-              </div>
-
-              {/* Section 2: Monthly Plan Propagation Impact */}
-              <div className="win-sunken bg-white p-3 border border-slate-400 space-y-1.5">
-                <div className="font-bold text-blue-950 font-mono text-[11px] border-b border-slate-200 pb-1">
-                  [2. 월간 플랜(Monthly Plan) 역반영 영향도 분석]
-                </div>
-                <div className="text-[11px] font-mono text-slate-800 space-y-1 pt-1">
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-blue-900 font-bold">• Target Date:</span>
-                    <span>September 2, 2026 (Monthly Calendar Day 2 Grid Sync)</span>
-                  </div>
-                  {Object.entries(dailyStaffStatus).filter(([_, s]) => s.status !== 'PRESENT').length === 0 ? (
-                    <div className="pl-3 border-l-2 border-slate-300 text-[10.5px] text-slate-500 italic">
-                      No status adjustments to propagate. Monthly Plan retains standard shift roster codes.
-                    </div>
-                  ) : (
-                    Object.entries(dailyStaffStatus).filter(([_, s]) => s.status !== 'PRESENT').map(([staffId, s]) => {
-                      const staff = manpowerData.find((m) => m.id === staffId);
-                      const cover = s.replacementId ? manpowerData.find((m) => m.id === s.replacementId) : null;
-                      const coverHours = cover ? get14dHours(cover, true) : 0;
-                      return (
-                        <div key={staffId} className="pl-3 border-l-2 border-blue-400 text-[10.5px] space-y-0.5">
-                          <div>
-                            Monthly Plan Day 9/2: <strong>{staff?.name}</strong> shift updated to <span className="px-1 bg-amber-200 text-amber-950 font-bold rounded">Off ({s.status})</span>
-                          </div>
-                          {cover && (
-                            <div>
-                              Monthly Plan Day 9/2: <strong>{cover.name}</strong> shift swapped in as <span className="px-1 bg-emerald-200 text-emerald-950 font-bold rounded">{staff?.department === 'OP_BRAVO' ? 'D' : 'N'}</span> (14d Cumulative Hours: <span className={coverHours >= 154 ? 'text-rose-700 font-bold' : 'font-bold'}>{coverHours}h / 154h Limit</span>)
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              {/* Section 3: Safety & ERT Compliance Gate Review */}
-              <div className="grid grid-cols-2 gap-2 font-mono text-[10.5px]">
-                <div className={`p-2 border ${ertSummary.isAllERTMet ? 'bg-emerald-50 border-emerald-400 text-emerald-950' : 'bg-red-50 border-red-400 text-red-950 font-bold'}`}>
-                  <div className="font-bold flex items-center justify-between mb-1">
-                    <span>ERT Minimum Manning:</span>
-                    <span className={`px-1 text-[9px] rounded ${ertSummary.isAllERTMet ? 'bg-emerald-800 text-white' : 'bg-red-600 text-white'}`}>
-                      {ertSummary.isAllERTMet ? '[PASSED]' : '[DEFICIT]'}
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-slate-700">
-                    IC: {ertSummary.icCount}/1 | FC: {ertSummary.fireChiefCount}/1 | FA: {ertSummary.firstAiderCount}/1 | Gas: {ertSummary.gasResponseCount}/2
-                  </div>
-                </div>
-
-                <div className={`p-2 border ${has154hViolation ? 'bg-amber-50 border-amber-400 text-amber-950 font-bold' : 'bg-slate-100 border-slate-300 text-slate-800'}`}>
-                  <div className="font-bold flex items-center justify-between mb-1">
-                    <span>14-Day Limit (154h):</span>
-                    <span className={`px-1 text-[9px] rounded ${has154hViolation ? 'bg-rose-700 text-white' : 'bg-emerald-800 text-white'}`}>
-                      {has154hViolation ? '[OVERRIDE REQ.]' : '[PASSED]'}
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-slate-700">
-                    {has154hViolation
-                      ? `${exceeded154hPersonnel.map((s) => {
-                        const isCover = Object.values(dailyStaffStatus).some((st) => st.status !== 'PRESENT' && st.replacementId === s.id)
-                          || Object.values(dailyRestAssignments).some((assign) => assign.coveringStaffId === s.id);
-                        return `${s.name.split(' ')[0]} (${get14dHours(s, isCover)}h)`;
-                      }).join(', ')}`
-                      : 'All Active Personnel ≤ 154h'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 4: Site Manager Override & Authorization Checkbox */}
-              <div className="win-sunken bg-amber-50/80 p-2.5 border border-amber-300 space-y-1">
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-amber-950 text-xs">
-                  <input
-                    type="checkbox"
-                    checked={lockModalSmApproved}
-                    onChange={(e) => setLockModalSmApproved(e.target.checked)}
-                    className="w-4 h-4 cursor-pointer accent-blue-900"
-                  />
-                  <span>Acknowledge Fatigue &amp; Manning Override (Statutory SKK Migas Exemption SOP-NP07-03)</span>
-                </label>
-                <div className="text-[10px] text-amber-900 pl-6 flex justify-between items-center font-mono">
-                  <span>Authorizing Signatory: <strong>Site Manager Edi Hermawan (EMP-001)</strong></span>
-                  <span>Status: {lockModalSmApproved ? 'Authorized ✓' : 'Pending Signature'}</span>
-                </div>
-              </div>
-
-              {/* Modal Action Buttons */}
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-300">
-                <button
-                  onClick={() => setIsLockModalOpen(false)}
-                  className="win-btn px-4 py-1.5 text-xs font-bold text-slate-800 cursor-pointer hover:bg-slate-200"
-                >
-                  Cancel (Revert Changes)
-                </button>
-                <button
-                  disabled={has154hViolation && !lockModalSmApproved}
-                  onClick={handleLockAndPropagateRoster}
-                  className={`win-btn px-5 py-1.5 text-xs font-bold flex items-center gap-1.5 ${has154hViolation && !lockModalSmApproved
-                    ? 'opacity-50 cursor-not-allowed bg-slate-300 text-slate-600'
-                    : 'bg-blue-950 text-white cursor-pointer hover:bg-blue-900'
-                    }`}
-                >
-                  <Lock className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Lock Roster &amp; Propagate to Monthly Plan</span>
-                </button>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      )}
-
+      <OperationsOverrideModal
+        isOpen={isLockModalOpen}
+        dailyStaffStatus={dailyStaffStatus}
+        dailyRestAssignments={dailyRestAssignments}
+        manpowerData={manpowerData}
+        ertSummary={ertSummary}
+        exceeded154hPersonnel={exceeded154hPersonnel}
+        has154hViolation={has154hViolation}
+        get14dHours={get14dHours}
+        lockModalSmApproved={lockModalSmApproved}
+        onLockModalSmApprovedChange={setLockModalSmApproved}
+        onClose={() => setIsLockModalOpen(false)}
+        onLockAndPropagate={handleLockAndPropagateRoster}
+      />
       {/* ========================================================================= */}
       {/* 5-L: Team Shortage Guardrail Alert Dialog (Rule 1 Modal)                  */}
       {/* ========================================================================= */}
-      {teamShortageDialog && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="win-panel p-5 max-w-md w-full bg-white shadow-2xl border-2 border-red-700 text-slate-900 font-sans rounded-xs">
-            <div className="bg-red-800 text-white p-2 px-3 flex justify-between items-center mb-3">
-              <span className="font-bold text-xs flex items-center gap-1.5">
-                <AlertOctagon className="w-4 h-4 text-amber-300" />
-                <span>[CONSTRAINT GUARDRAIL: Team Shortage Alert]</span>
-              </span>
-              <button
-                onClick={() => setTeamShortageDialog(null)}
-                className="text-white font-bold px-2 py-0.5 bg-red-950 hover:bg-red-900 text-xs cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-3 font-mono text-xs p-1">
-              <div className="bg-red-50 p-3 border border-red-300 text-red-950 rounded-xs space-y-1.5">
-                <div className="font-bold text-sm text-red-900 flex items-center gap-1.5">
-                  <ShieldAlert className="w-4 h-4 text-red-700 shrink-0" />
-                  <span>동일 팀 내 다중 결원 발생 (2+ Members Off-Duty)</span>
-                </div>
-                <div className="text-[11px] leading-relaxed">
-                  {teamShortageDialog}
-                </div>
-              </div>
-
-              <div className="text-[10px] text-slate-600 bg-slate-100 p-2 border border-slate-300 rounded-xs">
-                <strong>SOP Standard NP07-03:</strong> An operating shift team must maintain a minimum complement of certified personnel. Immediate standby pool relief deployment is mandatory.
-              </div>
-
-              <div className="flex justify-end pt-2 border-t border-slate-200">
-                <button
-                  onClick={() => setTeamShortageDialog(null)}
-                  className="win-btn px-4 py-1 text-xs font-bold cursor-pointer bg-red-800 text-white hover:bg-red-900"
-                >
-                  Acknowledge &amp; Assign Relief
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
+      <TeamShortageModal
+        message={teamShortageDialog}
+        onClose={() => setTeamShortageDialog(null)}
+      />
       {/* 5-K2: Fit-to-Work Site Manager Override Modal (ESDM / IMO STCW Exemption) */}
       {/* ========================================================================= */}
       {isFitToWorkModalOpen && (

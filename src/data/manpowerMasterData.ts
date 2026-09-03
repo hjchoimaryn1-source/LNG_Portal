@@ -1,15 +1,41 @@
 // src/data/manpowerMasterData.ts
 import {
-  DepartmentCode,
   StaffPersonnel,
   ShiftCode,
-  TeamNameStandard,
   CompetencyCertification,
-  CompetencyStatus,
-  ERTRole,
 } from '../types/lng';
 
 export const AUGUST_DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+
+export const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+export const DIRECTIVES_MAP: Record<string, Partial<Record<'DAY' | 'NIGHT', string>>> = {
+  '2026-09-01': {
+    DAY: 'Monitor ORU pit level; enforce strict PPE on Bay 2.',
+    NIGHT: 'Verify night patrol rounds; monitor ORU pit level and Bay 2 access.',
+  },
+  '2026-09-02': {
+    DAY: 'Confirm loading bay vaporizer balance before cargo operations.',
+    NIGHT: 'Maintain enhanced gas detection checks during night operations.',
+  },
+  '2026-09-03': {
+    DAY: 'Review active PTW permits before starting planned maintenance.',
+    NIGHT: 'Monitor ORU pit level; enforce strict PPE on Bay 2.',
+  },
+};
 
 export interface CompetencyCourseDef {
   code: string;
