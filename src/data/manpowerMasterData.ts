@@ -997,3 +997,23 @@ export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = [
     ],
   },
 ];
+
+export type DailyRestReason = 'Medical' | 'Emergency' | 'Fatigue 154h' | 'Rotation Leave';
+
+export const DEFAULT_CONFIRMED_DAILY_DATES: string[] = ['2026-09-01'];
+export const DEFAULT_COD_BASELINE_DATE = '2026-09-15';
+export const DEFAULT_FIT_TO_WORK_HSSE_OFFICER = 'Arsyan AN (HSE Officer)';
+export const DEFAULT_FIT_TO_WORK_REASON =
+  'Critical Operational Continuity during Island Shift Cover - SOP-NP07-03 Section 4.2 Exemption';
+
+export const HSSE_OFFICER_OPTIONS = [
+  { value: 'Arsyan AN (HSE Officer)', label: 'Arsyan AN (HSE Officer - EMP-015)' },
+  { value: 'Chandra R.D (Sr. HSE Officer / Fire Chief)', label: 'Chandra R.D (Sr. HSE Officer / Fire Chief - EMP-016)' },
+] as const;
+
+export const DAILY_REST_REASONS = [
+  { value: 'Medical', label: 'Medical (진료 / 건강 이상 및 관찰)' },
+  { value: 'Emergency', label: 'Emergency (긴급 상황 / 개인 사유)' },
+  { value: 'Fatigue 154h', label: 'Fatigue 154h (14일 누적 154시간 피로도 초과 안전 대기)' },
+  { value: 'Rotation Leave', label: 'Rotation Leave (3:1 Rotation Handover)' },
+] as const;
