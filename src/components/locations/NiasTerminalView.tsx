@@ -10,6 +10,7 @@ import { NiasActiveBayWorkspace } from './nias/NiasActiveBayWorkspace';
 import NiasTankMassBalanceTab from './nias/NiasTankMassBalanceTab';
 import NiasTankOverviewTab from './nias/tabs/NiasTankOverviewTab';
 import NiasLaydownLogTab from './nias/tabs/NiasLaydownLogTab';
+import NiasLaydownHeelTab from './nias/tabs/NiasLaydownHeelTab';
 import NiasProcessPIDDiagram from './nias/NiasProcessPIDDiagram';
 import NiasOperationalOverviewTab from './nias/NiasOperationalOverviewTab';
 import NiasGasQualityTab from './nias/NiasGasQualityTab';
