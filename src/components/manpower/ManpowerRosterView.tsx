@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Papa from 'papaparse';
-import { CheckCircle2, Zap } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import {
   StaffPersonnel,
   ShiftCode,
@@ -52,6 +52,7 @@ import ExceptionRestModal from './modals/ExceptionRestModal';
 import PastDateLockModal from './modals/PastDateLockModal';
 import OperationsOverrideModal from './modals/OperationsOverrideModal';
 import TeamShortageModal from './modals/TeamShortageModal';
+import CodSimulatorToast from './CodSimulatorToast';
 
 export {
   INITIAL_MANPOWER_MASTER_RECORDS as MANPOWER_DIRECTORY,
@@ -186,6 +187,16 @@ export default function ManpowerRosterView({
   const [fitToWorkHsseOfficer, setFitToWorkHsseOfficer] = useState<string>(DEFAULT_FIT_TO_WORK_HSSE_OFFICER);
   const [fitToWorkReason, setFitToWorkReason] = useState<string>(DEFAULT_FIT_TO_WORK_REASON);
   const [isFitToWorkOverridden, setIsFitToWorkOverridden] = useState<boolean>(false);
+
+  // 8.5a. Fit-to-Work Authorization Callback (Site Manager 154h Override)
+  const handleFitToWorkAuthorize = useCallback(() => {
+    setIsFitToWorkOverridden(true);
+    setIsFitToWorkModalOpen(false);
+    setCodResetToast(
+      '✓ [FIT-TO-WORK OVERRIDE] Site Manager Edi Hermawan authorized 154h exemption under SOP-NP07-03. Audit log saved.'
+    );
+    setTimeout(() => setCodResetToast(null), 5000);
+  }, []);
 
   // 9. Pre-Shift Handover Checklist & Sign-off State for Tab 3
   const [dailyRestSuccessToast, setDailyRestSuccessToast] = useState<{
@@ -826,31 +837,15 @@ export default function ManpowerRosterView({
         onHsseOfficerChange={setFitToWorkHsseOfficer}
         onReasonChange={setFitToWorkReason}
         onClose={() => setIsFitToWorkModalOpen(false)}
-        onAuthorizeOverride={() => {
-          setIsFitToWorkOverridden(true);
-          setIsFitToWorkModalOpen(false);
-          setCodResetToast(
-            '✓ [FIT-TO-WORK OVERRIDE] Site Manager Edi Hermawan authorized 154h exemption under SOP-NP07-03. Audit log saved.'
-          );
-          setTimeout(() => setCodResetToast(null), 5000);
-        }}
+        onAuthorizeOverride={handleFitToWorkAuthorize}
       />
 
       {/* 5-M: COD Simulator Toast Banner */}
       {codResetToast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#0f172a] text-white p-3 px-4 rounded-md shadow-2xl border-2 border-sky-400 font-mono text-xs flex items-center gap-3 animate-in fade-in slide-in-from-bottom duration-200 select-none">
-          <Zap className="w-5 h-5 text-amber-400 shrink-0 animate-pulse" />
-          <div>
-            <div className="font-bold text-sky-200">COD Simulator &amp; 3:1 Roster Engine</div>
-            <div className="text-slate-300 text-[11px]">{codResetToast}</div>
-          </div>
-          <button
-            onClick={() => setCodResetToast(null)}
-            className="ml-2 bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded text-white font-bold text-xs cursor-pointer border border-slate-600"
-          >
-            OK
-          </button>
-        </div>
+        <CodSimulatorToast
+          message={codResetToast}
+          onDismiss={() => setCodResetToast(null)}
+        />
       )}
     </div>
   );
