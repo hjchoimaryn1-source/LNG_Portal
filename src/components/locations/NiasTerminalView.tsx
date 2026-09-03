@@ -22,6 +22,7 @@ import NiasBackhaulInspectionModal from './nias/modals/NiasBackhaulInspectionMod
 import { useNiasBackhaulInspection } from './nias/hooks/useNiasBackhaulInspection';
 import NiasLd2StatusModal from './nias/modals/NiasLd2StatusModal';
 import { useNiasLd2VentModal } from './nias/hooks/useNiasLd2VentModal';
+import { NiasTankRelocationDrawer } from './nias/drawers/NiasTankRelocationDrawer';
 import { exportToCSV } from '../../utils/exportCsv';
 import { exportDailyInspectionToExcel } from '../../utils/exportDailyInspectionExcel';
 import * as XLSX from 'xlsx';
@@ -99,7 +100,7 @@ import {
 export type NiasZone = 'LAYDOWN_1' | 'BAY_01' | 'BAY_02' | 'BAY_03' | 'BAY_04' | 'LAYDOWN_2';
 
 export interface NiasTankAsset {
-  id: string; 
+  id: string;
   serialNo: string;
   shipment: string;
   currentZone: NiasZone;
@@ -332,38 +333,38 @@ export default function NiasTerminalView({
           zone === 'LAYDOWN_2'
             ? t.tankNo === 'ISOT-064' ? 1 : (t.position?.includes('Slot') ? parseInt(t.position.match(/Slot\s*(\d+)/i)?.[1] || '1', 10) : 1)
             : zone === 'LAYDOWN_1'
-            ? NIAS_YARD1_ORDER[t.tankNo] || (t.position?.includes('Slot') ? parseInt(t.position.match(/Slot\s*(\d+)/i)?.[1] || '1', 10) : (idx % 12) + 1)
-            : 0;
+              ? NIAS_YARD1_ORDER[t.tankNo] || (t.position?.includes('Slot') ? parseInt(t.position.match(/Slot\s*(\d+)/i)?.[1] || '1', 10) : (idx % 12) + 1)
+              : 0;
 
         const resolvedLevel = (t.level && t.level > 0)
           ? t.level
           : (existingRecord?.level && existingRecord.level > 0)
-          ? existingRecord.level
-          : (zone === 'LAYDOWN_2' ? 4.0 : 50);
+            ? existingRecord.level
+            : (zone === 'LAYDOWN_2' ? 4.0 : 50);
 
         const resolvedLevelM3 = (t.levelM3 && t.levelM3 > 0)
           ? t.levelM3
           : (existingRecord?.levelM3 && existingRecord.levelM3 > 0)
-          ? existingRecord.levelM3
-          : parseFloat(((resolvedLevel / 100) * 45).toFixed(1));
+            ? existingRecord.levelM3
+            : parseFloat(((resolvedLevel / 100) * 45).toFixed(1));
 
         const resolvedLevelMm = (t.levelMmH2O && t.levelMmH2O > 0)
           ? t.levelMmH2O
           : (existingRecord?.levelMmH2O && existingRecord.levelMmH2O > 0)
-          ? existingRecord.levelMmH2O
-          : Math.round(resolvedLevel * 10);
+            ? existingRecord.levelMmH2O
+            : Math.round(resolvedLevel * 10);
 
         const resolvedPressure = (t.pressureMPa && t.pressureMPa > 0)
           ? t.pressureMPa
           : (existingRecord?.pressureMPa && existingRecord.pressureMPa > 0)
-          ? existingRecord.pressureMPa
-          : (zone === 'LAYDOWN_2' ? 0.22 : 0.76);
+            ? existingRecord.pressureMPa
+            : (zone === 'LAYDOWN_2' ? 0.22 : 0.76);
 
         const resolvedTemp = (t.tempC && t.tempC !== 0)
           ? t.tempC
           : (existingRecord?.tempC && existingRecord.tempC !== 0)
-          ? existingRecord.tempC
-          : (zone === 'LAYDOWN_2' ? -135.0 : -126.5);
+            ? existingRecord.tempC
+            : (zone === 'LAYDOWN_2' ? -135.0 : -126.5);
 
         return {
           id: t.tankNo,
@@ -389,11 +390,11 @@ export default function NiasTerminalView({
   const [selectedBackhaulTanks, setSelectedBackhaulTanks] = useState<Set<string>>(new Set());
   const [mountModalBayId, setMountModalBayId] = useState<string | null>(null);
   const [quickMountTankNo, setQuickMountTankNo] = useState<string | null>(null);
-  
+
   // In-Line Drawer States for Sub-Tab 3
   const [activeDrawerBayId, setActiveDrawerBayId] = useState<string | null>(null);
   const [activeDrawerType, setActiveDrawerType] = useState<'PATROL' | 'DISCONNECT' | null>(null);
-  
+
   const [mroModalTankNo, setMroModalTankNo] = useState<string | null>(null);
   const [selectedDetailTank, setSelectedDetailTank] = useState<NiasTankAsset | null>(null);
   const [openMountDropdownTankId, setOpenMountDropdownTankId] = useState<string | null>(null);
@@ -413,13 +414,6 @@ export default function NiasTerminalView({
 
   // Interactive Tank Relocation Modal State (Method A)
   const [relocateModalTank, setRelocateModalTank] = useState<FleetTankItem | null>(null);
-  const [relocateTargetZone, setRelocateTargetZone] = useState<string>('Laydown 1');
-  const [relocateSlotNumber, setRelocateSlotNumber] = useState<number>(1);
-  const [relocateHeelPct, setRelocateHeelPct] = useState<number>(4.0);
-  const [relocateHeelPressMPa, setRelocateHeelPressMPa] = useState<number>(0.22);
-  const [relocateHeelTempC, setRelocateHeelTempC] = useState<number>(-135.0);
-  const [relocateHeelWeightKg, setRelocateHeelWeightKg] = useState<number>(350);
-  const [relocateRemarks, setRelocateRemarks] = useState<string>('');
 
   // LD-2 (ORU LD-2) BOG Vent & Status Modal — state & handlers encapsulated in hook
   const {
@@ -738,7 +732,7 @@ export default function NiasTerminalView({
   }, [settlementRecords, wsTankNo]);
 
 
-  
+
   const wsTankDensity = wsActiveSettlement?.deliveredDensity || 426;
 
   // Quick Entry Available Tanks based on selected zone
@@ -830,13 +824,13 @@ export default function NiasTerminalView({
       prev.map((t) =>
         t.id === wsTankNo
           ? {
-              ...t,
-              pressureMpa: wsPressureMPa || wsSmtPress || newRecord.pressureMPa,
-              levelPercent: wsSmtLevel || wsLevelPct,
-              levelM3: wsLevelM3,
-              levelMmH2O: wsLevelMmH2O,
-              tempC: wsSmtTemp || wsTempC,
-            }
+            ...t,
+            pressureMpa: wsPressureMPa || wsSmtPress || newRecord.pressureMPa,
+            levelPercent: wsSmtLevel || wsLevelPct,
+            levelM3: wsLevelM3,
+            levelMmH2O: wsLevelMmH2O,
+            tempC: wsSmtTemp || wsTempC,
+          }
           : t
       )
     );
@@ -919,12 +913,12 @@ export default function NiasTerminalView({
 
     setWsTankNo(tNo);
     setSelectedTanks(new Set([tNo]));
-    
+
     if (tank) {
       if (tank.currentZone === 'LAYDOWN_1') setWsSelectedZoneFilter('LAYDOWN_1');
       else if (tank.currentZone === 'LAYDOWN_2') setWsSelectedZoneFilter('LAYDOWN_2');
     }
-    
+
     setWsSerialNo(tank?.serialNo || 'SIMU-8101513');
     setWsShipment(tank?.shipment || loss.shipment || 'N1');
     setWsLevelPct(tank?.levelPercent ?? 51);
@@ -933,7 +927,7 @@ export default function NiasTerminalView({
     setWsBattery(tank?.batteryPercent ?? 72);
     setWsPressureMPa(tank?.pressureMpa ?? 0.76);
     setWsTempC(tank?.tempC ?? -126.7);
-    
+
     // Auto-populate SMT with actual tank values for realism
     setWsSmtLevel(tank?.levelPercent || 0);
     setWsSmtPress(tank?.pressureMpa || 0);
@@ -962,7 +956,7 @@ export default function NiasTerminalView({
   // Compute Historical Telemetry Dataset for the selected Tank in the Trend Modal
   const trendModalData = useMemo(() => {
     if (!trendModalTankNo) return [];
-    
+
     const tankRecords = dailyMasterRecords
       .filter((r) => r.tankNo === trendModalTankNo)
       .sort((a, b) => (a.reportDate > b.reportDate ? 1 : -1));
@@ -1021,7 +1015,7 @@ export default function NiasTerminalView({
         const currentPress = activeTank?.pressureMpa ?? 0.76;
         const currentTemp = activeTank?.tempC ?? -126.7;
         const progressFactor = (daysCount - 1 - i) / Math.max(1, daysCount - 1);
-        
+
         const simPress = parseFloat((0.68 + (currentPress - 0.68) * progressFactor + Math.sin(i * 0.8) * 0.015).toFixed(2));
         const simSmtPress = parseFloat((simPress + 0.01).toFixed(2));
         const simLevel = parseFloat((Math.min(95, currentLevel + (daysCount - 1 - (daysCount - 1 - i)) * 0.15)).toFixed(1));
@@ -1130,7 +1124,7 @@ export default function NiasTerminalView({
   // Multi-Zone Aggregations & Metrics
   const zoneStats = useMemo(() => {
     const activeBayTanksSet = new Set(activeBays.filter((b) => b.tankNo).map((b) => b.tankNo));
-    
+
     // Laydown 2 is explicit
     const yard2 = tankInventory.filter((t) => t.currentZone === 'LAYDOWN_2');
     const yard2TankIds = new Set(yard2.map((t) => t.id));
@@ -1309,33 +1303,29 @@ export default function NiasTerminalView({
   // Open Interactive Relocate Modal (Method A)
   const openRelocateModal = (tank: FleetTankItem) => {
     setRelocateModalTank(tank);
-    const currentZone = getTankZone(tank.position);
-    setRelocateTargetZone(currentZone === 'Laydown 1' ? 'Laydown 2' : 'Laydown 1');
-    setRelocateSlotNumber(1);
-    setRelocateHeelPct(tank.level || 50);
-    setRelocateHeelPressMPa(tank.pressureMPa || 0.76);
-    setRelocateHeelTempC(tank.tempC || -126.5);
-    setRelocateHeelWeightKg(Math.round(((tank.level || 50) / 100) * 18200));
-    setRelocateRemarks('');
   };
 
-  // Confirm Relocation via Interactive Modal
-  const handleConfirmRelocation = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!relocateModalTank) return;
+  const handleConfirmRelocation = (data: {
+    tankNo: string;
+    origin: string;
+    targetZone: string;
+    slotNumber: number;
+    heelPct: number;
+    heelPressMPa: number;
+    heelTempC: number;
+    heelWeightKg: number;
+    remarks: string;
+  }) => {
+    const { tankNo, origin, targetZone, slotNumber, heelPct, heelPressMPa, heelTempC, heelWeightKg, remarks } = data;
+    const targetZoneEnum = targetZone === 'Laydown 2' || targetZone === 'Laydown 3' ? 'LAYDOWN_2' : 'LAYDOWN_1';
+    setTankInventory(prev => prev.map(t => t.id === tankNo ? { ...t, currentZone: targetZoneEnum, slotIndex: slotNumber } : t));
 
-    const tankNo = relocateModalTank.tankNo;
-    const origin = relocateModalTank.position || 'Nias Yard';
-
-    const targetZoneEnum = relocateTargetZone === 'Laydown 2' || relocateTargetZone === 'Laydown 3' ? 'LAYDOWN_2' : 'LAYDOWN_1';
-    setTankInventory(prev => prev.map(t => t.id === tankNo ? { ...t, currentZone: targetZoneEnum, slotIndex: relocateSlotNumber } : t));
-
-    moveTankLocation(tankNo, relocateTargetZone, relocateSlotNumber, {
-      heelLevelPct: relocateHeelPct,
-      heelPressureMPa: relocateHeelPressMPa,
-      heelTempC: relocateHeelTempC,
-      heelWeightKg: relocateHeelWeightKg,
-      remarks: relocateRemarks || `Relocated from ${origin} to ${relocateTargetZone}`,
+    moveTankLocation(tankNo, targetZone, slotNumber, {
+      heelLevelPct: heelPct,
+      heelPressureMPa: heelPressMPa,
+      heelTempC: heelTempC,
+      heelWeightKg: heelWeightKg,
+      remarks: remarks || `Relocated from ${origin} to ${targetZone}`,
     });
 
     const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1343,14 +1333,14 @@ export default function NiasTerminalView({
       {
         id: `ev-${Date.now()}`,
         time: nowTime,
-        text: `[${tankNo}] Relocated from ${origin} ➔ ${relocateTargetZone} (Slot ${relocateSlotNumber})`,
+        text: `[${tankNo}] Relocated from ${origin} ➔ ${targetZone} (Slot ${slotNumber})`,
         tag: 'RELOCATED',
         tagColor: 'text-slate-950 font-bold',
       },
       ...prev,
     ]);
 
-    setToastMessage(`✅ ${tankNo} relocated to ${relocateTargetZone} (Slot ${relocateSlotNumber})`);
+    setToastMessage(`✅ ${tankNo} relocated to ${targetZone} (Slot ${slotNumber})`);
     setRelocateModalTank(null);
     setTimeout(() => setToastMessage(null), 3000);
   };
@@ -1835,22 +1825,20 @@ export default function NiasTerminalView({
           <button
             type="button"
             onClick={() => setActiveDomain('ISO_TANK_MGMT')}
-            className={`px-3 py-1 text-xs font-bold font-mono transition-all cursor-pointer ${
-              activeDomain === 'ISO_TANK_MGMT'
-                ? 'win-tab-active text-blue-900'
-                : 'win-tab-inactive'
-            }`}
+            className={`px-3 py-1 text-xs font-bold font-mono transition-all cursor-pointer ${activeDomain === 'ISO_TANK_MGMT'
+              ? 'win-tab-active text-blue-900'
+              : 'win-tab-inactive'
+              }`}
           >
             ISO Tank Management
           </button>
           <button
             type="button"
             onClick={() => setActiveDomain('REGAS_SYSTEM')}
-            className={`px-3 py-1 text-xs font-bold font-mono transition-all cursor-pointer ${
-              activeDomain === 'REGAS_SYSTEM'
-                ? 'win-tab-active text-blue-900'
-                : 'win-tab-inactive'
-            }`}
+            className={`px-3 py-1 text-xs font-bold font-mono transition-all cursor-pointer ${activeDomain === 'REGAS_SYSTEM'
+              ? 'win-tab-active text-blue-900'
+              : 'win-tab-inactive'
+              }`}
           >
             Regas &amp; Power
           </button>
@@ -1864,9 +1852,8 @@ export default function NiasTerminalView({
             <button
               type="button"
               onClick={() => setTankSubTab('TANK_OVERVIEW')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
-                tankSubTab === 'TANK_OVERVIEW' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${tankSubTab === 'TANK_OVERVIEW' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
             >
               ISO TK Position
             </button>
@@ -1874,9 +1861,8 @@ export default function NiasTerminalView({
             <button
               type="button"
               onClick={() => setTankSubTab('LAYDOWN_1_2_LOG')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
-                tankSubTab === 'LAYDOWN_1_2_LOG' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${tankSubTab === 'LAYDOWN_1_2_LOG' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
             >
               ISO TK - LOG
             </button>
@@ -1884,9 +1870,8 @@ export default function NiasTerminalView({
             <button
               type="button"
               onClick={() => setTankSubTab('ACTIVE_BAY_TANKS')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
-                tankSubTab === 'ACTIVE_BAY_TANKS' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${tankSubTab === 'ACTIVE_BAY_TANKS' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
             >
               ORU ( ISO TK - SKID )
             </button>
@@ -1894,9 +1879,8 @@ export default function NiasTerminalView({
             <button
               type="button"
               onClick={() => setTankSubTab('LAYDOWN_3_HEEL')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
-                tankSubTab === 'LAYDOWN_3_HEEL' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${tankSubTab === 'LAYDOWN_3_HEEL' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
             >
               ORU ( LD - 2 )
             </button>
@@ -1904,9 +1888,8 @@ export default function NiasTerminalView({
             <button
               type="button"
               onClick={() => setTankSubTab('TANK_MASS_BALANCE')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
-                tankSubTab === 'TANK_MASS_BALANCE' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${tankSubTab === 'TANK_MASS_BALANCE' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
             >
               Mass Balance
             </button>
@@ -1916,9 +1899,8 @@ export default function NiasTerminalView({
             <button
               type="button"
               onClick={() => setRegasSubTab('GAS_PROCESS_TELEMETRY')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
-                regasSubTab === 'GAS_PROCESS_TELEMETRY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GAS_PROCESS_TELEMETRY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
             >
               GAS PROCESS
             </button>
@@ -1926,9 +1908,8 @@ export default function NiasTerminalView({
             <button
               type="button"
               onClick={() => setRegasSubTab('GC_GAS_QUALITY')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
-                regasSubTab === 'GC_GAS_QUALITY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GC_GAS_QUALITY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
             >
               GAS METERING - LOG
             </button>
@@ -1936,9 +1917,8 @@ export default function NiasTerminalView({
             <button
               type="button"
               onClick={() => setRegasSubTab('GAS_METERING_LEDGER')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
-                regasSubTab === 'GAS_METERING_LEDGER' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GAS_METERING_LEDGER' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
             >
               GAS METERING (LEDGER)
             </button>
@@ -1946,9 +1926,8 @@ export default function NiasTerminalView({
             <button
               type="button"
               onClick={() => setRegasSubTab('PLTMG_POWER_OUTPUT')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
-                regasSubTab === 'PLTMG_POWER_OUTPUT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'PLTMG_POWER_OUTPUT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
             >
               PLTMG POWER
             </button>
@@ -1956,9 +1935,8 @@ export default function NiasTerminalView({
             <button
               type="button"
               onClick={() => setRegasSubTab('CUSTODY_HEAT_SETTLEMENT')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${
-                regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
             >
               MONTHLY REPORT
               {disputeCount > 0 && (
@@ -2093,11 +2071,10 @@ export default function NiasTerminalView({
                   type="button"
                   onClick={handleAuthorizeBackhaul}
                   disabled={selectedBackhaulTanks.size === 0}
-                  className={`flex items-center gap-1.5 px-4 py-2 font-bold text-xs rounded-xs border-t border-l border-b-2 border-r-2 shadow-xs select-none transition-all font-mono ${
-                    selectedBackhaulTanks.size > 0
-                      ? 'bg-[#7c3aed] hover:bg-[#6d28d9] active:bg-[#5b21b6] text-white border-purple-300 border-b-purple-950 border-r-purple-950 cursor-pointer'
-                      : 'bg-slate-700 text-slate-400 border-slate-600 cursor-not-allowed'
-                  }`}
+                  className={`flex items-center gap-1.5 px-4 py-2 font-bold text-xs rounded-xs border-t border-l border-b-2 border-r-2 shadow-xs select-none transition-all font-mono ${selectedBackhaulTanks.size > 0
+                    ? 'bg-[#7c3aed] hover:bg-[#6d28d9] active:bg-[#5b21b6] text-white border-purple-300 border-b-purple-950 border-r-purple-950 cursor-pointer'
+                    : 'bg-slate-700 text-slate-400 border-slate-600 cursor-not-allowed'
+                    }`}
                 >
                   <Ship className="w-4 h-4" />
                   <span>Authorize MV. Saviour Backhaul ({selectedBackhaulTanks.size} Tanks)</span>
@@ -2110,11 +2087,10 @@ export default function NiasTerminalView({
               <button
                 type="button"
                 onClick={() => setLd2ViewMode('STAGING_BUFFER')}
-                className={`px-4 py-2 font-mono text-xs font-black tracking-wide border-t-2 border-l-2 border-r-2 rounded-t-xs transition-all cursor-pointer flex items-center gap-1.5 ${
-                  ld2ViewMode === 'STAGING_BUFFER'
-                    ? 'bg-[#ece9d8] text-[#002b4d] border-t-white border-l-white border-r-slate-600 shadow-xs -mb-[2px] pb-2.5 z-10'
-                    : 'bg-[#d0cbbf] hover:bg-[#dedad0] text-slate-700 border-t-slate-300 border-l-slate-300 border-r-slate-500'
-                }`}
+                className={`px-4 py-2 font-mono text-xs font-black tracking-wide border-t-2 border-l-2 border-r-2 rounded-t-xs transition-all cursor-pointer flex items-center gap-1.5 ${ld2ViewMode === 'STAGING_BUFFER'
+                  ? 'bg-[#ece9d8] text-[#002b4d] border-t-white border-l-white border-r-slate-600 shadow-xs -mb-[2px] pb-2.5 z-10'
+                  : 'bg-[#d0cbbf] hover:bg-[#dedad0] text-slate-700 border-t-slate-300 border-l-slate-300 border-r-slate-500'
+                  }`}
               >
                 <span>[1] STAGING BUFFER</span>
               </button>
@@ -2122,11 +2098,10 @@ export default function NiasTerminalView({
               <button
                 type="button"
                 onClick={() => setLd2ViewMode('SHIPPING_REPORT')}
-                className={`px-4 py-2 font-mono text-xs font-black tracking-wide border-t-2 border-l-2 border-r-2 rounded-t-xs transition-all cursor-pointer flex items-center gap-1.5 ${
-                  ld2ViewMode === 'SHIPPING_REPORT'
-                    ? 'bg-[#ece9d8] text-[#002b4d] border-t-white border-l-white border-r-slate-600 shadow-xs -mb-[2px] pb-2.5 z-10'
-                    : 'bg-[#d0cbbf] hover:bg-[#dedad0] text-slate-700 border-t-slate-300 border-l-slate-300 border-r-slate-500'
-                }`}
+                className={`px-4 py-2 font-mono text-xs font-black tracking-wide border-t-2 border-l-2 border-r-2 rounded-t-xs transition-all cursor-pointer flex items-center gap-1.5 ${ld2ViewMode === 'SHIPPING_REPORT'
+                  ? 'bg-[#ece9d8] text-[#002b4d] border-t-white border-l-white border-r-slate-600 shadow-xs -mb-[2px] pb-2.5 z-10'
+                  : 'bg-[#d0cbbf] hover:bg-[#dedad0] text-slate-700 border-t-slate-300 border-l-slate-300 border-r-slate-500'
+                  }`}
               >
                 <span>[2] BACKHAUL MANIFEST &amp; SHIPPING REPORT</span>
               </button>
@@ -2184,9 +2159,8 @@ export default function NiasTerminalView({
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
                     {/* [LEFT PANEL: LAYDOWN YARD 2 (STAGING BUFFER)] */}
                     <div
-                      className={`bg-[#dfdbd1] border-2 rounded-xs p-3 shadow-inner flex flex-col justify-between transition-colors ${
-                        dragOverTarget === 'LD2' ? 'border-amber-500 bg-[#ebd9c2]' : 'border-[#8a8579]'
-                      }`}
+                      className={`bg-[#dfdbd1] border-2 rounded-xs p-3 shadow-inner flex flex-col justify-between transition-colors ${dragOverTarget === 'LD2' ? 'border-amber-500 bg-[#ebd9c2]' : 'border-[#8a8579]'
+                        }`}
                       onDragOver={(e) => {
                         e.preventDefault();
                         setDragOverTarget('LD2');
@@ -2447,9 +2421,8 @@ export default function NiasTerminalView({
 
                     {/* [RIGHT PANEL: M.V. SAVIOUR (BACKHAUL VESSEL DECK)] */}
                     <div
-                      className={`bg-[#d7dfdb] border-2 rounded-xs p-3 shadow-inner flex flex-col justify-between transition-colors ${
-                        dragOverTarget === 'SAVIOUR' ? 'border-purple-600 bg-[#e6daf2]' : 'border-[#71887e]'
-                      }`}
+                      className={`bg-[#d7dfdb] border-2 rounded-xs p-3 shadow-inner flex flex-col justify-between transition-colors ${dragOverTarget === 'SAVIOUR' ? 'border-purple-600 bg-[#e6daf2]' : 'border-[#71887e]'
+                        }`}
                       onDragOver={(e) => {
                         e.preventDefault();
                         setDragOverTarget('SAVIOUR');
@@ -2489,11 +2462,10 @@ export default function NiasTerminalView({
                               setTimeout(() => setToastMessage(null), 2500);
                             }}
                             disabled={mvSaviourTanks.length === 0}
-                            className={`px-2.5 py-1 font-bold text-[11px] rounded-xs border-t border-l border-white border-b-2 border-r-2 shadow-xs select-none font-mono ${
-                              mvSaviourTanks.length > 0
-                                ? 'bg-[#c53030] hover:bg-[#e53e3e] active:bg-[#9b2c2c] text-white border-[#fc8181] border-b-[#742a2a] border-r-[#742a2a] cursor-pointer'
-                                : 'bg-slate-300 text-slate-500 border-slate-400 cursor-not-allowed'
-                            }`}
+                            className={`px-2.5 py-1 font-bold text-[11px] rounded-xs border-t border-l border-white border-b-2 border-r-2 shadow-xs select-none font-mono ${mvSaviourTanks.length > 0
+                              ? 'bg-[#c53030] hover:bg-[#e53e3e] active:bg-[#9b2c2c] text-white border-[#fc8181] border-b-[#742a2a] border-r-[#742a2a] cursor-pointer'
+                              : 'bg-slate-300 text-slate-500 border-slate-400 cursor-not-allowed'
+                              }`}
                           >
                             RESET (UNLOAD ALL)
                           </button>
@@ -2840,9 +2812,8 @@ export default function NiasTerminalView({
                             return (
                               <tr
                                 key={tank.id}
-                                className={`hover:bg-amber-50 transition-colors font-mono ${
-                                  isEven ? 'bg-[#faf9f6]' : 'bg-white'
-                                }`}
+                                className={`hover:bg-amber-50 transition-colors font-mono ${isEven ? 'bg-[#faf9f6]' : 'bg-white'
+                                  }`}
                               >
                                 {/* Identification */}
                                 <td className="py-2.5 px-2 border-r border-slate-200 font-bold text-slate-500">
@@ -2989,11 +2960,10 @@ export default function NiasTerminalView({
                     </span>
                   </div>
                   <span
-                    className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
-                      bay.status === 'RUNNING'
-                        ? 'bg-amber-500/20 text-white font-bold border-amber-200'
-                        : 'bg-emerald-500/20 text-white font-bold border-emerald-200'
-                    }`}
+                    className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${bay.status === 'RUNNING'
+                      ? 'bg-amber-500/20 text-white font-bold border-amber-200'
+                      : 'bg-emerald-500/20 text-white font-bold border-emerald-200'
+                      }`}
                   >
                     {bay.status === 'RUNNING' ? 'In Use' : 'Ready'}
                   </span>
@@ -3406,170 +3376,11 @@ export default function NiasTerminalView({
       {/* ==================================================================== */}
       {/* METHOD A: INTERACTIVE TANK RELOCATION MODAL / DRAWER (Move Tank)     */}
       {/* ==================================================================== */}
-      {relocateModalTank && (
-        <div className="fixed inset-0 z-50 win-panel/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white shadow-none border border-slate-200 rounded-none max-w-lg w-full p-6 shadow-none animate-in zoom-in-95 max-h-[92vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-slate-950 font-bold flex items-center gap-2">
-                <Repeat className="w-5 h-5 text-slate-950 font-bold" />
-                <span>Relocate ISO Tank {relocateModalTank.tankNo}</span>
-              </h3>
-              <button
-                onClick={() => setRelocateModalTank(null)}
-                className="text-slate-950 font-bold hover:text-slate-950"
-              >
-                <XCircle className="w-5 h-5" />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-950 font-bold mb-4">
-              Seamlessly reassign vessel <span className="font-bold text-slate-950 font-bold font-mono">{relocateModalTank.tankNo}</span> ({relocateModalTank.serialNo}) across physical terminal lifecycle zones:
-            </p>
-
-            <form onSubmit={handleConfirmRelocation} className="space-y-4 text-xs">
-              {/* Origin vs Target Preview */}
-              <div className="p-3 win-panel rounded-none border border-slate-200 grid grid-cols-2 gap-3 font-mono">
-                <div>
-                  <span className="text-[10px] text-slate-950 font-bold uppercase block font-bold">Current Origin</span>
-                  <span className="font-bold text-slate-950 font-bold text-xs truncate block">
-                    {relocateModalTank.position || 'Nias Yard'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-950 font-bold uppercase block font-bold">Target Destination</span>
-                  <span className="font-bold text-slate-950 font-bold text-xs truncate block">
-                    {relocateTargetZone} {relocateTargetZone.startsWith('Laydown') ? `(Slot ${relocateSlotNumber})` : ''}
-                  </span>
-                </div>
-              </div>
-
-              {/* Target Destination Selector */}
-              <div>
-                <label className="block text-slate-950 font-bold mb-1 font-bold">Select Destination Zone / Rack:</label>
-                <select
-                  value={relocateTargetZone}
-                  onChange={(e) => setRelocateTargetZone(e.target.value)}
-                  className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-bold cursor-pointer"
-                >
-                  <optgroup label="Laydown Yards (Terminal Buffer)">
-                    <option value="Laydown 1">📥 Laydown Yard 1 (Receiving & BOG Buffer)</option>
-                    <option value="Laydown 2">🔄 Laydown Yard 2 (Empty Heel 4% Staging Buffer)</option>
-                  </optgroup>
-                  <optgroup label="4-Bay Regasification Vaporizer Racks">
-                    <option value="Bay 01">🔥 Bay 01 (Vaporizer Rack 1 - Direct PLTMG)</option>
-                    <option value="Bay 02">🔥 Bay 02 (Vaporizer Rack 2 - Direct PLTMG)</option>
-                    <option value="Bay 03">🔥 Bay 03 (Vaporizer Rack 3 - Direct PLTMG)</option>
-                    <option value="Bay 04">🔥 Bay 04 (Vaporizer Rack 4 - Direct PLTMG)</option>
-                  </optgroup>
-                </select>
-              </div>
-
-              {/* Slot Selector (If target is a Yard) */}
-              {relocateTargetZone.startsWith('Laydown') && (
-                <div>
-                  <label className="block text-slate-950 font-bold mb-1 font-bold">Assign Slot Position (1 ~ 12):</label>
-                  <select
-                    value={relocateSlotNumber}
-                    onChange={(e) => setRelocateSlotNumber(parseInt(e.target.value) || 1)}
-                    className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-mono font-bold cursor-pointer"
-                  >
-                    {Array.from({ length: 12 }).map((_, idx) => (
-                      <option key={idx + 1} value={idx + 1}>
-                        Slot {idx + 1} {idx === 0 ? '(Default)' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Laydown Yard 2 Heel Preservation Parameters */}
-              {(relocateTargetZone === 'Laydown 2' || relocateTargetZone === 'Laydown 3') && (
-                <div className="p-3.5 bg-purple-950/30 border border-purple-500/40 rounded-none space-y-3">
-                  <div className="flex items-center gap-2 text-slate-950 font-bold font-bold border-b border-purple-800/60 pb-1.5">
-                    <RotateCcw className="w-4 h-4 text-slate-950 font-bold" />
-                    <span>Cold Heel 4% Preservation Parameters</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-slate-950 font-bold mb-1 font-bold">Preserved Heel Level (%):</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        value={relocateHeelPct}
-                        onChange={(e) => setRelocateHeelPct(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-white shadow-none border border-slate-200 rounded-none px-3 py-1.5 text-slate-950 font-bold font-mono font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-950 font-bold mb-1 font-bold">Residual Pressure (MPa):</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={relocateHeelPressMPa}
-                        onChange={(e) => setRelocateHeelPressMPa(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-white shadow-none border border-slate-200 rounded-none px-3 py-1.5 text-slate-950 font-bold font-mono font-bold"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-slate-950 font-bold mb-1 font-bold">Cryo Temp (°C):</label>
-                      <input
-                        type="number"
-                        step="0.5"
-                        value={relocateHeelTempC}
-                        onChange={(e) => setRelocateHeelTempC(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-white shadow-none border border-slate-200 rounded-none px-3 py-1.5 text-slate-950 font-bold font-mono font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-950 font-bold mb-1 font-bold">Heel Mass (Kg):</label>
-                      <input
-                        type="number"
-                        value={relocateHeelWeightKg}
-                        onChange={(e) => setRelocateHeelWeightKg(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-white shadow-none border border-slate-200 rounded-none px-3 py-1.5 text-slate-950 font-bold font-mono font-bold"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Remarks Input */}
-              <div>
-                <label className="block text-slate-950 font-bold mb-1 font-bold">Relocation Remarks / Reason:</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Staged for peak evening load / Venting boil-off gas"
-                  value={relocateRemarks}
-                  onChange={(e) => setRelocateRemarks(e.target.value)}
-                  className="w-full win-panel border border-slate-200 rounded-none px-1.5 py-0.5 text-slate-950 font-bold font-sans"
-                />
-              </div>
-
-              {/* Buttons */}
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setRelocateModalTank(null)}
-                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-100 text-slate-950 font-bold rounded-none font-bold transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-none font-bold shadow-none shadow-blue-600/25 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Confirm Relocation</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <NiasTankRelocationDrawer
+        tank={relocateModalTank}
+        onClose={() => setRelocateModalTank(null)}
+        onConfirm={handleConfirmRelocation}
+      />
 
       {/* ========================================================================= */}
       {/* TANK DETAIL & STATE SCADA MODAL (PAGT/NIAS SCADA NAVY/BEIGE WINDOW THEME)  */}
@@ -3603,8 +3414,8 @@ export default function NiasTerminalView({
           selectedDetailTank.currentZone === 'LAYDOWN_1'
             ? `ORU (LD-1) Slot #${selectedDetailTank.slotIndex || 1}`
             : selectedDetailTank.currentZone === 'LAYDOWN_2'
-            ? `ORU (LD-2) Slot #${selectedDetailTank.slotIndex || 1}`
-            : `ORU (ISO TK-Skid) Rack ${rackTag}`;
+              ? `ORU (LD-2) Slot #${selectedDetailTank.slotIndex || 1}`
+              : `ORU (ISO TK-Skid) Rack ${rackTag}`;
 
         return (
           <div
@@ -3677,18 +3488,17 @@ export default function NiasTerminalView({
                     </>
                   )}
                 </div>
-                <span className={`px-2.5 py-1 text-xs font-bold font-mono border self-center ${
-                  selectedDetailTank.currentZone === 'LAYDOWN_1'
-                    ? 'bg-slate-900 text-cyan-300 border-cyan-400/40'
-                    : selectedDetailTank.currentZone === 'LAYDOWN_2'
+                <span className={`px-2.5 py-1 text-xs font-bold font-mono border self-center ${selectedDetailTank.currentZone === 'LAYDOWN_1'
+                  ? 'bg-slate-900 text-cyan-300 border-cyan-400/40'
+                  : selectedDetailTank.currentZone === 'LAYDOWN_2'
                     ? 'bg-slate-900 text-purple-200 border-purple-400/40'
                     : 'bg-slate-900 text-emerald-300 border-emerald-400/40'
-                }`}>
+                  }`}>
                   {selectedDetailTank.currentZone === 'LAYDOWN_1'
                     ? 'ORU (LD-1) CRYO STORAGE'
                     : selectedDetailTank.currentZone === 'LAYDOWN_2'
-                    ? 'ORU (LD-2) HEEL BUFFER'
-                    : `PLTMG SENDOUT RACK (${rackTag})`}
+                      ? 'ORU (LD-2) HEEL BUFFER'
+                      : `PLTMG SENDOUT RACK (${rackTag})`}
                 </span>
               </div>
 
@@ -3750,9 +3560,8 @@ export default function NiasTerminalView({
                             <span className="text-xs text-slate-500 font-mono">
                               Swap Limit: 13,222 kg
                             </span>
-                            <span className={`text-[11px] font-bold font-mono ${
-                              currentMassKg <= 13222 ? 'text-amber-600' : 'text-emerald-700'
-                            }`}>
+                            <span className={`text-[11px] font-bold font-mono ${currentMassKg <= 13222 ? 'text-amber-600' : 'text-emerald-700'
+                              }`}>
                               {currentMassKg <= 13222 ? '[SWAP REQ ACTIVE]' : '[FEEDING STABLE]'}
                             </span>
                           </div>
@@ -3932,15 +3741,15 @@ export default function NiasTerminalView({
                               prev.map((t) =>
                                 t.id === selectedDetailTank.id
                                   ? {
-                                      ...t,
-                                      currentZone: 'LAYDOWN_2',
-                                      slotIndex: targetSlot,
-                                      levelPercent: heelPct,
-                                      levelM3: parsedVol,
-                                      levelMmH2O: parsedMm,
-                                      pressureMpa: parsedPress,
-                                      tempC: -135.0,
-                                    }
+                                    ...t,
+                                    currentZone: 'LAYDOWN_2',
+                                    slotIndex: targetSlot,
+                                    levelPercent: heelPct,
+                                    levelM3: parsedVol,
+                                    levelMmH2O: parsedMm,
+                                    pressureMpa: parsedPress,
+                                    tempC: -135.0,
+                                  }
                                   : t
                               )
                             );
@@ -3981,9 +3790,8 @@ export default function NiasTerminalView({
                         {/* Holding Pressure */}
                         <div className="win-sunken bg-slate-50 p-3 border border-slate-200 text-center flex flex-col justify-between">
                           <span className="text-xs font-semibold text-slate-600 font-sans block mb-1">Holding Pressure</span>
-                          <strong className={`font-mono text-base sm:text-lg font-bold block my-0.5 ${
-                            (selectedDetailTank.pressureMpa || 0) >= 0.74 ? 'text-amber-600' : 'text-slate-900'
-                          }`}>
+                          <strong className={`font-mono text-base sm:text-lg font-bold block my-0.5 ${(selectedDetailTank.pressureMpa || 0) >= 0.74 ? 'text-amber-600' : 'text-slate-900'
+                            }`}>
                             {(selectedDetailTank.pressureMpa || 0.76).toFixed(2)} MPa
                           </strong>
                           <span className="text-[10px] font-mono text-slate-500 block">
@@ -4108,11 +3916,10 @@ export default function NiasTerminalView({
                                 setToastMessage(`Mounted ${selectedDetailTank.id} to ${rackT} for Regasification`);
                                 setTimeout(() => setToastMessage(null), 3000);
                               }}
-                              className={`win-btn py-1 px-2 font-mono text-center ${
-                                isOccupied
-                                  ? 'bg-slate-200 text-slate-500 border-slate-300 cursor-not-allowed opacity-75'
-                                  : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border-emerald-600 cursor-pointer shadow-xs'
-                              }`}
+                              className={`win-btn py-1 px-2 font-mono text-center ${isOccupied
+                                ? 'bg-slate-200 text-slate-500 border-slate-300 cursor-not-allowed opacity-75'
+                                : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border-emerald-600 cursor-pointer shadow-xs'
+                                }`}
                             >
                               {isOccupied ? (
                                 <div className="flex flex-col items-center justify-center py-1">
@@ -4171,7 +3978,7 @@ export default function NiasTerminalView({
         return (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4 select-none animate-in fade-in duration-150 font-mono">
             <div className="w-[96vw] max-w-[1480px] h-[90vh] flex flex-col bg-[#ece9d8] border-2 border-white border-b-2 border-r-2 border-slate-700 shadow-2xl rounded-xs overflow-hidden">
-              
+
               {/* Top Header Bar */}
               <div className="bg-[#0a2540] text-white px-4 py-2 flex items-center justify-between border-b border-[#071a2e] shrink-0">
                 {/* Left: Title & Serial */}
@@ -4194,11 +4001,10 @@ export default function NiasTerminalView({
                         key={range}
                         type="button"
                         onClick={() => setTrendTimeRange(range)}
-                        className={`px-3 py-0.5 text-xs font-bold font-mono rounded-xs border-t border-l border-b-2 border-r-2 shadow-xs cursor-pointer select-none transition-all ${
-                          isActive
-                            ? 'bg-[#d4d0c8] text-slate-900 border-white border-b-slate-700 border-r-slate-700 shadow-inner font-black'
-                            : 'bg-[#1b2b3a] hover:bg-[#25394d] text-slate-300 border-slate-600 border-b-slate-900 border-r-slate-900'
-                        }`}
+                        className={`px-3 py-0.5 text-xs font-bold font-mono rounded-xs border-t border-l border-b-2 border-r-2 shadow-xs cursor-pointer select-none transition-all ${isActive
+                          ? 'bg-[#d4d0c8] text-slate-900 border-white border-b-slate-700 border-r-slate-700 shadow-inner font-black'
+                          : 'bg-[#1b2b3a] hover:bg-[#25394d] text-slate-300 border-slate-600 border-b-slate-900 border-r-slate-900'
+                          }`}
                       >
                         {label}
                       </button>
@@ -4236,10 +4042,10 @@ export default function NiasTerminalView({
 
               {/* Modal Body: 60% Single Large Multi-Axis Chart + 40% Data Sheet */}
               <div className="flex-1 min-h-0 flex flex-col p-3 gap-3 overflow-hidden bg-[#e8e4dc]">
-                
+
                 {/* TOP: Single Multi-Axis SCADA Telemetry Chart Canvas (60% height) */}
                 <div className="flex-[6] min-h-0 flex flex-col bg-[#1e293b] border-2 border-[#475569] rounded-xs shadow-[inset_2px_2px_6px_rgba(0,0,0,0.5)] p-2.5 overflow-hidden">
-                  
+
                   {/* Chart Container */}
                   <div className="flex-1 min-h-0 w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -4466,11 +4272,10 @@ export default function NiasTerminalView({
                     <button
                       type="button"
                       onClick={() => setTrendSeriesVisible((prev) => ({ ...prev, temp: !prev.temp }))}
-                      className={`flex items-center gap-2 px-3 py-1 rounded-xs cursor-pointer transition-all border ${
-                        trendSeriesVisible.temp
-                          ? 'bg-[#ff6b6b]/15 border-[#ff6b6b]/60 text-[#ff6b6b] shadow-xs font-bold'
-                          : 'bg-slate-800/40 border-slate-700/50 text-slate-500 opacity-60 line-through'
-                      }`}
+                      className={`flex items-center gap-2 px-3 py-1 rounded-xs cursor-pointer transition-all border ${trendSeriesVisible.temp
+                        ? 'bg-[#ff6b6b]/15 border-[#ff6b6b]/60 text-[#ff6b6b] shadow-xs font-bold'
+                        : 'bg-slate-800/40 border-slate-700/50 text-slate-500 opacity-60 line-through'
+                        }`}
                       title="Toggle Cryo Temperature Series"
                     >
                       <span className={`w-3 h-1 rounded-full ${trendSeriesVisible.temp ? 'bg-[#ff6b6b]' : 'bg-slate-600'}`} />
@@ -4480,11 +4285,10 @@ export default function NiasTerminalView({
                     <button
                       type="button"
                       onClick={() => setTrendSeriesVisible((prev) => ({ ...prev, press: !prev.press }))}
-                      className={`flex items-center gap-2 px-3 py-1 rounded-xs cursor-pointer transition-all border ${
-                        trendSeriesVisible.press
-                          ? 'bg-[#2ec4b6]/15 border-[#2ec4b6]/60 text-[#2ec4b6] shadow-xs font-bold'
-                          : 'bg-slate-800/40 border-slate-700/50 text-slate-500 opacity-60 line-through'
-                      }`}
+                      className={`flex items-center gap-2 px-3 py-1 rounded-xs cursor-pointer transition-all border ${trendSeriesVisible.press
+                        ? 'bg-[#2ec4b6]/15 border-[#2ec4b6]/60 text-[#2ec4b6] shadow-xs font-bold'
+                        : 'bg-slate-800/40 border-slate-700/50 text-slate-500 opacity-60 line-through'
+                        }`}
                       title="Toggle Pressure Series"
                     >
                       <span className={`w-3 h-1 rounded-full ${trendSeriesVisible.press ? 'bg-[#2ec4b6]' : 'bg-slate-600'}`} />
@@ -4494,11 +4298,10 @@ export default function NiasTerminalView({
                     <button
                       type="button"
                       onClick={() => setTrendSeriesVisible((prev) => ({ ...prev, vol: !prev.vol }))}
-                      className={`flex items-center gap-2 px-3 py-1 rounded-xs cursor-pointer transition-all border ${
-                        trendSeriesVisible.vol
-                          ? 'bg-[#00b4d8]/15 border-[#00b4d8]/60 text-[#00b4d8] shadow-xs font-bold'
-                          : 'bg-slate-800/40 border-slate-700/50 text-slate-500 opacity-60 line-through'
-                      }`}
+                      className={`flex items-center gap-2 px-3 py-1 rounded-xs cursor-pointer transition-all border ${trendSeriesVisible.vol
+                        ? 'bg-[#00b4d8]/15 border-[#00b4d8]/60 text-[#00b4d8] shadow-xs font-bold'
+                        : 'bg-slate-800/40 border-slate-700/50 text-slate-500 opacity-60 line-through'
+                        }`}
                       title="Toggle Residual Volume Series"
                     >
                       <span className={`w-3 h-1 rounded-full ${trendSeriesVisible.vol ? 'bg-[#00b4d8]' : 'bg-slate-600'}`} />
