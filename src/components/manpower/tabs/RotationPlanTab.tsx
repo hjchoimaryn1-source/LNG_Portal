@@ -52,6 +52,9 @@ export default function RotationPlanTab({
   onUpdateStartDate,
   onRequestAL,
 }: RotationPlanTabProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const endStr = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   const [activeFilter, setActiveFilter] = useState<RotationFilter>('ALL');
   const [localOverrides, setLocalOverrides] = useState<
     Record<string, { team?: string; status?: string; shift?: ShiftCode; startDate?: string; reliever?: string }>
@@ -162,11 +165,6 @@ export default function RotationPlanTab({
     if (field === 'startDate' && onUpdateStartDate) onUpdateStartDate(id, value);
   };
 
-  const handleRequestALClick = () => {
-    if (onRequestAL) onRequestAL();
-    else alert('Request AL: Process queued for Site Manager / Reliever approval.');
-  };
-
   return (
     <div className="space-y-1.5 bg-[#d4d0c8] p-1.5 font-sans text-xs">
       {/* HEADER BAR */}
@@ -176,7 +174,7 @@ export default function RotationPlanTab({
           <span className="text-[13px] font-black tracking-wider text-slate-900 uppercase">ROTATION TRACKER</span>
         </div>
         <button
-          onClick={handleRequestALClick}
+          onClick={() => setIsModalOpen(true)}
           className="win-btn px-3 py-0.5 text-xs font-bold bg-[#d4d0c8] border border-gray-600 hover:bg-slate-200 cursor-pointer shadow-xs active:translate-y-px text-slate-900"
         >
           <span>Request AL</span>
@@ -268,12 +266,13 @@ export default function RotationPlanTab({
           <thead>
             <tr className="bg-slate-200 border-b border-slate-400 text-slate-800 text-[10px]">
               <th className="p-1 border-r border-slate-300 w-10 text-center">NO.</th>
-              <th className="p-1 border-r border-slate-300 w-36 text-center">NAME / ID</th>
+              <th className="p-1 border-r border-slate-300 w-[150px] min-w-[150px] text-center">NAME</th>
+              <th className="p-1 border-r border-slate-300 w-[100px] min-w-[100px] text-center">EMP ID</th>
               <th className="p-1 border-r border-slate-300 w-36 text-center">POSITION</th>
-              <th className="p-1 border-r border-slate-300 w-32 text-center">TEAM</th>
-              <th className="p-1 border-r border-slate-300 w-24 text-center">STATUS</th>
-              <th className="p-1 border-r border-slate-300 w-16 text-center">SHIFT</th>
-              <th className="p-1 border-r border-slate-300 w-28 text-center">ON-SITE DATE</th>
+              <th className="p-1 border-r border-slate-300 w-[130px] min-w-[130px] text-center">TEAM</th>
+              <th className="p-1 border-r border-slate-300 w-[105px] min-w-[105px] text-center">STATUS</th>
+              <th className="p-1 border-r border-slate-300 w-[65px] min-w-[65px] text-center">SHIFT</th>
+              <th className="p-1 border-r border-slate-300 w-[125px] min-w-[125px] text-center">ON-SITE DATE</th>
               <th className="p-1 border-r border-slate-300 w-40 text-center">DAYS (90D)</th>
               <th className="p-1 border-r border-slate-300 w-32 text-center">DUE DATE</th>
               <th className="p-1 border-r border-slate-300 w-36 text-center">ERT ROLE</th>
@@ -291,99 +290,102 @@ export default function RotationPlanTab({
                 <tr
                   key={m.id}
                   onClick={() => onSelectEmployee?.(m.id)}
-                  className={`cursor-pointer transition-colors duration-150 border-b border-slate-300 ${
+                  className={`h-11 cursor-pointer transition-colors duration-150 border-b border-slate-300 ${
                     isSelected ? 'bg-sky-100/80 border-l-4 border-sky-600' : idx % 2 === 0 ? 'bg-white hover:bg-sky-50/70' : 'bg-slate-50 hover:bg-sky-50/70'
                   }`}
                 >
-                  <td className="p-1.5 border-r border-slate-300 text-center font-mono font-bold text-slate-700">{idx + 1}</td>
-                  <td className="p-1.5 border-r border-slate-300 whitespace-nowrap text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <span className="font-bold text-slate-900 leading-tight">{m.name}</span>
-                      <span className="text-[10px] text-slate-500 font-mono leading-tight">{m.id}</span>
-                    </div>
+                  <td className="p-1.5 border-r border-slate-300 text-center font-mono font-bold text-sm text-slate-700">{idx + 1}</td>
+                  <td className="p-1.5 border-r border-slate-300 w-[150px] min-w-[150px] whitespace-nowrap text-sm font-bold text-slate-900 text-left px-2.5">
+                    {m.name}
                   </td>
-                  <td className="p-1.5 border-r border-slate-300 text-slate-800 whitespace-nowrap font-medium text-center uppercase tracking-wide">{m.position}</td>
-                  <td className="p-1 border-r border-slate-300 text-center" onClick={(e) => e.stopPropagation()}>
+                  <td className="p-1.5 border-r border-slate-300 w-[100px] min-w-[100px] whitespace-nowrap text-sm font-mono font-semibold text-slate-700 text-center">
+                    {m.id}
+                  </td>
+                  <td className="p-1.5 border-r border-slate-300 text-slate-800 whitespace-nowrap text-sm font-semibold text-center uppercase tracking-wide">{m.position}</td>
+                  <td className="p-0 border-r border-slate-300 w-[130px] min-w-[130px] text-center bg-inherit" onClick={(e) => e.stopPropagation()}>
                     <select
                       value={m.team}
                       onChange={(e) => handleUpdateField(m.id, 'team', e.target.value)}
-                      className="bg-white border border-slate-300 text-[10px] px-1 py-0.5 rounded font-mono font-semibold text-slate-800 w-full text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full h-8 px-1 text-center bg-transparent border-none outline-none font-semibold text-sm text-slate-900 cursor-pointer"
                     >
-                      {TEAM_OPTIONS.map((t) => (<option key={t} value={t}>{t}</option>))}
+                      {TEAM_OPTIONS.map((t) => (<option key={t} value={t} className="bg-white text-slate-900">{t}</option>))}
                     </select>
                   </td>
-                  <td className="p-1 border-r border-slate-300 text-center" onClick={(e) => e.stopPropagation()}>
+                  <td className="p-0 border-r border-slate-300 w-[105px] min-w-[105px] text-center bg-inherit" onClick={(e) => e.stopPropagation()}>
                     {isResident ? (
-                      <span className="bg-slate-100 text-slate-700 border border-slate-300 font-bold px-1.5 py-0.5 rounded text-[10px] inline-block font-mono">Resident</span>
+                      <span className="font-semibold text-sm text-slate-900 inline-flex items-center justify-center w-full h-8 font-mono">Resident</span>
                     ) : (
                       <select
                         value={m.status}
                         onChange={(e) => handleUpdateField(m.id, 'status', e.target.value)}
-                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded border text-center font-mono cursor-pointer focus:outline-none ${
-                          m.status === 'ON_SITE' ? 'bg-slate-100 text-slate-800 border-slate-400' : 'bg-[#dedbd2] text-slate-700 border-slate-400'
-                        }`}
+                        className="w-full h-8 px-1 text-center bg-transparent border-none outline-none font-semibold text-sm text-slate-900 cursor-pointer"
                       >
-                        <option value="ON_SITE">On-Site</option>
-                        <option value="OFF_DUTY">Off-Duty</option>
+                        <option value="ON_SITE" className="bg-white text-slate-900">On-Site</option>
+                        <option value="OFF_DUTY" className="bg-white text-slate-900">Off-Duty</option>
                       </select>
                     )}
                   </td>
-                  <td className="p-1 border-r border-slate-300 text-center" onClick={(e) => e.stopPropagation()}>
+                  <td className="p-0 border-r border-slate-300 w-[65px] min-w-[65px] text-center bg-inherit" onClick={(e) => e.stopPropagation()}>
                     <select
                       value={m.todayShift}
                       onChange={(e) => handleUpdateField(m.id, 'shift', e.target.value as ShiftCode)}
-                      className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-300 bg-slate-50 text-slate-800 text-center font-mono cursor-pointer focus:outline-none"
+                      className="w-full h-8 px-1 text-center bg-transparent border-none outline-none font-bold text-sm text-slate-900 cursor-pointer"
                     >
-                      <option value="D">D</option><option value="N">N</option><option value="Off">Off</option><option value="R">R</option>
+                      <option value="D" className="bg-white text-slate-900">D</option>
+                      <option value="N" className="bg-white text-slate-900">N</option>
+                      <option value="Off" className="bg-white text-slate-900">Off</option>
+                      <option value="R" className="bg-white text-slate-900">R</option>
                     </select>
                   </td>
-                  <td className="p-1 border-r border-slate-300 font-mono text-center" onClick={(e) => e.stopPropagation()}>
+                  <td className="p-0 border-r border-slate-300 w-[125px] min-w-[125px] font-mono text-center bg-inherit" onClick={(e) => e.stopPropagation()}>
                     {isResident ? (
-                      <span className="text-slate-400 font-normal">-</span>
+                      <span className="text-slate-400 font-normal text-sm inline-flex items-center justify-center w-full h-8">-</span>
                     ) : (
-                      <input
-                        type="date"
-                        value={m.cycleStartDate}
-                        onChange={(e) => handleUpdateField(m.id, 'startDate', e.target.value)}
-                        className="bg-white px-1 py-0.5 border border-slate-400 text-slate-900 font-mono font-bold text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500 text-center w-full"
-                      />
+                      <div className="flex items-center justify-center w-full h-full">
+                        <input
+                          type="date"
+                          value={m.cycleStartDate}
+                          onChange={(e) => handleUpdateField(m.id, 'startDate', e.target.value)}
+                          className="w-[120px] h-8 px-1 text-center bg-transparent border-none outline-none font-mono font-semibold text-sm text-slate-900 cursor-pointer"
+                        />
+                      </div>
                     )}
                   </td>
                   <td className="p-1.5 border-r border-slate-300 text-center">
                     {isResident || isOffDuty ? (
-                      <span className="text-[10px] font-mono text-slate-400">-</span>
+                      <span className="text-sm font-mono text-slate-400">-</span>
                     ) : (
-                      <div className="flex flex-col items-center justify-center w-full max-w-[130px] mx-auto">
-                        <div className="flex items-center justify-center gap-1 text-[10px] mb-0.5 font-mono text-slate-800">
-                          <span className="font-bold">{m.onSiteDays}d</span>
-                          <span className="text-slate-500">/ 90d</span>
-                          <span className={`font-semibold ${m.pct >= 90 ? 'text-rose-700 font-black' : 'text-slate-600'}`}>({m.pct}%)</span>
+                      <div className="flex flex-col items-center justify-center w-full max-w-[140px] mx-auto">
+                        <div className="flex items-center justify-center gap-1.5 text-xs mb-1 font-mono font-semibold text-slate-900">
+                          <span className="font-bold text-blue-900 text-sm">{m.onSiteDays}d</span>
+                          <span className="text-slate-600">/ 90d</span>
+                          <span className={`font-semibold ${m.pct >= 90 ? 'text-rose-700 font-black' : m.pct >= 70 ? 'text-amber-700 font-bold' : 'text-slate-600'}`}>({m.pct}%)</span>
                         </div>
-                        <div className="w-full bg-slate-200 h-1.5 border border-slate-300 overflow-hidden">
+                        <div className="w-full bg-slate-200 h-2 border border-slate-300 rounded-sm overflow-hidden">
                           <div
-                            className={`h-full ${m.pct >= 90 ? 'bg-rose-600' : 'bg-slate-600'}`}
-                            style={{ width: `${m.pct}%` }}
+                            className={`h-full ${m.pct >= 90 ? 'bg-rose-600' : m.pct >= 70 ? 'bg-amber-500' : 'bg-blue-600'}`}
+                            style={{ width: `${Math.min(m.pct, 100)}%` }}
                           />
                         </div>
                       </div>
                     )}
                   </td>
-                  <td className="p-1.5 border-r border-slate-300 font-mono text-center whitespace-nowrap text-slate-800">
+                  <td className="p-1.5 border-r border-slate-300 font-mono text-center whitespace-nowrap text-sm font-semibold text-slate-900">
                     {isResident || !m.dynamicLeaveDue || m.dynamicLeaveDue === '-' ? (
                       <span className="text-slate-400">-</span>
                     ) : (
-                      <span className={m.onSiteDays >= 83 && !isOffDuty ? 'text-rose-800 font-black' : 'font-medium'}>
+                      <span className={m.onSiteDays >= 83 && !isOffDuty ? 'text-rose-800 font-black' : 'font-semibold'}>
                         {m.dynamicLeaveDue}
                       </span>
                     )}
                   </td>
-                  <td className="p-1.5 border-r border-slate-300 text-center whitespace-nowrap font-mono text-xs text-slate-700">
+                  <td className="p-1.5 border-r border-slate-300 text-center whitespace-nowrap text-sm font-semibold text-slate-800">
                     {m.ertRole && m.ertRole !== 'None' ? m.ertRole : '-'}
                   </td>
-                  <td className="p-1.5 border-r border-slate-300 text-center whitespace-nowrap font-mono text-xs text-slate-700">
+                  <td className="p-1.5 border-r border-slate-300 text-center whitespace-nowrap font-mono text-sm font-semibold text-slate-900">
                     {m.radioCh || '-'}
                   </td>
-                  <td className="p-1.5 text-center whitespace-nowrap font-mono text-xs text-slate-700">
+                  <td className="p-1.5 text-center whitespace-nowrap font-mono text-sm font-semibold text-slate-900">
                     {formatContactNo(m.contactNo)}
                   </td>
                 </tr>
@@ -393,13 +395,103 @@ export default function RotationPlanTab({
           <tfoot>
             <tr className="bg-slate-200 border-t-2 border-slate-400 font-bold text-slate-800 text-[10px]">
               <td className="p-1.5 border-r border-slate-300"></td>
-              <td colSpan={11} className="p-1.5 pl-3 text-slate-700 font-mono text-left">
+              <td colSpan={12} className="p-1.5 pl-3 text-slate-700 font-mono text-left">
                 TOTAL DISPLAYED: <span className="text-slate-900 font-black">{displayList.length}</span> / {allStaff.length} PERSONNEL
               </td>
             </tr>
           </tfoot>
         </table>
       </div>
+
+      {/* 4. ANNUAL LEAVE (AL) APPLICATION MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="w-[90vw] max-w-5xl max-h-[90vh] flex flex-col bg-[#d4d0c8] border-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] shadow-2xl p-2 font-sans text-xs select-none">
+            {/* Title Bar */}
+            <div className="bg-[#000080] text-white px-3 py-1.5 font-bold text-sm flex items-center justify-between mb-2 shrink-0">
+              <span>ANNUAL LEAVE (AL) APPLICATION FORM</span>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="win-btn px-1.5 py-0.5 text-[10px] font-bold bg-[#d4d0c8] text-black border border-black cursor-pointer active:translate-y-px"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 font-mono">
+              <div>
+                <label className="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1">Personnel:</label>
+                <select className="w-full bg-white border border-slate-400 py-2 px-3 text-sm outline-none cursor-pointer text-slate-900 font-semibold">
+                  {allStaff.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.id})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1">Leave Type:</label>
+                <select className="w-full bg-white border border-slate-400 py-2 px-3 text-sm outline-none cursor-pointer text-slate-900 font-semibold">
+                  <option value="ANNUAL_LEAVE">Annual Leave (AL)</option>
+                  <option value="COMPASSIONATE">Compassionate Leave</option>
+                  <option value="MEDICAL">Medical Leave</option>
+                  <option value="SPECIAL">Special Rotation Leave</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1">Start Date:</label>
+                  <input
+                    type="date"
+                    defaultValue={todayStr}
+                    className="w-full bg-white border border-slate-400 px-3 py-1.5 text-sm font-mono font-bold text-slate-900 outline-none focus:border-blue-600 cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1">End Date:</label>
+                  <input
+                    type="date"
+                    defaultValue={endStr}
+                    className="w-full bg-white border border-slate-400 px-3 py-1.5 text-sm font-mono font-bold text-slate-900 outline-none focus:border-blue-600 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1">Reliever:</label>
+                <select className="w-full bg-white border border-slate-400 py-2 px-3 text-sm outline-none cursor-pointer text-slate-900 font-semibold">
+                  {allStaff.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.id})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-800 uppercase tracking-wide mb-1">Reason / Remarks:</label>
+                <textarea rows={6} className="w-full min-h-[120px] bg-white border border-slate-400 p-3 text-sm outline-none resize-none text-slate-900 font-sans" placeholder="Enter reason or handover details for leave request..." />
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-400 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="win-btn px-5 py-2 font-bold text-sm bg-[#d4d0c8] border border-gray-700 hover:bg-slate-200 cursor-pointer shadow-xs active:translate-y-px text-slate-900"
+                >
+                  Submit Request
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="win-btn px-5 py-2 font-bold text-sm bg-[#d4d0c8] border border-gray-700 hover:bg-slate-200 cursor-pointer shadow-xs active:translate-y-px text-slate-900"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

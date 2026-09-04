@@ -21,7 +21,6 @@ import LoginGateway from './auth/LoginGateway';
 import SectorLauncherHub from './launcher/SectorLauncherHub';
 import { INITIAL_MANPOWER_MASTER_RECORDS } from '../data/manpowerMasterData';
 import {
-  RefreshCw,
   Monitor,
   Loader2,
   Building2,
@@ -695,29 +694,27 @@ function LNGPortalInner({
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={handleRefreshCurrentModuleOverview}
-                className="win-btn text-xs px-2.5 py-1 flex items-center gap-1.5 cursor-pointer"
+                className="win-btn text-xs px-2.5 py-1 cursor-pointer"
                 title="Return to Section Overview"
               >
-                <RefreshCw className="w-3 h-3 text-slate-800" />
-                <span>Refresh</span>
+                To Overview
               </button>
               {onReturnToLauncher && (
                 <button
                   onClick={onReturnToLauncher}
-                  className="win-btn text-xs px-2.5 py-1 flex items-center gap-1 cursor-pointer font-bold text-blue-950"
+                  className="win-btn text-xs px-2.5 py-1 cursor-pointer font-bold text-blue-950"
                   title="Return to 5 Sector Launcher Hub"
                 >
-                  <span>⊞</span>
-                  <span>Sectors</span>
+                  To Main
                 </button>
               )}
               {onLogout && (
                 <button
                   onClick={onLogout}
-                  className="win-btn text-xs px-2 py-1 flex items-center gap-1 cursor-pointer text-slate-700"
+                  className="win-btn text-xs px-2 py-1 cursor-pointer text-slate-700"
                   title="Lock Session / Logout"
                 >
-                  <span>🔒</span>
+                  Log Out
                 </button>
               )}
             </div>
@@ -1126,13 +1123,8 @@ export default function LNGPortalApp() {
       ) : (
         /* Unified Background: Full-screen plant background image with dark overlay */
         <div
-          className="relative h-screen w-screen overflow-hidden flex flex-col font-sans select-none"
-          style={{
-            backgroundColor: '#0a1420',
-            backgroundImage: `linear-gradient(rgba(10, 22, 38, 0.82), rgba(8, 16, 28, 0.90)), url('/images/ISO%20Tank.jpg')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
+          className="relative h-screen w-screen bg-[#d4d0c8] overflow-hidden flex flex-col font-sans select-none"
+          style={{ backgroundColor: '#d4d0c8' }}
         >
           {!isAuthenticated ? (
             /* State 1: Compact classic SCADA login box centered directly on photo background */

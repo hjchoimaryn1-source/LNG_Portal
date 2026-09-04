@@ -151,9 +151,7 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
     }
   }, [mergeStoredDomainData]);
 
-  useEffect(() => {
-    initData();
-  }, [initData]);
+  useEffect(() => { initData(); }, []);
 
   const updateTankLog = (tankNo: string, updatedFields: Partial<FleetTankItem>) => {
     setFleetTanks((prev) => applyTankUpdate(prev, tankNo, updatedFields));

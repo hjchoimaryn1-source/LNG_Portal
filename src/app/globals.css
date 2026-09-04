@@ -280,3 +280,9 @@ html, body {
   box-sizing: border-box;
 }
 
+
+/* SCADA Gray Root Override */
+html, body {
+  background-color: #d4d0c8 !important;
+  color: #000000;
+}
