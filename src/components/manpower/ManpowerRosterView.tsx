@@ -205,35 +205,7 @@ export default function ManpowerRosterView({
     reason: string;
   } | null>(null);
 
-  // Dynamic CSV synchronization on mount
-  useEffect(() => {
-    let isMounted = true;
-    fetch('/data/manpower_job_database.csv')
-      .then((res) => {
-        if (!res.ok) throw new Error('CSV not found');
-        return res.text();
-      })
-      .then((csvText) => {
-        if (!isMounted || !csvText) return;
-        const parsed = Papa.parse<Record<string, string>>(csvText, {
-          header: true,
-          skipEmptyLines: true,
-        });
-        if (parsed.data && parsed.data.length > 0) {
-          const records = parseManpowerCsvData(parsed.data, INITIAL_MANPOWER_MASTER_RECORDS);
-          if (records.length > 0) {
-            setManpowerData(records);
-          }
-        }
-      })
-      .catch((err) => {
-        console.warn('[ManpowerRosterView] Fallback to INITIAL_MANPOWER_MASTER_RECORDS:', err);
-      });
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // 1. Cross-Tab Deep Link Helper
   const navigateToMatrix = useCallback(
@@ -266,10 +238,22 @@ export default function ManpowerRosterView({
     []
   );
 
+  // Cache for staff monthly roster to prevent redundant cyclic calculations
+  const rosterCacheRef = React.useRef<Map<string, ShiftCode[]>>(new Map());
+
+  useEffect(() => {
+    rosterCacheRef.current.clear();
+  }, [selectedYear, selectedMonth, monthOverrides, manpowerData]);
+
   // Helper to get active roster for staff in (selectedYear, selectedMonth)
   const getStaffRosterForSelectedMonth = useCallback(
     (staff: StaffPersonnel) => {
-      return resolveStaffMonthlyRoster(staff, selectedYear, selectedMonth, monthOverrides);
+      const cacheKey = `${staff.id}_${selectedYear}_${selectedMonth}`;
+      const cached = rosterCacheRef.current.get(cacheKey);
+      if (cached) return cached;
+      const roster = resolveStaffMonthlyRoster(staff, selectedYear, selectedMonth, monthOverrides);
+      rosterCacheRef.current.set(cacheKey, roster);
+      return roster;
     },
     [selectedYear, selectedMonth, monthOverrides]
   );
@@ -355,8 +339,9 @@ export default function ManpowerRosterView({
     return calculateERTSummary(manpowerData, dailyStaffStatus, dailyRestAssignments);
   }, [manpowerData, dailyStaffStatus, dailyRestAssignments]);
 
-  // Active On-Duty Shift Personnel with 154h Fatigue Exceeded
+  // Active On-Duty Shift Personnel with 154h Fatigue Exceeded (Lazy-evaluated only for Daily Shift Board)
   const exceeded154hPersonnel = useMemo(() => {
+    if (activeTab !== 'DAILY_SHIFT_BOARD') return [];
     return calculateExceeded154hPersonnel(
       manpowerData,
       teamBPersonnel,
@@ -365,12 +350,13 @@ export default function ManpowerRosterView({
       dailyRestAssignments,
       get14dHoursCallback
     );
-  }, [manpowerData, teamBPersonnel, teamCPersonnel, dailyStaffStatus, dailyRestAssignments, get14dHoursCallback]);
+  }, [activeTab, manpowerData, teamBPersonnel, teamCPersonnel, dailyStaffStatus, dailyRestAssignments, get14dHoursCallback]);
 
   const has154hViolation = useMemo(() => checkHas154hViolation(exceeded154hPersonnel), [exceeded154hPersonnel]);
 
-  // 7-Day Rolling Horizon Risk Strip Forecast Calculator
+  // 7-Day Rolling Horizon Risk Strip Forecast Calculator (Lazy-evaluated only for Daily Shift Board)
   const rolling7Days = useMemo(() => {
+    if (activeTab !== 'DAILY_SHIFT_BOARD') return [];
     return calculateRolling7Days(
       manpowerData,
       dailyStaffStatus,
@@ -381,6 +367,7 @@ export default function ManpowerRosterView({
       codBaselineDate
     );
   }, [
+    activeTab,
     manpowerData,
     dailyStaffStatus,
     ertSummary,
@@ -597,10 +584,9 @@ export default function ManpowerRosterView({
         {/* TAB 2: ROTATION TRACKER */}
         {activeTab === 'ROTATION_TRACKER' && (
           <RotationPlanTab
+            manpowerData={manpowerData}
             filteredPersonnel={rotationPersonnelList}
             selectedEmpId={selectedEmpId}
-            statusSortMode={statusSortMode}
-            onToggleStatusSort={handleToggleStatusSort}
             onSelectEmployee={(empId) => setSelectedEmpId(empId)}
             onUpdateStartDate={handleUpdateStartDate}
             onNavigateToMatrix={navigateToMatrix}

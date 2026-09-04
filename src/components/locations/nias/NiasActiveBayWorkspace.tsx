@@ -19,7 +19,7 @@ interface NiasActiveBayWorkspaceProps {
   tankInventory: NiasTankAsset[];
   setTankInventory: (inventory: NiasTankAsset[]) => void;
   setMountModalBayId: (bayId: string | null) => void;
-  linkedArunBaseline: any;
+  linkedArunBaseline?: any;
   zoneStats: { activeBaysCount: number };
 }
 

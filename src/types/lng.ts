@@ -19,6 +19,7 @@ export type DefectCategory =
 export type MaintenanceLocation = 'ARUN_WORKSHOP' | 'NIAS_MRO_BAY';
 
 export type SubProcessKey =
+  | 'SECTOR_LAUNCHER'
   // Arun PAG Terminal
   | 'ARUN_LOADING_COQ'
   | 'ARUN_MASTER_HISTORY'
@@ -260,7 +261,7 @@ export interface GlobalPortalData {
   ingestionStatuses: DataIngestionStatus[];
 }
 
-export type ShiftCode = 'D' | 'N' | 'Off' | 'On' | 'AL' | 'O';
+export type ShiftCode = 'D' | 'N' | 'Off' | 'On' | 'AL' | 'O' | 'R';
 
 export type DepartmentCode =
   | 'MANAGEMENT'
@@ -316,6 +317,7 @@ export interface StaffPersonnel {
   contactNo: string;
   radioChannel: string;
   rosterDays: ShiftCode[];
+  isLocalResident?: boolean;
   competencies?: CompetencyCertification[];
   complianceWarning?: boolean;
   ertRole?: ERTRole;

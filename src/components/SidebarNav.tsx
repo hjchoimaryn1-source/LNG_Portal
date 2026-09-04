@@ -124,7 +124,24 @@ export default function SidebarNav({
 
       {/* 3. 메뉴 리스트 (3D 베벨 대메뉴 블록 + 클래식 오목 서브 버튼 목록) */}
       <div className="win-well m-1.5 p-0 flex-1 overflow-y-auto font-sans text-xs bg-[#d4d0c8] border border-[#808080] space-y-1">
-        
+        {/* SECTOR LAUNCHER HUB SHORTCUT */}
+        <div className="p-1 border-b border-[#808080] bg-[#e0dcd4]">
+          <button
+            onClick={() => handleItemClick('SECTOR_LAUNCHER')}
+            className={`w-full win-btn py-1.5 px-2 text-xs font-mono font-bold flex items-center justify-between cursor-pointer ${
+              activeKey === 'SECTOR_LAUNCHER'
+                ? 'bg-slate-100 text-slate-950 font-black border-2 border-t-[#808080] border-l-[#808080] border-r-white border-b-white shadow-inner'
+                : 'bg-[#d4d0c8] text-slate-900 border-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] hover:bg-slate-100'
+            }`}
+          >
+            <span className="flex items-center gap-1.5">
+              <span className="text-emerald-700 font-black text-xs">■</span>
+              <span>SECTOR LAUNCHER</span>
+            </span>
+            <span className="text-[10px] text-slate-500 font-mono">[HUB]</span>
+          </button>
+        </div>
+
         {/* ========================================================================= */}
         {/* 1. LNG-PROCESS                                                            */}
         {/* ========================================================================= */}

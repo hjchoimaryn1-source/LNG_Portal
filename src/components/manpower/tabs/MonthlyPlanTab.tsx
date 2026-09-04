@@ -75,61 +75,90 @@ export default function MonthlyPlanTab({
     const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
     const monthlyDailyTotal = Array.from({ length: daysInMonth }, () => 0);
 
+    // Cache weekend days once for current month
+    const weekendDays = new Set<number>();
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayOfWeek = new Date(selectedYear, selectedMonth - 1, day).getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        weekendDays.add(day - 1);
+      }
+    }
+
+    let dayShiftCount = 0;
+    let nightShiftCount = 0;
+    let activeOpsCoverage = 0;
+
+    // Evaluate each staff roster exactly ONCE
     manpowerData.forEach((staff) => {
       const roster = getStaffRosterForSelectedMonth(staff);
-      roster.forEach((code, idx) => {
-        if (code === 'D' || code === 'N') {
-          monthlyDailyTotal[idx] += 1;
+      const isLocalResident =
+        staff.isLocalResident === true ||
+        staff.department === 'HR_GA' ||
+        staff.teamName === 'HR / GA';
+
+      let staffHasActiveOpShift = false;
+
+      for (let idx = 0; idx < roster.length; idx++) {
+        const code = roster[idx];
+        if (code === 'D') {
+          dayShiftCount++;
+        } else if (code === 'N') {
+          nightShiftCount++;
         }
-      });
+
+        if (code === 'D' || code === 'N') {
+          staffHasActiveOpShift = true;
+          // Exclude local residents on weekends
+          if (!isLocalResident || !weekendDays.has(idx)) {
+            monthlyDailyTotal[idx] += 1;
+          }
+        }
+      }
+
+      if (['OP_BRAVO', 'OP_CHARLIE'].includes(staff.department) && staffHasActiveOpShift) {
+        activeOpsCoverage++;
+      }
     });
 
+    const MIN_MANNING_DENOMINATOR = 21;
     const avgOnSiteTotal = monthlyDailyTotal.reduce((sum, value) => sum + value, 0) / daysInMonth;
     const minOnSiteHeadcount = monthlyDailyTotal.length ? Math.min(...monthlyDailyTotal) : 0;
-    const opStaffPool = manpowerData.filter(
-      (m) =>
-        m.department === 'OP_ALPHA' ||
-        m.department === 'OP_BRAVO' ||
-        m.department === 'OP_CHARLIE' ||
-        m.id === 'EMP-002'
-    );
-    const avgOnSitePct = opStaffPool.length > 0 ? Math.round((avgOnSiteTotal / opStaffPool.length) * 100) : 0;
-
-    const activeOpsCoverage = manpowerData.filter((m) => {
-      if (!['OP_BRAVO', 'OP_CHARLIE'].includes(m.department)) return false;
-      return getStaffRosterForSelectedMonth(m).some((code) => code === 'D' || code === 'N');
-    }).length;
+    const isUnderManning = monthlyDailyTotal.some((count) => count < MIN_MANNING_DENOMINATOR);
+    const avgOnSitePct = Math.round((avgOnSiteTotal / MIN_MANNING_DENOMINATOR) * 100);
 
     const shiftFlipCycles = Math.max(1, Math.floor(daysInMonth / 10));
-    const dayShiftCount = manpowerData.reduce((total, staff) => {
-      return total + getStaffRosterForSelectedMonth(staff).filter((code) => code === 'D').length;
-    }, 0);
-    const nightShiftCount = manpowerData.reduce((total, staff) => {
-      return total + getStaffRosterForSelectedMonth(staff).filter((code) => code === 'N').length;
-    }, 0);
 
-    const plannedMob = manpowerData.filter((m) => {
-      if (m.currentStatus !== 'OFF_DUTY') return false;
-      return !!m.nextRotationDueDate && m.nextRotationDueDate !== '-' && m.nextRotationDueDate.startsWith(`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`);
-    }).length;
+    const currentYearMonth = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+    let plannedMob = 0;
+    let plannedDemob = 0;
+    let standbyPersonnel = 0;
 
-    const plannedDemob = manpowerData.filter((m) => {
-      if (m.currentStatus === 'OFF_DUTY') return false;
-      return !!m.nextRotationDueDate && m.nextRotationDueDate !== '-' && m.nextRotationDueDate.startsWith(`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`);
-    }).length;
-
-    const standbyPersonnel = manpowerData.filter((m) => m.currentStatus === 'OFF_DUTY').length;
+    for (let i = 0; i < manpowerData.length; i++) {
+      const m = manpowerData[i];
+      if (m.currentStatus === 'OFF_DUTY') {
+        standbyPersonnel++;
+        if (m.nextRotationDueDate && m.nextRotationDueDate !== '-' && m.nextRotationDueDate.startsWith(currentYearMonth)) {
+          plannedMob++;
+        }
+      } else {
+        if (m.nextRotationDueDate && m.nextRotationDueDate !== '-' && m.nextRotationDueDate.startsWith(currentYearMonth)) {
+          plannedDemob++;
+        }
+      }
+    }
 
     return {
-      avgOnSiteTotal: `${avgOnSiteTotal.toFixed(1)} / ${opStaffPool.length}p (${avgOnSitePct}%)`,
-      minOnSiteHeadcount: `${minOnSiteHeadcount} Personnel`,
-      ertComplianceFloor: '100% Cleared',
+      avgOnSiteTotal: `${avgOnSiteTotal.toFixed(1)} / ${MIN_MANNING_DENOMINATOR}p (${avgOnSitePct}%)`,
+      minOnSiteHeadcount: `${minOnSiteHeadcount} / ${MIN_MANNING_DENOMINATOR} Personnel`,
+      ertComplianceFloor: minOnSiteHeadcount >= MIN_MANNING_DENOMINATOR ? '100% Cleared' : 'Under-Manning Deficit',
       opCoverage: activeOpsCoverage >= 6 ? '100% (6/6 Active)' : `${Math.min(100, Math.round((activeOpsCoverage / 6) * 100))}% (${Math.min(activeOpsCoverage, 6)}/6 Active)`,
       shiftFlipCycles: `${shiftFlipCycles} Cycles Verified`,
       shiftBalance: `${dayShiftCount}D / ${nightShiftCount}N ${dayShiftCount === nightShiftCount ? 'Equal' : 'Tight'}`,
       plannedMob: `${plannedMob}p (Next Rotation)`,
       plannedDemob: `${plannedDemob}p (Scheduled OFF)`,
       standby: `${Math.max(1, Math.ceil(standbyPersonnel / 3))} Team (${standbyPersonnel} Personnel)`,
+      isUnderManning,
+      minDailyActive: minOnSiteHeadcount,
     };
   }, [getStaffRosterForSelectedMonth, manpowerData, selectedMonth, selectedYear]);
 
@@ -148,9 +177,16 @@ export default function MonthlyPlanTab({
   return (
     <div className="space-y-1.5 bg-[#d4d0c8] p-1.5">
       <div className="bg-[#d4d0c8] text-slate-900 font-extrabold text-xs px-3 py-1.5 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] tracking-wider uppercase flex items-center justify-between shadow-xs shrink-0 select-none">
-        <div className="flex items-center">
-          <span className="text-emerald-700 font-black mr-2 text-sm">■</span>
-          <span className="uppercase tracking-wider">MONTHLY PLAN OVERVIEW</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center">
+            <span className="text-emerald-700 font-black mr-2 text-sm">■</span>
+            <span className="uppercase tracking-wider">MONTHLY PLAN OVERVIEW</span>
+          </div>
+          {monthlyKpi.isUnderManning && (
+            <div className="animate-pulse bg-rose-900 text-white font-bold p-2 text-xs rounded border border-rose-700">
+              [UNDER-MANNING ALERT: {monthlyKpi.minDailyActive}/21]
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -371,12 +407,14 @@ export default function MonthlyPlanTab({
                             ? 'bg-emerald-100 text-emerald-900 font-bold border border-emerald-200'
                             : code === 'N'
                               ? 'bg-indigo-100 text-indigo-900 font-bold border border-indigo-200'
-                              : code === 'AL'
+                              : (code === 'AL' || code === 'Off')
                                 ? 'bg-amber-400 text-amber-950 font-black border border-amber-500 shadow-sm'
-                                : 'bg-slate-100 text-slate-400 font-medium'
+                                : code === 'R'
+                                  ? 'bg-slate-100 text-slate-600 font-bold border border-slate-300'
+                                  : 'bg-slate-100 text-slate-400 font-medium'
                             }`}
                         >
-                          {code === 'AL' ? 'OFF' : code === 'Off' ? 'R' : code}
+                          {code === 'AL' || code === 'Off' ? 'OFF' : code === 'R' ? 'R' : code}
                         </div>
                       </td>
                     );

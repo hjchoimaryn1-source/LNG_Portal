@@ -17,6 +17,8 @@ import DataIngestionHub from './DataIngestionHub';
 import GlobalFleetHubView from './GlobalFleetHubView';
 import ManpowerRosterView from './manpower/ManpowerRosterView';
 import PTWManagementView from './manpower/PTWManagementView';
+import LoginGateway from './auth/LoginGateway';
+import SectorLauncherHub from './launcher/SectorLauncherHub';
 import { INITIAL_MANPOWER_MASTER_RECORDS } from '../data/manpowerMasterData';
 import {
   RefreshCw,
@@ -138,6 +140,12 @@ const SUBPROCESS_TITLES: Record<
     location: 'Maintenance & Work Orders',
     process: 'Preventive Maintenance Schedules',
     icon: <Sliders className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  SECTOR_LAUNCHER: {
+    location: 'Sector Hub',
+    process: 'SCADA Sector Launcher',
+    icon: <Globe className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   LNG_PROCESS_OVERVIEW: {
@@ -444,12 +452,45 @@ function CalibrationComplianceView({ filter = 'ALL' }: { filter?: string }) {
   );
 }
 
-function LNGPortalInner() {
+function getInitialNav(key: SubProcessKey): { menu: string; subTab: string } {
+  if (key === 'LNG_PROCESS_OVERVIEW' || key === 'NIAS_TERMINAL_OVERVIEW') {
+    return { menu: 'lng-process', subTab: 'LNG_PROCESS_OVERVIEW' };
+  }
+  if (key === 'EQUIPMENT_ASSET_REGISTRY' || key === 'GLOBAL_FLEET_HUB' || key === 'DATA_INGESTION_HUB') {
+    return { menu: 'equipment', subTab: key };
+  }
+  if (key === 'WORK_ORDER_DIRECTORY' || key === 'WORK_ORDER_MAINTENANCE' || key === 'PM_SCHEDULES') {
+    return { menu: 'work-orders', subTab: key };
+  }
+  if (key === 'MANPOWER_DAILY_SHIFT' || key === 'MANPOWER_SHIFT_ROSTER') {
+    return { menu: 'MANPOWER_SHIFT_ROSTER', subTab: key === 'MANPOWER_DAILY_SHIFT' ? 'OVERVIEW' : 'DAILY_SHIFT_BOARD' };
+  }
+  if (key.startsWith('MANPOWER')) {
+    return { menu: key, subTab: key };
+  }
+  if (key === 'PTW_PERMITS' || key === 'SAFETY_GAS_TESTING' || key === 'SAFETY_ERT_READINESS') {
+    return { menu: 'ptw-permits', subTab: key };
+  }
+  return { menu: 'lng-process', subTab: key };
+}
+
+interface LNGPortalInnerProps {
+  initialKey?: SubProcessKey;
+  onReturnToLauncher?: () => void;
+  onLogout?: () => void;
+}
+
+function LNGPortalInner({
+  initialKey = 'LNG_PROCESS_OVERVIEW',
+  onReturnToLauncher,
+  onLogout,
+}: LNGPortalInnerProps) {
   const { theme, setTheme } = useTheme();
 
-  const [activeMenu, setActiveMenu] = useState<string>('lng-process');
-  const [activeSubTab, setActiveSubTab] = useState<string>('LNG_PROCESS_OVERVIEW');
-  const [activeKey, setActiveKey] = useState<SubProcessKey>('LNG_PROCESS_OVERVIEW');
+  const initNav = getInitialNav(initialKey);
+  const [activeMenu, setActiveMenu] = useState<string>(initNav.menu);
+  const [activeSubTab, setActiveSubTab] = useState<string>(initNav.subTab);
+  const [activeKey, setActiveKey] = useState<SubProcessKey>(initialKey);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
 
   // Sub-tab states for CMMS Modules
@@ -478,8 +519,15 @@ function LNGPortalInner() {
   })();
 
   const handleSelectSubProcess = (key: SubProcessKey) => {
+    if (key === 'SECTOR_LAUNCHER' && onReturnToLauncher) {
+      onReturnToLauncher();
+      return;
+    }
     setActiveKey(key);
-    if (key === 'LNG_PROCESS_OVERVIEW' || key === 'NIAS_TERMINAL_OVERVIEW') {
+    if (key === 'SECTOR_LAUNCHER') {
+      setActiveMenu('sector-launcher');
+      setActiveSubTab('SECTOR_LAUNCHER');
+    } else if (key === 'LNG_PROCESS_OVERVIEW' || key === 'NIAS_TERMINAL_OVERVIEW') {
       setActiveMenu('lng-process');
       setActiveSubTab('LNG_PROCESS_OVERVIEW');
     } else if (
@@ -530,10 +578,12 @@ function LNGPortalInner() {
 
   // Determine current active top module (1 to 5)
   const currentModuleId =
-    activeKey === 'PTW_PERMITS' ||
-    activeKey === 'MANPOWER_PTW' ||
-    activeKey === 'SAFETY_GAS_TESTING' ||
-    activeKey === 'SAFETY_ERT_READINESS'
+    activeKey === 'SECTOR_LAUNCHER'
+      ? 'MOD_0_LAUNCHER'
+      : activeKey === 'PTW_PERMITS' ||
+        activeKey === 'MANPOWER_PTW' ||
+        activeKey === 'SAFETY_GAS_TESTING' ||
+        activeKey === 'SAFETY_ERT_READINESS'
       ? 'MOD_5_SAFETY_PTW'
       : activeKey.startsWith('MANPOWER')
       ? 'MOD_4_MANPOWER'
@@ -547,6 +597,32 @@ function LNGPortalInner() {
         activeKey === 'DATA_INGESTION_HUB'
       ? 'MOD_2_EQUIPMENT'
       : 'MOD_1_LNG_PROCESS';
+
+  // Internal state reset to the active module's Overview (Non-reloading Refresh)
+  const handleRefreshCurrentModuleOverview = () => {
+    switch (currentModuleId) {
+      case 'MOD_1_LNG_PROCESS':
+        handleSelectSubProcess('LNG_PROCESS_OVERVIEW');
+        break;
+      case 'MOD_2_EQUIPMENT':
+        setEquipmentFilter('ALL');
+        handleSelectSubProcess('EQUIPMENT_ASSET_REGISTRY');
+        break;
+      case 'MOD_3_WORK_ORDER':
+        setWorkOrderFilter('ALL');
+        handleSelectSubProcess('WORK_ORDER_DIRECTORY');
+        break;
+      case 'MOD_4_MANPOWER':
+        handleManpowerSubTab('OVERVIEW');
+        break;
+      case 'MOD_5_SAFETY_PTW':
+        handleSelectSubProcess('PTW_PERMITS');
+        break;
+      default:
+        handleSelectSubProcess('SECTOR_LAUNCHER');
+        break;
+    }
+  };
 
   return (
     <div className="h-screen w-screen bg-[#d4d0c8] text-black font-sans flex flex-col md:flex-row overflow-hidden select-none">
@@ -585,8 +661,21 @@ function LNGPortalInner() {
           {/* 1. ROW 1: CMMS Core 4 Modules Navigation Bar (Authentic Bevel Style)      */}
           {/* ========================================================================= */}
           <div className="bg-[#d4d0c8] border-b border-[#808080] px-2 py-1.5 flex items-center justify-between gap-2 flex-wrap shrink-0">
-            {/* Left: 4 Core CMMS Modules Tabs (Bevel Outset / Inset Effect) */}
+            {/* Left: Hub + 5 Core CMMS Modules Tabs (Bevel Outset / Inset Effect) */}
             <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={() => {
+                  if (onReturnToLauncher) {
+                    onReturnToLauncher();
+                  } else {
+                    handleSelectSubProcess('SECTOR_LAUNCHER');
+                  }
+                }}
+                className={currentModuleId === 'MOD_0_LAUNCHER' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                title="Return to SCADA Sector Launcher Hub"
+              >
+                <span className="font-mono font-bold">[ HUB ]</span>
+              </button>
               {CMMS_MODULES.map((mod) => {
                 const isActive = currentModuleId === mod.id;
                 return (
@@ -602,16 +691,35 @@ function LNGPortalInner() {
               })}
             </div>
 
-            {/* Right: Clean Refresh Button Only */}
+            {/* Right: Overview Return Refresh Button and Launcher Shortcut */}
             <div className="flex items-center gap-1.5 shrink-0">
               <button
-                onClick={() => window.location.reload()}
+                onClick={handleRefreshCurrentModuleOverview}
                 className="win-btn text-xs px-2.5 py-1 flex items-center gap-1.5 cursor-pointer"
-                title="Refresh Telemetry Data"
+                title="Return to Section Overview"
               >
                 <RefreshCw className="w-3 h-3 text-slate-800" />
                 <span>Refresh</span>
               </button>
+              {onReturnToLauncher && (
+                <button
+                  onClick={onReturnToLauncher}
+                  className="win-btn text-xs px-2.5 py-1 flex items-center gap-1 cursor-pointer font-bold text-blue-950"
+                  title="Return to 5 Sector Launcher Hub"
+                >
+                  <span>⊞</span>
+                  <span>Sectors</span>
+                </button>
+              )}
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="win-btn text-xs px-2 py-1 flex items-center gap-1 cursor-pointer text-slate-700"
+                  title="Lock Session / Logout"
+                >
+                  <span>🔒</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -619,6 +727,14 @@ function LNGPortalInner() {
           {/* 2. ROW 2: Module Sub-Sections Bar (Contextual Bevel Sub-Tabs)             */}
           {/* ========================================================================= */}
           <div className="bg-[#e4e0d8] border-b-2 border-white px-2 py-1 flex items-center gap-1.5 overflow-x-auto shrink-0">
+            {/* Sub-Tabs for Launcher Hub */}
+            {currentModuleId === 'MOD_0_LAUNCHER' && (
+              <div className="flex items-center gap-2 text-xs font-mono text-slate-700 py-0.5">
+                <span className="font-bold text-slate-900">SECTOR LAUNCHER HUB</span>
+                <span className="text-slate-400">|</span>
+                <span>Select any of the 5 operational sectors below</span>
+              </div>
+            )}
             {/* Sub-Tabs for LNG-Process */}
             {currentModuleId === 'MOD_1_LNG_PROCESS' && (
               <>
@@ -818,9 +934,16 @@ function LNGPortalInner() {
           ) : (
             <div className="flex-1 h-full flex flex-col min-h-0 w-full overflow-hidden">
               {/* ========================================================= */}
+              {/* 0. SCADA SECTOR LAUNCHER HUB                              */}
+              {/* ========================================================= */}
+              {activeKey === 'SECTOR_LAUNCHER' && (
+                <SectorLauncherHub onSelectSector={(key) => handleSelectSubProcess(key)} />
+              )}
+
+              {/* ========================================================= */}
               {/* 1. LNG-PROCESS MAIN OVERVIEW (INTEGRATED 5-NODE PFD)      */}
               {/* ========================================================= */}
-              {(activeKey === 'LNG_PROCESS_OVERVIEW' || activeKey === 'NIAS_TERMINAL_OVERVIEW' || activeSubTab === 'LNG_PROCESS_OVERVIEW' || (!activeKey && !activeSubTab)) && (
+              {activeKey !== 'SECTOR_LAUNCHER' && (activeKey === 'LNG_PROCESS_OVERVIEW' || activeKey === 'NIAS_TERMINAL_OVERVIEW' || activeSubTab === 'LNG_PROCESS_OVERVIEW' || (!activeKey && !activeSubTab)) && (
                 <NiasOperationalOverviewTab
                   onNavigateSubTab={(targetTab, domain) => {
                     if (targetTab.startsWith('ARUN_') || targetTab.startsWith('SAVIOUR_')) {
@@ -983,11 +1106,53 @@ function LNGPortalInner() {
 }
 
 export default function LNGPortalApp() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [activeSector, setActiveSector] = useState<SubProcessKey | null>(null);
+
   return (
     <ThemeProvider>
-      <PortalDataProvider>
-        <LNGPortalInner />
-      </PortalDataProvider>
+      {activeSector !== null ? (
+        /* Module Entry: Only when operator clicks one of the 5 sector cards, mount provider and load module */
+        <PortalDataProvider>
+          <LNGPortalInner
+            initialKey={activeSector}
+            onReturnToLauncher={() => setActiveSector(null)}
+            onLogout={() => {
+              setActiveSector(null);
+              setIsAuthenticated(false);
+            }}
+          />
+        </PortalDataProvider>
+      ) : (
+        /* Unified Background: Full-screen plant background image with dark overlay */
+        <div
+          className="relative h-screen w-screen overflow-hidden flex flex-col font-sans select-none"
+          style={{
+            backgroundColor: '#0a1420',
+            backgroundImage: `linear-gradient(rgba(10, 22, 38, 0.82), rgba(8, 16, 28, 0.90)), url('/images/ISO%20Tank.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {!isAuthenticated ? (
+            /* State 1: Compact classic SCADA login box centered directly on photo background */
+            <div className="flex-1 flex items-center justify-center p-4">
+              <LoginGateway
+                onLogin={() => setIsAuthenticated(true)}
+                onEnter={() => setIsAuthenticated(true)}
+              />
+            </div>
+          ) : (
+            /* State 2: Dismiss login box and smoothly reveal the 5 Sector Launcher Cards */
+            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto p-4 sm:p-6 justify-center">
+              <SectorLauncherHub
+                onSelectSector={(targetKey) => setActiveSector(targetKey)}
+                onLogout={() => setIsAuthenticated(false)}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </ThemeProvider>
   );
 }

@@ -54,34 +54,55 @@ export const CSV_FILES_CONFIG = [
     title: 'Plant Gas Chromatograph (GC) Breakdown',
     description: 'M-101A & M-101B 11+ hydrocarbon and inert gas composition',
   },
-  {
-    key: 'manpower_job_db',
-    fileName: 'manpower_job_database.csv',
-    title: 'Manpower & Shift Roster Job Master DB',
-    description: '22 Personnel roster, positions, qualifications, contact info, and 3:1 rotation tracking',
-  },
 ];
+
+// Yield execution to browser event loop to preserve 60fps and allow immediate paint
+const yieldToMain = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+// WeakMap cache to normalize row keys once per row reference
+const rowKeyCache = new WeakMap<Record<string, string>, Map<string, string>>();
 
 export function getRowValue(row: Record<string, string>, ...patterns: (string | RegExp)[]): string {
   if (!row) return '';
-  const entries = Object.entries(row);
-  for (const pattern of patterns) {
-    for (const [key, val] of entries) {
-      if (typeof pattern === 'string') {
-        if (key.toLowerCase().includes(pattern.toLowerCase())) {
-          if (val !== undefined && val !== null && String(val).trim() !== '') {
-            return String(val).trim();
-          }
-        }
-      } else if (pattern instanceof RegExp) {
-        if (pattern.test(key)) {
-          if (val !== undefined && val !== null && String(val).trim() !== '') {
-            return String(val).trim();
-          }
-        }
+
+  let keyMap = rowKeyCache.get(row);
+  if (!keyMap) {
+    keyMap = new Map<string, string>();
+    const keys = Object.keys(row);
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i];
+      const val = row[k];
+      if (val !== undefined && val !== null && String(val).trim() !== '') {
+        keyMap.set(k.toLowerCase().trim(), String(val).trim());
+      }
+    }
+    rowKeyCache.set(row, keyMap);
+  }
+
+  // Fast Path 1: Direct O(1) exact lowercase key lookups
+  for (let i = 0; i < patterns.length; i++) {
+    const p = patterns[i];
+    if (typeof p === 'string') {
+      const val = keyMap.get(p.toLowerCase().trim());
+      if (val !== undefined) return val;
+    }
+  }
+
+  // Fallback Path 2: Substring or RegExp matching on cached keys
+  for (let i = 0; i < patterns.length; i++) {
+    const p = patterns[i];
+    if (typeof p === 'string') {
+      const pLower = p.toLowerCase().trim();
+      for (const [k, val] of keyMap.entries()) {
+        if (k.includes(pLower)) return val;
+      }
+    } else if (p instanceof RegExp) {
+      for (const [k, val] of keyMap.entries()) {
+        if (p.test(k)) return val;
       }
     }
   }
+
   return '';
 }
 
@@ -147,7 +168,8 @@ export async function loadAllPortalData(): Promise<GlobalPortalData> {
   const rawDataMap: Record<string, Record<string, string>[]> = {};
   const ingestionStatuses: DataIngestionStatus[] = [];
 
-  CSV_FILES_CONFIG.forEach((cfg, idx) => {
+  for (let idx = 0; idx < CSV_FILES_CONFIG.length; idx++) {
+    const cfg = CSV_FILES_CONFIG[idx];
     const res = fetchedContents[idx];
     if (res.status === 'fulfilled') {
       const parsed = parseRawCSV(res.value.text);
@@ -174,8 +196,10 @@ export async function loadAllPortalData(): Promise<GlobalPortalData> {
         status: 'ERROR',
       });
     }
-  });
+    await yieldToMain();
+  }
 
+  await yieldToMain();
   return transformRawToDomainData(rawDataMap, ingestionStatuses);
 }
 
@@ -209,24 +233,22 @@ export function transformRawToDomainData(
     'ISOT-120': 66.0,
   };
 
-  // Group latest master db logs by normalized tank number (sorted by latest report date)
-  const sortedMasterDbRows = [...masterDbRows].sort((a, b) => {
-    const dateA = getRowValue(a, 'Report Date', 'Date');
-    const dateB = getRowValue(b, 'Report Date', 'Date');
-    return dateB.localeCompare(dateA);
-  });
-
+  // Fast O(N) single-pass lookup for latest master db row per tank (eliminates 50,000 sort comparisons)
   const latestMasterMap = new Map<string, Record<string, string>>();
-  sortedMasterDbRows.forEach((row) => {
+  const latestMasterDateMap = new Map<string, string>();
+  for (let i = 0; i < masterDbRows.length; i++) {
+    const row = masterDbRows[i];
     const tNo = normalizeTankNo(
       getRowValue(row, 'ISO Tk No.', 'ISO Tank No', 'Tank No', 'Serial No.')
     );
-    if (tNo && (!latestMasterMap.has(tNo) || getRowValue(row, 'Pressure', 'Level'))) {
-      if (!latestMasterMap.has(tNo)) {
-        latestMasterMap.set(tNo, row);
-      }
+    if (!tNo) continue;
+    const reportDate = getRowValue(row, 'Report Date', 'Date') || '';
+    const prevDate = latestMasterDateMap.get(tNo) || '';
+    if (!latestMasterMap.has(tNo) || reportDate >= prevDate) {
+      latestMasterMap.set(tNo, row);
+      latestMasterDateMap.set(tNo, reportDate);
     }
-  });
+  }
 
   // Build lookup map for status location
   const statusLocationMap = new Map<string, { serialNo: string; position: string; location: string }>();

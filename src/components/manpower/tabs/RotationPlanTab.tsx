@@ -1,317 +1,404 @@
-import React, { useMemo } from 'react';
-import {
-  INITIAL_MANPOWER_MASTER_RECORDS,
-  getStaffCompetencyStatus,
-} from '../../../data/manpowerMasterData';
-import { StaffPersonnel } from '../../../types/lng';
+import React, { useState, useMemo } from 'react';
+import { STAFF_MASTER_DATA } from '../../../data/manpowerMasterData';
+import { StaffPersonnel, ShiftCode } from '../../../types/lng';
 
-export type RotationSortMode = 'DEFAULT' | 'OFF_FIRST' | 'ONSITE_FIRST';
+export type RotationFilter = 'ALL' | 'ON_SITE' | 'OFF_DUTY' | 'RESIDENT';
 
 interface RotationPlanTabProps {
-  filteredPersonnel: StaffPersonnel[];
-  selectedEmpId: string | null;
-  statusSortMode: RotationSortMode;
-  onToggleStatusSort: () => void;
-  onSelectEmployee: (empId: string) => void;
-  onUpdateStartDate: (staffId: string, newDateStr: string) => void;
-  onNavigateToMatrix: (empId: string) => void;
+  manpowerData?: StaffPersonnel[];
+  filteredPersonnel?: StaffPersonnel[];
+  selectedEmpId?: string | null;
+  onSelectEmployee?: (empId: string) => void;
+  onUpdateStartDate?: (staffId: string, newDateStr: string) => void;
+  onNavigateToMatrix?: (empId: string) => void;
+  onRequestAL?: () => void;
 }
 
-function normalizePositionTitle(rawTitle: string): string {
-  if (!rawTitle) return '';
-  const t = rawTitle.trim();
-  const lower = t.toLowerCase();
-  if (lower === '-' || lower === '') return '';
+const TEAM_OPTIONS = ['Management', 'TEAM-A', 'TEAM-B', 'TEAM-C', 'Maintenance', 'HSSE Team', 'Cargo Operation', 'HR / GA'];
+const ONE_DAY_MS = 86400000;
+const TODAY_MS = Date.parse('2026-09-04T00:00:00Z');
 
-  if (lower.includes('site manager')) return 'Site Manager';
-  if (lower.includes('team leader') || lower.includes('lead engineer') || lower.includes('mechanical engineer') || lower.includes('mech. team leader')) {
-    if (lower.includes('mech')) return 'Mechanical Lead Engineer';
-    return 'OP Team Leader';
-  }
-  if (lower.includes('dcs') || lower.includes('scada')) return 'DCS Control Technician';
-  if (lower.includes('valve mechanic') || lower.includes('mechanical tech') || lower.includes('cryogenic valve') || lower.includes('mech. team') || lower.includes('mechanic')) return 'Mechanical Technician';
-  if (lower.includes('sr. hse') || lower.includes('senior hse') || lower.includes('fire chief')) return 'Senior HSE Officer';
-  if (lower.includes('hse') || lower.includes('hsse')) return 'HSE Officer';
-  if (lower.includes('electrical')) return 'Electrical Systems Engineer';
-  if (lower.includes('instrumentation') || lower.includes('gas detector')) return 'Instrumentation Technician';
-  if (lower.includes('coordinator') || lower.includes('admin staff')) return 'HR / GA Coordinator';
-  if (lower.includes('hr') || lower.includes('ga')) return 'HR / GA Officer';
-  if (lower.includes('truck driver')) return 'Truck Driver';
-  if (lower.includes('super cargo')) return 'Super Cargo';
-  if (lower.includes('reach stacker')) return 'Reach Stacker Operator';
-  if (lower.includes('field operator')) return 'Field Operator';
-
-  return t;
-}
-
-const calcReturnDueDate = (leaveStartDateStr: string, leaveDurationDays: number = 14): string => {
-  if (!leaveStartDateStr || leaveStartDateStr === 'N/A' || leaveStartDateStr === '-') return '-';
-  const parts = leaveStartDateStr.split('-').map(Number);
-  if (parts.length < 3 || isNaN(parts[0])) return '-';
-  const [y, m, d] = parts;
-  const dt = new Date(y, m - 1, d);
-  dt.setDate(dt.getDate() + leaveDurationDays);
-  const ry = dt.getFullYear();
-  const rm = String(dt.getMonth() + 1).padStart(2, '0');
-  const rd = String(dt.getDate()).padStart(2, '0');
-  return `${ry}-${rm}-${rd}`;
+// Lightweight Date Arithmetic (UTC timestamp math)
+const addDaysStr = (dateStr: string, days: number): string => {
+  if (!dateStr || dateStr === '-' || dateStr === 'N/A') return '-';
+  const ms = Date.parse(`${dateStr}T00:00:00Z`);
+  return isNaN(ms) ? '-' : new Date(ms + days * ONE_DAY_MS).toISOString().slice(0, 10);
 };
 
-const calcRotationDueDate = (startDateStr: string, cycleLengthDays: number = 42): string => {
-  if (!startDateStr || startDateStr === 'N/A' || startDateStr === '-') return '-';
-  const parts = startDateStr.split('-').map(Number);
-  if (parts.length < 3 || isNaN(parts[0])) return '-';
-  const [y, m, d] = parts;
-  const dt = new Date(y, m - 1, d);
-  dt.setDate(dt.getDate() + cycleLengthDays);
-  const ry = dt.getFullYear();
-  const rm = String(dt.getMonth() + 1).padStart(2, '0');
-  const rd = String(dt.getDate()).padStart(2, '0');
-  return `${ry}-${rm}-${rd}`;
+const calcDaysOnSite = (startDateStr: string): number => {
+  if (!startDateStr || startDateStr === '-' || startDateStr === 'N/A') return 0;
+  const ms = Date.parse(`${startDateStr}T00:00:00Z`);
+  return isNaN(ms) || ms > TODAY_MS ? 0 : Math.floor((TODAY_MS - ms) / ONE_DAY_MS) + 1;
 };
 
-const calcOnSiteDays = (startDateStr: string, todayStr: string = '2026-09-02'): number => {
-  if (!startDateStr || startDateStr === 'N/A' || startDateStr === '-') return 0;
-  const sParts = startDateStr.split('-').map(Number);
-  const tParts = todayStr.split('-').map(Number);
-  if (sParts.length < 3 || isNaN(sParts[0])) return 0;
-  const [sy, sm, sd] = sParts;
-  const [ty, tm, td] = tParts;
-  const startDt = new Date(sy, sm - 1, sd);
-  const todayDt = new Date(ty, tm - 1, td);
-  const diffTime = todayDt.getTime() - startDt.getTime();
-  if (diffTime < 0) return 0;
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-  return diffDays;
+// Strict CSV order lookup
+const CSV_STAFF_ORDER: Record<string, number> = {
+  BSG259529: 1, BSG259524: 2, BSG259736: 3, BSG259743: 4, BSG259833: 5, BSG258742: 6,
+  BSG259735: 7, BSG259530: 8, BSG259634: 9, BSG259532: 10, BSG259237: 11, BSG259420: 12,
+  BSG259641: 13, BSG259919: 14, BSG259245: 15, BSG259646: 16, BSG259444: 17, BSG199551: 18,
+};
+const getStaffSortOrder = (staffId: string): number => CSV_STAFF_ORDER[staffId] ?? 999;
+
+const formatContactNo = (contact?: string): string => {
+  if (!contact || contact === '-' || contact === 'N/A') return '-';
+  return contact.replace(/^\+62\s*/, '0');
 };
 
 export default function RotationPlanTab({
+  manpowerData,
   filteredPersonnel,
   selectedEmpId,
-  statusSortMode,
-  onToggleStatusSort,
   onSelectEmployee,
   onUpdateStartDate,
-  onNavigateToMatrix,
+  onRequestAL,
 }: RotationPlanTabProps) {
-  const rotationPersonnelList = useMemo(() => {
-    const list = [...filteredPersonnel];
+  const [activeFilter, setActiveFilter] = useState<RotationFilter>('ALL');
+  const [localOverrides, setLocalOverrides] = useState<
+    Record<string, { team?: string; status?: string; shift?: ShiftCode; startDate?: string; reliever?: string }>
+  >({});
 
-    if (!statusSortMode || statusSortMode === 'DEFAULT') {
-      return list.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+  // Base list resolution
+  const baseList = useMemo(() => {
+    const raw = manpowerData && manpowerData.length > 0 ? manpowerData : filteredPersonnel;
+    if (raw && raw.length > 0) {
+      return raw.map((m) => {
+        const isResident = m.isLocalResident === true || m.department === 'HR_GA';
+        return {
+          id: m.id,
+          name: m.name,
+          position: (m as any).position || m.role || 'Field Operator',
+          team: (m as any).team || m.teamName || 'Management',
+          department: m.department,
+          isLocalResident: isResident,
+          status: m.currentStatus || 'ON_SITE',
+          todayShift: m.todayShift || 'D',
+          cycleStartDate: m.cycleStartDate && m.cycleStartDate !== 'N/A' && m.cycleStartDate !== '-' ? m.cycleStartDate : isResident ? '-' : '2026-08-15',
+          designatedReliever: (m as any).designatedReliever || m.relieverName || '-',
+          contactNo: m.contactNo || '-',
+          radioCh: (m as any).radioCh || m.radioChannel || '-',
+          ertRole: (m as any).ertRole || 'None',
+        };
+      });
     }
 
-    const getStatusWeight = (staff: StaffPersonnel) => {
-      const s = String((staff as any).currentStatus || (staff as any).status || '').toUpperCase();
-      const isOffDuty = s.includes('OFF') || s.includes('LEAVE') || s.includes('REST');
-
-      if (statusSortMode === 'OFF_FIRST') {
-        return isOffDuty ? 1 : 2;
-      }
-      return isOffDuty ? 2 : 1;
-    };
-
-    list.sort((a, b) => {
-      const wa = getStatusWeight(a);
-      const wb = getStatusWeight(b);
-      if (wa !== wb) return wa - wb;
-      return a.id.localeCompare(b.id, undefined, { numeric: true });
+    return STAFF_MASTER_DATA.map((s) => {
+      const isResident = s.isLocalResident || s.department === 'HR_GA';
+      const cycleStart = isResident ? '-' : s.team.includes('TEAM-B') ? '2026-07-31' : s.team.includes('TEAM-C') ? '2026-07-26' : (s.department === 'MAINTENANCE' || s.department === 'HSSE' || s.department === 'Cargo Logistic') ? '2026-08-01' : '2026-08-15';
+      return {
+        id: s.id, name: s.name, position: s.position, team: s.team, department: s.department, isLocalResident: s.isLocalResident,
+        status: s.defaultShift === 'Off' ? 'OFF_DUTY' : 'ON_SITE', todayShift: s.defaultShift as ShiftCode,
+        cycleStartDate: cycleStart, designatedReliever: s.designatedReliever || '-', contactNo: s.contactNo, radioCh: s.radioCh, ertRole: s.ertRole,
+      };
     });
+  }, [manpowerData, filteredPersonnel]);
 
-    return list;
-  }, [filteredPersonnel, statusSortMode]);
+  // Combined staff items with user edits
+  const allStaff = useMemo(() => {
+    return baseList.map((m) => {
+      const ov = localOverrides[m.id] || {};
+      const status = ov.status || m.status;
+      const cycleStartDate = ov.startDate || m.cycleStartDate;
+      const isResident = m.isLocalResident;
+      const onSiteDays = isResident || status === 'OFF_DUTY' ? 0 : calcDaysOnSite(cycleStartDate);
+      const isOffDuty = !isResident && (status === 'OFF_DUTY' || onSiteDays > 90);
+      const dynamicLeaveDue = isResident ? '-' : isOffDuty ? addDaysStr(cycleStartDate, 30) : addDaysStr(cycleStartDate, 90);
+
+      return {
+        ...m,
+        team: ov.team || m.team,
+        status: isResident ? 'RESIDENT' : (isOffDuty ? 'OFF_DUTY' : 'ON_SITE'),
+        todayShift: ov.shift || m.todayShift,
+        cycleStartDate,
+        designatedReliever: ov.reliever || m.designatedReliever,
+        onSiteDays,
+        dynamicLeaveDue,
+        pct: isResident || isOffDuty ? 0 : Math.min(100, Math.round((onSiteDays / 90) * 100)),
+      };
+    });
+  }, [baseList, localOverrides]);
+
+
+  // Precomputed KPI and Filter Counts in a single memoized pass
+  const kpiData = useMemo(() => {
+    const totalStaff = allStaff.length;
+    let countOnSite = 0, countOffDuty = 0, countResident = 0, demobDueSoon = 0, handoverGapAlert = 0, fatigueOverstay = 0, plannedInbound = 0;
+
+    for (let i = 0; i < totalStaff; i++) {
+      const s = allStaff[i];
+      if (s.isLocalResident) {
+        countResident++;
+      } else if (s.status === 'OFF_DUTY') {
+        countOffDuty++;
+        if (s.dynamicLeaveDue.startsWith('2026-09')) plannedInbound++;
+      } else {
+        countOnSite++;
+        if (s.onSiteDays >= 76 && s.onSiteDays <= 90) demobDueSoon++;
+        if (s.onSiteDays > 90) fatigueOverstay++;
+        if (!s.designatedReliever || s.designatedReliever === '-' || s.designatedReliever === 'None') handoverGapAlert++;
+      }
+    }
+
+    return {
+      totalStaff, countOnSite, countOffDuty, countResident,
+      onSitePct: totalStaff > 0 ? Math.round((countOnSite / totalStaff) * 100) : 0,
+      demobDueSoon, handoverGapAlert, fatigueOverstay, plannedInbound,
+    };
+  }, [allStaff]);
+
+  // Filtered and sorted personnel list
+  const displayList = useMemo(() => {
+    let list = allStaff;
+    if (activeFilter === 'ON_SITE') list = list.filter((s) => s.status === 'ON_SITE');
+    else if (activeFilter === 'OFF_DUTY') list = list.filter((s) => s.status === 'OFF_DUTY');
+    else if (activeFilter === 'RESIDENT') list = list.filter((s) => s.isLocalResident);
+
+    const sorted = [...list];
+    sorted.sort((a, b) => getStaffSortOrder(a.id) - getStaffSortOrder(b.id));
+    return sorted;
+  }, [allStaff, activeFilter]);
+
+  const handleUpdateField = (id: string, field: 'team' | 'status' | 'shift' | 'startDate' | 'reliever', value: any) => {
+    setLocalOverrides((prev) => ({ ...prev, [id]: { ...(prev[id] || {}), [field]: value } }));
+    if (field === 'startDate' && onUpdateStartDate) onUpdateStartDate(id, value);
+  };
+
+  const handleRequestALClick = () => {
+    if (onRequestAL) onRequestAL();
+    else alert('Request AL: Process queued for Site Manager / Reliever approval.');
+  };
 
   return (
-    <div className="space-y-1.5 bg-[#d4d0c8] p-1.5">
+    <div className="space-y-1.5 bg-[#d4d0c8] p-1.5 font-sans text-xs">
+      {/* HEADER BAR */}
       <div className="bg-[#d4d0c8] text-slate-900 font-extrabold text-xs px-3 py-1.5 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] tracking-wider uppercase flex items-center justify-between shadow-xs shrink-0 select-none">
-        <div className="flex items-center">
-          <span className="text-emerald-700 font-black mr-2 text-sm">■</span>
-          <span className="uppercase tracking-wider">Rotation &amp; Leave Tracker (3:1 Cycle)</span>
+        <div className="flex items-center gap-2">
+          <span className="text-emerald-700 font-black text-base leading-none">■</span>
+          <span className="text-[13px] font-black tracking-wider text-slate-900 uppercase">ROTATION TRACKER</span>
+        </div>
+        <button
+          onClick={handleRequestALClick}
+          className="win-btn px-3 py-0.5 text-xs font-bold bg-[#d4d0c8] border border-gray-600 hover:bg-slate-200 cursor-pointer shadow-xs active:translate-y-px text-slate-900"
+        >
+          <span>Request AL</span>
+        </button>
+      </div>
+
+      {/* 1. TOP KPI SECTION (3 Dark Blue Header Boxes) */}
+      <div className="grid grid-cols-3 gap-1.5 p-1.5 border-[3px] border-t-white border-l-white border-r-[#7a7a7a] border-b-[#7a7a7a] bg-[#d4d0c8] shadow-[inset_1px_1px_0_#ffffff,inset_-1px_-1px_0_#7a7a7a]">
+        {[
+          {
+            title: 'SITE STATUS',
+            rows: [
+              { label: 'On-Site POB', value: `${kpiData.countOnSite} / ${kpiData.totalStaff} (${kpiData.onSitePct}%)` },
+              { label: 'Annual Leave (AL)', value: `${kpiData.countOffDuty} / ${kpiData.totalStaff}` },
+              { label: 'Local Commuters', value: `${kpiData.countResident} (Day Work)` },
+            ],
+          },
+          {
+            title: 'ROTATION AUDIT',
+            rows: [
+              { label: 'Leave Due (<=14d)', value: `${kpiData.demobDueSoon} Personnel` },
+              { label: 'Overstay (>90d)', value: kpiData.fatigueOverstay === 0 ? 'Compliant (0)' : `${kpiData.fatigueOverstay} Violation` },
+              { label: 'Reliever Coverage', value: kpiData.handoverGapAlert === 0 ? '100% Assigned' : `${kpiData.handoverGapAlert} Uncovered` },
+            ],
+          },
+          {
+            title: 'ROTATION SCHEDULE',
+            rows: [
+              { label: 'Inbound (Return)', value: `${kpiData.plannedInbound} (This Month)` },
+              { label: 'Outbound (Leave)', value: `${kpiData.demobDueSoon} Personnel` },
+              { label: 'Leadership Coverage', value: 'Edi / Shadiq (Guarded)' },
+            ],
+          },
+        ].map((column) => (
+          <div key={column.title} className="border-2 border-slate-500 bg-slate-200 shadow-inner overflow-hidden">
+            <div className="bg-[#1a3a60] text-white text-[11px] font-black uppercase tracking-[0.12em] text-center px-2 py-1.5 border-b border-slate-700">
+              {column.title}
+            </div>
+            <div className="divide-y divide-slate-300">
+              {column.rows.map((row, rowIndex) => (
+                <div
+                  key={`${column.title}-${row.label}`}
+                  className={`grid grid-cols-[1fr_auto] gap-2 items-center px-2 py-1.5 text-[11px] ${rowIndex % 2 === 0 ? 'bg-[#f3f4f6]' : 'bg-[#e8ebef]'}`}
+                >
+                  <span className="text-slate-700 font-semibold leading-tight truncate">{row.label}</span>
+                  <span className="font-mono font-black text-slate-900 text-right whitespace-nowrap leading-tight">{row.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 2. HEADER ACTIONS & PRECOMPUTED QUICK FILTERS (Classic SCADA Bevel Toolbar) */}
+      <div className="bg-[#d4d0c8] border-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] px-2 py-1 flex items-center justify-between flex-wrap gap-2 text-xs select-none">
+        <div className="flex items-center gap-1.5">
+          <span className="font-bold text-slate-800 mr-1 text-[11px] uppercase tracking-wider">Filter:</span>
+          {(
+            [
+              { id: 'ALL', label: `All (${kpiData.totalStaff})` },
+              { id: 'ON_SITE', label: `On-Site (${kpiData.countOnSite})` },
+              { id: 'OFF_DUTY', label: `Off-Duty (${kpiData.countOffDuty})` },
+              { id: 'RESIDENT', label: `Resident (${kpiData.countResident})` },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveFilter(tab.id)}
+              className={`px-2.5 py-0.5 text-xs cursor-pointer active:translate-y-px ${
+                activeFilter === tab.id
+                  ? 'bg-[#b8b3a8] text-slate-950 border-2 border-t-[#808080] border-l-[#808080] border-r-white border-b-white font-black shadow-inner'
+                  : 'bg-[#d4d0c8] text-slate-800 border-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] font-bold shadow-xs hover:bg-[#e0dcd4]'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-700 bg-slate-100 px-2 py-0.5 border border-slate-300 rounded shadow-2xs">
+          <span className="font-bold text-slate-500">BASELINE:</span>
+          <span className="font-black text-slate-900">2026-09-04</span>
         </div>
       </div>
 
+      {/* 3. TABLE (13 Columns, UPPERCASE Headers, Split ERT/Comm) */}
       <div className="overflow-x-auto min-w-full">
         <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
-        <thead>
-          <tr className="bg-slate-200 border-b border-slate-400">
-            <th className="p-1.5 border-r border-slate-300 w-48 text-center">Position</th>
-            <th className="p-1.5 border-r border-slate-300 w-44 text-center">Personnel</th>
-            <th
-              onClick={onToggleStatusSort}
-              className="p-1.5 border-r border-slate-300 cursor-pointer hover:bg-slate-300 transition-colors w-24 select-none text-center"
-              title="Click to toggle Status sorting"
-            >
-              <span className="font-bold text-slate-800">
-                Status {statusSortMode === 'OFF_FIRST' ? '▲' : '▼'}
-              </span>
-            </th>
-            <th className="p-1.5 border-r border-slate-300 w-28 text-center">Start Date</th>
-            <th className="p-1.5 border-r border-slate-300 w-44 text-center">Progress</th>
-            <th className="p-1.5 border-r border-slate-300 w-28 text-center">Leave Due</th>
-            <th className="p-1.5 text-center">Training & Due Date (Within 90 Days)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rotationPersonnelList.map((m, i) => {
-            const isResident =
-              m.department === 'HR_GA' ||
-              m.id === 'EMP-017' ||
-              m.id === 'EMP-018' ||
-              m.cycleStartDate === 'N/A' ||
-              m.cycleStartDate === '-';
+          <thead>
+            <tr className="bg-slate-200 border-b border-slate-400 text-slate-800 text-[10px]">
+              <th className="p-1 border-r border-slate-300 w-10 text-center">NO.</th>
+              <th className="p-1 border-r border-slate-300 w-36 text-center">NAME / ID</th>
+              <th className="p-1 border-r border-slate-300 w-36 text-center">POSITION</th>
+              <th className="p-1 border-r border-slate-300 w-32 text-center">TEAM</th>
+              <th className="p-1 border-r border-slate-300 w-24 text-center">STATUS</th>
+              <th className="p-1 border-r border-slate-300 w-16 text-center">SHIFT</th>
+              <th className="p-1 border-r border-slate-300 w-28 text-center">ON-SITE DATE</th>
+              <th className="p-1 border-r border-slate-300 w-40 text-center">DAYS (90D)</th>
+              <th className="p-1 border-r border-slate-300 w-32 text-center">DUE DATE</th>
+              <th className="p-1 border-r border-slate-300 w-36 text-center">ERT ROLE</th>
+              <th className="p-1 border-r border-slate-300 w-28 text-center">RADIO CH</th>
+              <th className="p-1 text-center w-32">CONTACT NO</th>
+            </tr>
+          </thead>
+          <tbody>
+            {displayList.map((m, idx) => {
+              const isSelected = selectedEmpId === m.id;
+              const isResident = m.isLocalResident;
+              const isOffDuty = m.status === 'OFF_DUTY';
 
-            const isOpShift =
-              m.department === 'OP_ALPHA' ||
-              m.department === 'OP_BRAVO' ||
-              m.department === 'OP_CHARLIE' ||
-              m.id === 'EMP-002';
-            const targetCycle = isOpShift ? 42 : (m.targetCycleDays || 90);
-            const isOffDuty = !isResident && m.currentStatus === 'OFF_DUTY';
-
-            const dynamicOnSiteDays = isResident || isOffDuty ? 0 : calcOnSiteDays(m.cycleStartDate, '2026-09-02');
-            const dynamicRotationDue = isResident
-              ? '-'
-              : isOffDuty
-                ? calcReturnDueDate(m.cycleStartDate, 14)
-                : calcRotationDueDate(m.cycleStartDate, targetCycle);
-            const pct = isOffDuty ? 0 : Math.min(100, Math.round((dynamicOnSiteDays / targetCycle) * 100));
-
-            const isPending = !isResident && !isOffDuty && dynamicOnSiteDays >= (targetCycle - 5);
-            const isDueSoon = !isResident && !isOffDuty && dynamicOnSiteDays >= (targetCycle - 7);
-            const compStatus = getStaffCompetencyStatus(m);
-            const isSelected = selectedEmpId === m.id;
-
-            return (
-              <tr
-                key={m.id}
-                onClick={() => onSelectEmployee(m.id)}
-                className={`cursor-pointer transition-colors duration-150 ${isSelected
-                  ? 'bg-sky-100/70 dark:bg-sky-950/40 border-l-4 border-sky-500'
-                  : i % 2 === 0
-                    ? 'bg-white hover:bg-sky-50/80 dark:hover:bg-slate-800/50'
-                    : 'bg-slate-50 hover:bg-sky-50/80 dark:hover:bg-slate-800/50'
+              return (
+                <tr
+                  key={m.id}
+                  onClick={() => onSelectEmployee?.(m.id)}
+                  className={`cursor-pointer transition-colors duration-150 border-b border-slate-300 ${
+                    isSelected ? 'bg-sky-100/80 border-l-4 border-sky-600' : idx % 2 === 0 ? 'bg-white hover:bg-sky-50/70' : 'bg-slate-50 hover:bg-sky-50/70'
                   }`}
-              >
-                <td className="p-1.5 border-r border-slate-300 font-bold text-slate-900 whitespace-nowrap">
-                  {normalizePositionTitle(m.role) || normalizePositionTitle(INITIAL_MANPOWER_MASTER_RECORDS.find((r) => r.id === m.id)?.role || '') || m.role || 'Field Operator'}
-                </td>
-
-                <td className="p-1.5 font-bold border-r border-slate-300 text-blue-950 whitespace-nowrap">
-                  {m.name}
-                </td>
-
-                <td className="p-1.5 border-r border-slate-300 font-mono text-center">
-                  {isOffDuty ? (
-                    <span className="bg-amber-100 text-amber-900 border border-amber-400 font-bold px-2 py-0.5 rounded text-xs inline-block min-w-[65px]">
-                      Off-Day
-                    </span>
-                  ) : (
-                    <span className="bg-emerald-100 text-emerald-950 border border-emerald-400 font-bold px-2 py-0.5 rounded text-xs inline-block min-w-[65px]">
-                      On-Site
-                    </span>
-                  )}
-                </td>
-
-                <td className="p-1 border-r border-slate-300 font-mono text-center" onClick={(e) => e.stopPropagation()}>
-                  {isResident ? (
-                    <span className="text-slate-500 font-normal text-[10px]">-</span>
-                  ) : (
-                    <div className="inline-flex items-center justify-center win-sunken bg-white px-1.5 py-0.5 border border-slate-400">
+                >
+                  <td className="p-1.5 border-r border-slate-300 text-center font-mono font-bold text-slate-700">{idx + 1}</td>
+                  <td className="p-1.5 border-r border-slate-300 whitespace-nowrap text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="font-bold text-slate-900 leading-tight">{m.name}</span>
+                      <span className="text-[10px] text-slate-500 font-mono leading-tight">{m.id}</span>
+                    </div>
+                  </td>
+                  <td className="p-1.5 border-r border-slate-300 text-slate-800 whitespace-nowrap font-medium text-center uppercase tracking-wide">{m.position}</td>
+                  <td className="p-1 border-r border-slate-300 text-center" onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={m.team}
+                      onChange={(e) => handleUpdateField(m.id, 'team', e.target.value)}
+                      className="bg-white border border-slate-300 text-[10px] px-1 py-0.5 rounded font-mono font-semibold text-slate-800 w-full text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      {TEAM_OPTIONS.map((t) => (<option key={t} value={t}>{t}</option>))}
+                    </select>
+                  </td>
+                  <td className="p-1 border-r border-slate-300 text-center" onClick={(e) => e.stopPropagation()}>
+                    {isResident ? (
+                      <span className="bg-slate-100 text-slate-700 border border-slate-300 font-bold px-1.5 py-0.5 rounded text-[10px] inline-block font-mono">Resident</span>
+                    ) : (
+                      <select
+                        value={m.status}
+                        onChange={(e) => handleUpdateField(m.id, 'status', e.target.value)}
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded border text-center font-mono cursor-pointer focus:outline-none ${
+                          m.status === 'ON_SITE' ? 'bg-slate-100 text-slate-800 border-slate-400' : 'bg-[#dedbd2] text-slate-700 border-slate-400'
+                        }`}
+                      >
+                        <option value="ON_SITE">On-Site</option>
+                        <option value="OFF_DUTY">Off-Duty</option>
+                      </select>
+                    )}
+                  </td>
+                  <td className="p-1 border-r border-slate-300 text-center" onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={m.todayShift}
+                      onChange={(e) => handleUpdateField(m.id, 'shift', e.target.value as ShiftCode)}
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-300 bg-slate-50 text-slate-800 text-center font-mono cursor-pointer focus:outline-none"
+                    >
+                      <option value="D">D</option><option value="N">N</option><option value="Off">Off</option><option value="R">R</option>
+                    </select>
+                  </td>
+                  <td className="p-1 border-r border-slate-300 font-mono text-center" onClick={(e) => e.stopPropagation()}>
+                    {isResident ? (
+                      <span className="text-slate-400 font-normal">-</span>
+                    ) : (
                       <input
                         type="date"
                         value={m.cycleStartDate}
-                        onChange={(e) => onUpdateStartDate(m.id, e.target.value)}
-                        className="bg-transparent text-slate-900 font-mono font-extrabold text-[11px] focus:outline-none cursor-pointer text-center"
-                        title="Click to modify Cycle Start Date"
+                        onChange={(e) => handleUpdateField(m.id, 'startDate', e.target.value)}
+                        className="bg-white px-1 py-0.5 border border-slate-400 text-slate-900 font-mono font-bold text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500 text-center w-full"
                       />
-                    </div>
-                  )}
-                </td>
-
-                <td className="p-1.5 border-r border-slate-300 text-center">
-                  {isResident ? (
-                    <div className="flex items-center justify-center text-[10px] p-1 bg-slate-100 border border-slate-300 font-bold text-slate-700 text-center">
-                      <span>Day Work</span>
-                    </div>
-                  ) : isOffDuty ? (
-                    <div className="flex items-center justify-center text-[10px] p-1 bg-amber-50 border border-amber-300 font-bold text-amber-900 text-center">
-                      <span>Off-Duty (Leave)</span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center justify-center gap-2 text-[10px] mb-1 font-mono">
-                        <span className="font-bold text-slate-900">{dynamicOnSiteDays} / {targetCycle} Days</span>
-                        <span className={`font-bold ${pct >= 90 ? 'text-rose-700' : 'text-slate-700'}`}>({pct}%)</span>
+                    )}
+                  </td>
+                  <td className="p-1.5 border-r border-slate-300 text-center">
+                    {isResident || isOffDuty ? (
+                      <span className="text-[10px] font-mono text-slate-400">-</span>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center w-full max-w-[130px] mx-auto">
+                        <div className="flex items-center justify-center gap-1 text-[10px] mb-0.5 font-mono text-slate-800">
+                          <span className="font-bold">{m.onSiteDays}d</span>
+                          <span className="text-slate-500">/ 90d</span>
+                          <span className={`font-semibold ${m.pct >= 90 ? 'text-rose-700 font-black' : 'text-slate-600'}`}>({m.pct}%)</span>
+                        </div>
+                        <div className="w-full bg-slate-200 h-1.5 border border-slate-300 overflow-hidden">
+                          <div
+                            className={`h-full ${m.pct >= 90 ? 'bg-rose-600' : 'bg-slate-600'}`}
+                            style={{ width: `${m.pct}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="w-full bg-slate-200 h-2.5 border border-slate-400 overflow-hidden">
-                        <div
-                          className={`h-full ${pct >= 90
-                            ? 'bg-rose-600'
-                            : pct >= 75
-                              ? 'bg-amber-500'
-                              : 'bg-blue-800'
-                            }`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </>
-                  )}
-                </td>
-
-                <td className="p-1.5 border-r border-slate-300 font-mono font-bold whitespace-nowrap text-center">
-                  {isResident ? (
-                    <span className="text-slate-500 font-normal text-[10px]">-</span>
-                  ) : isOffDuty ? (
-                    <span className="text-amber-950 bg-amber-100 px-1.5 py-0.5 border border-amber-300 rounded font-bold">
-                      Return: {dynamicRotationDue}
-                    </span>
-                  ) : (
-                    <span
-                      className={
-                        isDueSoon || isPending
-                          ? 'text-rose-800 bg-rose-50 px-1.5 py-0.5 border border-rose-300 rounded font-bold'
-                          : 'text-slate-900'
-                      }
-                    >
-                      {dynamicRotationDue}
-                    </span>
-                  )}
-                </td>
-
-                <td className="p-1.5">
-                  {isResident || (!compStatus.hasExpired && !compStatus.hasExpiringSoon) ? (
-                    <div className="flex items-center justify-center">
-                      <span className="text-emerald-700 bg-emerald-50 px-2 py-1 rounded text-xs font-semibold inline-block border border-emerald-200">
-                        ✓ All Valid
+                    )}
+                  </td>
+                  <td className="p-1.5 border-r border-slate-300 font-mono text-center whitespace-nowrap text-slate-800">
+                    {isResident || !m.dynamicLeaveDue || m.dynamicLeaveDue === '-' ? (
+                      <span className="text-slate-400">-</span>
+                    ) : (
+                      <span className={m.onSiteDays >= 83 && !isOffDuty ? 'text-rose-800 font-black' : 'font-medium'}>
+                        {m.dynamicLeaveDue}
                       </span>
-                    </div>
-                  ) : compStatus.hasExpired ? (
-                    <div
-                      onClick={() => onNavigateToMatrix(m.id)}
-                      className="bg-rose-50 hover:bg-rose-100 border border-rose-300 px-2 py-1 rounded text-xs cursor-pointer transition-colors shadow-2xs"
-                      title="Click to open Training & Competency Matrix"
-                    >
-                      <span className="text-rose-900 font-bold">
-                        {compStatus.expiredCerts.map((c: any) => `❌ ${c.code}: ${c.name} (Expired: ${c.expiryDate})`).join(', ')}
-                      </span>
-                    </div>
-                  ) : (
-                    <div
-                      onClick={() => onNavigateToMatrix(m.id)}
-                      className="bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2 py-1 rounded text-xs cursor-pointer transition-colors shadow-2xs"
-                      title="Click to open Training & Competency Matrix"
-                    >
-                      <span className="text-amber-900 font-bold">
-                        {compStatus.expiringCerts.map((c: any) => `⚠️ ${c.code}: ${c.name} (Due: ${c.expiryDate})`).join(', ')}
-                      </span>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                    )}
+                  </td>
+                  <td className="p-1.5 border-r border-slate-300 text-center whitespace-nowrap font-mono text-xs text-slate-700">
+                    {m.ertRole && m.ertRole !== 'None' ? m.ertRole : '-'}
+                  </td>
+                  <td className="p-1.5 border-r border-slate-300 text-center whitespace-nowrap font-mono text-xs text-slate-700">
+                    {m.radioCh || '-'}
+                  </td>
+                  <td className="p-1.5 text-center whitespace-nowrap font-mono text-xs text-slate-700">
+                    {formatContactNo(m.contactNo)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="bg-slate-200 border-t-2 border-slate-400 font-bold text-slate-800 text-[10px]">
+              <td className="p-1.5 border-r border-slate-300"></td>
+              <td colSpan={11} className="p-1.5 pl-3 text-slate-700 font-mono text-left">
+                TOTAL DISPLAYED: <span className="text-slate-900 font-black">{displayList.length}</span> / {allStaff.length} PERSONNEL
+              </td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
     </div>
   );
