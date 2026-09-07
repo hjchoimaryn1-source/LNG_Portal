@@ -50,9 +50,11 @@ import FitToWorkOverrideModal from './modals/FitToWorkOverrideModal';
 import FatigueLimitModal from './modals/FatigueLimitModal';
 import ExceptionRestModal from './modals/ExceptionRestModal';
 import PastDateLockModal from './modals/PastDateLockModal';
-import OperationsOverrideModal from './modals/OperationsOverrideModal';
 import TeamShortageModal from './modals/TeamShortageModal';
 import CodSimulatorToast from './CodSimulatorToast';
+import { resolveActiveShiftLeaders } from '../../services/rosterPlanEngine';
+import { useActualDutyLogs } from './hooks/useActualDutyLogs';
+import { DailyActualLog } from '../../types/manpowerActual';
 
 export {
   INITIAL_MANPOWER_MASTER_RECORDS as MANPOWER_DIRECTORY,
@@ -69,13 +71,24 @@ interface ManpowerRosterViewProps {
   initialSubView?: ManpowerTabKey;
   activeTab?: ManpowerTabKey;
   onTabChange?: (tab: ManpowerTabKey) => void;
+  selectedDate?: string;
 }
 
 export default function ManpowerRosterView({
   initialSubView = 'OVERVIEW',
   activeTab: controlledTab,
   onTabChange,
+  selectedDate,
 }: ManpowerRosterViewProps) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const [activeDate, setActiveDate] = useState<string>(selectedDate || todayStr);
+
+  useEffect(() => {
+    if (selectedDate) {
+      setActiveDate(selectedDate);
+    }
+  }, [selectedDate]);
+
   const [internalTab, setInternalTab] = useState<ManpowerTabKey>(initialSubView);
 
   const activeTab = controlledTab ?? internalTab;
@@ -158,8 +171,6 @@ export default function ManpowerRosterView({
   const [dailyStaffStatus, setDailyStaffStatus] = useState<
     Record<string, { status: 'PRESENT' | 'SICK' | 'EMERGENCY' | 'LEAVE'; replacementId: string }>
   >({});
-  const [isLockModalOpen, setIsLockModalOpen] = useState<boolean>(false);
-  const [lockModalSmApproved, setLockModalSmApproved] = useState<boolean>(true);
   const [teamShortageDialog, setTeamShortageDialog] = useState<string | null>(null);
 
   // 7.6. COD Simulator & [3:1] Roster Engine State
@@ -167,6 +178,7 @@ export default function ManpowerRosterView({
   const [simMode, setSimMode] = useState<'SIMULATION' | 'LIVE'>('SIMULATION');
   const [isCodRosterApplied, setIsCodRosterApplied] = useState<boolean>(true);
   const [codResetToast, setCodResetToast] = useState<string | null>(null);
+  const { lockDailyActuals } = useActualDutyLogs();
 
   // 8. Daily Shift Board (Tab 3) Stand-down / Rest Request & Standby Cover State
   const [dailyRestModalOpen, setDailyRestModalOpen] = useState<boolean>(false);
@@ -283,10 +295,23 @@ export default function ManpowerRosterView({
   }, []);
 
   // Dynamic Shift Groups
-  const teamBPersonnel = useMemo(() => manpowerData.filter((m) => m.department === 'OP_BRAVO'), [manpowerData]);
-  const teamCPersonnel = useMemo(() => manpowerData.filter((m) => m.department === 'OP_CHARLIE'), [manpowerData]);
+  const teamBPersonnel = useMemo(
+    () => manpowerData.filter((m) => m.department === 'OP_BRAVO' || (m.teamName && m.teamName.includes('TEAM-B'))),
+    [manpowerData]
+  );
+  const teamCPersonnel = useMemo(
+    () => manpowerData.filter((m) => m.department === 'OP_CHARLIE' || (m.teamName && m.teamName.includes('TEAM-C'))),
+    [manpowerData]
+  );
   const teamAPersonnel = useMemo(
-    () => manpowerData.filter((m) => m.department === 'OP_ALPHA' || m.id === 'EMP-002'),
+    () =>
+      manpowerData.filter(
+        (m) =>
+          m.department === 'OP_ALPHA' ||
+          m.id === 'EMP-002' ||
+          m.id === 'BSG259524' ||
+          (m.teamName && m.teamName.includes('TEAM-A'))
+      ),
     [manpowerData]
   );
   const standbyPoolCandidates = useMemo(
@@ -295,9 +320,16 @@ export default function ManpowerRosterView({
         (m) =>
           m.department === 'OP_ALPHA' ||
           m.id === 'EMP-002' ||
+          m.id === 'BSG259524' ||
+          (m.teamName && m.teamName.includes('TEAM-A')) ||
           m.todayShift === 'Off' ||
           m.currentStatus === 'OFF_DUTY'
       ),
+    [manpowerData]
+  );
+
+  const activeShiftLeaders = useMemo(
+    () => resolveActiveShiftLeaders(manpowerData, new Date('2026-09-01T00:00:00')),
     [manpowerData]
   );
 
@@ -455,8 +487,59 @@ export default function ManpowerRosterView({
 
     setMonthOverrides(newOverrides);
     setConfirmedDailyDates((prev) => (prev.includes('2026-09-02') ? prev : [...prev, '2026-09-02']));
-    setFatigueOverrideApproved(lockModalSmApproved);
-    setIsLockModalOpen(false);
+    setFatigueOverrideApproved(true);
+
+    // Save 3-Tier actual operational logs
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const actualLogs: DailyActualLog[] = manpowerData.map((staff) => {
+      const staffState = dailyStaffStatus[staff.id];
+      const isRest = !!dailyRestAssignments[staff.id];
+      const isResident = staff.isLocalResident || staff.department === 'HR_GA';
+
+      let actualShift: 'D' | 'N' | 'R' | 'OFF' = 'D';
+      let actualStatus: 'ON_SITE' | 'OFF_DUTY' | 'RESIDENT' = 'ON_SITE';
+
+      if (isResident) {
+        actualShift = 'D';
+        actualStatus = 'RESIDENT';
+      } else if (staffState && staffState.status !== 'PRESENT') {
+        actualShift = 'OFF';
+        actualStatus = 'OFF_DUTY';
+      } else if (isRest) {
+        actualShift = 'R';
+        actualStatus = 'ON_SITE';
+      } else if (staff.department === 'OP_CHARLIE') {
+        actualShift = 'N';
+        actualStatus = 'ON_SITE';
+      } else if (staff.department === 'OP_BRAVO') {
+        actualShift = 'D';
+        actualStatus = 'ON_SITE';
+      } else if (staff.id === 'BSG259524') {
+        if (todayStr <= '2026-09-11') {
+          actualShift = 'OFF';
+          actualStatus = 'OFF_DUTY';
+        } else {
+          actualShift = 'D';
+          actualStatus = 'ON_SITE';
+        }
+      } else {
+        actualShift = (staff.todayShift as any) || 'D';
+        actualStatus = staff.currentStatus === 'OFF_DUTY' ? 'OFF_DUTY' : 'ON_SITE';
+      }
+
+      return {
+        id: `${staff.id}_${todayStr}`,
+        staffId: staff.id,
+        dateKey: todayStr,
+        actualShift,
+        actualStatus,
+        source: 'DAILY_HANDOVER',
+        signedBy: 'Site Manager',
+        lockedAt: new Date().toISOString(),
+      };
+    });
+    lockDailyActuals(todayStr, actualLogs);
     setDailyShiftSavedToast(true);
     setTimeout(() => setDailyShiftSavedToast(false), 5000);
   };
@@ -473,15 +556,17 @@ export default function ManpowerRosterView({
     setDailyRestModalOpen(true);
   };
 
-  const handleApplyDailyRestRequest = () => {
+  const handleApplyDailyRestRequest = (customReasonOverride?: string) => {
     const applicant = manpowerData.find((m) => m.id === dailyRestApplicantId);
     const cover = manpowerData.find((m) => m.id === dailyRestCoverId);
     if (!applicant || !cover || (dailyRestReason === 'Rotation Leave' && !dailyRestCoverId)) return;
 
+    const finalReason = customReasonOverride || dailyRestReason;
+
     setDailyRestAssignments((prev) => ({
       ...prev,
       [applicant.id]: {
-        reason: dailyRestReason,
+        reason: finalReason,
         coveringStaffId: cover.id,
         approvedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
       },
@@ -490,7 +575,7 @@ export default function ManpowerRosterView({
     setDailyRestSuccessToast({
       applicantName: applicant.name,
       coverName: cover.name,
-      reason: dailyRestReason,
+      reason: finalReason,
     });
     setTimeout(() => setDailyRestSuccessToast(null), 5000);
     setDailyRestModalOpen(false);
@@ -561,7 +646,12 @@ export default function ManpowerRosterView({
       <div className="flex-1 min-h-0 overflow-y-auto bg-[#d4d0c8] p-0">
         {/* TAB 0: OVERVIEW */}
         {activeTab === 'OVERVIEW' && (
-          <SiteManningOverviewTab onNavigateTab={(nextTab) => setActiveTab(nextTab)} />
+          <SiteManningOverviewTab
+            onNavigateTab={(nextTab) => setActiveTab(nextTab)}
+            manpowerData={manpowerData}
+            selectedDate={activeDate}
+            onOpenHandoverModal={() => setIsHandoverProtocolModalOpen(true)}
+          />
         )}
 
         {/* TAB 1: MONTHLY PLAN */}
@@ -578,6 +668,9 @@ export default function ManpowerRosterView({
             onSelectEmployee={(empId) => setSelectedEmpId(empId)}
             setSelectedYear={setSelectedYear}
             setSelectedMonth={setSelectedMonth}
+            codBaselineDate={codBaselineDate}
+            setCodBaselineDate={setCodBaselineDate}
+            handleApplyCodRoster={handleApplyCodRoster}
           />
         )}
 
@@ -590,6 +683,7 @@ export default function ManpowerRosterView({
             onSelectEmployee={(empId) => setSelectedEmpId(empId)}
             onUpdateStartDate={handleUpdateStartDate}
             onNavigateToMatrix={navigateToMatrix}
+            selectedDate={activeDate}
           />
         )}
 
@@ -599,13 +693,8 @@ export default function ManpowerRosterView({
             manpowerData={manpowerData}
             dailyStaffStatus={dailyStaffStatus}
             dailyRestAssignments={dailyRestAssignments}
-            teamBPersonnel={teamBPersonnel}
-            teamCPersonnel={teamCPersonnel}
-            teamAPersonnel={teamAPersonnel}
             standbyPoolCandidates={standbyPoolCandidates}
-            ertSummary={ertSummary}
             exceeded154hPersonnel={exceeded154hPersonnel}
-            has154hViolation={has154hViolation}
             rolling7Days={rolling7Days}
             codBaselineDate={codBaselineDate}
             isErtGateExpanded={isErtGateExpanded}
@@ -615,7 +704,6 @@ export default function ManpowerRosterView({
             onToggleFatigue={() => setIsFatigueExpanded(!isFatigueExpanded)}
             onOpenHandoverProtocol={() => setIsHandoverProtocolModalOpen(true)}
             onOpenDailyRestModal={handleOpenDailyRestModal}
-            onOpenLockModal={() => setIsLockModalOpen(true)}
             onApplyCodRoster={handleApplyCodRoster}
             onSetCodBaselineDate={(nextValue) => {
               setCodBaselineDate(nextValue);
@@ -739,6 +827,7 @@ export default function ManpowerRosterView({
       {/* 5-H: Daily Shift Board Rest / Stand-down & Standby Cover Modal */}
       <DailyRestCoverModal
         isOpen={dailyRestModalOpen}
+        activeDateStr={codBaselineDate}
         dailyRestApplicantId={dailyRestApplicantId}
         dailyRestReason={dailyRestReason}
         dailyRestCoverId={dailyRestCoverId}
@@ -782,24 +871,8 @@ export default function ManpowerRosterView({
       <ShiftHandoverModal
         isOpen={isHandoverProtocolModalOpen}
         onClose={() => setIsHandoverProtocolModalOpen(false)}
-        dayShiftLeader={teamBPersonnel.find((member) => /leader/i.test(member.role)) ?? teamBPersonnel[0]}
-        nightShiftLeader={teamCPersonnel.find((member) => /leader/i.test(member.role)) ?? teamCPersonnel[0]}
-      />
-
-      {/* 5-K: Operations Override & Impact Summary Modal (SSOT Confirmation) */}
-      <OperationsOverrideModal
-        isOpen={isLockModalOpen}
-        dailyStaffStatus={dailyStaffStatus}
-        dailyRestAssignments={dailyRestAssignments}
-        manpowerData={manpowerData}
-        ertSummary={ertSummary}
-        exceeded154hPersonnel={exceeded154hPersonnel}
-        has154hViolation={has154hViolation}
-        get14dHours={get14dHoursCallback}
-        lockModalSmApproved={lockModalSmApproved}
-        onLockModalSmApprovedChange={setLockModalSmApproved}
-        onClose={() => setIsLockModalOpen(false)}
-        onLockAndPropagate={handleLockAndPropagateRoster}
+        dayShiftLeader={activeShiftLeaders.dayShiftLeader ?? teamBPersonnel[0]}
+        nightShiftLeader={activeShiftLeaders.nightShiftLeader ?? teamCPersonnel[0]}
       />
 
       {/* 5-L: Team Shortage Guardrail Alert Dialog */}

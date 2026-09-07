@@ -221,89 +221,87 @@ export default function TrainingMatrixView({
       {/* ========================================================================= */}
       {/* 1. Top Matrix KPI Summary Strip                                           */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-1.5 shrink-0">
-        {/* Card 1: Statutory Job Qualification Rate */}
-        <div className="win-panel p-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-700 font-bold text-[11px] mb-1">
-            <span className="flex items-center gap-1">
-              <UserCheck className="w-3.5 h-3.5 text-emerald-800" />
-              Job Qualification Rate
-            </span>
-            <span className="win-sunken px-1 text-[9px] bg-emerald-100 text-emerald-950 font-mono font-bold">
-              19 DIRECT
-            </span>
+      <div className="border-2 border-slate-400 bg-[#d4d0c8] p-1 shadow-inner shrink-0">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
+          {/* Column 1: QUALIFICATION & REGISTRY */}
+          <div className="flex flex-col">
+            <div className="bg-[#0b2240] text-white text-[10px] font-bold text-center tracking-wider py-1 uppercase shadow-xs">
+              QUALIFICATION &amp; REGISTRY
+            </div>
+            <div className="bg-white border border-slate-400 font-mono text-[10px]">
+              <div className="border-b border-slate-200 hover:bg-slate-50 flex items-center justify-between px-2 py-1">
+                <span className="text-slate-600">Job Qualification Rate</span>
+                <span className="font-bold text-emerald-950">
+                  {stats.qualificationRate}% ({stats.fullyQualifiedCount}/{personnelList.length} Qualified)
+                </span>
+              </div>
+              <div className="border-b border-slate-200 hover:bg-slate-50 flex items-center justify-between px-2 py-1">
+                <span className="text-slate-600">Total Direct Personnel</span>
+                <span className="font-bold text-slate-800">
+                  {personnelList.length} Personnel
+                </span>
+              </div>
+              <div className="hover:bg-slate-50 flex items-center justify-between px-2 py-1">
+                <span className="text-slate-600">Active Matrix Courses</span>
+                <span className="font-bold text-slate-800">
+                  {STANDARD_COMPETENCY_COURSES.length} Courses
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-black font-mono text-emerald-950">{stats.qualificationRate}%</span>
-            <span className="text-xs font-mono text-slate-600">({stats.fullyQualifiedCount}/{personnelList.length} Qualified)</span>
-          </div>
-        </div>
 
-        {/* Card 2: Total Active Certifications */}
-        <div className="win-panel p-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-700 font-bold text-[11px] mb-1">
-            <span className="flex items-center gap-1">
-              <Award className="w-3.5 h-3.5 text-blue-900" />
-              Active Registry
-            </span>
-            <span className="win-sunken px-1 text-[9px] bg-blue-100 text-blue-950 font-mono font-bold">
-              6 COURSES
-            </span>
+          {/* Column 2: EXPIRATION & COMPLIANCE */}
+          <div className="flex flex-col">
+            <div className="bg-[#0b2240] text-white text-[10px] font-bold text-center tracking-wider py-1 uppercase shadow-xs">
+              EXPIRATION &amp; COMPLIANCE
+            </div>
+            <div className="bg-white border border-slate-400 font-mono text-[10px]">
+              <div className="border-b border-slate-200 hover:bg-slate-50 flex items-center justify-between px-2 py-1">
+                <span className="text-slate-600">Expiring Soon (30 Days)</span>
+                <span className={`font-bold ${stats.expiringCount > 0 ? 'text-amber-700 font-black' : 'text-slate-800'}`}>
+                  {stats.expiringCount} Certificates Due
+                </span>
+              </div>
+              <div className="border-b border-slate-200 hover:bg-slate-50 flex items-center justify-between px-2 py-1">
+                <span className="text-slate-600">Action Required (Expired)</span>
+                <span className={`font-bold ${stats.expiredCount > 0 ? 'text-red-700 font-black' : 'text-slate-800'}`}>
+                  {stats.expiredCount} Expired Mandates
+                </span>
+              </div>
+              <div className="hover:bg-slate-50 flex items-center justify-between px-2 py-1">
+                <span className="text-slate-600">Compliance Verification</span>
+                <span className={`font-bold ${stats.expiredCount === 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                  {stats.expiredCount === 0 ? '100% Compliant' : 'Requires Action'}
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-black font-mono text-blue-950">{stats.totalCerts}</span>
-            <span className="text-xs font-mono text-slate-600">Total Valid {stats.validCount}</span>
-          </div>
-        </div>
 
-        {/* Card 3: Approval Queue */}
-        <div className="win-panel p-2 flex flex-col justify-between bg-blue-50/40">
-          <div className="flex items-center justify-between text-blue-900 font-bold text-[11px] mb-1">
-            <span className="flex items-center gap-1">
-              <FileClock className="w-3.5 h-3.5 text-blue-800" />
-              Approval Queue
-            </span>
-            <span className="win-sunken px-1 text-[9px] bg-blue-200 text-blue-950 font-mono font-bold">
-              WORKFLOW
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-black font-mono text-blue-900">{stats.pendingCount}</span>
-            <span className="text-xs font-mono text-slate-600">Pending Review</span>
-          </div>
-        </div>
-
-        {/* Card 4: Expiring Soon (30 Days) */}
-        <div className="win-panel p-2 flex flex-col justify-between bg-amber-50/40">
-          <div className="flex items-center justify-between text-amber-900 font-bold text-[11px] mb-1">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-amber-800" />
-              Expiring Soon (30d)
-            </span>
-            <span className="win-sunken px-1 text-[9px] bg-amber-200 text-amber-950 font-mono font-bold">
-              REFRESH
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-black font-mono text-amber-900">{stats.expiringCount}</span>
-            <span className="text-xs font-mono text-slate-600">Certificates Due</span>
-          </div>
-        </div>
-
-        {/* Card 5: Non-Compliant / Action Required */}
-        <div className="win-panel p-2 flex flex-col justify-between bg-red-50/50">
-          <div className="flex items-center justify-between text-red-900 font-bold text-[11px] mb-1">
-            <span className="flex items-center gap-1">
-              <ShieldAlert className="w-3.5 h-3.5 text-red-700" />
-              Action Required
-            </span>
-            <span className="win-sunken px-1 text-[9px] bg-red-600 text-white font-mono font-bold">
-              AUDIT FLAG
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-black font-mono text-red-700">{stats.expiredCount}</span>
-            <span className="text-xs font-mono text-slate-600">Expired Mandates</span>
+          {/* Column 3: WORKFLOW & AUDIT */}
+          <div className="flex flex-col">
+            <div className="bg-[#0b2240] text-white text-[10px] font-bold text-center tracking-wider py-1 uppercase shadow-xs">
+              WORKFLOW &amp; AUDIT
+            </div>
+            <div className="bg-white border border-slate-400 font-mono text-[10px]">
+              <div className="border-b border-slate-200 hover:bg-slate-50 flex items-center justify-between px-2 py-1">
+                <span className="text-slate-600">Pending Approval Queue</span>
+                <span className="font-bold text-blue-900">
+                  {stats.pendingCount} Pending Review
+                </span>
+              </div>
+              <div className="border-b border-slate-200 hover:bg-slate-50 flex items-center justify-between px-2 py-1">
+                <span className="text-slate-600">Audit Risk Level</span>
+                <span className={`font-bold ${stats.expiredCount > 0 ? 'text-red-700' : 'text-emerald-700'}`}>
+                  {stats.expiredCount > 0 ? 'High Risk' : 'Normal / Cleared'}
+                </span>
+              </div>
+              <div className="hover:bg-slate-50 flex items-center justify-between px-2 py-1">
+                <span className="text-slate-600">Registry Sync Status</span>
+                <span className="font-bold text-emerald-800">
+                  Real-time Active
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -418,35 +416,39 @@ export default function TrainingMatrixView({
           <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
             <thead>
               <tr className="bg-slate-200 border-b border-slate-400 text-[10px]">
-                <th className="p-1.5 border-r border-slate-300 w-18 text-center">Emp ID</th>
-                <th className="p-1.5 border-r border-slate-300 w-36 text-center">Personnel Name</th>
-                <th className="p-1.5 border-r border-slate-300 w-44 text-center">Position / Role</th>
-                <th className="p-1.5 border-r border-slate-300 w-24 text-center">Team</th>
-                <th className="p-1.5 border-r border-slate-300 text-center w-16">Duty</th>
+                <th className="p-1.5 border-r border-slate-300 w-18 text-center uppercase">ID</th>
+                <th className="p-1.5 border-r border-slate-300 w-36 text-center uppercase">NAME</th>
+                <th className="p-1.5 border-r border-slate-300 w-44 text-center uppercase">POSITION</th>
                 {/* 6 Standard Course Columns */}
                 {STANDARD_COMPETENCY_COURSES.map((course) => (
                   <th
                     key={course.code}
-                    className="p-1 border-r border-slate-300 text-center min-w-[105px] max-w-[130px]"
+                    className="p-1.5 border-r border-slate-300 text-center min-w-[105px] max-w-[130px] align-middle"
                     title={`${course.code}: ${course.name} (${course.issuingBody})`}
                   >
-                    <div className="font-bold text-blue-950 text-[10px]">{course.shortName}</div>
-                    <div className="text-[9px] text-slate-500 font-normal truncate">{course.code}</div>
+                    <span className="font-bold text-blue-950 text-[10px] block leading-tight uppercase">
+                      {course.shortName.toUpperCase()}
+                    </span>
                   </th>
                 ))}
-                <th className="p-1.5 text-center min-w-[130px]">Statutory Qualification</th>
+                <th className="p-1.5 text-center min-w-[130px] uppercase">STATUTORY QUALIFICATION</th>
               </tr>
             </thead>
             <tbody>
               {filteredPersonnel.map((staff, idx) => {
-                const compStatus = getStaffCompetencyStatus(staff);
-                const isOffDuty = staff.currentStatus === 'OFF_DUTY';
                 const certsMap = new Map((staff.competencies || []).map((c) => [c.code, c]));
                 const isHighlighted = activeHighlightId === staff.id;
                 
-                // Job-Specific Mandatory Evaluation
-                const jobEval = evaluateStaffJobQualification(staff);
-                const { mandatoryCourseCodes } = getPositionMandatoryCourses(staff);
+                const staffCerts = staff.competencies || [];
+                const rowHasExpired = staffCerts.some((c) => c.status === 'EXPIRED' || c.expiryDate < '2026-09-07');
+                const rowHasExpiringSoon =
+                  !rowHasExpired &&
+                  staffCerts.some(
+                    (c) =>
+                      c.status === 'EXPIRING_SOON' ||
+                      c.status === 'DUE_SOON' ||
+                      (c.expiryDate >= '2026-09-07' && c.expiryDate <= '2026-10-07')
+                  );
 
                 return (
                   <tr
@@ -457,8 +459,10 @@ export default function TrainingMatrixView({
                     className={`transition-all duration-300 ${
                       isHighlighted
                         ? 'bg-amber-100 border-2 border-amber-500 shadow-md font-bold'
-                        : !jobEval.isQualified
+                        : rowHasExpired
                         ? 'bg-rose-50/40 hover:bg-rose-100/60'
+                        : rowHasExpiringSoon
+                        ? 'bg-amber-50/30 hover:bg-amber-100/50'
                         : idx % 2 === 0
                         ? 'bg-white hover:bg-sky-50/80'
                         : 'bg-slate-50 hover:bg-sky-50/80'
@@ -468,61 +472,33 @@ export default function TrainingMatrixView({
                       {staff.id}
                     </td>
                     <td className="p-1.5 font-bold text-slate-900 border-r border-slate-300 whitespace-nowrap">
-                      <div className="flex items-center justify-between gap-1">
-                        <span>{staff.name}</span>
-                        {!jobEval.isQualified && (
-                          <span className="bg-rose-600 text-white font-bold text-[8px] px-1 rounded animate-pulse" title={jobEval.reason}>
-                            ! MANDATE
-                          </span>
-                        )}
-                      </div>
+                      <span>{staff.name}</span>
                     </td>
-                    <td className="p-1.5 text-slate-800 border-r border-slate-300 whitespace-nowrap">
-                      <div className="font-semibold text-slate-900">{staff.role}</div>
-                      <div className="text-[9px] text-slate-500 font-mono">Req: {mandatoryCourseCodes.length} Mandates</div>
-                    </td>
-                    <td className="p-1.5 border-r border-slate-300 whitespace-nowrap font-semibold text-slate-700 text-center">
-                      {staff.teamName}
-                    </td>
-                    <td className="p-1.5 text-center border-r border-slate-300">
-                      {isOffDuty ? (
-                        <span className="bg-amber-100 text-amber-900 px-1 py-0.2 font-bold text-[9px]">3:1 AL</span>
-                      ) : (
-                        <span className="bg-emerald-100 text-emerald-950 px-1 py-0.2 font-bold text-[9px]">ON-SITE</span>
-                      )}
+                    <td className="p-1.5 text-slate-800 border-r border-slate-300 whitespace-nowrap font-semibold">
+                      {staff.role}
                     </td>
 
                     {/* Render the 6 Competency Course Cells */}
                     {STANDARD_COMPETENCY_COURSES.map((course) => {
                       const cert = certsMap.get(course.code);
-                      const isMandatory = mandatoryCourseCodes.includes(course.code);
 
                       if (!cert) {
                         return (
                           <td
                             key={course.code}
-                            className={`p-1 text-center border-r border-slate-200 text-[10px] ${
-                              isMandatory
-                                ? 'bg-rose-100/70 border-2 border-rose-400 text-rose-900 font-bold ring-1 ring-rose-400'
-                                : 'text-slate-400'
-                            }`}
-                            title={isMandatory ? `MISSING MANDATORY REQUIREMENT: ${course.name}` : 'Optional / Not Applicable'}
+                            className="p-1.5 text-center border-r border-slate-200 text-slate-400 font-mono text-[11px]"
                           >
-                            {isMandatory ? (
-                              <div className="flex flex-col items-center">
-                                <span className="bg-rose-700 text-white text-[8px] font-bold px-1 rounded">MISSING [M]</span>
-                                <span className="text-[8px] text-rose-800 mt-0.5">Required</span>
-                              </div>
-                            ) : (
-                              <span>-</span>
-                            )}
+                            -
                           </td>
                         );
                       }
 
-                      const isExpired = cert.status === 'EXPIRED';
-                      const isExpiring = cert.status === 'EXPIRING_SOON' || cert.status === 'DUE_SOON';
-                      const isPending = cert.status === 'PENDING_APPROVAL';
+                      const isExpired = cert.status === 'EXPIRED' || cert.expiryDate < '2026-09-07';
+                      const isExpiringSoon =
+                        !isExpired &&
+                        (cert.status === 'EXPIRING_SOON' ||
+                          cert.status === 'DUE_SOON' ||
+                          (cert.expiryDate >= '2026-09-07' && cert.expiryDate <= '2026-10-07'));
 
                       return (
                         <td
@@ -531,79 +507,39 @@ export default function TrainingMatrixView({
                             setSelectedCertDetail({ staff, cert });
                             setEvidenceFileName(cert.evidenceFileName || '');
                           }}
-                          className={`p-1 text-center border-r border-slate-200 cursor-pointer transition-colors ${
-                            isMandatory && isExpired
-                              ? 'bg-rose-200 border-2 border-rose-500 ring-2 ring-rose-500 font-bold'
-                              : isExpired
-                              ? 'bg-red-100 hover:bg-red-200'
-                              : isPending
-                              ? 'bg-blue-100 hover:bg-blue-200'
-                              : isExpiring
-                              ? 'bg-amber-100 hover:bg-amber-200'
-                              : 'bg-emerald-50/60 hover:bg-emerald-100'
-                          }`}
-                          title={`Click for Renewal: ${cert.name} | Exp: ${cert.expiryDate} ${isMandatory ? '(MANDATORY REQUIREMENT)' : ''}`}
+                          className="p-1.5 text-center border-r border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
+                          title={`Click for Renewal: ${cert.name} | Exp: ${cert.expiryDate}`}
                         >
-                          <div className="flex flex-col items-center justify-center leading-tight">
-                            <div className="flex items-center gap-1">
-                              {isExpired ? (
-                                <span className="px-1 bg-red-600 text-white font-bold text-[9px] rounded">
-                                  EXPIRED
-                                </span>
-                              ) : isPending ? (
-                                <span className="px-1 bg-blue-700 text-white font-bold text-[9px] rounded">
-                                  PENDING
-                                </span>
-                              ) : isExpiring ? (
-                                <span className="px-1 bg-amber-500 text-black font-bold text-[9px] rounded">
-                                  EXP {cert.expiryDate.slice(5)}
-                                </span>
-                              ) : (
-                                <span className="px-1 bg-emerald-700 text-white font-bold text-[9px] rounded">
-                                  VALID
-                                </span>
-                              )}
-                              {isMandatory && (
-                                <span className="px-1 bg-blue-900 text-white text-[8px] font-black rounded-xs" title="Position Mandatory Requirement">
-                                  M
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[8px] text-slate-500 font-mono mt-0.5">{cert.expiryDate}</span>
-                          </div>
+                          {isExpired ? (
+                            <span className="bg-red-100 text-red-900 border border-red-400 px-1 py-0.5 rounded font-mono text-[10px] font-bold inline-block shadow-2xs">
+                              {cert.expiryDate}
+                            </span>
+                          ) : isExpiringSoon ? (
+                            <span className="bg-amber-100 text-amber-900 border border-amber-400 px-1 py-0.5 rounded font-mono text-[10px] font-bold inline-block shadow-2xs">
+                              {cert.expiryDate}
+                            </span>
+                          ) : (
+                            <span className="text-emerald-800 font-mono text-[10.5px] font-semibold">
+                              {cert.expiryDate}
+                            </span>
+                          )}
                         </td>
                       );
                     })}
 
                     {/* Overall Statutory Qualification Column */}
                     <td className="p-1.5 text-center">
-                      {!jobEval.isQualified ? (
-                        <div
-                          className="bg-rose-100 text-rose-950 px-2 py-1 font-bold border border-rose-400 rounded flex flex-col items-center justify-center shadow-xs"
-                          title={jobEval.reason}
-                        >
-                          <span className="flex items-center gap-1 text-[10px] text-rose-800">
-                            <AlertTriangle className="w-3 h-3 text-rose-600" />
-                            ❌ Not Qualified
-                          </span>
-                          <span className="text-[8px] text-rose-700 font-normal truncate max-w-[120px]">
-                            {jobEval.reason.replace('Missing Mandatory Requirement', 'Missing')}
-                          </span>
-                        </div>
-                      ) : compStatus.hasPendingApproval ? (
-                        <span className="bg-blue-100 text-blue-900 px-1.5 py-0.5 font-bold border border-blue-300 rounded flex items-center justify-center gap-1">
-                          <FileClock className="w-3 h-3 text-blue-700" />
-                          In Review
+                      {rowHasExpired ? (
+                        <span className="bg-red-100 text-red-900 border border-red-400 px-1.5 py-0.5 rounded font-mono text-[10px] font-bold inline-flex items-center gap-1 shadow-2xs">
+                          [EXPIRED]
                         </span>
-                      ) : compStatus.hasExpiringSoon ? (
-                        <span className="bg-amber-100 text-amber-900 px-1.5 py-0.5 font-bold border border-amber-300 rounded flex items-center justify-center gap-1">
-                          <Clock className="w-3 h-3 text-amber-700" />
-                          Due Soon
+                      ) : rowHasExpiringSoon ? (
+                        <span className="bg-amber-100 text-amber-900 border border-amber-400 px-1.5 py-0.5 rounded font-mono text-[10px] font-bold inline-flex items-center gap-1 shadow-2xs">
+                          [ATTN: DUE]
                         </span>
                       ) : (
-                        <span className="bg-emerald-100 text-emerald-950 px-1.5 py-0.5 font-bold border border-emerald-300 rounded flex items-center justify-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-700" />
-                          ✓ Qualified (Passed)
+                        <span className="bg-emerald-100 text-emerald-900 border border-emerald-400 px-1.5 py-0.5 rounded font-mono text-[10px] font-bold inline-flex items-center gap-1 shadow-2xs">
+                          [QUALIFIED]
                         </span>
                       )}
                     </td>
@@ -644,9 +580,8 @@ export default function TrainingMatrixView({
                   <th className="p-2 border-r border-blue-800 w-28">소속 부서 (Dept)</th>
                   <th className="p-2 border-r border-blue-800 w-52">법적 근거 (Statutory Mandate)</th>
                   {STANDARD_COMPETENCY_COURSES.map((c) => (
-                    <th key={c.code} className="p-2 border-r border-blue-800 text-center min-w-[105px]">
-                      <div className="font-bold">{c.shortName}</div>
-                      <div className="text-[9px] text-blue-200 font-normal">{c.code}</div>
+                    <th key={c.code} className="p-2 border-r border-blue-800 text-center min-w-[105px] align-middle">
+                      <span className="font-bold text-[10px] block leading-tight">{c.shortName}</span>
                     </th>
                   ))}
                   <th className="p-2 min-w-[180px]">직무 수행 필수 요건 및 ERT 보직</th>

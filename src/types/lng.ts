@@ -261,7 +261,7 @@ export interface GlobalPortalData {
   ingestionStatuses: DataIngestionStatus[];
 }
 
-export type ShiftCode = 'D' | 'N' | 'Off' | 'On' | 'AL' | 'O' | 'R';
+export type ShiftCode = 'D' | 'N' | 'Off' | 'OFF' | 'On' | 'AL' | 'O' | 'R';
 
 export type DepartmentCode =
   | 'MANAGEMENT'
@@ -311,7 +311,7 @@ export interface StaffPersonnel {
   todayShift: ShiftCode;
   onSiteDays: number;
   targetCycleDays: number;
-  cycleStartDate: string;
+  onSiteDate: string;
   nextRotationDueDate: string;
   relieverName: string;
   contactNo: string;

@@ -3,6 +3,7 @@ import {
   StaffPersonnel,
   ShiftCode,
   CompetencyCertification,
+  CompetencyStatus,
 } from '../types/lng';
 
 export const AUGUST_DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -352,8 +353,8 @@ export function generateMonthlyRoster(
     staff.department === 'HR_GA' ||
     staff.id === 'EMP-017' ||
     staff.id === 'EMP-018' ||
-    staff.cycleStartDate === 'N/A' ||
-    staff.cycleStartDate === '-';
+    staff.onSiteDate === 'N/A' ||
+    staff.onSiteDate === '-';
 
   if (isResident) {
     // Fixed Day Work schedule: Mon-Fri: D (Day), Sat-Sun: Off (Rest)
@@ -368,10 +369,30 @@ export function generateMonthlyRoster(
     });
   }
 
-  const isTeamA = staff.department === 'OP_ALPHA' || staff.id === 'EMP-002' || staff.id === 'EMP-003' || staff.id === 'EMP-004';
-  const isTeamB = staff.department === 'OP_BRAVO' || staff.id === 'EMP-005' || staff.id === 'EMP-006' || staff.id === 'EMP-007';
-  const isTeamC = staff.department === 'OP_CHARLIE' || staff.id === 'EMP-008' || staff.id === 'EMP-009' || staff.id === 'EMP-010';
-  const isSiteManager = staff.id === 'EMP-001';
+  const teamStr = String(staff.teamName || (staff as any).team || '').toUpperCase();
+  const isTeamA =
+    staff.department === 'OP_ALPHA' ||
+    teamStr.includes('TEAM-A') ||
+    staff.id === 'BSG259524' ||
+    staff.id === 'BSG259736' ||
+    staff.id === 'BSG259743' ||
+    staff.id === 'EMP-002';
+  const isTeamB =
+    staff.department === 'OP_BRAVO' ||
+    teamStr.includes('TEAM-B') ||
+    staff.id === 'BSG259833' ||
+    staff.id === 'BSG258742' ||
+    staff.id === 'BSG259735' ||
+    staff.id === 'EMP-005';
+  const isTeamC =
+    staff.department === 'OP_CHARLIE' ||
+    teamStr.includes('TEAM-C') ||
+    staff.id === 'BSG259530' ||
+    staff.id === 'BSG259634' ||
+    staff.id === 'BSG259532' ||
+    staff.id === 'EMP-008';
+  const isSiteManager =
+    staff.id === 'BSG259529' || staff.id === 'EMP-001' || /site manager/i.test(staff.role || (staff as any).position || '');
 
   // Support Teams (Logistics, HSSE, Maintenance): Continuous Daily Day Duty (D)
   if (!isTeamA && !isTeamB && !isTeamC && !isSiteManager) {
@@ -416,7 +437,10 @@ export function generateMonthlyRoster(
         return day <= 10 ? 'AL' : 'D'; // Edi returns 9/11 for COD commissioning
       }
       if (isTeamA) {
-        // Team-A (Shadiq, Yusuf, Erwin): 9/1~9/14 full Day Shift D — 100% in sync
+        // Shadiq M. Shalih remains OFF through September 11, starts Day Shift strictly on September 12
+        if (staff.id === 'BSG259524' && day <= 11) {
+          return 'AL';
+        }
         return 'D';
       }
       if (isTeamC) {
@@ -555,19 +579,114 @@ export const STAFF_MASTER_DATA: StaffMasterRecord[] = [
   { id: 'BSG199551', name: 'Jefi R. Zega', position: 'HR / GA Coordinator', team: 'HR / GA', department: 'HR_GA', isLocalResident: true, defaultShift: 'D', contactNo: '082165171882', radioCh: 'CH-05 (LOG)', ertRole: 'First Aider', designatedReliever: 'Albert A. Gea' }
 ];
 
-export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = STAFF_MASTER_DATA.map((s, idx) => {
-  const isResident = s.isLocalResident || s.department === 'HR_GA';
-  const cycleStart = isResident
-    ? '-'
-    : s.team.includes('TEAM-B')
-      ? '2026-07-31'
-      : s.team.includes('TEAM-C')
-        ? '2026-07-26'
-        : s.department === 'MAINTENANCE' || s.department === 'HSSE' || s.department === 'Cargo Logistic'
-          ? '2026-08-01'
-          : '2026-08-15';
+export const VERIFIED_ROSTER_DATES: Record<
+  string,
+  {
+    onSiteDate: string;
+    onSiteDays: number;
+    nextRotationDueDate: string;
+    status: 'ON_SITE' | 'OFF_DUTY';
+    defaultShift: ShiftCode;
+  }
+> = {
+  // 1. Management
+  BSG259529: { onSiteDate: '2026-07-09', onSiteDays: 31, nextRotationDueDate: '2026-11-08', status: 'ON_SITE', defaultShift: 'D' },
+  BSG259524: { onSiteDate: '2026-08-13', onSiteDays: 0, nextRotationDueDate: '2026-09-12', status: 'OFF_DUTY', defaultShift: 'Off' },
 
-  const isOff = s.defaultShift === 'Off';
+  // 2. TEAM-A
+  BSG259736: { onSiteDate: '2026-05-20', onSiteDays: 81, nextRotationDueDate: '2026-09-19', status: 'ON_SITE', defaultShift: 'D' },
+  BSG259743: { onSiteDate: '2026-08-27', onSiteDays: 0, nextRotationDueDate: '2026-09-26', status: 'OFF_DUTY', defaultShift: 'Off' },
+
+  // 3. TEAM-B
+  BSG259833: { onSiteDate: '2026-06-08', onSiteDays: 62, nextRotationDueDate: '2026-10-08', status: 'ON_SITE', defaultShift: 'D' },
+  BSG258742: { onSiteDate: '2026-06-08', onSiteDays: 62, nextRotationDueDate: '2026-10-08', status: 'ON_SITE', defaultShift: 'D' },
+  BSG259735: { onSiteDate: '2026-06-28', onSiteDays: 42, nextRotationDueDate: '2026-10-28', status: 'ON_SITE', defaultShift: 'D' },
+
+  // 4. TEAM-C
+  BSG259530: { onSiteDate: '2026-07-09', onSiteDays: 31, nextRotationDueDate: '2026-11-08', status: 'ON_SITE', defaultShift: 'D' },
+  BSG259634: { onSiteDate: '2026-06-08', onSiteDays: 62, nextRotationDueDate: '2026-10-08', status: 'ON_SITE', defaultShift: 'D' },
+  BSG259532: { onSiteDate: '2026-07-13', onSiteDays: 27, nextRotationDueDate: '2026-11-12', status: 'ON_SITE', defaultShift: 'D' },
+
+  // Maintenance
+  BSG259237: { onSiteDate: '2026-06-28', onSiteDays: 42, nextRotationDueDate: '2026-10-28', status: 'ON_SITE', defaultShift: 'D' },
+  BSG259420: { onSiteDate: '2026-05-25', onSiteDays: 76, nextRotationDueDate: '2026-09-24', status: 'ON_SITE', defaultShift: 'D' },
+
+  // HSSE Team
+  BSG259641: { onSiteDate: '2026-06-28', onSiteDays: 42, nextRotationDueDate: '2026-10-28', status: 'ON_SITE', defaultShift: 'D' },
+  BSG259919: { onSiteDate: '2026-04-21', onSiteDays: 110, nextRotationDueDate: '2026-08-21', status: 'ON_SITE', defaultShift: 'D' },
+
+  // Cargo Operation
+  BSG259245: { onSiteDate: '2026-06-15', onSiteDays: 55, nextRotationDueDate: '2026-10-15', status: 'ON_SITE', defaultShift: 'D' },
+  BSG259646: { onSiteDate: '2026-06-11', onSiteDays: 59, nextRotationDueDate: '2026-10-11', status: 'ON_SITE', defaultShift: 'D' },
+
+  // HR / GA (Residents)
+  BSG259444: { onSiteDate: '2026-06-04', onSiteDays: 66, nextRotationDueDate: '-', status: 'ON_SITE', defaultShift: 'D' },
+  BSG199551: { onSiteDate: '2026-07-07', onSiteDays: 33, nextRotationDueDate: '-', status: 'ON_SITE', defaultShift: 'D' },
+};
+
+export function generateStaffMockCompetencies(staffId: string, role: string, department: string): CompetencyCertification[] {
+  const tempStaff = { id: staffId, role, department } as StaffPersonnel;
+  const { mandatoryCourseCodes } = getPositionMandatoryCourses(tempStaff);
+  const courseMap = new Map(STANDARD_COMPETENCY_COURSES.map((c) => [c.code, c]));
+
+  // Specific intentional test cases for alerts:
+  // Red (< today 2026-09-07): BSG259735, BSG259919
+  // Amber (within 30 days): BSG259743, BSG259420, BSG259646
+  const overrides: Record<string, Record<string, { expiryDate: string; status: CompetencyStatus }>> = {
+    BSG259735: { 'CERT-PTW-03': { expiryDate: '2026-08-15', status: 'EXPIRED' } },
+    BSG259919: { 'CERT-PTW-03': { expiryDate: '2026-08-20', status: 'EXPIRED' } },
+    BSG259743: { 'CERT-EMR-04': { expiryDate: '2026-09-28', status: 'EXPIRING_SOON' } },
+    BSG259420: { 'CERT-TEC-05': { expiryDate: '2026-10-02', status: 'EXPIRING_SOON' } },
+    BSG259646: { 'CERT-LOG-06': { expiryDate: '2026-10-05', status: 'EXPIRING_SOON' } },
+  };
+
+  const defaultDates: Record<string, string[]> = {
+    'CERT-HSE-01': ['2027-06-15', '2027-05-10', '2027-04-12', '2027-03-20', '2027-11-05', '2027-02-28', '2027-07-08', '2027-08-15'],
+    'CERT-CRY-02': ['2026-12-31', '2027-05-18', '2027-04-10', '2027-09-12', '2027-08-18', '2027-01-30'],
+    'CERT-PTW-03': ['2027-03-14', '2027-02-18', '2027-08-10', '2027-06-12', '2027-01-19', '2027-05-19', '2027-06-25'],
+    'CERT-EMR-04': ['2027-08-20', '2027-01-25', '2027-07-22', '2027-10-15', '2027-08-30', '2027-03-05', '2027-04-16'],
+    'CERT-TEC-05': ['2027-09-30', '2027-04-20', '2027-12-01', '2027-08-14', '2027-11-15'],
+    'CERT-LOG-06': ['2027-05-14', '2027-07-22', '2027-12-10'],
+  };
+
+  const staffNum = parseInt(staffId.replace(/\D/g, ''), 10) || 0;
+
+  return mandatoryCourseCodes.map((code, idx) => {
+    const course = courseMap.get(code)!;
+    const override = overrides[staffId]?.[code];
+    let expiryDate = override ? override.expiryDate : '';
+    let status: CompetencyStatus = override ? override.status : 'VALID';
+
+    if (!expiryDate) {
+      const datesList = defaultDates[code] || ['2027-06-30'];
+      expiryDate = datesList[(staffNum + idx) % datesList.length];
+      status = 'VALID';
+    }
+
+    const issueYear = parseInt(expiryDate.slice(0, 4), 10) - (course.validityYears || 2);
+    const issueDate = `${issueYear}-${expiryDate.slice(5)}`;
+
+    return {
+      code,
+      name: course.name,
+      category: course.category,
+      issueDate,
+      expiryDate,
+      certNumber: `${code.split('-')[1]}-${staffId.slice(3)}-${issueYear}`,
+      issuingBody: course.issuingBody,
+      status,
+    };
+  });
+}
+
+export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = STAFF_MASTER_DATA.map((s, idx) => {
+  const verified = VERIFIED_ROSTER_DATES[s.id];
+  const isResident = s.isLocalResident || s.department === 'HR_GA';
+  const status = verified ? verified.status : s.defaultShift === 'Off' ? 'OFF_DUTY' : 'ON_SITE';
+  const todayShift = verified ? verified.defaultShift : (s.defaultShift as ShiftCode);
+  const onSiteDate = verified ? verified.onSiteDate : isResident ? '-' : new Date().toISOString().slice(0, 10);
+  const onSiteDays = verified ? verified.onSiteDays : isResident || status === 'OFF_DUTY' ? 0 : 0;
+  const nextRotationDueDate = verified ? verified.nextRotationDueDate : isResident ? '-' : '2026-11-08';
 
   return {
     id: s.id,
@@ -577,23 +696,23 @@ export const INITIAL_MANPOWER_MASTER_RECORDS: StaffPersonnel[] = STAFF_MASTER_DA
     department: s.department as any,
     teamName: s.team as any,
     team: s.team,
-    currentStatus: isOff ? 'OFF_DUTY' : 'ON_SITE',
-    todayShift: s.defaultShift as ShiftCode,
-    onSiteDays: isResident || isOff ? 0 : 19,
+    currentStatus: status,
+    todayShift,
+    onSiteDays,
     targetCycleDays: 90,
-    cycleStartDate: cycleStart,
-    nextRotationDueDate: isResident ? '-' : '2026-11-13',
+    onSiteDate,
+    nextRotationDueDate,
     relieverName: s.designatedReliever,
     contactNo: s.contactNo,
     radioChannel: s.radioCh,
     rosterDays: generateRosterPattern(s.department as any, idx, s.id),
     isLocalResident: s.isLocalResident,
     ertRole: s.ertRole as any,
-    competencies: [],
+    competencies: generateStaffMockCompetencies(s.id, s.position, s.department),
   };
 });
 
-export type DailyRestReason = 'Medical' | 'Emergency' | 'Fatigue 154h' | 'Rotation Leave';
+export type DailyRestReason = 'Medical' | 'Emergency' | 'Fatigue 154h' | 'Rotation Leave' | 'Other';
 
 export const DEFAULT_CONFIRMED_DAILY_DATES: string[] = ['2026-09-01'];
 export const DEFAULT_COD_BASELINE_DATE = '2026-09-15';

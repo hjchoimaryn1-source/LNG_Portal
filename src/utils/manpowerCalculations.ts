@@ -71,11 +71,11 @@ export function normalizePositionTitle(rawTitle: string): string {
 }
 
 /**
- * Calculate Return Due Date = Leave_Start_Date + 14 days (For Off-Day personnel e.g. Team-C)
+ * Calculate Return Due Date = Leave_Start_Date + leaveDurationDays (Default 30 days)
  */
 export const calcReturnDueDate = (
   leaveStartDateStr: string,
-  leaveDurationDays: number = 14
+  leaveDurationDays: number = 30
 ): string => {
   if (!leaveStartDateStr || leaveStartDateStr === 'N/A' || leaveStartDateStr === '-') return '-';
   const parts = leaveStartDateStr.split('-').map(Number);
@@ -90,11 +90,11 @@ export const calcReturnDueDate = (
 };
 
 /**
- * Calculate Leave Due = OnSite_Start_Date + cycleLengthDays (For On-Site personnel e.g. Team-A, Team-B)
+ * Calculate Rotation Due Date = OnSite_Date + cycleLengthDays (Default 90 days)
  */
 export const calcRotationDueDate = (
   startDateStr: string,
-  cycleLengthDays: number = 42
+  cycleLengthDays: number = 90
 ): string => {
   if (!startDateStr || startDateStr === 'N/A' || startDateStr === '-') return '-';
   const parts = startDateStr.split('-').map(Number);
@@ -109,11 +109,11 @@ export const calcRotationDueDate = (
 };
 
 /**
- * Calculate dynamic On-Site Days = (Today - Cycle_Start_Date) + 1
+ * Calculate dynamic On-Site Days = (Today - OnSite_Date) + 1
  */
 export const calcOnSiteDays = (
   startDateStr: string,
-  todayStr: string = '2026-09-02'
+  todayStr: string = new Date().toISOString().slice(0, 10)
 ): number => {
   if (!startDateStr || startDateStr === 'N/A' || startDateStr === '-') return 0;
   const sParts = startDateStr.split('-').map(Number);
@@ -823,8 +823,9 @@ export function generateMonthlyRoster(
         startsWithNight = false;
       }
 
-      if (staff.cycleStartDate && staff.cycleStartDate !== 'N/A' && staff.cycleStartDate !== '-') {
-        const parsed = new Date(staff.cycleStartDate);
+      const teamAnchorDate = staff.onSiteDate;
+      if (teamAnchorDate && teamAnchorDate !== 'N/A' && teamAnchorDate !== '-') {
+        const parsed = new Date(teamAnchorDate);
         if (!isNaN(parsed.getTime())) {
           teamAnchorUtc = Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
         }
@@ -859,8 +860,9 @@ export function generateMonthlyRoster(
 
     // Rule 4: Support Departments (Maintenance, HSSE, Cargo Logistic)
     let supportAnchorUtc = Date.UTC(2026, 7, 1);
-    if (staff.cycleStartDate && staff.cycleStartDate !== 'N/A' && staff.cycleStartDate !== '-') {
-      const parsed = new Date(staff.cycleStartDate);
+    const supportAnchorDate = staff.onSiteDate;
+    if (supportAnchorDate && supportAnchorDate !== 'N/A' && supportAnchorDate !== '-') {
+      const parsed = new Date(supportAnchorDate);
       if (!isNaN(parsed.getTime())) {
         supportAnchorUtc = Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
       }
@@ -913,53 +915,111 @@ export function parseManpowerCsvData(
   masterRecords: StaffPersonnel[] = INITIAL_MANPOWER_MASTER_RECORDS
 ): StaffPersonnel[] {
   return parsedRows
-    .filter((row) => row.Emp_ID || row.id || row.Name)
+    .filter((row) => {
+      const id = (row['ID'] || row.Emp_ID || row.id || '').trim();
+      const name = (row['Personnel Name'] || row.Name || row.name || '').trim();
+      // Filter out non-personnel header/summary rows in CSV
+      return (id.startsWith('BSG') || id.startsWith('EMP') || (id.length > 0 && name.length > 0)) && !id.includes('Baseline');
+    })
     .map((row, idx) => {
-      const id = row.Emp_ID || row.id || `EMP-${String(idx + 1).padStart(3, '0')}`;
-      const name = row.Name || row.name || '';
-      const dept = (row.Department_Code || row.department || 'MANAGEMENT') as DepartmentCode;
-      const teamName = (row.Team_Name || row.teamName || 'Management') as TeamNameStandard;
+      const id = (row['ID'] || row.Emp_ID || row.id || `EMP-${String(idx + 1).padStart(3, '0')}`).trim();
+      const name = (row['Personnel Name'] || row.Name || row.name || '').trim();
       const baseMaster = masterRecords.find((r) => r.id === id);
-      const rawRole =
-        row.Position ||
-        row.Role_Title ||
+
+      const rawTeam = (row['Team'] || row.Team_Name || row.teamName || baseMaster?.teamName || 'Management').trim();
+      const teamName = rawTeam as TeamNameStandard;
+
+      const rawDept = (row['Department'] || row.Department_Code || row.department || '').trim();
+      let dept: DepartmentCode = 'MANAGEMENT';
+      if (/management/i.test(rawDept)) {
+        dept = 'MANAGEMENT';
+      } else if (/maintenance/i.test(rawDept)) {
+        dept = 'MAINTENANCE';
+      } else if (/hsse|hse/i.test(rawDept)) {
+        dept = 'HSSE';
+      } else if (/cargo|logistic/i.test(rawDept)) {
+        dept = 'LOGISTICS';
+      } else if (/hr|ga/i.test(rawDept)) {
+        dept = 'HR_GA';
+      } else if (/operation/i.test(rawDept)) {
+        if (/team-?a|alpha/i.test(rawTeam)) dept = 'OP_ALPHA';
+        else if (/team-?b|bravo/i.test(rawTeam)) dept = 'OP_BRAVO';
+        else if (/team-?c|charlie/i.test(rawTeam)) dept = 'OP_CHARLIE';
+        else dept = 'OP_BRAVO';
+      } else if (baseMaster?.department) {
+        dept = baseMaster.department;
+      }
+
+      const rawRole = (
+        row['Position'] ||
         row.Position_Role_Title ||
+        row.Role_Title ||
         row.position ||
         row.role ||
         baseMaster?.role ||
-        '';
-      const role =
-        normalizePositionTitle(rawRole) ||
-        normalizePositionTitle(baseMaster?.role || '') ||
-        'Field Operator';
-      const currentStatus = (row.Current_Status ||
-        row.currentStatus ||
-        baseMaster?.currentStatus ||
-        'ON_SITE') as StaffPersonnel['currentStatus'];
-      const todayShift = (row.Today_Shift ||
-        row.todayShift ||
-        baseMaster?.todayShift ||
-        'D') as ShiftCode;
-      const isOpDept =
-        dept === 'OP_ALPHA' ||
-        dept === 'OP_BRAVO' ||
-        dept === 'OP_CHARLIE' ||
-        id === 'EMP-001' ||
-        id === 'EMP-002';
+        ''
+      ).trim();
+      const role = normalizePositionTitle(rawRole) || normalizePositionTitle(baseMaster?.role || '') || 'Field Operator';
+
+      const rawStatus = (row['Status'] || row.Current_Status || row.currentStatus || '').trim().toLowerCase();
+      const currentStatus: StaffPersonnel['currentStatus'] =
+        rawStatus === 'off-site' || rawStatus === 'off_duty' || rawStatus === 'off' || rawStatus === 'leave'
+          ? 'OFF_DUTY'
+          : 'ON_SITE';
+
+      const rawShift = (row['Today Shift'] || row.Today_Shift || row.todayShift || 'D').trim();
+      const todayShift: ShiftCode =
+        rawShift === 'Off' || rawShift === 'AL' || rawShift === 'N' || rawShift === 'D'
+          ? (rawShift as ShiftCode)
+          : currentStatus === 'OFF_DUTY'
+          ? 'Off'
+          : 'D';
+
       const targetCycleDays =
-        parseInt(row.Target_Cycle_Days || row.targetCycleDays || (isOpDept ? '42' : '90'), 10) ||
-        (isOpDept ? 42 : 90);
-      const cycleStartDate =
-        row.Cycle_Start_Date || row.cycleStartDate || baseMaster?.cycleStartDate || '2026-08-15';
+        parseInt(row['Target Cycle/Day'] || row.Target_Cycle_Days || row.targetCycleDays || '90', 10) || 90;
+
+      // Column 7: Actual on-site arrival date (if ON_SITE) or leave departure date (if OFF_DUTY)
+      const rawCol7 = (row['On-Site Date'] || row['On-Site Days'] || row.onSiteDate || row.On_Site_Date || '').trim();
+      const onSiteDate = /^\d{4}-\d{2}-\d{2}/.test(rawCol7)
+        ? rawCol7
+        : (baseMaster?.onSiteDate || new Date().toISOString().slice(0, 10)).trim();
+
+      // Column 8: Integer on-site days count
+      const rawCol8 = (row[''] || row['OnSiteDays'] || row['On-Site Days Count'] || row.onSiteDays || '').trim();
+      const parsedCol8 = parseInt(rawCol8, 10);
+
       const isOffDuty = currentStatus === 'OFF_DUTY';
-      const onSiteDays = isOffDuty ? 0 : calcOnSiteDays(cycleStartDate, '2026-09-02');
-      const nextRotationDueDate = isOffDuty
-        ? calcReturnDueDate(cycleStartDate, 14)
-        : calcRotationDueDate(cycleStartDate, targetCycleDays);
-      const relieverName = row.Reliever_Name || row.relieverName || baseMaster?.relieverName || '-';
-      const contactNo = row.Contact_No || row.contactNo || '';
-      const radioChannel = row.Radio_Channel || row.radioChannel || '';
+      let onSiteDays = 0;
+      if (isOffDuty) {
+        onSiteDays = 0;
+      } else if (!isNaN(parsedCol8)) {
+        onSiteDays = parsedCol8;
+      } else if (!isNaN(parseInt(rawCol7, 10)) && !/^\d{4}-\d{2}-\d{2}/.test(rawCol7)) {
+        onSiteDays = parseInt(rawCol7, 10);
+      } else {
+        onSiteDays = calcOnSiteDays(onSiteDate, new Date().toISOString().slice(0, 10));
+      }
+
+      // Dual-state logic for next rotation due date
+      const explicitDueDate = (row['Next Rotation (AL)'] || row.Next_Rotation || row.nextRotationDueDate || '').trim();
+      const nextRotationDueDate = explicitDueDate || (
+        isOffDuty ? calcReturnDueDate(onSiteDate, 30) : calcRotationDueDate(onSiteDate, targetCycleDays)
+      );
+
+      const relieverName = (
+        row['Designated Reliever'] ||
+        row.Reliever_Name ||
+        row.relieverName ||
+        baseMaster?.relieverName ||
+        '-'
+      ).trim();
+
+      const contactNo = (row['Contact No'] || row.Contact_No || row.contactNo || baseMaster?.contactNo || '').trim();
+      const radioChannel = (row['Radio CH'] || row.Radio_Channel || row.radioChannel || baseMaster?.radioChannel || '').trim();
       const rosterDays = generateRosterPattern(dept, idx, id);
+
+      const rawErt = (row['ERT Role'] || row.ERT_Role || row.ertRole || baseMaster?.ertRole || 'None').trim();
+      const ertRole: ERTRole = (rawErt as ERTRole) || 'None';
 
       return {
         id,
@@ -971,7 +1031,7 @@ export function parseManpowerCsvData(
         todayShift,
         onSiteDays,
         targetCycleDays,
-        cycleStartDate,
+        onSiteDate,
         nextRotationDueDate,
         relieverName,
         contactNo,
@@ -979,7 +1039,7 @@ export function parseManpowerCsvData(
         rosterDays,
         competencies: baseMaster?.competencies || [],
         complianceWarning: baseMaster?.complianceWarning || false,
-        ertRole: (row.ERT_Role as ERTRole) || baseMaster?.ertRole || 'None',
+        ertRole,
       };
     });
 }

@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { STAFF_MASTER_DATA } from '../../../data/manpowerMasterData';
+import React, { useState, useMemo, useEffect } from 'react';
+import { INITIAL_MANPOWER_MASTER_RECORDS } from '../../../data/manpowerMasterData';
 import { StaffPersonnel, ShiftCode } from '../../../types/lng';
+import { calcOnSiteDays } from '../../../utils/manpowerCalculations';
 
 export type RotationFilter = 'ALL' | 'ON_SITE' | 'OFF_DUTY' | 'RESIDENT';
 
@@ -12,23 +13,17 @@ interface RotationPlanTabProps {
   onUpdateStartDate?: (staffId: string, newDateStr: string) => void;
   onNavigateToMatrix?: (empId: string) => void;
   onRequestAL?: () => void;
+  selectedDate?: string;
 }
 
 const TEAM_OPTIONS = ['Management', 'TEAM-A', 'TEAM-B', 'TEAM-C', 'Maintenance', 'HSSE Team', 'Cargo Operation', 'HR / GA'];
 const ONE_DAY_MS = 86400000;
-const TODAY_MS = Date.parse('2026-09-04T00:00:00Z');
 
 // Lightweight Date Arithmetic (UTC timestamp math)
 const addDaysStr = (dateStr: string, days: number): string => {
   if (!dateStr || dateStr === '-' || dateStr === 'N/A') return '-';
   const ms = Date.parse(`${dateStr}T00:00:00Z`);
   return isNaN(ms) ? '-' : new Date(ms + days * ONE_DAY_MS).toISOString().slice(0, 10);
-};
-
-const calcDaysOnSite = (startDateStr: string): number => {
-  if (!startDateStr || startDateStr === '-' || startDateStr === 'N/A') return 0;
-  const ms = Date.parse(`${startDateStr}T00:00:00Z`);
-  return isNaN(ms) || ms > TODAY_MS ? 0 : Math.floor((TODAY_MS - ms) / ONE_DAY_MS) + 1;
 };
 
 // Strict CSV order lookup
@@ -51,14 +46,27 @@ export default function RotationPlanTab({
   onSelectEmployee,
   onUpdateStartDate,
   onRequestAL,
+  selectedDate,
 }: RotationPlanTabProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const todayStr = new Date().toISOString().split('T')[0];
-  const endStr = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const [activeFilter, setActiveFilter] = useState<RotationFilter>('ALL');
+  const [internalBaselineDate, setInternalBaselineDate] = useState<string>(
+    selectedDate || new Date().toISOString().slice(0, 10)
+  );
+
+  useEffect(() => {
+    if (selectedDate) {
+      setInternalBaselineDate(selectedDate);
+    }
+  }, [selectedDate]);
+
+  const baselineDateStr = internalBaselineDate || new Date().toISOString().slice(0, 10);
+  const todayStr = baselineDateStr;
+  const endStr = addDaysStr(baselineDateStr, 30);
+  const baselineMs = Date.parse(`${baselineDateStr}T00:00:00Z`);
   const [localOverrides, setLocalOverrides] = useState<
-    Record<string, { team?: string; status?: string; shift?: ShiftCode; startDate?: string; reliever?: string }>
+    Record<string, { startDate?: string }>
   >({});
+  const [activeFilter, setActiveFilter] = useState<'ALL' | 'ON_SITE' | 'OFF_DUTY' | 'RESIDENT'>('ALL');
 
   // Base list resolution
   const baseList = useMemo(() => {
@@ -66,6 +74,7 @@ export default function RotationPlanTab({
     if (raw && raw.length > 0) {
       return raw.map((m) => {
         const isResident = m.isLocalResident === true || m.department === 'HR_GA';
+        const onSiteDate = isResident ? '-' : m.onSiteDate || baselineDateStr;
         return {
           id: m.id,
           name: m.name,
@@ -75,7 +84,7 @@ export default function RotationPlanTab({
           isLocalResident: isResident,
           status: m.currentStatus || 'ON_SITE',
           todayShift: m.todayShift || 'D',
-          cycleStartDate: m.cycleStartDate && m.cycleStartDate !== 'N/A' && m.cycleStartDate !== '-' ? m.cycleStartDate : isResident ? '-' : '2026-08-15',
+          onSiteDate,
           designatedReliever: (m as any).designatedReliever || m.relieverName || '-',
           contactNo: m.contactNo || '-',
           radioCh: (m as any).radioCh || m.radioChannel || '-',
@@ -84,47 +93,172 @@ export default function RotationPlanTab({
       });
     }
 
-    return STAFF_MASTER_DATA.map((s) => {
-      const isResident = s.isLocalResident || s.department === 'HR_GA';
-      const cycleStart = isResident ? '-' : s.team.includes('TEAM-B') ? '2026-07-31' : s.team.includes('TEAM-C') ? '2026-07-26' : (s.department === 'MAINTENANCE' || s.department === 'HSSE' || s.department === 'Cargo Logistic') ? '2026-08-01' : '2026-08-15';
-      return {
-        id: s.id, name: s.name, position: s.position, team: s.team, department: s.department, isLocalResident: s.isLocalResident,
-        status: s.defaultShift === 'Off' ? 'OFF_DUTY' : 'ON_SITE', todayShift: s.defaultShift as ShiftCode,
-        cycleStartDate: cycleStart, designatedReliever: s.designatedReliever || '-', contactNo: s.contactNo, radioCh: s.radioCh, ertRole: s.ertRole,
-      };
-    });
-  }, [manpowerData, filteredPersonnel]);
+    return INITIAL_MANPOWER_MASTER_RECORDS.map((s) => ({
+      id: s.id,
+      name: s.name,
+      position: s.role,
+      team: s.teamName,
+      department: s.department,
+      isLocalResident: s.isLocalResident,
+      status: s.currentStatus,
+      todayShift: s.todayShift,
+      onSiteDate: s.onSiteDate,
+      designatedReliever: s.relieverName || '-',
+      contactNo: s.contactNo || '-',
+      radioCh: s.radioChannel || '-',
+      ertRole: s.ertRole || 'None',
+    }));
+  }, [manpowerData, filteredPersonnel, baselineDateStr]);
 
-  // Combined staff items with user edits
+  // Combined staff items with live SSOT evaluation against baselineDateStr
   const allStaff = useMemo(() => {
+    const edi = baseList.find((s) => s.id === 'BSG259529');
+    const ediAnchorStr = edi?.onSiteDate && edi.onSiteDate !== '-' ? edi.onSiteDate : '2026-07-09';
+    const ediParts = ediAnchorStr.split('-').map(Number);
+    const ediAnchorUtc = Date.UTC(ediParts[0] || 2026, (ediParts[1] || 7) - 1, ediParts[2] || 9);
+    const isEdiInitiallyOff = edi?.status === 'OFF_DUTY';
+
+    const baselineParts = baselineDateStr.split('-').map(Number);
+    const baselineUtc = Date.UTC(baselineParts[0], baselineParts[1] - 1, baselineParts[2]);
+    const diffDaysEdi = Math.floor((baselineUtc - ediAnchorUtc) / (1000 * 60 * 60 * 24));
+    const ediCycleDay = isEdiInitiallyOff
+      ? ((diffDaysEdi % 120) + 120 + 90) % 120
+      : ((diffDaysEdi % 120) + 120) % 120;
+    const isEdiOffOnBaseline = ediCycleDay >= 90;
+
+    const baseEpoch = Date.UTC(2026, 6, 1); // 2026-07-01
+    const calendarDays = Math.floor((baselineUtc - baseEpoch) / (1000 * 60 * 60 * 24));
+    const cycle22 = ((calendarDays % 22) + 22) % 22;
+
+    const targetDateObj = new Date(baselineParts[0], baselineParts[1] - 1, baselineParts[2]);
+    const dayOfWeek = targetDateObj.getDay();
+
     return baseList.map((m) => {
       const ov = localOverrides[m.id] || {};
-      const status = ov.status || m.status;
-      const cycleStartDate = ov.startDate || m.cycleStartDate;
-      const isResident = m.isLocalResident;
-      const onSiteDays = isResident || status === 'OFF_DUTY' ? 0 : calcDaysOnSite(cycleStartDate);
-      const isOffDuty = !isResident && (status === 'OFF_DUTY' || onSiteDays > 90);
-      const dynamicLeaveDue = isResident ? '-' : isOffDuty ? addDaysStr(cycleStartDate, 30) : addDaysStr(cycleStartDate, 90);
+      const onSiteDate = ov.startDate || m.onSiteDate;
+
+      const rawTeam = (m.team || m.department || '').toString().toUpperCase();
+      const staffId = m.id;
+
+      // Local Residents (HR/GA): 5-day Day Work (Mon-Fri: D, Sat-Sun: R)
+      const isResident =
+        m.isLocalResident === true ||
+        m.department === 'HR_GA' ||
+        rawTeam.includes('HR') ||
+        staffId === 'BSG259444' ||
+        staffId === 'BSG199551';
+
+      if (isResident) {
+        return {
+          ...m,
+          status: 'RESIDENT',
+          todayShift: dayOfWeek === 0 || dayOfWeek === 6 ? 'R' : 'D',
+          onSiteDate: '-',
+          onSiteDays: 0,
+          dynamicLeaveDue: '-',
+          pct: 0,
+        };
+      }
+
+      // Non-Resident Rotation:
+      const anchorStr = onSiteDate && onSiteDate !== '-' ? onSiteDate : '2026-07-01';
+      const parts = anchorStr.split('-').map(Number);
+      const anchorUtc = Date.UTC(parts[0] || 2026, (parts[1] || 7) - 1, parts[2] || 1);
+      const isInitiallyOff = m.status === 'OFF_DUTY';
+
+      const diffDays = Math.floor((baselineUtc - anchorUtc) / (1000 * 60 * 60 * 24));
+      const normalizedCycleDay = isInitiallyOff
+        ? ((diffDays % 120) + 120 + 90) % 120
+        : ((diffDays % 120) + 120) % 120;
+
+      const isOffDuty = normalizedCycleDay >= 90;
+      const status = isOffDuty ? 'OFF_DUTY' : 'ON_SITE';
+
+      // Exact Team Grouping by Staff ID and String fallback
+      const isTeamA =
+        ['BSG259524', 'BSG259736', 'BSG259743', 'EMP-002'].includes(staffId) ||
+        rawTeam.includes('TEAM-A') ||
+        rawTeam.includes('TEAM A') ||
+        rawTeam.includes('OP_ALPHA');
+
+      const isTeamB =
+        ['BSG259833', 'BSG258742', 'BSG259735', 'EMP-005'].includes(staffId) ||
+        rawTeam.includes('TEAM-B') ||
+        rawTeam.includes('TEAM B') ||
+        rawTeam.includes('OP_BRAVO');
+
+      const isTeamC =
+        ['BSG259530', 'BSG259634', 'BSG259532', 'EMP-008'].includes(staffId) ||
+        rawTeam.includes('TEAM-C') ||
+        rawTeam.includes('TEAM C') ||
+        rawTeam.includes('OP_CHARLIE');
+
+      const isOpTeam = isTeamA || isTeamB || isTeamC;
+
+      let teamOffset = 0;
+      if (isTeamB) {
+        teamOffset = 11;
+      } else if (isTeamC) {
+        teamOffset = 11;
+      }
+
+      const shiftDay = (cycle22 + teamOffset) % 22;
+
+      let calculatedShift: ShiftCode = 'D';
+
+      if (isOffDuty) {
+        calculatedShift = 'OFF';
+      } else if (staffId === 'BSG259524') {
+        // Shadiq M. Shalih (BSG259524) Special Logic:
+        if (isEdiOffOnBaseline) {
+          calculatedShift = dayOfWeek === 0 ? 'R' : 'D';
+        } else {
+          calculatedShift = shiftDay < 10 ? 'D' : shiftDay === 10 ? 'R' : shiftDay < 21 ? 'N' : 'R';
+        }
+      } else if (!isOpTeam) {
+        // Non-OP Teams: Mon-Sat 'D', Sun 'R'
+        calculatedShift = dayOfWeek === 0 ? 'R' : 'D';
+      } else {
+        // OP Teams (A/B/C): 22-day cycle
+        calculatedShift = shiftDay < 10 ? 'D' : shiftDay === 10 ? 'R' : shiftDay < 21 ? 'N' : 'R';
+      }
+
+      const diffDaysFromAnchor = diffDays + 1;
+      let onSiteDays = 0;
+      let dynamicLeaveDue = '-';
+
+      if (isOffDuty) {
+        onSiteDays = 0;
+        dynamicLeaveDue = addDaysStr(onSiteDate, 30);
+      } else {
+        if (isInitiallyOff) {
+          onSiteDays = diffDaysFromAnchor > 30 ? diffDaysFromAnchor - 30 : 0;
+        } else {
+          onSiteDays = diffDaysFromAnchor > 0 ? diffDaysFromAnchor : 0;
+        }
+        dynamicLeaveDue = addDaysStr(onSiteDate, 90);
+      }
+
+      const pct = isOffDuty ? 0 : Math.min(100, Math.round((onSiteDays / 90) * 100));
 
       return {
         ...m,
-        team: ov.team || m.team,
-        status: isResident ? 'RESIDENT' : (isOffDuty ? 'OFF_DUTY' : 'ON_SITE'),
-        todayShift: ov.shift || m.todayShift,
-        cycleStartDate,
-        designatedReliever: ov.reliever || m.designatedReliever,
+        status,
+        todayShift: calculatedShift,
+        onSiteDate,
         onSiteDays,
         dynamicLeaveDue,
-        pct: isResident || isOffDuty ? 0 : Math.min(100, Math.round((onSiteDays / 90) * 100)),
+        pct,
       };
     });
-  }, [baseList, localOverrides]);
+  }, [baseList, localOverrides, baselineDateStr]);
 
 
   // Precomputed KPI and Filter Counts in a single memoized pass
   const kpiData = useMemo(() => {
     const totalStaff = allStaff.length;
     let countOnSite = 0, countOffDuty = 0, countResident = 0, demobDueSoon = 0, handoverGapAlert = 0, fatigueOverstay = 0, plannedInbound = 0;
+    const currentMonthPrefix = baselineDateStr.slice(0, 7);
 
     for (let i = 0; i < totalStaff; i++) {
       const s = allStaff[i];
@@ -132,7 +266,7 @@ export default function RotationPlanTab({
         countResident++;
       } else if (s.status === 'OFF_DUTY') {
         countOffDuty++;
-        if (s.dynamicLeaveDue.startsWith('2026-09')) plannedInbound++;
+        if (s.dynamicLeaveDue.startsWith(currentMonthPrefix)) plannedInbound++;
       } else {
         countOnSite++;
         if (s.onSiteDays >= 76 && s.onSiteDays <= 90) demobDueSoon++;
@@ -146,7 +280,7 @@ export default function RotationPlanTab({
       onSitePct: totalStaff > 0 ? Math.round((countOnSite / totalStaff) * 100) : 0,
       demobDueSoon, handoverGapAlert, fatigueOverstay, plannedInbound,
     };
-  }, [allStaff]);
+  }, [allStaff, baselineDateStr]);
 
   // Filtered and sorted personnel list
   const displayList = useMemo(() => {
@@ -160,7 +294,7 @@ export default function RotationPlanTab({
     return sorted;
   }, [allStaff, activeFilter]);
 
-  const handleUpdateField = (id: string, field: 'team' | 'status' | 'shift' | 'startDate' | 'reliever', value: any) => {
+  const handleUpdateField = (id: string, field: 'startDate', value: string) => {
     setLocalOverrides((prev) => ({ ...prev, [id]: { ...(prev[id] || {}), [field]: value } }));
     if (field === 'startDate' && onUpdateStartDate) onUpdateStartDate(id, value);
   };
@@ -255,29 +389,37 @@ export default function RotationPlanTab({
         </div>
 
         <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-700 bg-slate-100 px-2 py-0.5 border border-slate-300 rounded shadow-2xs">
-          <span className="font-bold text-slate-500">BASELINE:</span>
-          <span className="font-black text-slate-900">2026-09-04</span>
+          <label htmlFor="rotation-baseline-date" className="font-bold text-slate-500 cursor-pointer">
+            BASELINE:
+          </label>
+          <input
+            id="rotation-baseline-date"
+            type="date"
+            value={baselineDateStr}
+            onChange={(e) => setInternalBaselineDate(e.target.value)}
+            className="font-black text-slate-900 bg-transparent border-0 outline-none p-0 cursor-pointer text-[11px] font-mono"
+          />
         </div>
       </div>
 
       {/* 3. TABLE (13 Columns, UPPERCASE Headers, Split ERT/Comm) */}
       <div className="overflow-x-auto min-w-full">
-        <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
+        <table className="w-full text-left border-collapse font-sans text-sm win-grid">
           <thead>
-            <tr className="bg-slate-200 border-b border-slate-400 text-slate-800 text-[10px]">
-              <th className="p-1 border-r border-slate-300 w-10 text-center">NO.</th>
-              <th className="p-1 border-r border-slate-300 w-[150px] min-w-[150px] text-center">NAME</th>
-              <th className="p-1 border-r border-slate-300 w-[100px] min-w-[100px] text-center">EMP ID</th>
-              <th className="p-1 border-r border-slate-300 w-36 text-center">POSITION</th>
-              <th className="p-1 border-r border-slate-300 w-[130px] min-w-[130px] text-center">TEAM</th>
-              <th className="p-1 border-r border-slate-300 w-[105px] min-w-[105px] text-center">STATUS</th>
-              <th className="p-1 border-r border-slate-300 w-[65px] min-w-[65px] text-center">SHIFT</th>
-              <th className="p-1 border-r border-slate-300 w-[125px] min-w-[125px] text-center">ON-SITE DATE</th>
-              <th className="p-1 border-r border-slate-300 w-40 text-center">DAYS (90D)</th>
-              <th className="p-1 border-r border-slate-300 w-32 text-center">DUE DATE</th>
-              <th className="p-1 border-r border-slate-300 w-36 text-center">ERT ROLE</th>
-              <th className="p-1 border-r border-slate-300 w-28 text-center">RADIO CH</th>
-              <th className="p-1 text-center w-32">CONTACT NO</th>
+            <tr className="bg-slate-200 border-b border-slate-400 text-slate-800 text-[13px] font-bold py-2">
+              <th className="py-2 px-1.5 border-r border-slate-300 w-10 text-center">NO.</th>
+              <th className="py-2 px-1.5 border-r border-slate-300 w-[170px] min-w-[170px] text-center">NAME</th>
+              <th className="py-2 px-1.5 border-r border-slate-300 w-[105px] min-w-[105px] text-center">EMP ID</th>
+              <th className="py-2 px-1.5 border-r border-slate-300 w-40 text-center">POSITION</th>
+              <th className="py-2 px-1.5 border-r border-slate-300 w-[135px] min-w-[135px] text-center">TEAM</th>
+              <th className="py-2 px-1.5 border-r border-slate-300 w-[105px] min-w-[105px] text-center">STATUS</th>
+              <th className="py-2 px-1.5 border-r border-slate-300 w-[65px] min-w-[65px] text-center">SHIFT</th>
+              <th className="py-2 px-1.5 border-r border-slate-300 w-[145px] min-w-[145px] text-center">ON-SITE DATE</th>
+              <th className="py-2 px-1.5 border-r border-slate-300 w-40 text-center">DAYS (90D)</th>
+              <th className="py-2 px-1.5 border-r border-slate-300 w-36 text-center">DUE DATE</th>
+              <th className="py-2 px-1.5 border-r border-slate-300 w-36 text-center">ERT ROLE</th>
+              <th className="py-2 px-1.5 border-r border-slate-300 w-28 text-center">RADIO CH</th>
+              <th className="py-2 px-1.5 text-center w-32">CONTACT NO</th>
             </tr>
           </thead>
           <tbody>
@@ -295,71 +437,59 @@ export default function RotationPlanTab({
                   }`}
                 >
                   <td className="p-1.5 border-r border-slate-300 text-center font-mono font-bold text-sm text-slate-700">{idx + 1}</td>
-                  <td className="p-1.5 border-r border-slate-300 w-[150px] min-w-[150px] whitespace-nowrap text-sm font-bold text-slate-900 text-left px-2.5">
+                  <td className="p-1.5 border-r border-slate-300 w-[170px] min-w-[170px] whitespace-nowrap text-sm font-bold text-slate-900 text-center">
                     {m.name}
                   </td>
-                  <td className="p-1.5 border-r border-slate-300 w-[100px] min-w-[100px] whitespace-nowrap text-sm font-mono font-semibold text-slate-700 text-center">
+                  <td className="p-1.5 border-r border-slate-300 w-[105px] min-w-[105px] whitespace-nowrap text-xs font-mono font-bold text-slate-700 text-center">
                     {m.id}
                   </td>
-                  <td className="p-1.5 border-r border-slate-300 text-slate-800 whitespace-nowrap text-sm font-semibold text-center uppercase tracking-wide">{m.position}</td>
-                  <td className="p-0 border-r border-slate-300 w-[130px] min-w-[130px] text-center bg-inherit" onClick={(e) => e.stopPropagation()}>
-                    <select
-                      value={m.team}
-                      onChange={(e) => handleUpdateField(m.id, 'team', e.target.value)}
-                      className="w-full h-8 px-1 text-center bg-transparent border-none outline-none font-semibold text-sm text-slate-900 cursor-pointer"
-                    >
-                      {TEAM_OPTIONS.map((t) => (<option key={t} value={t} className="bg-white text-slate-900">{t}</option>))}
-                    </select>
+                  <td className="p-1.5 border-r border-slate-300 text-slate-800 whitespace-nowrap text-xs font-bold text-center uppercase tracking-normal">{m.position}</td>
+                  <td className="p-1.5 border-r border-slate-300 w-[135px] min-w-[135px] text-center whitespace-nowrap">
+                    <span className="text-xs font-bold text-slate-900">{m.team}</span>
                   </td>
-                  <td className="p-0 border-r border-slate-300 w-[105px] min-w-[105px] text-center bg-inherit" onClick={(e) => e.stopPropagation()}>
-                    {isResident ? (
-                      <span className="font-semibold text-sm text-slate-900 inline-flex items-center justify-center w-full h-8 font-mono">Resident</span>
+                  <td className="p-1.5 border-r border-slate-300 w-[105px] min-w-[105px] text-center whitespace-nowrap">
+                    {m.status === 'RESIDENT' ? (
+                      <span className="px-2 py-0.5 text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-300 rounded-xs">Resident</span>
+                    ) : m.status === 'OFF_DUTY' ? (
+                      <span className="px-2 py-0.5 text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 rounded-xs">Off-Duty</span>
                     ) : (
-                      <select
-                        value={m.status}
-                        onChange={(e) => handleUpdateField(m.id, 'status', e.target.value)}
-                        className="w-full h-8 px-1 text-center bg-transparent border-none outline-none font-semibold text-sm text-slate-900 cursor-pointer"
-                      >
-                        <option value="ON_SITE" className="bg-white text-slate-900">On-Site</option>
-                        <option value="OFF_DUTY" className="bg-white text-slate-900">Off-Duty</option>
-                      </select>
+                      <span className="px-2 py-0.5 text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xs">On-Site</span>
                     )}
                   </td>
-                  <td className="p-0 border-r border-slate-300 w-[65px] min-w-[65px] text-center bg-inherit" onClick={(e) => e.stopPropagation()}>
-                    <select
-                      value={m.todayShift}
-                      onChange={(e) => handleUpdateField(m.id, 'shift', e.target.value as ShiftCode)}
-                      className="w-full h-8 px-1 text-center bg-transparent border-none outline-none font-bold text-sm text-slate-900 cursor-pointer"
-                    >
-                      <option value="D" className="bg-white text-slate-900">D</option>
-                      <option value="N" className="bg-white text-slate-900">N</option>
-                      <option value="Off" className="bg-white text-slate-900">Off</option>
-                      <option value="R" className="bg-white text-slate-900">R</option>
-                    </select>
-                  </td>
-                  <td className="p-0 border-r border-slate-300 w-[125px] min-w-[125px] font-mono text-center bg-inherit" onClick={(e) => e.stopPropagation()}>
-                    {isResident ? (
-                      <span className="text-slate-400 font-normal text-sm inline-flex items-center justify-center w-full h-8">-</span>
+                  <td className="p-1.5 border-r border-slate-300 w-[65px] min-w-[65px] text-center whitespace-nowrap">
+                    {m.todayShift === 'D' ? (
+                      <span className="w-6 h-6 inline-flex items-center justify-center font-bold text-xs bg-emerald-100 text-emerald-800 border border-emerald-400 rounded-xs">D</span>
+                    ) : m.todayShift === 'N' ? (
+                      <span className="w-6 h-6 inline-flex items-center justify-center font-bold text-xs bg-blue-100 text-blue-800 border border-blue-400 rounded-xs">N</span>
+                    ) : m.todayShift === 'R' ? (
+                      <span className="w-6 h-6 inline-flex items-center justify-center font-bold text-xs bg-slate-200 text-slate-700 border border-slate-400 rounded-xs">R</span>
                     ) : (
-                      <div className="flex items-center justify-center w-full h-full">
+                      <span className="w-8 h-6 inline-flex items-center justify-center font-bold text-xs bg-amber-200 text-amber-900 border border-amber-400 rounded-xs">OFF</span>
+                    )}
+                  </td>
+                  <td className="p-0 border-r border-slate-300 w-[145px] min-w-[145px] font-mono text-center bg-inherit" onClick={(e) => e.stopPropagation()}>
+                    {isResident ? (
+                      <span className="text-slate-400 font-normal text-xs inline-flex items-center justify-center w-full h-9">-</span>
+                    ) : (
+                      <div className="flex items-center justify-center w-full">
                         <input
                           type="date"
-                          value={m.cycleStartDate}
+                          value={m.onSiteDate}
                           onChange={(e) => handleUpdateField(m.id, 'startDate', e.target.value)}
-                          className="w-[120px] h-8 px-1 text-center bg-transparent border-none outline-none font-mono font-semibold text-sm text-slate-900 cursor-pointer"
+                          className="w-[115px] h-8 px-1 text-center font-mono font-bold text-xs text-slate-900 bg-transparent border border-slate-300 rounded cursor-pointer [&::-webkit-calendar-picker-indicator]:ml-1"
                         />
                       </div>
                     )}
                   </td>
                   <td className="p-1.5 border-r border-slate-300 text-center">
                     {isResident || isOffDuty ? (
-                      <span className="text-sm font-mono text-slate-400">-</span>
+                      <span className="text-sm font-mono font-medium text-slate-400">-</span>
                     ) : (
                       <div className="flex flex-col items-center justify-center w-full max-w-[140px] mx-auto">
-                        <div className="flex items-center justify-center gap-1.5 text-xs mb-1 font-mono font-semibold text-slate-900">
-                          <span className="font-bold text-blue-900 text-sm">{m.onSiteDays}d</span>
-                          <span className="text-slate-600">/ 90d</span>
-                          <span className={`font-semibold ${m.pct >= 90 ? 'text-rose-700 font-black' : m.pct >= 70 ? 'text-amber-700 font-bold' : 'text-slate-600'}`}>({m.pct}%)</span>
+                        <div className="flex items-center justify-center gap-1.5 text-xs mb-1 font-mono font-bold text-slate-900">
+                          <span className="font-black text-blue-900 text-sm">{m.onSiteDays}d</span>
+                          <span className="text-slate-600 font-semibold">/ 90d</span>
+                          <span className={`font-bold text-xs ${m.pct >= 90 ? 'text-rose-700 font-black' : m.pct >= 70 ? 'text-amber-700' : 'text-slate-600'}`}>({m.pct}%)</span>
                         </div>
                         <div className="w-full bg-slate-200 h-2 border border-slate-300 rounded-sm overflow-hidden">
                           <div
@@ -372,7 +502,7 @@ export default function RotationPlanTab({
                   </td>
                   <td className="p-1.5 border-r border-slate-300 font-mono text-center whitespace-nowrap text-sm font-semibold text-slate-900">
                     {isResident || !m.dynamicLeaveDue || m.dynamicLeaveDue === '-' ? (
-                      <span className="text-slate-400">-</span>
+                      <span className="text-slate-400 font-normal">-</span>
                     ) : (
                       <span className={m.onSiteDays >= 83 && !isOffDuty ? 'text-rose-800 font-black' : 'font-semibold'}>
                         {m.dynamicLeaveDue}
@@ -393,9 +523,9 @@ export default function RotationPlanTab({
             })}
           </tbody>
           <tfoot>
-            <tr className="bg-slate-200 border-t-2 border-slate-400 font-bold text-slate-800 text-[10px]">
-              <td className="p-1.5 border-r border-slate-300"></td>
-              <td colSpan={12} className="p-1.5 pl-3 text-slate-700 font-mono text-left">
+            <tr className="bg-slate-200 border-t-2 border-slate-400 font-bold text-slate-800 text-sm">
+              <td className="p-2 border-r border-slate-300"></td>
+              <td colSpan={12} className="p-2 pl-3 text-slate-700 font-mono text-left">
                 TOTAL DISPLAYED: <span className="text-slate-900 font-black">{displayList.length}</span> / {allStaff.length} PERSONNEL
               </td>
             </tr>

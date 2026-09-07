@@ -80,8 +80,8 @@ export default function RotationDelegationModal({
               </div>
             </div>
             <div className="flex justify-between text-xs pt-1 text-slate-800 font-mono border-t border-slate-200">
-              <span>On-Site Cumulative: <strong>{calcOnSiteDays(offGoing.cycleStartDate)} / 90 Days</strong></span>
-              <span>Rotation Leave Due: <strong className="text-blue-900">{calcRotationDueDate(offGoing.cycleStartDate)}</strong></span>
+              <span>On-Site Cumulative: <strong>{calcOnSiteDays(offGoing.onSiteDate)} / 90 Days</strong></span>
+              <span>Rotation Leave Due: <strong className="text-blue-900">{calcRotationDueDate(offGoing.onSiteDate)}</strong></span>
             </div>
           </div>
 
