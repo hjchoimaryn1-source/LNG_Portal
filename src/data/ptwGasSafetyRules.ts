@@ -7,9 +7,9 @@
 
 import { PTWPermit } from '../types/lng';
 
-const O2_MIN_PERCENT = 19.5;
-const O2_MAX_PERCENT = 23.5;
-const H2S_MAX_PPM = 10; // strict: 10 ppm itself fails
+export const O2_MIN_PERCENT = 19.5;
+export const O2_MAX_PERCENT = 23.5;
+export const H2S_MAX_PPM = 10; // strict: 10 ppm itself fails
 
 export function checkUniversalGasBands(
   gasReadings: PTWPermit['gasReadings']

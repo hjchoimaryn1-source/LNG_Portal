@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useMemo } from 'react';
-import { PTWPermit, PTWWorkflowStatus, StaffPersonnel } from '../../../../types/lng';
+import { GasTestLogEntryInput, PTWPermit, PTWWorkflowStatus, StaffPersonnel } from '../../../../types/lng';
 import { validatePTWGasSafety } from '../../../../data/ptwMasterData';
 import PTWWorkflowPipeline from './PTWWorkflowPipeline';
 import PTWGasSafetyGate from './PTWGasSafetyGate';
@@ -17,6 +17,7 @@ export interface PTWPermitDetailPanelProps {
   isERTMet: boolean;
   onNavigateToMatrix?: (empId: string) => void;
   onUpdateGasReadings: (permitId: string, lel: number, o2: number) => void;
+  onAddGasTestLogEntry: (permitId: string, entryInput: GasTestLogEntryInput) => void;
   onTransitionStatus: (permitId: string, nextStatus: PTWWorkflowStatus) => void;
 }
 
@@ -26,6 +27,7 @@ export default function PTWPermitDetailPanel({
   isERTMet,
   onNavigateToMatrix,
   onUpdateGasReadings,
+  onAddGasTestLogEntry,
   onTransitionStatus,
 }: PTWPermitDetailPanelProps) {
   const currentGasSafety = useMemo(() => {
@@ -36,50 +38,75 @@ export default function PTWPermitDetailPanel({
   if (!activePermit) {
     return (
       <div className="lg:col-span-7">
-        <div className="p-8 text-center text-slate-500 font-mono">No permit selected.</div>
+        <div className="bg-neutral-200/60 border border-neutral-400 p-8 text-center text-slate-500 font-mono rounded-none">
+          No permit selected.
+        </div>
       </div>
     );
   }
 
   return (
     <div className="lg:col-span-7">
-      <div className="win-panel p-2.5 border-2 border-neutral-400 bg-white space-y-2 rounded-none font-mono">
+      <div className="bg-neutral-200/60 border border-neutral-400 p-2 space-y-2 rounded-none font-mono">
         {/* Header: Permit Summary */}
-        <div className="win-titlebar bg-[#0B192C] text-white p-1.5 px-3 flex justify-between items-center rounded-none font-mono">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-xs tracking-wide">
-              [{activePermit.type.replace(/_/g, ' ')} PERMIT] {activePermit.id}
+        <div className="bg-[#2A3B4C] text-white p-2 px-3 flex justify-between items-center rounded-none font-mono border border-[#2A3B4C]">
+          <span className="w-20 hidden sm:inline-block" />
+          <span className="font-bold text-xs tracking-wider text-center text-white font-mono flex-1">
+            [{activePermit.type.replace(/_/g, ' ')} PERMIT] {activePermit.id}
+          </span>
+          <div className="w-20 flex justify-end">
+            <span className="text-[11px] font-mono font-bold bg-[#d4d0c8] text-black px-2 py-0.5 border border-[#808080] rounded-none shrink-0">
+              STATUS: [{activePermit.status}]
             </span>
-          </div>
-          <div className="text-[11px] font-mono font-bold bg-[#d4d0c8] text-black px-2 py-0.5 border border-[#808080] rounded-none">
-            STATUS: [{activePermit.status}]
           </div>
         </div>
 
         <PTWWorkflowPipeline currentStatus={activePermit.status} />
 
-        {/* Work Details & Location */}
-        <div className="p-2 bg-neutral-50 border border-neutral-300 rounded-none space-y-1 text-xs font-mono">
-          <div className="font-bold text-sm text-blue-950">{activePermit.title}</div>
-          <div className="text-slate-700 text-[11px] flex justify-between">
-            <span>LOC: <strong>{activePermit.location}</strong></span>
-            <span>VALID: {activePermit.validFrom} ~ {activePermit.validTo}</span>
-          </div>
-          <div className="text-slate-600 text-[11px] pt-0.5">
-            <strong>HAZARD:</strong> {activePermit.hazardDescription}
-          </div>
+        {/* Block 1: Work Details & Location Table */}
+        <div className="border border-neutral-300 bg-white rounded-none overflow-hidden font-mono text-xs">
+          <table className="table-fixed w-full border-collapse">
+            <thead className="bg-[#8A9EA7] text-slate-900 font-bold text-xs h-7 uppercase tracking-wider border-b border-neutral-300">
+              <tr>
+                <th className="w-28 text-center py-1 px-2 border-r border-neutral-300">PARAMETER</th>
+                <th className="text-left py-1 px-2">VALUE / SPECIFICATION</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-300">
+              <tr className="bg-[#ebe7df]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[TASK]</td>
+                <td className="py-1 px-2 font-bold text-blue-950 truncate" title={activePermit.title}>{activePermit.title}</td>
+              </tr>
+              <tr className="bg-[#f4f1ea]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[LOCATION]</td>
+                <td className="py-1 px-2 text-slate-800">{activePermit.location}</td>
+              </tr>
+              <tr className="bg-[#ebe7df]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[VALIDITY]</td>
+                <td className="py-1 px-2 text-slate-800">{activePermit.validFrom} ~ {activePermit.validTo}</td>
+              </tr>
+              <tr className="bg-[#f4f1ea]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[HAZARD]</td>
+                <td className="py-1 px-2 text-slate-700">{activePermit.hazardDescription}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <PTWGasSafetyGate
           activePermit={activePermit}
+          personnelList={personnelList}
           isSafe={currentGasSafety.isSafe}
           blockReason={currentGasSafety.blockReason}
           onUpdateGasReadings={onUpdateGasReadings}
+          onAddGasTestLogEntry={onAddGasTestLogEntry}
         />
 
-        <PTWCompetencyGate activePermit={activePermit} personnelList={personnelList} onNavigateToMatrix={onNavigateToMatrix} />
-
-        <PTWSafetyChecklist checklist={activePermit.safetyChecklist} />
+        {/* Block 3 & Block 4: Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <PTWCompetencyGate activePermit={activePermit} personnelList={personnelList} onNavigateToMatrix={onNavigateToMatrix} />
+          <PTWSafetyChecklist checklist={activePermit.safetyChecklist} />
+        </div>
 
         {activePermit.cargoHandling && <CargoHandlingDetailSection cargoHandling={activePermit.cargoHandling} />}
 

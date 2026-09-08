@@ -17,63 +17,68 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
   const activationBlocked = !isGasSafe || (isHighRisk && !isERTMet);
 
   return (
-    <div className="flex justify-between items-center pt-2 border-t border-neutral-300 flex-wrap gap-2 font-mono">
-      <div className="text-[11px] font-mono text-slate-600">
-        PTW ID: <strong>{activePermit.id}</strong> | TYPE: <strong>{activePermit.type.replace(/_/g, ' ')}</strong>
+    <div className="border border-neutral-300 bg-white rounded-none overflow-hidden font-mono space-y-2">
+      <div className="bg-[#2A3B4C] text-white font-mono text-sm font-bold text-center py-1 px-2 border border-[#2A3B4C] rounded-none">
+        WORKFLOW STATUS & TRANSITION CONTROLS
       </div>
+      <div className="bg-[#ebe7df] border border-neutral-300 px-2 py-1.5 flex justify-between items-center flex-wrap gap-2 rounded-none">
+        <div className="text-[11px] font-mono text-slate-600">
+          PTW ID: <strong className="text-blue-950">{activePermit.id}</strong> | TYPE: <strong className="text-slate-900">{activePermit.type.replace(/_/g, ' ')}</strong>
+        </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {/* Step 1: Draft -> Prepared */}
-        {activePermit.status === 'DRAFT' && (
-          <button
-            onClick={() => onTransitionStatus(activePermit.id, 'PREPARED')}
-            className="win-btn px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none"
-          >
-            <span>[1. PREPARE & SUBMIT TO HSE]</span>
-          </button>
-        )}
+        <div className="flex gap-2 flex-wrap">
+          {/* Step 1: Draft -> Prepared */}
+          {activePermit.status === 'DRAFT' && (
+            <button
+              onClick={() => onTransitionStatus(activePermit.id, 'PREPARED')}
+              className="px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none border border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+            >
+              <span>[1. PREPARE & SUBMIT TO HSE]</span>
+            </button>
+          )}
 
-        {/* Step 2: Prepared -> Approved */}
-        {activePermit.status === 'PREPARED' && (
-          <button
-            onClick={() => onTransitionStatus(activePermit.id, 'APPROVED')}
-            className="win-btn px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none"
-          >
-            <span>[2. HSE / SM APPROVE]</span>
-          </button>
-        )}
+          {/* Step 2: Prepared -> Approved */}
+          {activePermit.status === 'PREPARED' && (
+            <button
+              onClick={() => onTransitionStatus(activePermit.id, 'APPROVED')}
+              className="px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none border border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+            >
+              <span>[2. HSE / SM APPROVE]</span>
+            </button>
+          )}
 
-        {/* Step 3: Approved -> Active */}
-        {activePermit.status === 'APPROVED' && (
-          <button
-            disabled={activationBlocked}
-            onClick={() => onTransitionStatus(activePermit.id, 'ACTIVE')}
-            className={`win-btn px-3 py-1 text-xs font-bold rounded-none ${
-              activationBlocked
-                ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed border-neutral-400'
-                : 'text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer'
-            }`}
-            title={!isGasSafe ? gasBlockReason || 'Gas reading unsafe' : 'Issue permit and begin work'}
-          >
-            <span>[3. AUTHORIZE ACTIVE WORK]</span>
-          </button>
-        )}
+          {/* Step 3: Approved -> Active */}
+          {activePermit.status === 'APPROVED' && (
+            <button
+              disabled={activationBlocked}
+              onClick={() => onTransitionStatus(activePermit.id, 'ACTIVE')}
+              className={`px-3 py-1 text-xs font-bold rounded-none border ${
+                activationBlocked
+                  ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-300'
+                  : 'text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]'
+              }`}
+              title={!isGasSafe ? gasBlockReason || 'Gas reading unsafe' : 'Issue permit and begin work'}
+            >
+              <span>[3. AUTHORIZE ACTIVE WORK]</span>
+            </button>
+          )}
 
-        {/* Step 4: Active -> Closed */}
-        {activePermit.status === 'ACTIVE' && (
-          <button
-            onClick={() => onTransitionStatus(activePermit.id, 'CLOSED')}
-            className="win-btn px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none"
-          >
-            <span>[4. CLOSE PERMIT (COMPLETE)]</span>
-          </button>
-        )}
+          {/* Step 4: Active -> Closed */}
+          {activePermit.status === 'ACTIVE' && (
+            <button
+              onClick={() => onTransitionStatus(activePermit.id, 'CLOSED')}
+              className="px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none border border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+            >
+              <span>[4. CLOSE PERMIT (COMPLETE)]</span>
+            </button>
+          )}
 
-        {activePermit.status === 'CLOSED' && (
-          <span className="px-3 py-1 bg-slate-200 text-slate-600 font-mono text-xs font-bold rounded border border-slate-300">
-            ✓ PERMIT CLOSED & ARCHIVED
-          </span>
-        )}
+          {activePermit.status === 'CLOSED' && (
+            <span className="px-3 py-1 bg-slate-200 text-slate-600 font-mono text-xs font-bold rounded-none border border-slate-300">
+              [PERMIT CLOSED & ARCHIVED]
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -340,6 +340,24 @@ export type PTWWorkflowStatus =
   | 'ACTIVE'
   | 'CLOSED';
 
+// Single-point gas re-test history entry (Hot Work / Confined Space / Cold
+// Work / Electrical / Excavation / Radiography). Cargo Handling's multi-point
+// AGT flow (CargoHandlingGasPoint / isGasRetestDue()) is a separate mechanism
+// and does not use this type.
+export interface GasTestLogEntry {
+  id: string;
+  lelPercent: number;
+  o2Percent: number;
+  h2sPpm: number;
+  testedAt: string;
+  testerName: string;
+  testerId?: string;
+  note?: string;
+  isSafeForWork: boolean; // computed by validatePTWGasSafety() inside usePTWPermits — never caller-supplied
+}
+
+export type GasTestLogEntryInput = Omit<GasTestLogEntry, 'isSafeForWork'>;
+
 export interface PTWPermit {
   id: string;
   formNumber: string; // NP07-10 to NP07-15
@@ -380,6 +398,9 @@ export interface PTWPermit {
   // strings embed tags inconsistently, e.g. "PRSS-01", "MCC-01" — not safely
   // regex-extractable). Optional; renders as N/A until backfilled.
   equipmentTag?: string;
+  // Single-point re-test history (Hot Work / Confined Space / etc). Not used
+  // by CARGO_HANDLING, which keeps its own gasReadingPoints history.
+  gasTestHistory?: GasTestLogEntry[];
 }
 
 // --- Cargo Handling (CARGO_HANDLING) extension types ---

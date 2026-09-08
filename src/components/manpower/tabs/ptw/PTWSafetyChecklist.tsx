@@ -19,18 +19,20 @@ const CHECKLIST_LABELS: { key: keyof PTWPermit['safetyChecklist']; label: string
 
 export default function PTWSafetyChecklist({ checklist }: PTWSafetyChecklistProps) {
   return (
-    <div className="p-2 border border-neutral-300 bg-[#d4d0c8] rounded-none text-[11px] font-mono">
-      <div className="font-bold text-slate-900 mb-1.5 text-[11px]">MANDATORY SAFETY CONTROLS VERIFICATION:</div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[10px] font-mono">
+    <div className="border border-neutral-300 bg-[#ebe7df] p-2 rounded-none text-[11px] font-mono space-y-1.5">
+      <div className="bg-[#2A3B4C] text-white font-mono text-sm font-bold text-center py-1 px-2 border border-[#2A3B4C] rounded-none">
+        MANDATORY SAFETY CONTROLS
+      </div>
+      <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
         {CHECKLIST_LABELS.map(({ key, label }) => {
           const isApplied = checklist[key];
           return (
             <div
               key={key}
-              className={`px-2 py-1 border rounded-none flex items-center justify-between shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] ${
+              className={`px-2 py-1.5 border rounded-none flex items-center justify-between shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] ${
                 isApplied
-                  ? 'border-t-neutral-600 border-l-neutral-600 border-b-white border-r-white bg-[#c8c4bc] text-blue-950 font-bold'
-                  : 'border-t-neutral-400 border-l-neutral-400 border-b-white border-r-white bg-[#d4d0c8] text-slate-500 opacity-60'
+                  ? 'border-neutral-400 bg-[#d8d4cc] text-blue-950 font-bold'
+                  : 'border-neutral-300 bg-neutral-100 text-slate-400'
               }`}
             >
               <span>{label}</span>

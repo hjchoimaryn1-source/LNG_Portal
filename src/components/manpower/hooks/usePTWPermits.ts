@@ -1,6 +1,6 @@
 // src/components/manpower/hooks/usePTWPermits.ts
 import { useMemo, useState } from 'react';
-import { PTWPermit, PTWWorkflowStatus } from '../../../types/lng';
+import { GasTestLogEntry, GasTestLogEntryInput, PTWPermit, PTWWorkflowStatus } from '../../../types/lng';
 import { INITIAL_PTW_PERMITS, validatePTWGasSafety } from '../../../data/ptwMasterData';
 
 /**
@@ -14,6 +14,10 @@ export function usePTWPermits() {
     setPermits((prev) => [permit, ...prev]);
   };
 
+  // NOTE(redundancy): no call site actually invokes this anymore — the prop is
+  // still threaded through PTWPermitDetailPanel/PTWGasSafetyGate but never
+  // called from their JSX (superseded by addGasTestLogEntry below, which also
+  // writes gasTestHistory). Kept as-is per task instructions; not removed here.
   const updateGasReadings = (permitId: string, lel: number, o2: number) => {
     setPermits((prev) =>
       prev.map((p) => {
@@ -30,6 +34,53 @@ export function usePTWPermits() {
           gasReadings: {
             ...newReadings,
             isSafeForWork: safety.isSafe,
+          },
+        };
+      })
+    );
+  };
+
+  // Single-point re-test entry (Hot Work / Confined Space / etc). CARGO_HANDLING
+  // is explicitly rejected — that category has its own multi-point AGT update
+  // path (src/data/ptwCargoHandlingValidators.ts) and must not go through here.
+  const addGasTestLogEntry = (permitId: string, entryInput: GasTestLogEntryInput) => {
+    const target = permits.find((p) => p.id === permitId);
+    if (!target) return;
+
+    if (target.type === 'CARGO_HANDLING') {
+      console.error(
+        `[usePTWPermits] addGasTestLogEntry rejected for ${permitId}: CARGO_HANDLING permits must use the dedicated Cargo Handling gas-reading update path, not the single-point re-test flow.`
+      );
+      return;
+    }
+
+    // isSafeForWork is computed here, from the real validatePTWGasSafety() gate —
+    // it is never accepted from entryInput (GasTestLogEntryInput omits it entirely).
+    const safety = validatePTWGasSafety(target.type, {
+      ...target.gasReadings,
+      lelPercent: entryInput.lelPercent,
+      o2Percent: entryInput.o2Percent,
+      h2sPpm: entryInput.h2sPpm,
+    });
+
+    const newEntry: GasTestLogEntry = {
+      ...entryInput,
+      isSafeForWork: safety.isSafe,
+    };
+
+    setPermits((prev) =>
+      prev.map((p) => {
+        if (p.id !== permitId) return p;
+        return {
+          ...p,
+          gasTestHistory: [...(p.gasTestHistory || []), newEntry],
+          gasReadings: {
+            ...p.gasReadings,
+            lelPercent: newEntry.lelPercent,
+            o2Percent: newEntry.o2Percent,
+            h2sPpm: newEntry.h2sPpm,
+            testedAt: newEntry.testedAt,
+            isSafeForWork: newEntry.isSafeForWork,
           },
         };
       })
@@ -97,5 +148,5 @@ export function usePTWPermits() {
     };
   }, [permits]);
 
-  return { permits, addPermit, updateGasReadings, transitionStatus, stats };
+  return { permits, addPermit, updateGasReadings, addGasTestLogEntry, transitionStatus, stats };
 }
