@@ -329,7 +329,8 @@ export type PTWType =
   | 'CONFINED_SPACE'
   | 'ELECTRICAL'
   | 'EXCAVATION'
-  | 'RADIOGRAPHY';
+  | 'RADIOGRAPHY'
+  | 'CARGO_HANDLING';
 
 export type PTWWorkflowStatus =
   | 'DRAFT'
@@ -373,4 +374,68 @@ export interface PTWPermit {
   createdAt: string;
   closedAt?: string;
   hazardDescription: string;
+  cargoHandling?: CargoHandlingPermitDetails;
+}
+
+// --- Cargo Handling (CARGO_HANDLING) extension types ---
+// ISO Tank Unloading / Crane-Reachstacker Lifting Transfer. Kept as a separate
+// optional block on PTWPermit rather than reusing gasReadings/safetyChecklist,
+// since Cargo Handling needs multi-point AGT (T-201..T-204) and gates the
+// other PTW categories don't have (grounding, depressurization, crane/rigger).
+
+export type CargoHandlingActivityType = 'UNLOADING' | 'LIFTING' | 'COMBINED';
+
+export type CargoHandlingApprovalSignerRole = 'SITE_MANAGER' | 'SR_OM_LEADER_ACTING';
+
+export interface CargoHandlingGasPoint {
+  tagId: string; // T-201..T-204 (Unloading Skid)
+  lelPercent: number;
+  o2Percent: number;
+  testedAt: string; // ISO timestamp
+}
+
+export interface CargoHandlingPermitDetails {
+  activityType: CargoHandlingActivityType;
+
+  // Critical High Risk escalation inputs
+  loadedWeightTon: number;
+  isActiveCryogenicFlow: boolean;
+  hoseDisconnectionInProgress: boolean;
+
+  // PREPARED -> APPROVED gate
+  siteManagerAvailable: boolean;
+  delegationMemoAttached: boolean;
+  esdvThreeStageIsolationConfirmed: boolean;
+  approverRole?: CargoHandlingApprovalSignerRole;
+
+  // AGT gate (Unloading only, multi-point)
+  gasReadingPoints: CargoHandlingGasPoint[];
+  lastGasTestAt?: string;
+  atmosphereSafeCertifiedByHseOfficer: boolean;
+
+  // Grounding & Bonding gate (Unloading only)
+  groundingResistanceOhm: number;
+  allHosesDisconnected: boolean;
+
+  // Depressurization gate (ISO Tank / cryogenic hose disconnection)
+  depressurizationTagId: string;
+  currentPressureMPa: number;
+  isFlexibleHoseOrQccDisconnection: boolean;
+  icingPresent: boolean;
+
+  // Mandatory Safety Controls (Cargo Handling specific)
+  fireWatchAssigned: boolean;
+  barricadeRadiusM: number;
+  ertStandbyReady: boolean;
+
+  // Competency gate (Lifting / Combined only)
+  craneOperatorSioClassIIOrAbove: boolean;
+  riggerCertificateHeld: boolean;
+
+  // ACTIVE -> CLOSED gate
+  workLeaderSignedOff: boolean;
+  hseOfficerSignedOff: boolean;
+  siteManagerSignedOff: boolean;
+  allLotoLocksRemoved: boolean;
+  leakTestPassed: boolean;
 }

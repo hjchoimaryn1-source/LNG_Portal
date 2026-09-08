@@ -167,6 +167,31 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
       'Night-time Inspection Coordination Completed',
     ],
   },
+  // NOTE: CARGO_HANDLING은 활동유형별 SOP 1:N 매핑이라 대표값만 등록됨. 실제 SOP 조회는 getCargoHandlingSOPInfo() 사용할 것
+  CARGO_HANDLING: {
+    type: 'CARGO_HANDLING',
+    formNumber: 'NP08-04',
+    title: 'Cargo Handling Permit (ISO Tank 하역 및 크레인/리치스태커 인양·이송)',
+    shortTitle: 'Cargo Handling (NP08)',
+    category: 'CARGO HANDLING',
+    colorBg: 'bg-cyan-100',
+    colorText: 'text-cyan-900',
+    borderColor: 'border-cyan-300',
+    description: 'LNG ISO Tank 하역(Unloading Skid) 및 크레인/리치스태커를 이용한 인양·이송(Lifting Transfer) 작업. 연동 SOP는 작업 유형에 따라 NP08-02/04/10/15 조합으로 결정됨 (src/data/ptwCargoHandlingValidators.ts 참조).',
+    mandatoryCerts: ['CERT-HSE-01'],
+    gasRestrictions: {
+      maxLelPercent: 10,
+      minO2Percent: 19.5,
+      maxO2Percent: 23.5,
+      maxH2sPpm: 10,
+      maxCoPpm: 25,
+    },
+    requiredChecklist: [
+      'Fire Watch Assigned (DCP/CO2 Extinguisher On Hand)',
+      'Safety Barricade Radius Set (25m Unloading / 50-100m Lifting)',
+      'ERT Standby Ready (SCBA Equipped)',
+    ],
+  },
 };
 
 export const INITIAL_PTW_PERMITS: PTWPermit[] = [

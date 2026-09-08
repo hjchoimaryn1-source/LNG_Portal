@@ -27,6 +27,7 @@ import {
   AlertOctagon,
   ArrowRight,
   Sparkles,
+  Ship,
 } from 'lucide-react';
 import {
   PTWPermit,
@@ -41,6 +42,7 @@ import {
   validatePTWGasSafety,
 } from '../../data/ptwMasterData';
 import { getStaffCompetencyStatus } from '../../data/manpowerMasterData';
+import CargoHandlingPermitForm from './cargoHandling/CargoHandlingPermitForm';
 
 interface PTWManagementViewProps {
   personnelList: StaffPersonnel[];
@@ -79,6 +81,9 @@ export default function PTWManagementView({
   const [newWorkerId, setNewWorkerId] = useState<string>('EMP-006');
   const [newGasLel, setNewGasLel] = useState<number>(0.0);
   const [newGasO2, setNewGasO2] = useState<number>(20.9);
+
+  // Modal State for Cargo Handling PTW (isolated — no shared fields with the generic New PTW modal above)
+  const [isCargoHandlingModalOpen, setIsCargoHandlingModalOpen] = useState<boolean>(false);
 
   // Active Permit Object
   const activePermit = useMemo(
@@ -300,6 +305,14 @@ export default function PTWManagementView({
           >
             <PlusCircle className="w-3.5 h-3.5 text-amber-300" />
             <span>+ Issue New PTW Form</span>
+          </button>
+
+          <button
+            onClick={() => setIsCargoHandlingModalOpen(true)}
+            className="win-btn px-3 py-1 text-xs font-bold bg-cyan-800 text-white hover:bg-cyan-900 flex items-center gap-1.5 cursor-pointer shadow"
+          >
+            <Ship className="w-3.5 h-3.5 text-amber-300" />
+            <span>+ Cargo Handling PTW</span>
           </button>
         </div>
       </div>
@@ -867,6 +880,18 @@ export default function PTWManagementView({
           </div>
         </div>
       )}
+
+      {/* 5. Modal: Cargo Handling PTW (isolated — manages its own state internally) */}
+      <CargoHandlingPermitForm
+        isOpen={isCargoHandlingModalOpen}
+        onClose={() => setIsCargoHandlingModalOpen(false)}
+        sequenceNumber={permits.length + 1}
+        onSubmitSuccess={(newPermit) => {
+          setPermits((prev) => [newPermit, ...prev]);
+          setSelectedPermitId(newPermit.id);
+          setIsCargoHandlingModalOpen(false);
+        }}
+      />
 
     </div>
   );
