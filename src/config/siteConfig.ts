@@ -50,6 +50,6 @@ export const CMMS_MODULES: CMMSModule[] = [
     name: "Safety & PTW",
     code: "SAFETY",
     description: "PTW 6-Form Master, AGT Gas Testing Log & ERT Readiness",
-    defaultKey: "PTW_PERMITS",
+    defaultKey: "SAFETY_OVERVIEW",
   },
 ];

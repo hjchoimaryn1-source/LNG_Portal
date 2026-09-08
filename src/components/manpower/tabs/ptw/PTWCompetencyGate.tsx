@@ -2,7 +2,6 @@
 "use client";
 
 import React from 'react';
-import { UserCheck, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { PTWPermit, StaffPersonnel } from '../../../../types/lng';
 import { validatePTWWorkerEligibility } from '../../../../data/ptwMasterData';
 
@@ -20,49 +19,40 @@ export default function PTWCompetencyGate({ activePermit, personnelList, onNavig
   const allWorkersValid = workers.every((w) => validatePTWWorkerEligibility(w, activePermit.type).isEligible);
 
   return (
-    <div className="p-2.5 bg-slate-50 border border-slate-300 rounded space-y-2 text-xs">
-      <div className="font-bold text-slate-900 flex items-center justify-between">
-        <span className="flex items-center gap-1.5">
-          <UserCheck className="w-4 h-4 text-blue-900" />
-          <span>Worker & Work Leader Competency Gatekeeper</span>
-        </span>
-        <span className="text-[10px] text-blue-900 font-mono underline cursor-pointer" onClick={() => onNavigateToMatrix && onNavigateToMatrix(activePermit.workLeaderId)}>
-          View in Training Matrix ➔
-        </span>
+    <div className="p-2 border border-neutral-300 bg-[#d4d0c8] rounded-none space-y-1.5 font-mono text-xs">
+      <div className="font-bold text-slate-900 flex items-center justify-between text-[11px]">
+        <span>PERSONNEL COMPETENCY DISPATCH GATE</span>
+        <button
+          type="button"
+          className="text-[10px] font-bold text-blue-950 bg-neutral-200 border border-neutral-400 px-1.5 py-0.5 rounded-none hover:bg-neutral-300 cursor-pointer"
+          onClick={() => onNavigateToMatrix && onNavigateToMatrix(activePermit.workLeaderId)}
+        >
+          [TRAINING MATRIX]
+        </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
         {/* Work Leader Verification */}
-        <div className="bg-white p-2 border border-slate-300 rounded">
-          <div className="text-[10px] text-slate-500 font-bold">WORK LEADER:</div>
-          <div className="font-bold text-slate-900">{activePermit.workLeaderName} ({activePermit.workLeaderId})</div>
-          <div className="mt-1 flex items-center gap-1 text-[10px]">
-            {leaderStatus?.isEligible ? (
-              <span className="text-emerald-700 font-bold flex items-center gap-0.5">
-                <CheckCircle2 className="w-3 h-3" /> MCU Valid & PTW Certified
-              </span>
-            ) : (
-              <span className="text-rose-700 font-bold flex items-center gap-0.5">
-                <AlertTriangle className="w-3 h-3" /> {leaderStatus?.reason}
-              </span>
-            )}
+        <div className="bg-white p-1.5 border border-neutral-300 rounded-none">
+          <div className="flex justify-between items-center">
+            <span>LEADER: <strong>{activePermit.workLeaderName}</strong></span>
+            <span className={`text-[10px] font-bold px-1 rounded-none ${leaderStatus?.isEligible ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'}`}>
+              [{leaderStatus?.isEligible ? 'MCU OK' : 'DEFICIT'}]
+            </span>
           </div>
+          <div className="text-[10px] text-slate-500 mt-0.5">ID: {activePermit.workLeaderId}</div>
         </div>
 
         {/* Assigned Workers Verification */}
-        <div className="bg-white p-2 border border-slate-300 rounded">
-          <div className="text-[10px] text-slate-500 font-bold">ASSIGNED WORKERS ({activePermit.assignedWorkerNames.length}):</div>
-          <div className="font-bold text-slate-900">{activePermit.assignedWorkerNames.join(', ')}</div>
-          <div className="mt-1 flex items-center gap-1 text-[10px]">
-            {allWorkersValid ? (
-              <span className="text-emerald-700 font-bold flex items-center gap-0.5">
-                <CheckCircle2 className="w-3 h-3" /> All Workers Medically Cleared
-              </span>
-            ) : (
-              <span className="text-rose-700 font-bold flex items-center gap-0.5">
-                <AlertTriangle className="w-3 h-3" /> Worker Certification Attention Required
-              </span>
-            )}
+        <div className="bg-white p-1.5 border border-neutral-300 rounded-none">
+          <div className="flex justify-between items-center">
+            <span>WORKERS: <strong>{activePermit.assignedWorkerNames.length} CLEARED</strong></span>
+            <span className={`text-[10px] font-bold px-1 rounded-none ${allWorkersValid ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'}`}>
+              [{allWorkersValid ? 'ALL CLEARED' : 'ATTN REQ'}]
+            </span>
+          </div>
+          <div className="text-[10px] text-slate-500 mt-0.5 truncate" title={activePermit.assignedWorkerNames.join(', ')}>
+            NAMES: {activePermit.assignedWorkerNames.join(', ')}
           </div>
         </div>
       </div>

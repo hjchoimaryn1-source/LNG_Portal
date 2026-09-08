@@ -4,40 +4,40 @@
 import React from 'react';
 import { PTWWorkflowStatus } from '../../../../types/lng';
 
-const STAGES: PTWWorkflowStatus[] = ['DRAFT', 'PREPARED', 'APPROVED', 'ACTIVE', 'CLOSED'];
+const STAGES: { key: PTWWorkflowStatus; label: string }[] = [
+  { key: 'DRAFT', label: '1.DRAFT' },
+  { key: 'PREPARED', label: '2.PREP' },
+  { key: 'APPROVED', label: '3.APPR' },
+  { key: 'ACTIVE', label: '4.ACTIVE' },
+  { key: 'CLOSED', label: '5.CLOSE' },
+];
 
 export interface PTWWorkflowPipelineProps {
   currentStatus: PTWWorkflowStatus;
 }
 
 export default function PTWWorkflowPipeline({ currentStatus }: PTWWorkflowPipelineProps) {
-  const stageIndex = STAGES.indexOf(currentStatus);
+  const stageIndex = STAGES.findIndex((s) => s.key === currentStatus);
 
   return (
-    <div className="bg-slate-100 p-2 border border-slate-300 rounded">
-      <div className="text-[10px] font-bold text-slate-600 mb-1.5 uppercase font-mono">
-        SOP 5-Stage Approval & Life-Cycle Pipeline:
-      </div>
-      <div className="grid grid-cols-5 gap-1 text-center font-mono text-[10px]">
+    <div className="bg-[#d4d0c8] p-1.5 border border-neutral-400 rounded-none">
+      <div className="grid grid-cols-5 gap-1 text-center font-mono text-[11px]">
         {STAGES.map((stage, idx) => {
-          const isCurrent = currentStatus === stage;
+          const isCurrent = currentStatus === stage.key;
           const isPassed = stageIndex > idx;
 
           return (
             <div
-              key={stage}
-              className={`p-1.5 border rounded font-bold ${
+              key={stage.key}
+              className={`py-1 px-0.5 border rounded-none font-bold select-none ${
                 isCurrent
-                  ? 'bg-blue-900 text-white border-blue-950 shadow ring-1 ring-blue-500'
+                  ? 'bg-[#0B192C] text-white border-black shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]'
                   : isPassed
-                  ? 'bg-emerald-100 text-emerald-900 border-emerald-400'
-                  : 'bg-white text-slate-400 border-slate-200'
+                  ? 'bg-neutral-300 text-neutral-800 border-neutral-400'
+                  : 'bg-neutral-100 text-neutral-400 border-neutral-300'
               }`}
             >
-              <div>{idx + 1}. {stage}</div>
-              <div className="text-[8px] font-normal mt-0.5">
-                {isCurrent ? 'Current' : isPassed ? '✓ Complete' : 'Pending'}
-              </div>
+              {stage.label}
             </div>
           );
         })}

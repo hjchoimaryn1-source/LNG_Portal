@@ -2,7 +2,6 @@
 "use client";
 
 import React from 'react';
-import { FileText, PlusCircle, Ship, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 export interface PTWSummaryBarProps {
   totalPermits: number;
@@ -20,47 +19,42 @@ export default function PTWSummaryBar({
   onOpenCargoHandlingModal,
 }: PTWSummaryBarProps) {
   return (
-    <div className="bg-[#e9e6df] border border-slate-400 p-2.5 flex items-center justify-between gap-3 flex-wrap text-xs shadow-sm">
+    <div className="flex items-center justify-between gap-3 flex-wrap text-xs bg-[#d4d0c8] border border-t-white border-l-white border-b-neutral-500 border-r-neutral-500 shadow-sm p-2">
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-1.5 font-bold text-slate-900">
-          <FileText className="w-4 h-4 text-blue-900" />
-          <span className="text-sm">PTW Master Register (SOP NP07-10 ~ NP07-15)</span>
+        <div className="font-bold text-slate-900">
+          <span className="text-sm">PERMIT TO WORK</span>
         </div>
         <span className="bg-blue-900 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px]">
-          {totalPermits} Permits Registered
+          TOTAL: {totalPermits}
         </span>
         <span className="bg-emerald-800 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px]">
-          {activeCount} Active on Site
+          ACTIVE: {activeCount}
         </span>
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
         {!isERTMet ? (
-          <div className="flex items-center gap-1.5 bg-rose-100 border border-rose-400 text-rose-950 px-2.5 py-1 rounded font-bold text-[11px] animate-pulse">
-            <ShieldAlert className="w-4 h-4 text-rose-700 shrink-0" />
-            <span>[ERT DEFICIT] Hot Work / Confined Space Activation Suspended</span>
+          <div className="ptw-raised-static bg-rose-100 border border-rose-400 text-rose-950 px-2.5 py-1 rounded-none font-mono font-bold text-[11px]">
+            ERT STATUS: DEFICIT — HOT WORK / CONFINED SPACE SUSPENDED
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 bg-emerald-100 border border-emerald-400 text-emerald-950 px-2.5 py-1 rounded font-bold text-[11px]">
-            <ShieldCheck className="w-4 h-4 text-emerald-800 shrink-0" />
-            <span>ERT Manning Verified (19 Direct Staff Cleared)</span>
+          <div className="ptw-raised-static bg-emerald-100 border border-emerald-400 text-emerald-950 px-2.5 py-1 rounded-none font-mono font-bold text-[11px]">
+            ERT STATUS: NORMAL (12 POB)
           </div>
         )}
 
         <button
           onClick={onOpenNewPermitModal}
-          className="win-btn px-3 py-1 text-xs font-bold bg-blue-900 text-white hover:bg-blue-950 flex items-center gap-1.5 cursor-pointer shadow"
+          className="win-btn px-2.5 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer"
         >
-          <PlusCircle className="w-3.5 h-3.5 text-amber-300" />
-          <span>+ Issue New PTW Form</span>
+          + ISSUE PTW
         </button>
 
         <button
           onClick={onOpenCargoHandlingModal}
-          className="win-btn px-3 py-1 text-xs font-bold bg-cyan-800 text-white hover:bg-cyan-900 flex items-center gap-1.5 cursor-pointer shadow"
+          className="win-btn px-2.5 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer"
         >
-          <Ship className="w-3.5 h-3.5 text-amber-300" />
-          <span>+ Cargo Handling PTW</span>
+          + CARGO PTW
         </button>
       </div>
     </div>

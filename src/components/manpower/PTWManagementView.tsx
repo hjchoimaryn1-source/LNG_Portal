@@ -3,11 +3,12 @@
 
 import React from 'react';
 import { StaffPersonnel } from '../../types/lng';
+import SafetyOverviewTab from './tabs/SafetyOverviewTab';
 import PTWMasterRegisterTab from './tabs/PTWMasterRegisterTab';
 import GasTestingLogTab from './tabs/GasTestingLogTab';
 import ERTReadinessTab from './tabs/ERTReadinessTab';
 
-export type PTWActiveTab = 'MASTER_REGISTER' | 'GAS_TESTING_LOG' | 'ERT_READINESS';
+export type PTWActiveTab = 'SAFETY_OVERVIEW' | 'MASTER_REGISTER' | 'GAS_TESTING_LOG' | 'ERT_READINESS';
 
 interface PTWManagementViewProps {
   activeTab: PTWActiveTab;
@@ -36,6 +37,8 @@ export default function PTWManagementView({
   onNavigateToMatrix,
 }: PTWManagementViewProps) {
   switch (activeTab) {
+    case 'SAFETY_OVERVIEW':
+      return <SafetyOverviewTab />;
     case 'GAS_TESTING_LOG':
       return <GasTestingLogTab />;
     case 'ERT_READINESS':

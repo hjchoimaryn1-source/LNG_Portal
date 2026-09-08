@@ -3,7 +3,7 @@
 
 import React, { useMemo } from 'react';
 import { PTWPermit, PTWWorkflowStatus, StaffPersonnel } from '../../../../types/lng';
-import { PTW_SOP_FORMS, validatePTWGasSafety } from '../../../../data/ptwMasterData';
+import { validatePTWGasSafety } from '../../../../data/ptwMasterData';
 import PTWWorkflowPipeline from './PTWWorkflowPipeline';
 import PTWGasSafetyGate from './PTWGasSafetyGate';
 import PTWCompetencyGate from './PTWCompetencyGate';
@@ -43,16 +43,15 @@ export default function PTWPermitDetailPanel({
 
   return (
     <div className="lg:col-span-7">
-      <div className="win-panel p-3 border-2 border-slate-400 bg-white space-y-3">
+      <div className="win-panel p-2.5 border-2 border-neutral-400 bg-white space-y-2 rounded-none font-mono">
         {/* Header: Permit Summary */}
-        <div className="win-titlebar bg-blue-950 text-white p-2 px-3 flex justify-between items-center rounded-t">
+        <div className="win-titlebar bg-[#0B192C] text-white p-1.5 px-3 flex justify-between items-center rounded-none font-mono">
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${PTW_SOP_FORMS[activePermit.type].colorBg} ${PTW_SOP_FORMS[activePermit.type].colorText}`}>
-              {activePermit.formNumber} ({activePermit.type})
+            <span className="font-bold text-xs tracking-wide">
+              [{activePermit.type.replace(/_/g, ' ')} PERMIT] {activePermit.id}
             </span>
-            <span className="font-bold text-sm">{activePermit.id}</span>
           </div>
-          <div className="text-xs font-mono font-bold bg-white text-blue-950 px-2 py-0.5 rounded">
+          <div className="text-[11px] font-mono font-bold bg-[#d4d0c8] text-black px-2 py-0.5 border border-[#808080] rounded-none">
             STATUS: [{activePermit.status}]
           </div>
         </div>
@@ -60,14 +59,14 @@ export default function PTWPermitDetailPanel({
         <PTWWorkflowPipeline currentStatus={activePermit.status} />
 
         {/* Work Details & Location */}
-        <div className="p-2.5 bg-slate-50 border border-slate-300 rounded space-y-1 text-xs">
+        <div className="p-2 bg-neutral-50 border border-neutral-300 rounded-none space-y-1 text-xs font-mono">
           <div className="font-bold text-sm text-blue-950">{activePermit.title}</div>
-          <div className="text-slate-700 font-mono text-[11px] flex justify-between">
-            <span>Location: <strong>{activePermit.location}</strong></span>
-            <span>Validity: {activePermit.validFrom} ~ {activePermit.validTo}</span>
+          <div className="text-slate-700 text-[11px] flex justify-between">
+            <span>LOC: <strong>{activePermit.location}</strong></span>
+            <span>VALID: {activePermit.validFrom} ~ {activePermit.validTo}</span>
           </div>
-          <div className="text-slate-600 text-[11px] pt-1">
-            <strong>Hazard Scope:</strong> {activePermit.hazardDescription}
+          <div className="text-slate-600 text-[11px] pt-0.5">
+            <strong>HAZARD:</strong> {activePermit.hazardDescription}
           </div>
         </div>
 

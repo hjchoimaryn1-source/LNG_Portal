@@ -111,6 +111,12 @@ const SUBPROCESS_TITLES: Record<
     icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
+  SAFETY_OVERVIEW: {
+    location: 'Safety & PTW',
+    process: 'Safety Overview',
+    icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
   PTW_PERMITS: {
     location: 'Safety & PTW',
     process: 'PTW Master Register',
@@ -467,7 +473,7 @@ function getInitialNav(key: SubProcessKey): { menu: string; subTab: string } {
   if (key.startsWith('MANPOWER')) {
     return { menu: key, subTab: key };
   }
-  if (key === 'PTW_PERMITS' || key === 'SAFETY_GAS_TESTING' || key === 'SAFETY_ERT_READINESS') {
+  if (key === 'SAFETY_OVERVIEW' || key === 'PTW_PERMITS' || key === 'SAFETY_GAS_TESTING' || key === 'SAFETY_ERT_READINESS') {
     return { menu: 'ptw-permits', subTab: key };
   }
   return { menu: 'lng-process', subTab: key };
@@ -579,7 +585,8 @@ function LNGPortalInner({
   const currentModuleId =
     activeKey === 'SECTOR_LAUNCHER'
       ? 'MOD_0_LAUNCHER'
-      : activeKey === 'PTW_PERMITS' ||
+      : activeKey === 'SAFETY_OVERVIEW' ||
+        activeKey === 'PTW_PERMITS' ||
         activeKey === 'MANPOWER_PTW' ||
         activeKey === 'SAFETY_GAS_TESTING' ||
         activeKey === 'SAFETY_ERT_READINESS'
@@ -615,7 +622,7 @@ function LNGPortalInner({
         handleManpowerSubTab('OVERVIEW');
         break;
       case 'MOD_5_SAFETY_PTW':
-        handleSelectSubProcess('PTW_PERMITS');
+        handleSelectSubProcess('SAFETY_OVERVIEW');
         break;
       default:
         handleSelectSubProcess('SECTOR_LAUNCHER');
@@ -897,24 +904,31 @@ function LNGPortalInner({
             {currentModuleId === 'MOD_5_SAFETY_PTW' && (
               <>
                 <button
+                  onClick={() => handleSelectSubProcess('SAFETY_OVERVIEW')}
+                  className={activeKey === 'SAFETY_OVERVIEW' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                >
+                  <span>Overview</span>
+                </button>
+
+                <button
                   onClick={() => handleSelectSubProcess('PTW_PERMITS')}
                   className={activeKey === 'PTW_PERMITS' || activeKey === 'MANPOWER_PTW' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>PTW Master Register</span>
+                  <span>Permits</span>
                 </button>
 
                 <button
                   onClick={() => handleSelectSubProcess('SAFETY_GAS_TESTING')}
                   className={activeKey === 'SAFETY_GAS_TESTING' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>Gas Testing Log</span>
+                  <span>Gas Logs</span>
                 </button>
 
                 <button
                   onClick={() => handleSelectSubProcess('SAFETY_ERT_READINESS')}
                   className={activeKey === 'SAFETY_ERT_READINESS' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>ERT Readiness</span>
+                  <span>ERT</span>
                 </button>
               </>
             )}
@@ -1071,12 +1085,15 @@ function LNGPortalInner({
               {/* MODULE 5: SAFETY & PTW (PRIMARY PROMOTED)                 */}
               {/* ========================================================= */}
               {(activeKey === 'MANPOWER_PTW' ||
+                activeKey === 'SAFETY_OVERVIEW' ||
                 activeKey === 'PTW_PERMITS' ||
                 activeKey === 'SAFETY_GAS_TESTING' ||
                 activeKey === 'SAFETY_ERT_READINESS') && (
                 <PTWManagementView
                   activeTab={
-                    activeKey === 'SAFETY_GAS_TESTING'
+                    activeKey === 'SAFETY_OVERVIEW'
+                      ? 'SAFETY_OVERVIEW'
+                      : activeKey === 'SAFETY_GAS_TESTING'
                       ? 'GAS_TESTING_LOG'
                       : activeKey === 'SAFETY_ERT_READINESS'
                       ? 'ERT_READINESS'

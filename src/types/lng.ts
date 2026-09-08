@@ -67,6 +67,7 @@ export type SubProcessKey =
   | 'MANPOWER_MONTHLY_GRID'
   | 'MANPOWER_TRAINING_MATRIX'
   | 'MANPOWER_PTW'
+  | 'SAFETY_OVERVIEW'
   | 'PTW_PERMITS'
   | 'SAFETY_GAS_TESTING'
   | 'SAFETY_ERT_READINESS'
@@ -375,6 +376,10 @@ export interface PTWPermit {
   closedAt?: string;
   hazardDescription: string;
   cargoHandling?: CargoHandlingPermitDetails;
+  // Ticket card TAG display. Not present on existing mock data (title/location
+  // strings embed tags inconsistently, e.g. "PRSS-01", "MCC-01" — not safely
+  // regex-extractable). Optional; renders as N/A until backfilled.
+  equipmentTag?: string;
 }
 
 // --- Cargo Handling (CARGO_HANDLING) extension types ---

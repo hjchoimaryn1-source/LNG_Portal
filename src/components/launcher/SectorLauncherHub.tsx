@@ -15,7 +15,7 @@ const SECTOR_BUTTONS: SectorButton[] = [
   { id: 'MOD_2', name: '[ Equipment & Asset ]', targetKey: 'EQUIPMENT_ASSET_REGISTRY' },
   { id: 'MOD_3', name: '[ Maintenance & Work Orders ]', targetKey: 'WORK_ORDER_DIRECTORY' },
   { id: 'MOD_4', name: '[ Site Manning & Roster ]', targetKey: 'MANPOWER_DAILY_SHIFT' },
-  { id: 'MOD_5', name: '[ Safety & PTW ]', targetKey: 'PTW_PERMITS' },
+  { id: 'MOD_5', name: '[ Safety & PTW ]', targetKey: 'SAFETY_OVERVIEW' },
 ];
 
 interface SectorLauncherHubProps {

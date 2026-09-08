@@ -2,12 +2,12 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
-import { PTWType, PTWWorkflowStatus, StaffPersonnel } from '../../../types/lng';
+import { PTWWorkflowStatus, StaffPersonnel } from '../../../types/lng';
 import { usePTWPermits } from '../hooks/usePTWPermits';
 import CargoHandlingPermitForm from '../cargoHandling/CargoHandlingPermitForm';
 import NewPTWPermitModal from '../modals/NewPTWPermitModal';
 import PTWSummaryBar from './ptw/PTWSummaryBar';
-import PTWTypeFilterStrip from './ptw/PTWTypeFilterStrip';
+import PTWTypeFilterStrip, { PTWCategoryFilter } from './ptw/PTWTypeFilterStrip';
 import PTWPermitListPanel from './ptw/PTWPermitListPanel';
 import PTWPermitDetailPanel from './ptw/PTWPermitDetailPanel';
 
@@ -20,7 +20,7 @@ export interface PTWMasterRegisterTabProps {
 export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix }: PTWMasterRegisterTabProps) {
   const { permits, addPermit, updateGasReadings, transitionStatus, stats } = usePTWPermits();
 
-  const [selectedTypeFilter, setSelectedTypeFilter] = useState<PTWType | 'ALL'>('ALL');
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<PTWCategoryFilter>('ALL');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<PTWWorkflowStatus | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPermitId, setSelectedPermitId] = useState<string>(permits[0]?.id || '');
@@ -35,7 +35,11 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
 
   const filteredPermits = useMemo(() => {
     return permits.filter((p) => {
-      const matchType = selectedTypeFilter === 'ALL' || p.type === selectedTypeFilter;
+      const matchType =
+        selectedTypeFilter === 'ALL' ||
+        (selectedTypeFilter === 'LIFTING'
+          ? p.type === 'CARGO_HANDLING' && p.cargoHandling?.activityType === 'LIFTING'
+          : p.type === selectedTypeFilter);
       const matchStatus = selectedStatusFilter === 'ALL' || p.status === selectedStatusFilter;
       const q = searchQuery.toLowerCase().trim();
       const matchQuery =
@@ -51,15 +55,17 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
 
   return (
     <div className="space-y-3 font-sans">
-      <PTWSummaryBar
-        totalPermits={stats.total}
-        activeCount={stats.activeCount}
-        isERTMet={isERTMet}
-        onOpenNewPermitModal={() => setIsNewPermitModalOpen(true)}
-        onOpenCargoHandlingModal={() => setIsCargoHandlingModalOpen(true)}
-      />
+      <div className="bg-[#d4d0c8] border border-t-white border-l-white border-b-neutral-500 border-r-neutral-500 shadow-sm p-2 space-y-2 rounded-none">
+        <PTWSummaryBar
+          totalPermits={stats.total}
+          activeCount={stats.activeCount}
+          isERTMet={isERTMet}
+          onOpenNewPermitModal={() => setIsNewPermitModalOpen(true)}
+          onOpenCargoHandlingModal={() => setIsCargoHandlingModalOpen(true)}
+        />
 
-      <PTWTypeFilterStrip permits={permits} selectedTypeFilter={selectedTypeFilter} onSelectTypeFilter={setSelectedTypeFilter} />
+        <PTWTypeFilterStrip permits={permits} selectedTypeFilter={selectedTypeFilter} onSelectTypeFilter={setSelectedTypeFilter} />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
         <PTWPermitListPanel

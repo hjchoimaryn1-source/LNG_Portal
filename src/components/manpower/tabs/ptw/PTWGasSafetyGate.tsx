@@ -2,7 +2,6 @@
 "use client";
 
 import React from 'react';
-import { Activity } from 'lucide-react';
 import { PTWPermit } from '../../../../types/lng';
 
 export interface PTWGasSafetyGateProps {
@@ -12,67 +11,50 @@ export interface PTWGasSafetyGateProps {
   onUpdateGasReadings: (permitId: string, lel: number, o2: number) => void;
 }
 
-export default function PTWGasSafetyGate({ activePermit, isSafe, blockReason, onUpdateGasReadings }: PTWGasSafetyGateProps) {
+export default function PTWGasSafetyGate({ activePermit, isSafe, blockReason }: PTWGasSafetyGateProps) {
+  const lelVal = activePermit.gasReadings.lelPercent.toFixed(1);
+  const o2Val = activePermit.gasReadings.o2Percent.toFixed(1);
+
   return (
-    <div className={`p-3 border-2 rounded ${isSafe ? 'bg-emerald-50/50 border-emerald-400' : 'bg-red-50/80 border-red-500'}`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="font-bold text-xs flex items-center gap-1.5 text-slate-900">
-          <Activity className="w-4 h-4 text-cyan-700" />
-          <span>Authorized Gas Tester (AGT) Real-Time Verification Gate</span>
-        </span>
-        <span className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded ${isSafe ? 'bg-emerald-800 text-white' : 'bg-red-700 text-white animate-pulse'}`}>
-          {isSafe ? '✓ ATMOSPHERE SAFE' : '⚠️ ATMOSPHERIC HAZARD BLOCKED'}
+    <div className="p-2 border border-neutral-400 bg-[#d4d0c8] rounded-none space-y-1.5 font-mono">
+      <div className="text-[11px] font-bold text-slate-800 flex justify-between items-center">
+        <span>AGT GAS TESTING INSTRUMENT MONITOR</span>
+        <span
+          className={`px-2 py-0.5 text-[10px] font-bold rounded-none border ${
+            isSafe
+              ? 'bg-neutral-900 text-green-400 border-green-700'
+              : 'bg-neutral-900 text-red-500 border-red-700'
+          }`}
+        >
+          {isSafe ? 'ATMOSPHERE SAFE' : 'ATMOSPHERIC HAZARD BLOCKED'}
         </span>
       </div>
 
-      {!isSafe && (
-        <div className="mb-2 p-2 bg-red-100 border border-red-400 rounded text-red-950 text-xs font-bold">
-          {blockReason}
+      {!isSafe && blockReason && (
+        <div className="p-1 bg-red-900 text-white text-[10px] font-bold border border-red-950 rounded-none">
+          ALARM: {blockReason}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-        {/* LEL Control */}
-        <div className="bg-white p-2 border border-slate-300 rounded">
-          <div className="flex justify-between items-center mb-1">
-            <span className="font-bold text-slate-800">LEL (Hydrocarbon Gas):</span>
-            <span className={`font-black text-sm ${activePermit.gasReadings.lelPercent > 0 ? 'text-red-700' : 'text-emerald-700'}`}>
-              {activePermit.gasReadings.lelPercent.toFixed(1)}% LEL
-            </span>
+      {/* Digital Instrumentation Panel */}
+      <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+        {/* LEL Display */}
+        <div className="bg-neutral-900 p-2.5 border border-neutral-700 rounded-none">
+          <div className="text-[10px] text-neutral-400 font-bold tracking-wider">CH4 / LEL SENSOR</div>
+          <div className="text-xl font-bold font-mono tracking-wider mt-0.5">
+            LEL: <span className={activePermit.gasReadings.lelPercent > 0 ? 'text-red-400' : 'text-green-400'}>{lelVal}%</span>
           </div>
-          <input
-            type="range"
-            min="0"
-            max="15"
-            step="0.5"
-            value={activePermit.gasReadings.lelPercent}
-            onChange={(e) => onUpdateGasReadings(activePermit.id, parseFloat(e.target.value), activePermit.gasReadings.o2Percent)}
-            className="w-full cursor-pointer accent-blue-900"
-          />
-          <div className="text-[9px] text-slate-500 mt-1">
-            {activePermit.type === 'HOT_WORK' ? '⚠️ Hot Work Mandate: LEL MUST BE 0.0%' : 'Max Allowed: 5% LEL'}
-          </div>
+          <div className="text-[10px] text-neutral-400 mt-1">STATUS: {activePermit.gasReadings.lelPercent > 0 ? 'ELEVATED' : '0.0% NOMINAL'}</div>
         </div>
 
-        {/* O2 Control */}
-        <div className="bg-white p-2 border border-slate-300 rounded">
-          <div className="flex justify-between items-center mb-1">
-            <span className="font-bold text-slate-800">Oxygen (O2):</span>
-            <span className={`font-black text-sm ${activePermit.gasReadings.o2Percent < 19.5 || activePermit.gasReadings.o2Percent > 23.5 ? 'text-red-700' : 'text-emerald-700'}`}>
-              {activePermit.gasReadings.o2Percent.toFixed(1)}% O2
-            </span>
+        {/* O2 Display */}
+        <div className="bg-neutral-900 p-2.5 border border-neutral-700 rounded-none">
+          <div className="text-[10px] text-neutral-400 font-bold tracking-wider">OXYGEN (O2) SENSOR</div>
+          <div className="text-xl font-bold font-mono tracking-wider mt-0.5">
+            O2: <span className={activePermit.gasReadings.o2Percent < 19.5 || activePermit.gasReadings.o2Percent > 23.5 ? 'text-red-400' : 'text-green-400'}>{o2Val}%</span>
           </div>
-          <input
-            type="range"
-            min="16.0"
-            max="24.5"
-            step="0.1"
-            value={activePermit.gasReadings.o2Percent}
-            onChange={(e) => onUpdateGasReadings(activePermit.id, activePermit.gasReadings.lelPercent, parseFloat(e.target.value))}
-            className="w-full cursor-pointer accent-blue-900"
-          />
-          <div className="text-[9px] text-slate-500 mt-1">
-            Safe Band: 19.5% ~ 23.5% (Asphyxiation & O2 Enrichment Prevention)
+          <div className="text-[10px] text-neutral-400 mt-1">
+            STATUS: {activePermit.gasReadings.o2Percent >= 19.5 && activePermit.gasReadings.o2Percent <= 23.5 ? '20.9% NOMINAL' : 'OUT OF SPEC'}
           </div>
         </div>
       </div>

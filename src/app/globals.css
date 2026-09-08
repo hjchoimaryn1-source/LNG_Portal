@@ -136,6 +136,23 @@ html, body {
   color: #000000 !important;
 }
 
+/* PTW Header Badge/Button Elevation — single top-left light source (highlight up, shadow down) */
+/* Static badge variant — no hover transition (not interactive) */
+.ptw-raised-static {
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* Applied alongside .win-btn so its own inset highlight border is preserved;
+   filter composes independently of box-shadow instead of overriding it. */
+.ptw-raised-outer {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
+  transition: filter 150ms ease-out;
+}
+
+.ptw-raised-outer:hover {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
+}
+
 /* High-Density Data Grid */
 .win-grid {
   width: 100%;

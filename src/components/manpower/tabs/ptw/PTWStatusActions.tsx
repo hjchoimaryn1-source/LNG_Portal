@@ -2,7 +2,6 @@
 "use client";
 
 import React from 'react';
-import { CheckCircle2, Flame } from 'lucide-react';
 import { PTWPermit } from '../../../../types/lng';
 
 export interface PTWStatusActionsProps {
@@ -18,9 +17,9 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
   const activationBlocked = !isGasSafe || (isHighRisk && !isERTMet);
 
   return (
-    <div className="flex justify-between items-center pt-2 border-t border-slate-300 flex-wrap gap-2">
-      <div className="text-[11px] font-mono text-slate-500">
-        PTW ID: <strong>{activePermit.id}</strong> | Form: <strong>{activePermit.formNumber}</strong>
+    <div className="flex justify-between items-center pt-2 border-t border-neutral-300 flex-wrap gap-2 font-mono">
+      <div className="text-[11px] font-mono text-slate-600">
+        PTW ID: <strong>{activePermit.id}</strong> | TYPE: <strong>{activePermit.type.replace(/_/g, ' ')}</strong>
       </div>
 
       <div className="flex gap-2 flex-wrap">
@@ -28,9 +27,9 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
         {activePermit.status === 'DRAFT' && (
           <button
             onClick={() => onTransitionStatus(activePermit.id, 'PREPARED')}
-            className="win-btn px-4 py-1 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+            className="win-btn px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none"
           >
-            <span>1. Prepare & Submit to HSE ➔</span>
+            <span>[1. PREPARE & SUBMIT TO HSE]</span>
           </button>
         )}
 
@@ -38,27 +37,25 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
         {activePermit.status === 'PREPARED' && (
           <button
             onClick={() => onTransitionStatus(activePermit.id, 'APPROVED')}
-            className="win-btn px-4 py-1 text-xs font-bold bg-blue-900 hover:bg-blue-950 text-white cursor-pointer flex items-center gap-1"
+            className="win-btn px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none"
           >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>2. Site Manager / HSE Approve ➔</span>
+            <span>[2. HSE / SM APPROVE]</span>
           </button>
         )}
 
-        {/* Step 3: Approved -> Active (Strict Hot Work LEL 0% & Confined O2 check) */}
+        {/* Step 3: Approved -> Active */}
         {activePermit.status === 'APPROVED' && (
           <button
             disabled={activationBlocked}
             onClick={() => onTransitionStatus(activePermit.id, 'ACTIVE')}
-            className={`win-btn px-4 py-1 text-xs font-bold flex items-center gap-1.5 ${
+            className={`win-btn px-3 py-1 text-xs font-bold rounded-none ${
               activationBlocked
-                ? 'bg-slate-300 text-slate-500 cursor-not-allowed border-slate-400'
-                : 'bg-emerald-800 hover:bg-emerald-900 text-white cursor-pointer shadow'
+                ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed border-neutral-400'
+                : 'text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer'
             }`}
             title={!isGasSafe ? gasBlockReason || 'Gas reading unsafe' : 'Issue permit and begin work'}
           >
-            <Flame className="w-3.5 h-3.5 text-amber-300" />
-            <span>3. Issue & Authorize Active Work ➔</span>
+            <span>[3. AUTHORIZE ACTIVE WORK]</span>
           </button>
         )}
 
@@ -66,9 +63,9 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
         {activePermit.status === 'ACTIVE' && (
           <button
             onClick={() => onTransitionStatus(activePermit.id, 'CLOSED')}
-            className="win-btn px-4 py-1 text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white cursor-pointer"
+            className="win-btn px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none"
           >
-            <span>4. Close & Surrender Permit (Work Completed)</span>
+            <span>[4. CLOSE PERMIT (COMPLETE)]</span>
           </button>
         )}
 

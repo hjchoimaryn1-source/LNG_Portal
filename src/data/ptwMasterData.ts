@@ -1,6 +1,7 @@
 // src/data/ptwMasterData.ts
 import { PTWPermit, PTWType, PTWWorkflowStatus, StaffPersonnel } from '../types/lng';
 import { getStaffCompetencyStatus } from './manpowerMasterData';
+import { checkUniversalGasBands } from './ptwGasSafetyRules';
 
 export interface PTWSOPFormDef {
   type: PTWType;
@@ -46,9 +47,9 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
   },
   HOT_WORK: {
     type: 'HOT_WORK',
-    formNumber: 'NP07-11',
+    formNumber: 'NP07-14',
     title: 'Hot Work Permit (화기·용접·절단·열원 작업)',
-    shortTitle: 'Hot Work (NP07-11)',
+    shortTitle: 'Hot Work (NP07-14)',
     category: 'CRITICAL HIGH RISK',
     colorBg: 'bg-rose-100',
     colorText: 'text-rose-900',
@@ -71,9 +72,9 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
   },
   CONFINED_SPACE: {
     type: 'CONFINED_SPACE',
-    formNumber: 'NP07-12',
+    formNumber: 'NP07-11',
     title: 'Confined Space Entry Permit (밀폐공간·저류조 진입 작업)',
-    shortTitle: 'Confined Space (NP07-12)',
+    shortTitle: 'Confined Space (NP07-11)',
     category: 'CRITICAL HIGH RISK',
     colorBg: 'bg-amber-100',
     colorText: 'text-amber-900',
@@ -96,9 +97,9 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
   },
   ELECTRICAL: {
     type: 'ELECTRICAL',
-    formNumber: 'NP07-13',
+    formNumber: 'NP07-12',
     title: 'Electrical Isolation & Work Permit (전기·계장 차단 및 활선 작업)',
-    shortTitle: 'Electrical Isolation (NP07-13)',
+    shortTitle: 'Electrical Isolation (NP07-12)',
     category: 'ELECTRICAL / LOTO',
     colorBg: 'bg-purple-100',
     colorText: 'text-purple-900',
@@ -121,9 +122,9 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
   },
   EXCAVATION: {
     type: 'EXCAVATION',
-    formNumber: 'NP07-14',
+    formNumber: 'NP07-13',
     title: 'Ground Excavation & Trenching Permit (지중 굴착 및 매설물 탐사)',
-    shortTitle: 'Excavation (NP07-14)',
+    shortTitle: 'Excavation (NP07-13)',
     category: 'CIVIL / INFRASTRUCTURE',
     colorBg: 'bg-emerald-100',
     colorText: 'text-emerald-900',
@@ -197,8 +198,9 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
 export const INITIAL_PTW_PERMITS: PTWPermit[] = [
   {
     id: 'PTW-2026-0901-01',
-    formNumber: 'NP07-11',
+    formNumber: 'NP07-14',
     type: 'HOT_WORK',
+    equipmentTag: 'PRSS-CMP-01',
     title: 'PRSS-01 BOG Compressor Suction Line Flange Tie-in Welding',
     location: 'Vaporization Skid #1 (PRSS Area)',
     status: 'ACTIVE',
@@ -232,8 +234,9 @@ export const INITIAL_PTW_PERMITS: PTWPermit[] = [
   },
   {
     id: 'PTW-2026-0901-02',
-    formNumber: 'NP07-11',
+    formNumber: 'NP07-14',
     type: 'HOT_WORK',
+    equipmentTag: 'FL-201',
     title: 'Laydown-2 Flare Header Structural Support Bracket Re-welding',
     location: 'Laydown Area 2 & Flare Header Riser',
     status: 'ACTIVE',
@@ -267,8 +270,9 @@ export const INITIAL_PTW_PERMITS: PTWPermit[] = [
   },
   {
     id: 'PTW-2026-0901-03',
-    formNumber: 'NP07-12',
+    formNumber: 'NP07-11',
     type: 'CONFINED_SPACE',
+    equipmentTag: 'ORU-PIT-02',
     title: 'ORU Sump Pit #2 Internal Sediment Cleaning & Level Sensor Calibration',
     location: 'ORU Wastewater & Sump Area',
     status: 'APPROVED',
@@ -302,8 +306,9 @@ export const INITIAL_PTW_PERMITS: PTWPermit[] = [
   },
   {
     id: 'PTW-2026-0901-04',
-    formNumber: 'NP07-13',
+    formNumber: 'NP07-12',
     type: 'ELECTRICAL',
+    equipmentTag: 'MCC-01',
     title: 'MCC Substation 3.3kV High-Voltage Busbar Thermographic Scan & LOTO Isolation',
     location: 'Main Substation MCC-01',
     status: 'PREPARED',
@@ -339,6 +344,7 @@ export const INITIAL_PTW_PERMITS: PTWPermit[] = [
     id: 'PTW-2026-0901-05',
     formNumber: 'NP07-10',
     type: 'COLD_WORK',
+    equipmentTag: 'BAY-02-VLV',
     title: 'Bay 02 Cryogenic Liquid Globe Valve Packing Gland Torqueing & Leak Test',
     location: 'Loading Bay 02',
     status: 'ACTIVE',
@@ -374,6 +380,7 @@ export const INITIAL_PTW_PERMITS: PTWPermit[] = [
     id: 'PTW-2026-0901-06',
     formNumber: 'NP07-15',
     type: 'RADIOGRAPHY',
+    equipmentTag: 'JTY-HDR-01',
     title: 'Jetty Cryogenic Decanting Line Replacement Spool Seam Gamma NDT',
     location: 'Marine Jetty LNG Transfer Header',
     status: 'DRAFT',
@@ -485,6 +492,14 @@ export function validatePTWGasSafety(
     }
   }
 
+  // Universal O2 / H2S gate (SSHQE §4.3) — applies to every PTW type, not just
+  // Confined Space. Confined Space's O2 band above is checked first so its more
+  // specific message wins; this covers all other types plus H2S for every type.
+  const universalGas = checkUniversalGasBands(gasReadings);
+  if (!universalGas.isSafe) {
+    return universalGas;
+  }
+
   // General LEL threshold
   if (formDef.gasRestrictions.maxLelPercent !== undefined && gasReadings.lelPercent > formDef.gasRestrictions.maxLelPercent) {
     return {
@@ -497,4 +512,32 @@ export function validatePTWGasSafety(
     isSafe: true,
     blockReason: null,
   };
+}
+
+// --- Ticket card field applicability by PTWType ---
+// gasReadings/safetyChecklist are universal fields on PTWPermit (populated for
+// every type), so applicability here is NOT derived from the schema. It is
+// inferred from PTW_SOP_FORMS[type].requiredChecklist wording (the only
+// in-repo signal of which controls a given SOP form actually calls out) and
+// must be treated as provisional pending real-form verification.
+
+// TODO(ptw-form-verify): LEL/O2 표시 대상 — ELECTRICAL(NP07-13)/RADIOGRAPHY(NP07-15)는
+// PTW_SOP_FORMS에 gasRestrictions 수치가 정의되어 있어 스키마상 근거는 있으나,
+// 사용자 확인에 따라 실물 서식 검증 전까지 N/A로 표시. 실물 서식 확인 후 교체 필요.
+export function isGasMeasurementApplicable(type: PTWType): boolean {
+  return type !== 'ELECTRICAL' && type !== 'RADIOGRAPHY';
+}
+
+// TODO(ptw-form-verify): LOTO 표시 대상 — requiredChecklist에 "LOTO" 문구가 명시된
+// ELECTRICAL과, allLotoLocksRemoved 게이트를 이미 보유한 CARGO_HANDLING만 우선 반영.
+// 나머지 NP07 계열(COLD_WORK/HOT_WORK/CONFINED_SPACE/EXCAVATION/RADIOGRAPHY)은
+// 실물 서식에 LOTO 항목이 있는지 미확인 상태이므로 N/A.
+export function isLotoApplicable(type: PTWType): boolean {
+  return type === 'ELECTRICAL' || type === 'CARGO_HANDLING';
+}
+
+// TODO(ptw-form-verify): Fire Watch 표시 대상 — requiredChecklist에 "Fire Watch" 문구가
+// 명시된 HOT_WORK/CARGO_HANDLING만 우선 반영. 나머지 NP07 계열은 실물 서식 미확인으로 N/A.
+export function isFireWatchApplicable(type: PTWType): boolean {
+  return type === 'HOT_WORK' || type === 'CARGO_HANDLING';
 }

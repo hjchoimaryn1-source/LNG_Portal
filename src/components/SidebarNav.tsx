@@ -265,14 +265,15 @@ export default function SidebarNav({
             <span>Safety &amp; PTW</span>
           </div>
           <div className="bg-[#d4d0c8]">
+            {renderNavItem('SAFETY_OVERVIEW', 'Overview')}
             {renderNavItem(
               'PTW_PERMITS',
-              'PTW Master Register',
+              'Permits',
               undefined,
               activeKey === 'PTW_PERMITS' || activeKey === 'MANPOWER_PTW'
             )}
-            {renderNavItem('SAFETY_GAS_TESTING', 'Gas Testing Log')}
-            {renderNavItem('SAFETY_ERT_READINESS', 'ERT Readiness')}
+            {renderNavItem('SAFETY_GAS_TESTING', 'Gas Logs')}
+            {renderNavItem('SAFETY_ERT_READINESS', 'ERT')}
           </div>
         </div>
 
