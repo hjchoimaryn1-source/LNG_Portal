@@ -9,6 +9,7 @@ import PTWGasSafetyGate from './PTWGasSafetyGate';
 import PTWCompetencyGate from './PTWCompetencyGate';
 import PTWSafetyChecklist from './PTWSafetyChecklist';
 import PTWStatusActions from './PTWStatusActions';
+import CargoHandlingDetailSection from '../../cargoHandling/CargoHandlingDetailSection';
 
 export interface PTWPermitDetailPanelProps {
   activePermit: PTWPermit | null;
@@ -80,6 +81,8 @@ export default function PTWPermitDetailPanel({
         <PTWCompetencyGate activePermit={activePermit} personnelList={personnelList} onNavigateToMatrix={onNavigateToMatrix} />
 
         <PTWSafetyChecklist checklist={activePermit.safetyChecklist} />
+
+        {activePermit.cargoHandling && <CargoHandlingDetailSection cargoHandling={activePermit.cargoHandling} />}
 
         <PTWStatusActions
           activePermit={activePermit}
