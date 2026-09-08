@@ -1075,6 +1075,13 @@ function LNGPortalInner({
                 activeKey === 'SAFETY_GAS_TESTING' ||
                 activeKey === 'SAFETY_ERT_READINESS') && (
                 <PTWManagementView
+                  activeTab={
+                    activeKey === 'SAFETY_GAS_TESTING'
+                      ? 'GAS_TESTING_LOG'
+                      : activeKey === 'SAFETY_ERT_READINESS'
+                      ? 'ERT_READINESS'
+                      : 'MASTER_REGISTER'
+                  }
                   personnelList={INITIAL_MANPOWER_MASTER_RECORDS}
                   isERTMet={true}
                   ertSummary={{
