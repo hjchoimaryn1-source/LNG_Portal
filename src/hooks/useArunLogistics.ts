@@ -8,17 +8,29 @@ import { ArunSubTab } from '../components/HeaderNavigation';
 import { FleetTankItem, getTankPhysicalMetrics } from '../data/mockTankData';
 import { computeTab1ReactiveKPIs, sortTanksNaturally } from '../utils/scadaCalculations';
 
+// Loosely-shaped certificate/manifest record (COQ + settlement fields merged at runtime).
+interface ArunCertificateRecord {
+  tankNo: string;
+  [key: string]: unknown;
+}
+
 export function useArunLogistics(initialSubTab: ArunSubTab = 'OPERATIONS_YARD') {
   const portalData = usePortalData() || {};
   const fleetTanks: FleetTankItem[] = sortTanksNaturally(portalData.fleetTanks || []);
-  const batchTransitionTanks = portalData.batchTransitionTanks || (() => {});
-  const certificateRecords = (portalData as any).certificateRecords || portalData.settlementRecords || [];
+  const batchTransitionTanks = useMemo(
+    () => portalData.batchTransitionTanks || (() => {}),
+    [portalData.batchTransitionTanks]
+  );
+  const certificateRecords =
+    ((portalData as unknown as Record<string, unknown>).certificateRecords as ArunCertificateRecord[] | undefined) ||
+    (portalData.settlementRecords as unknown as ArunCertificateRecord[]) ||
+    [];
   // Active Batch Certified Records (Tab 2)
-  const [activeBatchRecords, setActiveBatchRecords] = useState<any[]>([]);
+  const [activeBatchRecords, setActiveBatchRecords] = useState<ArunCertificateRecord[]>([]);
   // Tab 3 Vessel Deck Loading Manifest Records (Tab 3)
-  const [tab3LoadingRecords, setTab3LoadingRecords] = useState<any[]>([]);
+  const [tab3LoadingRecords, setTab3LoadingRecords] = useState<ArunCertificateRecord[]>([]);
 
-  const addDeliveredMeasurement = useCallback((record: any, coq?: any) => {
+  const addDeliveredMeasurement = useCallback((record: ArunCertificateRecord, coq?: Record<string, unknown>) => {
     setActiveBatchRecords((prev) => {
       const existingIdx = prev.findIndex((r) => r.tankNo === record.tankNo);
       if (existingIdx >= 0) {
@@ -282,7 +294,7 @@ export function useArunLogistics(initialSubTab: ArunSubTab = 'OPERATIONS_YARD') 
 
   // Tab 2 -> Tab 3 Selective FIFO Pipeline Transfer & Tab 2 Ledger Cleanup
   const handleTransferTab2ToTab3 = useCallback(
-    (recordsToTransfer?: any[]) => {
+    (recordsToTransfer?: ArunCertificateRecord[]) => {
       const targets = Array.isArray(recordsToTransfer) && recordsToTransfer.length > 0
         ? recordsToTransfer
         : activeBatchRecords;

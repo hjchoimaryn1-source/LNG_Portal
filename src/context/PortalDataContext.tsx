@@ -151,7 +151,12 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
     }
   }, [mergeStoredDomainData]);
 
-  useEffect(() => { initData(); }, []);
+  // Run once on mount only: initData's identity is unstable because it depends on
+  // the non-memoized mergeStoredDomainData from usePortalStorageSync, so including
+  // it here would re-trigger this effect on every render. The call is deferred to a
+  // microtask so initData's setState calls do not run synchronously within the effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { queueMicrotask(() => { initData(); }); }, []);
 
   const updateTankLog = (tankNo: string, updatedFields: Partial<FleetTankItem>) => {
     setFleetTanks((prev) => applyTankUpdate(prev, tankNo, updatedFields));

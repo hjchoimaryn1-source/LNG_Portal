@@ -58,7 +58,7 @@ export default function OperationsOverrideModal({
   if (!isOpen) return null;
 
   const statusEntries = Object.entries(dailyStaffStatus);
-  const absences = statusEntries.filter(([_, status]) => status.status !== 'PRESENT');
+  const absences = statusEntries.filter(([, status]) => status.status !== 'PRESENT');
 
   return (
     <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
@@ -79,7 +79,7 @@ export default function OperationsOverrideModal({
         <div className="space-y-3 text-xs">
           <div className="win-sunken bg-white p-3 border border-slate-400 space-y-1.5">
             <div className="font-bold text-blue-950 font-mono text-[11px] border-b border-slate-200 pb-1 flex justify-between items-center">
-              <span>[1. 당일 인원 변동 사항 요약 (Today's SSOT Variations)]</span>
+              <span>[1. 당일 인원 변동 사항 요약 (Today&apos;s SSOT Variations)]</span>
               <span className="text-[10px] font-normal text-slate-600">Total Variations: {absences.length}p</span>
             </div>
 
