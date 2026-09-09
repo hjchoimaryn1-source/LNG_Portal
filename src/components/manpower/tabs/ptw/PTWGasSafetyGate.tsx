@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { GasTestLogEntryInput, PTWPermit, StaffPersonnel } from '../../../../types/lng';
 import { PTW_SOP_FORMS, isGasMeasurementApplicable } from '../../../../data/ptwMasterData';
 import { O2_MIN_PERCENT, O2_MAX_PERCENT, H2S_MAX_PPM } from '../../../../data/ptwGasSafetyRules';
+import { MissingAgtSignatureError, toGasTestRecordDraft } from '../../../../adapters/ptwFormAdapter';
 import GasRetestEntryModal from './GasRetestEntryModal';
 
 export interface PTWGasSafetyGateProps {
@@ -50,6 +51,35 @@ export default function PTWGasSafetyGate({
   const lelLimit = PTW_SOP_FORMS[activePermit.type].gasRestrictions.maxLelPercent;
   const canRetest = activePermit.status === 'ACTIVE' && applicable && !isCargoHandling;
   const history = [...(activePermit.gasTestHistory || [])].reverse();
+
+  // Legacy screen has no dedicated signature-capture UI, so the typed
+  // TESTER NAME(+ID) from GasRetestEntryModal is treated as the AGT's legacy
+  // e-signature for the ptwFormAdapter DTO. Validation/conversion runs
+  // alongside the existing legacy write path, not in place of it.
+  const handleAddGasTestLogEntry = (permitId: string, entryInput: GasTestLogEntryInput) => {
+    try {
+      const draft = toGasTestRecordDraft(permitId, activePermit.type, {
+        testType: 'RETEST',
+        lelPercent: entryInput.lelPercent,
+        o2Percent: entryInput.o2Percent,
+        h2sPpm: entryInput.h2sPpm,
+        testedByAgt: entryInput.testerName,
+        agtSignature: entryInput.testerId ? `${entryInput.testerName} (${entryInput.testerId})` : entryInput.testerName,
+        testedAt: entryInput.testedAt,
+      });
+      // TODO(cmms-permit-gas-tests): persist draft to permit_gas_tests once
+      // src/db has a real client (see src/db/schema/cmms_schema.sql).
+      console.info(`[CMMS] gas_test_record draft for ${permitId}:`, draft);
+    } catch (err) {
+      if (err instanceof MissingAgtSignatureError) {
+        alert(err.message);
+        return;
+      }
+      throw err;
+    }
+
+    onAddGasTestLogEntry(permitId, entryInput);
+  };
 
   const metrics = [
     {
@@ -137,7 +167,7 @@ export default function PTWGasSafetyGate({
         isOpen={isRetestModalOpen}
         onClose={() => setIsRetestModalOpen(false)}
         activePermit={activePermit}
-        onSubmit={onAddGasTestLogEntry}
+        onSubmit={handleAddGasTestLogEntry}
       />
 
       {applicable && !isSafe && blockReason && (

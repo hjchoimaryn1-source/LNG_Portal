@@ -6,7 +6,7 @@ import { FileText } from 'lucide-react';
 import { PTWPermit, PTWType, StaffPersonnel } from '../../../types/lng';
 import { PTW_SOP_FORMS, isGasMeasurementApplicable, validatePTWWorkerEligibility } from '../../../data/ptwMasterData';
 import { PLANT_WORK_LOCATIONS } from '../../../data/ptwWorkAreas';
-import { useNewPTWPermitForm } from './ptw/useNewPTWPermitForm';
+import { CmmsPermitMeta, useCMMSPTWForm } from '../../../hooks/useCMMSPTWForm';
 import PRACChecklistSection from './ptw/PRACChecklistSection';
 import WorkforcePillPicker from './ptw/WorkforcePillPicker';
 
@@ -15,7 +15,9 @@ export interface NewPTWPermitModalProps {
   onClose: () => void;
   personnelList: StaffPersonnel[];
   sequenceNumber: number;
-  onSubmitSuccess: (newPermit: PTWPermit) => void;
+  // Phase 1 stage/status + payloadHash baseline (permit_lock_state) generated
+  // alongside the legacy permit — see src/hooks/useCMMSPTWForm.ts.
+  onSubmitSuccess: (newPermit: PTWPermit, cmmsMeta: CmmsPermitMeta) => void;
 }
 
 export default function NewPTWPermitModal({
@@ -25,7 +27,7 @@ export default function NewPTWPermitModal({
   sequenceNumber,
   onSubmitSuccess,
 }: NewPTWPermitModalProps) {
-  const form = useNewPTWPermitForm({ personnelList, sequenceNumber, onSubmitSuccess, onClose });
+  const form = useCMMSPTWForm({ personnelList, sequenceNumber, onSubmitSuccess, onClose });
 
   if (!isOpen) return null;
 

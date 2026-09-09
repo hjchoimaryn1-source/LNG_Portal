@@ -94,9 +94,12 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
         onClose={() => setIsNewPermitModalOpen(false)}
         personnelList={personnelList}
         sequenceNumber={permits.length + 1}
-        onSubmitSuccess={(newPermit) => {
+        onSubmitSuccess={(newPermit, cmmsMeta) => {
           addPermit(newPermit);
           setSelectedPermitId(newPermit.id);
+          // TODO(cmms-permit-lock-state): persist cmmsMeta to permit_lock_state
+          // once src/db has a real client (see src/db/schema/cmms_schema.sql).
+          console.info(`[CMMS] permit_lock_state baseline for ${newPermit.id}:`, cmmsMeta);
         }}
       />
 
