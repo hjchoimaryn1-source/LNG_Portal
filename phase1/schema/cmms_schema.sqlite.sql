@@ -230,6 +230,28 @@ CREATE TABLE permit_gas_tests (
 CREATE INDEX idx_gastest_permit_time ON permit_gas_tests(permit_ref_no, tested_at DESC);
 CREATE INDEX idx_gastest_needs_resign ON permit_gas_tests(is_signature_legacy_reused) WHERE is_signature_legacy_reused = 1;
 
+-- ----------------------------------------------------------------------------
+-- 4. asset_dual_read_diffs — Phase 1 Dual Read 불일치 로그
+--    (Refactoring Plan §3.2 Phase 1: "화면에는 레거시만 노출하되 콘솔/로그로 diff
+--    비교". 이미 PROMOTED된 자산은 staging_legacy_assets.mapping_status를 절대
+--    되돌리지 않는다는 Phase 0 불변성을 지키기 위해, 승격 후 발생한 drift는
+--    별도의 이 테이블에만 기록한다 — staging 테이블을 직접 건드리지 않는다.
+-- ----------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS asset_dual_read_diffs;
+CREATE TABLE asset_dual_read_diffs (
+    diff_id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    legacy_tag          TEXT NOT NULL,
+    equipment_tag          TEXT NOT NULL,
+    field_name                TEXT NOT NULL,        -- LegacyAssetRow의 키 (name/loc/maker/crit/status/type)
+    legacy_value                 TEXT,
+    cmms_value                     TEXT,
+    detected_at                       TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+    resolved                            INTEGER NOT NULL DEFAULT 0 CHECK (resolved IN (0,1)),
+    CONSTRAINT fk_diff_asset FOREIGN KEY (equipment_tag) REFERENCES assets(equipment_tag) ON DELETE CASCADE
+);
+CREATE INDEX idx_diff_unresolved ON asset_dual_read_diffs(legacy_tag, field_name, resolved) WHERE resolved = 0;
+
 -- ============================================================================
 -- 시딩 예시 (수동 검증용, 운영 배치에는 미포함)
 -- ============================================================================
