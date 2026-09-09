@@ -1,2523 +1,16 @@
 # NIAS LNG PORTAL - FULL CODEBASE & DATA CONTEXT
 
-## File: next-env.d.ts
-```typescript
-/// <reference types="next" />
-/// <reference types="next/image-types/global" />
-import "./.next/dev/types/routes.d.ts";
-import "./.next/dev/types/root-params.d.ts";
-
-// NOTE: This file should not be edited
-// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
-
-```
-
----
-
-## File: next.config.ts
-```typescript
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
-
-```
-
----
-
-## File: package.json
-```json
-{
-  "name": "nias-lng-portal",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --webpack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@types/papaparse": "^5.5.2",
-    "exceljs": "^4.4.0",
-    "lucide-react": "^1.33.0",
-    "next": "16.3.2",
-    "papaparse": "^5.6.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "recharts": "^3.10.1",
-    "xlsx": "^0.18.5"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.2",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
-}
-
-```
-
----
-
-## File: tsconfig.json
-```json
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
-  ],
-  "exclude": ["node_modules"]
-}
-
-```
-
----
-
-## File: .next\app-path-routes-manifest.json
-```json
-{
-  "/_global-error/page": "/_global-error",
-  "/_not-found/page": "/_not-found",
-  "/api/v1/ingestion/stream/route": "/api/v1/ingestion/stream",
-  "/api/v1/process/pfd-overview/route": "/api/v1/process/pfd-overview",
-  "/favicon.ico/route": "/favicon.ico",
-  "/page": "/"
-}
-```
-
----
-
-## File: .next\build-manifest.json
-```json
-{
-  "pages": {
-    "/_app": []
-  },
-  "devFiles": [],
-  "polyfillFiles": [
-    "static/chunks/0cz1d0mv5g_q7.js"
-  ],
-  "lowPriorityFiles": [
-    "static/03MErGCfkEwDbCkTT_Lyi/_buildManifest.js",
-    "static/03MErGCfkEwDbCkTT_Lyi/_ssgManifest.js",
-    "static/03MErGCfkEwDbCkTT_Lyi/_clientMiddlewareManifest.js"
-  ],
-  "rootMainFiles": [
-    "static/chunks/1inwntv0b4r-7.js",
-    "static/chunks/2h1eivth_f3qo.js",
-    "static/chunks/1qe3i8urdd-pi.js",
-    "static/chunks/turbopack-2-wuwwgvehyn4.js"
-  ],
-  "rootMainFilesTree": {},
-  "pagesChunkGroupBootstrapParams": {},
-  "chunkLoadingGlobal": "TURBOPACK"
-}
-```
-
----
-
-## File: .next\export-marker.json
-```json
-{
-  "version": 1,
-  "hasExportPathMap": false,
-  "exportTrailingSlash": false,
-  "isNextImageImported": false
-}
-```
-
----
-
-## File: .next\fallback-build-manifest.json
-```json
-{
-  "pages": {
-    "/_app": []
-  },
-  "devFiles": [],
-  "polyfillFiles": [],
-  "lowPriorityFiles": [
-    "static/03MErGCfkEwDbCkTT_Lyi/_buildManifest.js",
-    "static/03MErGCfkEwDbCkTT_Lyi/_ssgManifest.js",
-    "static/03MErGCfkEwDbCkTT_Lyi/_clientMiddlewareManifest.js"
-  ],
-  "rootMainFiles": [],
-  "rootMainFilesTree": {},
-  "pagesChunkGroupBootstrapParams": {}
-}
-```
-
----
-
-## File: .next\images-manifest.json
-```json
-{
-  "version": 1,
-  "images": {
-    "deviceSizes": [
-      640,
-      750,
-      828,
-      1080,
-      1200,
-      1920,
-      2048,
-      3840
-    ],
-    "imageSizes": [
-      32,
-      48,
-      64,
-      96,
-      128,
-      256,
-      384
-    ],
-    "path": "/_next/image",
-    "loader": "default",
-    "loaderFile": "",
-    "domains": [],
-    "disableStaticImages": false,
-    "minimumCacheTTL": 14400,
-    "formats": [
-      "image/webp"
-    ],
-    "maximumRedirects": 3,
-    "maximumResponseBody": 50000000,
-    "dangerouslyAllowLocalIP": false,
-    "dangerouslyAllowSVG": false,
-    "contentSecurityPolicy": "script-src 'none'; frame-src 'none'; sandbox;",
-    "contentDispositionType": "attachment",
-    "localPatterns": [
-      {
-        "pathname": "^(?:(?!(?:^|\\/)\\.{1,2}(?:\\/|$))(?:(?:(?!(?:^|\\/)\\.{1,2}(?:\\/|$)).)*?)\\/?)$",
-        "search": ""
-      }
-    ],
-    "remotePatterns": [],
-    "qualities": [
-      75
-    ],
-    "unoptimized": false,
-    "customCacheHandler": false,
-    "sizes": [
-      640,
-      750,
-      828,
-      1080,
-      1200,
-      1920,
-      2048,
-      3840,
-      32,
-      48,
-      64,
-      96,
-      128,
-      256,
-      384
-    ]
-  }
-}
-```
-
----
-
-## File: .next\next-minimal-server.js.nft.json
-```json
-{"version":1,"files":["../node_modules/client-only/index.js","../node_modules/client-only/package.json","../node_modules/next/dist/compiled/@opentelemetry/api/index.js","../node_modules/next/dist/compiled/@opentelemetry/api/package.json","../node_modules/next/dist/compiled/next-server/server.runtime.prod.js","../node_modules/next/dist/compiled/source-map/package.json","../node_modules/next/dist/compiled/source-map/source-map.js","../node_modules/next/dist/compiled/stacktrace-parser/package.json","../node_modules/next/dist/compiled/stacktrace-parser/stack-trace-parser.cjs.js","../node_modules/next/dist/compiled/ws/index.js","../node_modules/next/dist/compiled/ws/package.json","../node_modules/next/dist/experimental/testmode/context.js","../node_modules/next/dist/experimental/testmode/fetch.js","../node_modules/next/dist/experimental/testmode/server-edge.js","../node_modules/next/dist/lib/client-and-server-references.js","../node_modules/next/dist/lib/constants.js","../node_modules/next/dist/lib/interop-default.js","../node_modules/next/dist/lib/is-error.js","../node_modules/next/dist/lib/picocolors.js","../node_modules/next/dist/server/app-render/after-task-async-storage-instance.js","../node_modules/next/dist/server/app-render/after-task-async-storage.external.js","../node_modules/next/dist/server/app-render/async-local-storage.js","../node_modules/next/dist/server/app-render/console-async-storage-instance.js","../node_modules/next/dist/server/app-render/console-async-storage.external.js","../node_modules/next/dist/server/app-render/work-async-storage-instance.js","../node_modules/next/dist/server/app-render/work-async-storage.external.js","../node_modules/next/dist/server/app-render/work-unit-async-storage-instance.js","../node_modules/next/dist/server/app-render/work-unit-async-storage.external.js","../node_modules/next/dist/server/lib/incremental-cache/memory-cache.external.js","../node_modules/next/dist/server/lib/incremental-cache/shared-cache-controls.external.js","../node_modules/next/dist/server/lib/incremental-cache/tags-manifest.external.js","../node_modules/next/dist/server/lib/lru-cache.js","../node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js","../node_modules/next/dist/server/lib/router-utils/instrumentation-node-extensions.js","../node_modules/next/dist/server/lib/trace/constants.js","../node_modules/next/dist/server/lib/trace/tracer.js","../node_modules/next/dist/server/load-manifest.external.js","../node_modules/next/dist/server/node-environment-extensions/console-dim.external.js","../node_modules/next/dist/server/node-environment-extensions/fast-set-immediate.external.js","../node_modules/next/dist/server/node-environment-extensions/unhandled-rejection.external.js","../node_modules/next/dist/server/response-cache/types.js","../node_modules/next/dist/server/route-modules/app-page/module.compiled.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/app-router-context.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/entrypoints.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/head-manager-context.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/hooks-client-context.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/image-config-context.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/router-context.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/server-inserted-html.js","../node_modules/next/dist/server/route-modules/pages/module.compiled.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/app-router-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/entrypoints.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/head-manager-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/hooks-client-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/html-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/image-config-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/loadable-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/loadable.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/router-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/server-inserted-html.js","../node_modules/next/dist/server/runtime-reacts.external.js","../node_modules/next/dist/shared/lib/deep-freeze.js","../node_modules/next/dist/shared/lib/invariant-error.js","../node_modules/next/dist/shared/lib/is-plain-object.js","../node_modules/next/dist/shared/lib/is-thenable.js","../node_modules/next/dist/shared/lib/no-fallback-error.external.js","../node_modules/next/dist/shared/lib/server-reference-info.js","../node_modules/next/package.json","../node_modules/react/cjs/react.production.js","../node_modules/react/index.js","../node_modules/react/package.json","../node_modules/styled-jsx/dist/index/index.js","../node_modules/styled-jsx/index.js","../node_modules/styled-jsx/package.json","../node_modules/styled-jsx/style.js"],"fileHashes":["95b8b6cc5ea1c5f51dc4fa5272e0e99d","d821895ce13c29c40cda3e461bf377b8","02186196a2cc227a67f668f00873f72a","fa8a4dd27dcbde144881044b2fa74f64","bfb13d7d1b1b22e447ccbfe76b3ad50d","61445cc4a73d56b154f397d2e4213b60","4e6491a35b1970e74a940d26e575216a","0bcd39f6f5be09dab16374e3bf84459e","ce87d6acf7ef1610862d34a9c59528ea","d1e9d6e75ad3a9d63cc0825ec4ebe282","b81183ad70cf2df4130a6f7853eff593","0aefaeda74c4e5f8d5a564807421aa18","d3b5aeeae7a3d401fcec01e804d22456","1c3b03d50493da592987527ef8d906cd","edcceea1e2a5c13a14d12f4d422f733a","92d7eec9f49250bf6325e1b4186fb521","15ad04875f6d43fc8bd602b20d828566","5fe712e91d39531cd872b189115c7a25","c07db8edca1ca7e626b14dbf4e3584a8","8f2d8843ff7d322ecc237601ab58e1d7","d90d4f1de46d810d671d85f21ec5d352","2eecc48be406b9c64276e31215c29e95","2701737ab664a8fe7700053638aa0db8","33916079c6a49d35edf38970b6afa990","40c6916156cc44db5f0c8e266c9f1e60","1acc3875adfbadf8dd6721e71e776ecd","1eb18df669f40e7a0c8e077b365c907d","08cab8a9c8062eac4f6b9cbcc303417a","7cfcc764f9b49f84e568c2a8b481ef89","ecbf1e0ab3ad74e5979ab5771d710880","59f473418a3a0c96c8ec855aa72bd02a","d3c2a37fdf66b455a0ed47d33fc12229","5f3e641690915ca863053b107ae0493a","44cca5b4413d63e3179289d31fe1bcf1","85ef440bb2c4d6dcc19f40e9d77059e3","b73d42aa8f40f578ac38efd8516ad8a3","fc4f7117734aa11e26028c3a1f0e9934","7f7c41d2d2c4e4ea0359ce7e30c4676d","72944fa2cce5836dad49dfd7147626d0","ed734e4322f6faf639acccc2130bd1f9","03f54ee64db45e6ac7025c881590f862","0d0b4bdfec0dfd29f6942885b29229a6","31ab3a808d3d469ea683f8e3f3ba1f7f","6f87504559a0b3319072f9f99b8016c4","d8386087fbdf568e3dd7b4c33719ce4f","f5bce539ff900130b14d6db263acd8b9","b1c8e1e30255dde3d5b37f4b7152af56","f54a0c93d23298d5dd666083df8f07bd","ed25256b7f3102cfe89435f5454f6363","ae05ecb6f10b4a26708886d32b9f77eb","31ab3a808d3d469ea683f8e3f3ba1f7f","d8d91224b6b59b9e47a8b13e818f19de","d8386087fbdf568e3dd7b4c33719ce4f","f5bce539ff900130b14d6db263acd8b9","05f38ee563f0646b0ecd80fbf98d2b0b","b1c8e1e30255dde3d5b37f4b7152af56","741b1d6ec5b871b871784cd2c307945b","365abcef4cfc2089e7a833a9505c9d8b","f54a0c93d23298d5dd666083df8f07bd","ed25256b7f3102cfe89435f5454f6363","48538028ed97d91e767563f56035e684","217152373b3f900ae15ce0920bb06da9","a81a01b4510a203a8811e202d3537fe8","37ac4cbd6b18d52a47105218c3573c36","5ab4d38c634c37598fc59a79eeef302f","a5ceecfe744045263b3b4c06e4d48cce","deef54fb4c402325da2038fd78856071","d1892b4874d38c2ebfc46f453c284495","220a1d153fd4a6d65e4ef3ab23305e12","bd95af69943c6b10d72a1520da203070","2e2b6ee2ccf6a93255a41d6364a2937b","d103479e54467d2d65e56111e34847fa","2d2785f81c87b0c24f795ef209be5230","cb8314daf364b523f950ea40d24f40f6","5930f2ccf58b5223f4550813860e25f8"]}
-```
-
----
-
-## File: .next\next-server.js.nft.json
-```json
-{"version":1,"files":["../node_modules/@img/colour/color.cjs","../node_modules/@img/colour/index.cjs","../node_modules/@img/colour/package.json","../node_modules/@img/sharp-win32-x64/index.cjs","../node_modules/@img/sharp-win32-x64/lib/sharp-win32-x64-0.35.3.node","../node_modules/@img/sharp-win32-x64/package.json","../node_modules/@img/sharp-win32-x64/versions.json","../node_modules/@next/env/dist/index.js","../node_modules/@next/env/package.json","../node_modules/@swc/helpers/cjs/_interop_require_default.cjs","../node_modules/@swc/helpers/cjs/_interop_require_wildcard.cjs","../node_modules/@swc/helpers/esm/_interop_require_default.js","../node_modules/@swc/helpers/esm/_interop_require_wildcard.js","../node_modules/@swc/helpers/package.json","../node_modules/client-only/index.js","../node_modules/client-only/package.json","../node_modules/detect-libc/lib/detect-libc.js","../node_modules/detect-libc/lib/elf.js","../node_modules/detect-libc/lib/filesystem.js","../node_modules/detect-libc/lib/process.js","../node_modules/detect-libc/package.json","../node_modules/next/dist/build/adapter/setup-node-env.external.js","../node_modules/next/dist/build/output/log.js","../node_modules/next/dist/build/static-paths/app/extract-pathname-route-param-segments-from-loader-tree.js","../node_modules/next/dist/build/static-paths/utils.js","../node_modules/next/dist/client/add-base-path.js","../node_modules/next/dist/client/app-call-server.js","../node_modules/next/dist/client/app-find-source-map-url.js","../node_modules/next/dist/client/assign-location.js","../node_modules/next/dist/client/components/app-router-announcer.js","../node_modules/next/dist/client/components/app-router-headers.js","../node_modules/next/dist/client/components/app-router-instance.js","../node_modules/next/dist/client/components/app-router-utils.js","../node_modules/next/dist/client/components/app-router.js","../node_modules/next/dist/client/components/builtin/default.js","../node_modules/next/dist/client/components/builtin/error-styles.js","../node_modules/next/dist/client/components/builtin/global-error.js","../node_modules/next/dist/client/components/dev-root-http-access-fallback-boundary.js","../node_modules/next/dist/client/components/error-boundary.js","../node_modules/next/dist/client/components/errors/graceful-degrade-boundary.js","../node_modules/next/dist/client/components/errors/root-error-boundary.js","../node_modules/next/dist/client/components/forbidden.js","../node_modules/next/dist/client/components/handle-isr-error.js","../node_modules/next/dist/client/components/hooks-server-context.js","../node_modules/next/dist/client/components/http-access-fallback/error-boundary.js","../node_modules/next/dist/client/components/http-access-fallback/http-access-fallback.js","../node_modules/next/dist/client/components/instant-samples.js","../node_modules/next/dist/client/components/is-next-router-error.js","../node_modules/next/dist/client/components/links.js","../node_modules/next/dist/client/components/match-segments.js","../node_modules/next/dist/client/components/nav-failure-handler.js","../node_modules/next/dist/client/components/navigation-devtools.js","../node_modules/next/dist/client/components/navigation-dynamic-rendering.js","../node_modules/next/dist/client/components/navigation-untracked.js","../node_modules/next/dist/client/components/navigation.js","../node_modules/next/dist/client/components/navigation.react-server.js","../node_modules/next/dist/client/components/not-found.js","../node_modules/next/dist/client/components/offline.js","../node_modules/next/dist/client/components/readonly-url-search-params.js","../node_modules/next/dist/client/components/redirect-boundary.js","../node_modules/next/dist/client/components/redirect-error.js","../node_modules/next/dist/client/components/redirect-status-code.js","../node_modules/next/dist/client/components/redirect.js","../node_modules/next/dist/client/components/router-reducer/compute-changed-path.js","../node_modules/next/dist/client/components/router-reducer/create-href-from-url.js","../node_modules/next/dist/client/components/router-reducer/create-initial-router-state.js","../node_modules/next/dist/client/components/router-reducer/create-router-cache-key.js","../node_modules/next/dist/client/components/router-reducer/fetch-server-response.js","../node_modules/next/dist/client/components/router-reducer/is-navigating-to-new-root-layout.js","../node_modules/next/dist/client/components/router-reducer/ppr-navigations.js","../node_modules/next/dist/client/components/router-reducer/reducers/committed-state.js","../node_modules/next/dist/client/components/router-reducer/reducers/find-head-in-cache.js","../node_modules/next/dist/client/components/router-reducer/reducers/has-interception-route-in-current-tree.js","../node_modules/next/dist/client/components/router-reducer/reducers/hmr-refresh-reducer.js","../node_modules/next/dist/client/components/router-reducer/reducers/navigate-reducer.js","../node_modules/next/dist/client/components/router-reducer/reducers/refresh-reducer.js","../node_modules/next/dist/client/components/router-reducer/reducers/restore-reducer.js","../node_modules/next/dist/client/components/router-reducer/reducers/server-action-reducer.js","../node_modules/next/dist/client/components/router-reducer/reducers/server-patch-reducer.js","../node_modules/next/dist/client/components/router-reducer/router-reducer-types.js","../node_modules/next/dist/client/components/router-reducer/router-reducer.js","../node_modules/next/dist/client/components/router-reducer/set-cache-busting-search-param.js","../node_modules/next/dist/client/components/router-transition.js","../node_modules/next/dist/client/components/segment-cache/bfcache.js","../node_modules/next/dist/client/components/segment-cache/cache-key.js","../node_modules/next/dist/client/components/segment-cache/cache-map.js","../node_modules/next/dist/client/components/segment-cache/cache.js","../node_modules/next/dist/client/components/segment-cache/fetch.js","../node_modules/next/dist/client/components/segment-cache/lru.js","../node_modules/next/dist/client/components/segment-cache/navigation-testing-lock.js","../node_modules/next/dist/client/components/segment-cache/navigation.js","../node_modules/next/dist/client/components/segment-cache/optimistic-routes.js","../node_modules/next/dist/client/components/segment-cache/prefetch.js","../node_modules/next/dist/client/components/segment-cache/scheduler.js","../node_modules/next/dist/client/components/segment-cache/types.js","../node_modules/next/dist/client/components/segment-cache/vary-path.js","../node_modules/next/dist/client/components/server-async-storage.js","../node_modules/next/dist/client/components/static-generation-bailout.js","../node_modules/next/dist/client/components/unauthorized.js","../node_modules/next/dist/client/components/unrecognized-action-error.js","../node_modules/next/dist/client/components/unresolved-thenable.js","../node_modules/next/dist/client/components/unstable-rethrow.js","../node_modules/next/dist/client/components/use-action-queue.js","../node_modules/next/dist/client/components/use-offline.js","../node_modules/next/dist/client/dev/debug-channel.js","../node_modules/next/dist/client/flight-data-helpers.js","../node_modules/next/dist/client/has-base-path.js","../node_modules/next/dist/client/lib/console.js","../node_modules/next/dist/client/lib/javascript-url.js","../node_modules/next/dist/client/navigation-build-id.js","../node_modules/next/dist/client/normalize-trailing-slash.js","../node_modules/next/dist/client/remove-base-path.js","../node_modules/next/dist/client/route-params.js","../node_modules/next/dist/compiled/@edge-runtime/cookies/index.js","../node_modules/next/dist/compiled/@edge-runtime/cookies/package.json","../node_modules/next/dist/compiled/@hapi/accept/index.js","../node_modules/next/dist/compiled/@hapi/accept/package.json","../node_modules/next/dist/compiled/@mswjs/interceptors/ClientRequest/index.js","../node_modules/next/dist/compiled/@mswjs/interceptors/ClientRequest/package.json","../node_modules/next/dist/compiled/@opentelemetry/api/index.js","../node_modules/next/dist/compiled/@opentelemetry/api/package.json","../node_modules/next/dist/compiled/busboy/index.js","../node_modules/next/dist/compiled/busboy/package.json","../node_modules/next/dist/compiled/bytes/index.js","../node_modules/next/dist/compiled/bytes/package.json","../node_modules/next/dist/compiled/content-disposition/index.js","../node_modules/next/dist/compiled/content-disposition/package.json","../node_modules/next/dist/compiled/cookie/index.js","../node_modules/next/dist/compiled/cookie/package.json","../node_modules/next/dist/compiled/debug/index.js","../node_modules/next/dist/compiled/debug/package.json","../node_modules/next/dist/compiled/edge-runtime/index.js","../node_modules/next/dist/compiled/edge-runtime/package.json","../node_modules/next/dist/compiled/fresh/index.js","../node_modules/next/dist/compiled/fresh/package.json","../node_modules/next/dist/compiled/image-detector/detector.js","../node_modules/next/dist/compiled/image-size/index.js","../node_modules/next/dist/compiled/image-size/package.json","../node_modules/next/dist/compiled/ipaddr.js/ipaddr.js","../node_modules/next/dist/compiled/ipaddr.js/package.json","../node_modules/next/dist/compiled/is-animated/index.js","../node_modules/next/dist/compiled/is-animated/package.json","../node_modules/next/dist/compiled/jsonwebtoken/index.js","../node_modules/next/dist/compiled/jsonwebtoken/package.json","../node_modules/next/dist/compiled/nanoid/index.cjs","../node_modules/next/dist/compiled/nanoid/package.json","../node_modules/next/dist/compiled/next-server/app-page-turbo-experimental.runtime.prod.js","../node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js","../node_modules/next/dist/compiled/next-server/pages-turbo.runtime.prod.js","../node_modules/next/dist/compiled/p-queue/index.js","../node_modules/next/dist/compiled/p-queue/package.json","../node_modules/next/dist/compiled/path-browserify/index.js","../node_modules/next/dist/compiled/path-browserify/package.json","../node_modules/next/dist/compiled/path-to-regexp/index.js","../node_modules/next/dist/compiled/path-to-regexp/package.json","../node_modules/next/dist/compiled/picomatch/index.js","../node_modules/next/dist/compiled/picomatch/package.json","../node_modules/next/dist/compiled/react-is/cjs/react-is.development.js","../node_modules/next/dist/compiled/react-is/cjs/react-is.production.js","../node_modules/next/dist/compiled/react-is/index.js","../node_modules/next/dist/compiled/react-is/package.json","../node_modules/next/dist/compiled/send/index.js","../node_modules/next/dist/compiled/send/package.json","../node_modules/next/dist/compiled/source-map/package.json","../node_modules/next/dist/compiled/source-map/source-map.js","../node_modules/next/dist/compiled/stacktrace-parser/package.json","../node_modules/next/dist/compiled/stacktrace-parser/stack-trace-parser.cjs.js","../node_modules/next/dist/compiled/string-hash/index.js","../node_modules/next/dist/compiled/string-hash/package.json","../node_modules/next/dist/compiled/strip-ansi/index.js","../node_modules/next/dist/compiled/strip-ansi/package.json","../node_modules/next/dist/compiled/superstruct/index.cjs","../node_modules/next/dist/compiled/superstruct/package.json","../node_modules/next/dist/compiled/ws/index.js","../node_modules/next/dist/compiled/ws/package.json","../node_modules/next/dist/experimental/testmode/context.js","../node_modules/next/dist/experimental/testmode/fetch.js","../node_modules/next/dist/experimental/testmode/httpget.js","../node_modules/next/dist/experimental/testmode/server-edge.js","../node_modules/next/dist/experimental/testmode/server.js","../node_modules/next/dist/lib/batcher.js","../node_modules/next/dist/lib/client-and-server-references.js","../node_modules/next/dist/lib/constants.js","../node_modules/next/dist/lib/detached-promise.js","../node_modules/next/dist/lib/error-telemetry-utils.js","../node_modules/next/dist/lib/fallback.js","../node_modules/next/dist/lib/find-pages-dir.js","../node_modules/next/dist/lib/format-dynamic-import-path.js","../node_modules/next/dist/lib/format-server-error.js","../node_modules/next/dist/lib/framework/boundary-components.js","../node_modules/next/dist/lib/framework/boundary-constants.js","../node_modules/next/dist/lib/interop-default.js","../node_modules/next/dist/lib/is-api-route.js","../node_modules/next/dist/lib/is-app-page-route.js","../node_modules/next/dist/lib/is-app-route-route.js","../node_modules/next/dist/lib/is-error.js","../node_modules/next/dist/lib/is-interception-route-rewrite.js","../node_modules/next/dist/lib/is-serializable-props.js","../node_modules/next/dist/lib/metadata/get-metadata-route.js","../node_modules/next/dist/lib/metadata/is-metadata-route.js","../node_modules/next/dist/lib/metadata/metadata-context.js","../node_modules/next/dist/lib/multi-file-writer.js","../node_modules/next/dist/lib/non-nullable.js","../node_modules/next/dist/lib/page-types.js","../node_modules/next/dist/lib/pick.js","../node_modules/next/dist/lib/picocolors.js","../node_modules/next/dist/lib/redirect-status.js","../node_modules/next/dist/lib/route-pattern-normalizer.js","../node_modules/next/dist/lib/scheduler.js","../node_modules/next/dist/lib/semver-noop.js","../node_modules/next/dist/lib/static-env.js","../node_modules/next/dist/lib/url.js","../node_modules/next/dist/lib/wait.js","../node_modules/next/dist/server/ReactDOMServerPages.js","../node_modules/next/dist/server/accept-header.js","../node_modules/next/dist/server/after/after-context.js","../node_modules/next/dist/server/after/after.js","../node_modules/next/dist/server/after/awaiter.js","../node_modules/next/dist/server/after/builtin-request-context.js","../node_modules/next/dist/server/after/index.js","../node_modules/next/dist/server/after/run-with-after.js","../node_modules/next/dist/server/api-utils/get-cookie-parser.js","../node_modules/next/dist/server/api-utils/index.js","../node_modules/next/dist/server/api-utils/node/api-resolver.js","../node_modules/next/dist/server/api-utils/node/parse-body.js","../node_modules/next/dist/server/api-utils/node/try-get-preview-data.js","../node_modules/next/dist/server/api-utils/web.js","../node_modules/next/dist/server/app-render/action-async-storage-instance.js","../node_modules/next/dist/server/app-render/action-async-storage.external.js","../node_modules/next/dist/server/app-render/action-handler.js","../node_modules/next/dist/server/app-render/after-task-async-storage-instance.js","../node_modules/next/dist/server/app-render/after-task-async-storage.external.js","../node_modules/next/dist/server/app-render/app-render-prerender-utils.js","../node_modules/next/dist/server/app-render/app-render-render-utils.js","../node_modules/next/dist/server/app-render/app-render-scheduling.js","../node_modules/next/dist/server/app-render/app-render.js","../node_modules/next/dist/server/app-render/async-local-storage.js","../node_modules/next/dist/server/app-render/blocking-route-messages.js","../node_modules/next/dist/server/app-render/cache-signal.js","../node_modules/next/dist/server/app-render/collect-segment-data.js","../node_modules/next/dist/server/app-render/console-async-storage-instance.js","../node_modules/next/dist/server/app-render/console-async-storage.external.js","../node_modules/next/dist/server/app-render/create-component-styles-and-scripts.js","../node_modules/next/dist/server/app-render/create-component-tree.js","../node_modules/next/dist/server/app-render/create-error-handler.js","../node_modules/next/dist/server/app-render/create-flight-router-state-from-loader-tree.js","../node_modules/next/dist/server/app-render/csrf-protection.js","../node_modules/next/dist/server/app-render/debug-channel-server.js","../node_modules/next/dist/server/app-render/debug-channel-server.node.js","../node_modules/next/dist/server/app-render/debug-channel-server.web.js","../node_modules/next/dist/server/app-render/dev-validation-error-delivery.js","../node_modules/next/dist/server/app-render/dev-validation-events.js","../node_modules/next/dist/server/app-render/dev-validation-scheduler.js","../node_modules/next/dist/server/app-render/dev-validation-worker-globals.js","../node_modules/next/dist/server/app-render/dev-validation-worker-snapshot.js","../node_modules/next/dist/server/app-render/dynamic-access-async-storage-instance.js","../node_modules/next/dist/server/app-render/dynamic-access-async-storage.external.js","../node_modules/next/dist/server/app-render/dynamic-rendering.js","../node_modules/next/dist/server/app-render/encryption-utils-server.js","../node_modules/next/dist/server/app-render/encryption-utils.js","../node_modules/next/dist/server/app-render/encryption.js","../node_modules/next/dist/server/app-render/entry-base.js","../node_modules/next/dist/server/app-render/flight-render-result.js","../node_modules/next/dist/server/app-render/get-asset-query-string.js","../node_modules/next/dist/server/app-render/get-css-inlined-link-tags.js","../node_modules/next/dist/server/app-render/get-layer-assets.js","../node_modules/next/dist/server/app-render/get-preloadable-fonts.js","../node_modules/next/dist/server/app-render/get-script-nonce-from-header.js","../node_modules/next/dist/server/app-render/get-short-dynamic-param-type.js","../node_modules/next/dist/server/app-render/has-loading-component-in-tree.js","../node_modules/next/dist/server/app-render/instant-test-bootstrap.js","../node_modules/next/dist/server/app-render/instant-validation/boundary-constants.js","../node_modules/next/dist/server/app-render/instant-validation/boundary-impl.js","../node_modules/next/dist/server/app-render/instant-validation/boundary-tracking.js","../node_modules/next/dist/server/app-render/instant-validation/instant-config.js","../node_modules/next/dist/server/app-render/instant-validation/instant-samples.js","../node_modules/next/dist/server/app-render/instant-validation/instant-validation-error.js","../node_modules/next/dist/server/app-render/instant-validation/instant-validation.js","../node_modules/next/dist/server/app-render/instant-validation/stream-utils.js","../node_modules/next/dist/server/app-render/interop-default.js","../node_modules/next/dist/server/app-render/make-get-server-inserted-html.js","../node_modules/next/dist/server/app-render/manifests-singleton.js","../node_modules/next/dist/server/app-render/metadata-insertion/create-server-inserted-metadata.js","../node_modules/next/dist/server/app-render/module-loading/instrument-module-getter.js","../node_modules/next/dist/server/app-render/module-loading/track-dynamic-import.js","../node_modules/next/dist/server/app-render/module-loading/track-module-loading.external.js","../node_modules/next/dist/server/app-render/module-loading/track-module-loading.instance.js","../node_modules/next/dist/server/app-render/parse-and-validate-flight-router-state.js","../node_modules/next/dist/server/app-render/postponed-state.js","../node_modules/next/dist/server/app-render/prospective-render-utils.js","../node_modules/next/dist/server/app-render/react-large-shell-error.js","../node_modules/next/dist/server/app-render/react-server.node.js","../node_modules/next/dist/server/app-render/render-css-resource.js","../node_modules/next/dist/server/app-render/required-scripts.js","../node_modules/next/dist/server/app-render/rsc/postpone.js","../node_modules/next/dist/server/app-render/rsc/preloads.js","../node_modules/next/dist/server/app-render/rsc/taint.js","../node_modules/next/dist/server/app-render/segment-explorer-path.js","../node_modules/next/dist/server/app-render/server-inserted-html.js","../node_modules/next/dist/server/app-render/staged-rendering.js","../node_modules/next/dist/server/app-render/stale-time.js","../node_modules/next/dist/server/app-render/stream-ops.js","../node_modules/next/dist/server/app-render/stream-ops.node.js","../node_modules/next/dist/server/app-render/stream-ops.web.js","../node_modules/next/dist/server/app-render/strip-flight-headers.js","../node_modules/next/dist/server/app-render/sync-io-messages.js","../node_modules/next/dist/server/app-render/types.js","../node_modules/next/dist/server/app-render/use-flight-response.js","../node_modules/next/dist/server/app-render/vary-params.js","../node_modules/next/dist/server/app-render/wait-for-response.js","../node_modules/next/dist/server/app-render/walk-tree-with-flight-router-state.js","../node_modules/next/dist/server/app-render/work-async-storage-instance.js","../node_modules/next/dist/server/app-render/work-async-storage.external.js","../node_modules/next/dist/server/app-render/work-unit-async-storage-instance.js","../node_modules/next/dist/server/app-render/work-unit-async-storage.external.js","../node_modules/next/dist/server/async-storage/draft-mode-provider.js","../node_modules/next/dist/server/async-storage/request-store.js","../node_modules/next/dist/server/async-storage/with-store.js","../node_modules/next/dist/server/async-storage/work-store.js","../node_modules/next/dist/server/base-http/helpers.js","../node_modules/next/dist/server/base-http/index.js","../node_modules/next/dist/server/base-http/node.js","../node_modules/next/dist/server/base-http/web.js","../node_modules/next/dist/server/base-server.js","../node_modules/next/dist/server/body-streams.js","../node_modules/next/dist/server/cache-dir.js","../node_modules/next/dist/server/capsize-font-metrics.json","../node_modules/next/dist/server/ci-info.js","../node_modules/next/dist/server/client-component-renderer-logger.js","../node_modules/next/dist/server/config-schema.js","../node_modules/next/dist/server/config-shared.js","../node_modules/next/dist/server/config-utils.js","../node_modules/next/dist/server/config.js","../node_modules/next/dist/server/create-deduped-by-callsite-server-error-logger.js","../node_modules/next/dist/server/crypto-utils.js","../node_modules/next/dist/server/dev/browser-logs/file-logger.js","../node_modules/next/dist/server/dev/browser-logs/receive-logs.js","../node_modules/next/dist/server/dev/browser-logs/source-map.js","../node_modules/next/dist/server/dev/debug-channel.js","../node_modules/next/dist/server/dev/dev-indicator-server-state.js","../node_modules/next/dist/server/dev/dev-validation-worker-pool.js","../node_modules/next/dist/server/dev/dev-validation-worker.js","../node_modules/next/dist/server/dev/get-source-map-from-file.js","../node_modules/next/dist/server/dev/hot-middleware.js","../node_modules/next/dist/server/dev/hot-reloader-rspack.js","../node_modules/next/dist/server/dev/hot-reloader-shared-utils.js","../node_modules/next/dist/server/dev/hot-reloader-turbopack.js","../node_modules/next/dist/server/dev/hot-reloader-types.js","../node_modules/next/dist/server/dev/hot-reloader-webpack.js","../node_modules/next/dist/server/dev/log-requests.js","../node_modules/next/dist/server/dev/messages.js","../node_modules/next/dist/server/dev/middleware-turbopack.js","../node_modules/next/dist/server/dev/middleware-webpack.js","../node_modules/next/dist/server/dev/node-stack-frames.js","../node_modules/next/dist/server/dev/on-demand-entry-handler.js","../node_modules/next/dist/server/dev/parse-version-info.js","../node_modules/next/dist/server/dev/require-cache.js","../node_modules/next/dist/server/dev/serialized-errors.js","../node_modules/next/dist/server/dev/server-action-logger.js","../node_modules/next/dist/server/dev/static-paths-worker.js","../node_modules/next/dist/server/dev/turbopack-utils.js","../node_modules/next/dist/server/dev/use-cache-probe-pool.js","../node_modules/next/dist/server/dev/use-cache-probe-worker.js","../node_modules/next/dist/server/dynamic-rendering-utils.js","../node_modules/next/dist/server/font-utils.js","../node_modules/next/dist/server/get-app-route-from-entrypoint.js","../node_modules/next/dist/server/get-page-files.js","../node_modules/next/dist/server/get-route-from-entrypoint.js","../node_modules/next/dist/server/image-optimizer.js","../node_modules/next/dist/server/instrumentation/types.js","../node_modules/next/dist/server/instrumentation/utils.js","../node_modules/next/dist/server/internal-utils.js","../node_modules/next/dist/server/is-private-ip.js","../node_modules/next/dist/server/lib/app-dir-module.js","../node_modules/next/dist/server/lib/app-info-log.js","../node_modules/next/dist/server/lib/async-callback-set.js","../node_modules/next/dist/server/lib/cache-control.js","../node_modules/next/dist/server/lib/cache-handlers/default.external.js","../node_modules/next/dist/server/lib/cache-handlers/default.js","../node_modules/next/dist/server/lib/cache-handlers/types.js","../node_modules/next/dist/server/lib/chrome-devtools-workspace.js","../node_modules/next/dist/server/lib/clone-response.js","../node_modules/next/dist/server/lib/cpu-profile.js","../node_modules/next/dist/server/lib/decode-query-path-parameter.js","../node_modules/next/dist/server/lib/dedupe-fetch.js","../node_modules/next/dist/server/lib/dev-bundler-service.js","../node_modules/next/dist/server/lib/disk-lru-cache.external.js","../node_modules/next/dist/server/lib/encode-header-safe.js","../node_modules/next/dist/server/lib/etag.js","../node_modules/next/dist/server/lib/experimental/create-env-definitions.js","../node_modules/next/dist/server/lib/experimental/ppr.js","../node_modules/next/dist/server/lib/find-page-file.js","../node_modules/next/dist/server/lib/fix-mojibake.js","../node_modules/next/dist/server/lib/format-hostname.js","../node_modules/next/dist/server/lib/generate-agent-files.js","../node_modules/next/dist/server/lib/i18n-provider.js","../node_modules/next/dist/server/lib/implicit-tags.js","../node_modules/next/dist/server/lib/incremental-cache/file-system-cache.js","../node_modules/next/dist/server/lib/incremental-cache/index.js","../node_modules/next/dist/server/lib/incremental-cache/memory-cache.external.js","../node_modules/next/dist/server/lib/incremental-cache/shared-cache-controls.external.js","../node_modules/next/dist/server/lib/incremental-cache/tags-manifest.external.js","../node_modules/next/dist/server/lib/install-code-frame.js","../node_modules/next/dist/server/lib/is-ipv6.js","../node_modules/next/dist/server/lib/is-non-html-sec-fetch-dest.js","../node_modules/next/dist/server/lib/is-rsc-request.js","../node_modules/next/dist/server/lib/lazy-module.js","../node_modules/next/dist/server/lib/lazy-result.js","../node_modules/next/dist/server/lib/lru-cache.js","../node_modules/next/dist/server/lib/match-next-data-pathname.js","../node_modules/next/dist/server/lib/mock-request.js","../node_modules/next/dist/server/lib/module-loader/module-loader.js","../node_modules/next/dist/server/lib/module-loader/node-module-loader.js","../node_modules/next/dist/server/lib/module-loader/route-module-loader.js","../node_modules/next/dist/server/lib/node-fs-methods.js","../node_modules/next/dist/server/lib/params-utils.js","../node_modules/next/dist/server/lib/parse-stack.js","../node_modules/next/dist/server/lib/patch-fetch.js","../node_modules/next/dist/server/lib/patch-set-header.js","../node_modules/next/dist/server/lib/postponed-request-body.js","../node_modules/next/dist/server/lib/release-compression-stream.js","../node_modules/next/dist/server/lib/render-server.js","../node_modules/next/dist/server/lib/router-server.js","../node_modules/next/dist/server/lib/router-utils/block-cross-site-dev.js","../node_modules/next/dist/server/lib/router-utils/build-data-route.js","../node_modules/next/dist/server/lib/router-utils/build-prefetch-segment-data-route.js","../node_modules/next/dist/server/lib/router-utils/cache-life-type-utils.js","../node_modules/next/dist/server/lib/router-utils/decode-path-params.js","../node_modules/next/dist/server/lib/router-utils/filesystem.js","../node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js","../node_modules/next/dist/server/lib/router-utils/instrumentation-node-extensions.js","../node_modules/next/dist/server/lib/router-utils/is-postpone.js","../node_modules/next/dist/server/lib/router-utils/proxy-request.js","../node_modules/next/dist/server/lib/router-utils/resolve-routes.js","../node_modules/next/dist/server/lib/router-utils/root-params-type-utils.js","../node_modules/next/dist/server/lib/router-utils/route-types-utils.js","../node_modules/next/dist/server/lib/router-utils/router-server-context.js","../node_modules/next/dist/server/lib/router-utils/typegen.js","../node_modules/next/dist/server/lib/router-utils/types.js","../node_modules/next/dist/server/lib/server-action-request-meta.js","../node_modules/next/dist/server/lib/server-ipc/utils.js","../node_modules/next/dist/server/lib/source-maps.js","../node_modules/next/dist/server/lib/start-server.js","../node_modules/next/dist/server/lib/streaming-metadata.js","../node_modules/next/dist/server/lib/to-route.js","../node_modules/next/dist/server/lib/trace/constants.js","../node_modules/next/dist/server/lib/trace/local-span-recorder.js","../node_modules/next/dist/server/lib/trace/request-insights-identity.js","../node_modules/next/dist/server/lib/trace/request-insights.js","../node_modules/next/dist/server/lib/trace/span-store.js","../node_modules/next/dist/server/lib/trace/tracer.js","../node_modules/next/dist/server/lib/trace/utils.js","../node_modules/next/dist/server/lib/types.js","../node_modules/next/dist/server/lib/utils.js","../node_modules/next/dist/server/lib/worker-utils.js","../node_modules/next/dist/server/load-components.js","../node_modules/next/dist/server/load-default-error-components.js","../node_modules/next/dist/server/load-manifest.external.js","../node_modules/next/dist/server/match-bundle.js","../node_modules/next/dist/server/mcp/get-mcp-middleware.js","../node_modules/next/dist/server/mcp/get-or-create-mcp-server.js","../node_modules/next/dist/server/mcp/mcp-telemetry-tracker.js","../node_modules/next/dist/server/mcp/tools/compile-route.js","../node_modules/next/dist/server/mcp/tools/get-compilation-issues.js","../node_modules/next/dist/server/mcp/tools/get-errors.js","../node_modules/next/dist/server/mcp/tools/get-logs.js","../node_modules/next/dist/server/mcp/tools/get-page-metadata.js","../node_modules/next/dist/server/mcp/tools/get-project-metadata.js","../node_modules/next/dist/server/mcp/tools/get-request-insights.js","../node_modules/next/dist/server/mcp/tools/get-routes.js","../node_modules/next/dist/server/mcp/tools/get-server-action-by-id.js","../node_modules/next/dist/server/mcp/tools/next-instance-error-state.js","../node_modules/next/dist/server/mcp/tools/utils/browser-communication.js","../node_modules/next/dist/server/mcp/tools/utils/format-compilation-issues.js","../node_modules/next/dist/server/mcp/tools/utils/format-errors.js","../node_modules/next/dist/server/mcp/tools/utils/resolve-path-to-route.js","../node_modules/next/dist/server/next-server.js","../node_modules/next/dist/server/next-typescript.js","../node_modules/next/dist/server/node-environment-baseline.js","../node_modules/next/dist/server/node-environment-extensions/console-dim.external.js","../node_modules/next/dist/server/node-environment-extensions/console-exit.js","../node_modules/next/dist/server/node-environment-extensions/console-file.js","../node_modules/next/dist/server/node-environment-extensions/date.js","../node_modules/next/dist/server/node-environment-extensions/error-inspect.js","../node_modules/next/dist/server/node-environment-extensions/fast-set-immediate.external.js","../node_modules/next/dist/server/node-environment-extensions/global-behaviors.js","../node_modules/next/dist/server/node-environment-extensions/io-utils.js","../node_modules/next/dist/server/node-environment-extensions/node-crypto.js","../node_modules/next/dist/server/node-environment-extensions/process-error-handlers.js","../node_modules/next/dist/server/node-environment-extensions/random.js","../node_modules/next/dist/server/node-environment-extensions/unhandled-rejection.external.js","../node_modules/next/dist/server/node-environment-extensions/web-crypto.js","../node_modules/next/dist/server/node-environment.js","../node_modules/next/dist/server/node-polyfill-crypto.js","../node_modules/next/dist/server/normalizers/absolute-filename-normalizer.js","../node_modules/next/dist/server/normalizers/built/app/app-bundle-path-normalizer.js","../node_modules/next/dist/server/normalizers/built/app/app-filename-normalizer.js","../node_modules/next/dist/server/normalizers/built/app/app-page-normalizer.js","../node_modules/next/dist/server/normalizers/built/app/app-pathname-normalizer.js","../node_modules/next/dist/server/normalizers/built/app/index.js","../node_modules/next/dist/server/normalizers/built/pages/index.js","../node_modules/next/dist/server/normalizers/built/pages/pages-bundle-path-normalizer.js","../node_modules/next/dist/server/normalizers/built/pages/pages-filename-normalizer.js","../node_modules/next/dist/server/normalizers/built/pages/pages-page-normalizer.js","../node_modules/next/dist/server/normalizers/built/pages/pages-pathname-normalizer.js","../node_modules/next/dist/server/normalizers/locale-route-normalizer.js","../node_modules/next/dist/server/normalizers/normalizer.js","../node_modules/next/dist/server/normalizers/normalizers.js","../node_modules/next/dist/server/normalizers/prefixing-normalizer.js","../node_modules/next/dist/server/normalizers/request/base-path.js","../node_modules/next/dist/server/normalizers/request/next-data.js","../node_modules/next/dist/server/normalizers/request/pathname-normalizer.js","../node_modules/next/dist/server/normalizers/request/prefix.js","../node_modules/next/dist/server/normalizers/request/rsc.js","../node_modules/next/dist/server/normalizers/request/segment-prefix-rsc.js","../node_modules/next/dist/server/normalizers/request/suffix.js","../node_modules/next/dist/server/normalizers/underscore-normalizer.js","../node_modules/next/dist/server/normalizers/wrap-normalizer-fn.js","../node_modules/next/dist/server/og/cache-image-response.js","../node_modules/next/dist/server/og/image-response.js","../node_modules/next/dist/server/patch-error-inspect.js","../node_modules/next/dist/server/pipe-readable.js","../node_modules/next/dist/server/post-process.js","../node_modules/next/dist/server/render-result.js","../node_modules/next/dist/server/render.js","../node_modules/next/dist/server/request-meta.js","../node_modules/next/dist/server/request/connection.js","../node_modules/next/dist/server/request/cookies.js","../node_modules/next/dist/server/request/draft-mode.js","../node_modules/next/dist/server/request/fallback-params.js","../node_modules/next/dist/server/request/headers.js","../node_modules/next/dist/server/request/io.js","../node_modules/next/dist/server/request/params.js","../node_modules/next/dist/server/request/pathname.js","../node_modules/next/dist/server/request/root-params.js","../node_modules/next/dist/server/request/search-params.js","../node_modules/next/dist/server/request/utils.js","../node_modules/next/dist/server/require-hook.js","../node_modules/next/dist/server/require.js","../node_modules/next/dist/server/response-cache/index.js","../node_modules/next/dist/server/response-cache/types.js","../node_modules/next/dist/server/response-cache/utils.js","../node_modules/next/dist/server/response-cache/web.js","../node_modules/next/dist/server/resume-data-cache/cache-store.js","../node_modules/next/dist/server/resume-data-cache/resume-data-cache.js","../node_modules/next/dist/server/revalidation-utils.js","../node_modules/next/dist/server/route-definitions/app-page-route-definition.js","../node_modules/next/dist/server/route-definitions/app-route-route-definition.js","../node_modules/next/dist/server/route-definitions/locale-route-definition.js","../node_modules/next/dist/server/route-definitions/pages-api-route-definition.js","../node_modules/next/dist/server/route-definitions/pages-route-definition.js","../node_modules/next/dist/server/route-definitions/route-definition.js","../node_modules/next/dist/server/route-kind.js","../node_modules/next/dist/server/route-matcher-managers/default-route-matcher-manager.js","../node_modules/next/dist/server/route-matcher-managers/dev-route-matcher-manager.js","../node_modules/next/dist/server/route-matcher-managers/route-matcher-manager.js","../node_modules/next/dist/server/route-matcher-providers/app-page-route-matcher-provider.js","../node_modules/next/dist/server/route-matcher-providers/app-route-route-matcher-provider.js","../node_modules/next/dist/server/route-matcher-providers/dev/dev-app-page-route-matcher-provider.js","../node_modules/next/dist/server/route-matcher-providers/dev/dev-app-route-route-matcher-provider.js","../node_modules/next/dist/server/route-matcher-providers/dev/dev-pages-api-route-matcher-provider.js","../node_modules/next/dist/server/route-matcher-providers/dev/dev-pages-route-matcher-provider.js","../node_modules/next/dist/server/route-matcher-providers/dev/file-cache-route-matcher-provider.js","../node_modules/next/dist/server/route-matcher-providers/dev/helpers/file-reader/batched-file-reader.js","../node_modules/next/dist/server/route-matcher-providers/dev/helpers/file-reader/default-file-reader.js","../node_modules/next/dist/server/route-matcher-providers/dev/helpers/file-reader/file-reader.js","../node_modules/next/dist/server/route-matcher-providers/helpers/cached-route-matcher-provider.js","../node_modules/next/dist/server/route-matcher-providers/helpers/manifest-loaders/manifest-loader.js","../node_modules/next/dist/server/route-matcher-providers/helpers/manifest-loaders/node-manifest-loader.js","../node_modules/next/dist/server/route-matcher-providers/helpers/manifest-loaders/server-manifest-loader.js","../node_modules/next/dist/server/route-matcher-providers/manifest-route-matcher-provider.js","../node_modules/next/dist/server/route-matcher-providers/pages-api-route-matcher-provider.js","../node_modules/next/dist/server/route-matcher-providers/pages-route-matcher-provider.js","../node_modules/next/dist/server/route-matcher-providers/route-matcher-provider.js","../node_modules/next/dist/server/route-matchers/app-page-route-matcher.js","../node_modules/next/dist/server/route-matchers/app-route-route-matcher.js","../node_modules/next/dist/server/route-matchers/locale-route-matcher.js","../node_modules/next/dist/server/route-matchers/pages-api-route-matcher.js","../node_modules/next/dist/server/route-matchers/pages-route-matcher.js","../node_modules/next/dist/server/route-matchers/route-matcher.js","../node_modules/next/dist/server/route-matches/app-page-route-match.js","../node_modules/next/dist/server/route-matches/app-route-route-match.js","../node_modules/next/dist/server/route-matches/locale-route-match.js","../node_modules/next/dist/server/route-matches/pages-api-route-match.js","../node_modules/next/dist/server/route-matches/pages-route-match.js","../node_modules/next/dist/server/route-matches/route-match.js","../node_modules/next/dist/server/route-modules/app-page/helpers/prerender-manifest-matcher.js","../node_modules/next/dist/server/route-modules/app-page/module.compiled.js","../node_modules/next/dist/server/route-modules/app-page/module.js","../node_modules/next/dist/server/route-modules/app-page/module.render.js","../node_modules/next/dist/server/route-modules/app-page/normalize-request-url.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/app-router-context.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/entrypoints.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/head-manager-context.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/hooks-client-context.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/image-config-context.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/router-context.js","../node_modules/next/dist/server/route-modules/app-page/vendored/contexts/server-inserted-html.js","../node_modules/next/dist/server/route-modules/app-page/vendored/rsc/entrypoints.js","../node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-compiler-runtime.js","../node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-dom.js","../node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.js","../node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-jsx-runtime.js","../node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-server-dom-turbopack-server.js","../node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-server-dom-turbopack-static.js","../node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-server-dom-webpack-server.js","../node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-server-dom-webpack-static.js","../node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react.js","../node_modules/next/dist/server/route-modules/app-page/vendored/ssr/entrypoints.js","../node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-compiler-runtime.js","../node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-dom-server.js","../node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-dom.js","../node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js","../node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-runtime.js","../node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-server-dom-turbopack-client.js","../node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-server-dom-webpack-client.js","../node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js","../node_modules/next/dist/server/route-modules/app-route/helpers/auto-implement-methods.js","../node_modules/next/dist/server/route-modules/app-route/helpers/clean-url.js","../node_modules/next/dist/server/route-modules/app-route/helpers/get-pathname-from-absolute-path.js","../node_modules/next/dist/server/route-modules/app-route/helpers/is-static-gen-enabled.js","../node_modules/next/dist/server/route-modules/app-route/helpers/parsed-url-query-to-params.js","../node_modules/next/dist/server/route-modules/app-route/module.compiled.js","../node_modules/next/dist/server/route-modules/app-route/module.js","../node_modules/next/dist/server/route-modules/app-route/shared-modules.js","../node_modules/next/dist/server/route-modules/checks.js","../node_modules/next/dist/server/route-modules/pages-api/module.compiled.js","../node_modules/next/dist/server/route-modules/pages-api/module.js","../node_modules/next/dist/server/route-modules/pages/builtin/_error.js","../node_modules/next/dist/server/route-modules/pages/module.compiled.js","../node_modules/next/dist/server/route-modules/pages/module.js","../node_modules/next/dist/server/route-modules/pages/module.render.js","../node_modules/next/dist/server/route-modules/pages/pages-handler.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/app-router-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/entrypoints.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/head-manager-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/hooks-client-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/html-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/image-config-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/loadable-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/loadable.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/router-context.js","../node_modules/next/dist/server/route-modules/pages/vendored/contexts/server-inserted-html.js","../node_modules/next/dist/server/route-modules/route-module.js","../node_modules/next/dist/server/runtime-reacts.external.js","../node_modules/next/dist/server/send-payload.js","../node_modules/next/dist/server/send-response.js","../node_modules/next/dist/server/serve-static.js","../node_modules/next/dist/server/server-route-utils.js","../node_modules/next/dist/server/server-utils.js","../node_modules/next/dist/server/setup-http-agent-env.js","../node_modules/next/dist/server/stream-utils/encoded-tags.js","../node_modules/next/dist/server/stream-utils/node-buffered-transform-stream.js","../node_modules/next/dist/server/stream-utils/node-web-streams-helper.js","../node_modules/next/dist/server/stream-utils/uint8array-helpers.js","../node_modules/next/dist/server/typescript/constant.js","../node_modules/next/dist/server/typescript/index.js","../node_modules/next/dist/server/typescript/rules/client-boundary.js","../node_modules/next/dist/server/typescript/rules/config.js","../node_modules/next/dist/server/typescript/rules/entry.js","../node_modules/next/dist/server/typescript/rules/error.js","../node_modules/next/dist/server/typescript/rules/metadata.js","../node_modules/next/dist/server/typescript/rules/server-boundary.js","../node_modules/next/dist/server/typescript/rules/server.js","../node_modules/next/dist/server/typescript/utils.js","../node_modules/next/dist/server/use-cache/cache-life-profile.js","../node_modules/next/dist/server/use-cache/cache-life.js","../node_modules/next/dist/server/use-cache/cache-tag.js","../node_modules/next/dist/server/use-cache/clone-cache-entry.js","../node_modules/next/dist/server/use-cache/constants.js","../node_modules/next/dist/server/use-cache/handlers.js","../node_modules/next/dist/server/use-cache/tiered-cache-handler.js","../node_modules/next/dist/server/use-cache/use-cache-errors.js","../node_modules/next/dist/server/use-cache/use-cache-probe-globals.js","../node_modules/next/dist/server/use-cache/use-cache-probe-scheduler.js","../node_modules/next/dist/server/use-cache/use-cache-wrapper.js","../node_modules/next/dist/server/utils.js","../node_modules/next/dist/server/web/adapter.js","../node_modules/next/dist/server/web/edge-route-module-wrapper.js","../node_modules/next/dist/server/web/error.js","../node_modules/next/dist/server/web/exports/index.js","../node_modules/next/dist/server/web/get-edge-preview-props.js","../node_modules/next/dist/server/web/globals.js","../node_modules/next/dist/server/web/http.js","../node_modules/next/dist/server/web/internal-edge-wait-until.js","../node_modules/next/dist/server/web/next-url.js","../node_modules/next/dist/server/web/sandbox/context.js","../node_modules/next/dist/server/web/sandbox/fetch-inline-assets.js","../node_modules/next/dist/server/web/sandbox/index.js","../node_modules/next/dist/server/web/sandbox/resource-managers.js","../node_modules/next/dist/server/web/sandbox/sandbox.js","../node_modules/next/dist/server/web/spec-extension/adapters/headers.js","../node_modules/next/dist/server/web/spec-extension/adapters/next-request.js","../node_modules/next/dist/server/web/spec-extension/adapters/reflect.js","../node_modules/next/dist/server/web/spec-extension/adapters/request-cookies.js","../node_modules/next/dist/server/web/spec-extension/cookies.js","../node_modules/next/dist/server/web/spec-extension/fetch-event.js","../node_modules/next/dist/server/web/spec-extension/image-response.js","../node_modules/next/dist/server/web/spec-extension/request.js","../node_modules/next/dist/server/web/spec-extension/response.js","../node_modules/next/dist/server/web/spec-extension/revalidate.js","../node_modules/next/dist/server/web/spec-extension/unstable-cache.js","../node_modules/next/dist/server/web/spec-extension/unstable-no-store.js","../node_modules/next/dist/server/web/spec-extension/url-pattern.js","../node_modules/next/dist/server/web/spec-extension/user-agent.js","../node_modules/next/dist/server/web/types.js","../node_modules/next/dist/server/web/utils.js","../node_modules/next/dist/server/web/web-on-close.js","../node_modules/next/dist/shared/lib/action-revalidation-kind.js","../node_modules/next/dist/shared/lib/app-router-context.shared-runtime.js","../node_modules/next/dist/shared/lib/app-router-types.js","../node_modules/next/dist/shared/lib/constants.js","../node_modules/next/dist/shared/lib/deep-freeze.js","../node_modules/next/dist/shared/lib/deployment-id.js","../node_modules/next/dist/shared/lib/encode-uri-path.js","../node_modules/next/dist/shared/lib/entry-constants.js","../node_modules/next/dist/shared/lib/error-source.js","../node_modules/next/dist/shared/lib/errors/constants.js","../node_modules/next/dist/shared/lib/escape-regexp.js","../node_modules/next/dist/shared/lib/get-hostname.js","../node_modules/next/dist/shared/lib/hash.js","../node_modules/next/dist/shared/lib/head-manager-context.shared-runtime.js","../node_modules/next/dist/shared/lib/head.js","../node_modules/next/dist/shared/lib/hooks-client-context.shared-runtime.js","../node_modules/next/dist/shared/lib/html-context.shared-runtime.js","../node_modules/next/dist/shared/lib/htmlescape.js","../node_modules/next/dist/shared/lib/i18n/detect-domain-locale.js","../node_modules/next/dist/shared/lib/i18n/normalize-locale-path.js","../node_modules/next/dist/shared/lib/image-blur-svg.js","../node_modules/next/dist/shared/lib/image-config-context.shared-runtime.js","../node_modules/next/dist/shared/lib/image-config.js","../node_modules/next/dist/shared/lib/instant-messages.js","../node_modules/next/dist/shared/lib/invariant-error.js","../node_modules/next/dist/shared/lib/is-plain-object.js","../node_modules/next/dist/shared/lib/is-thenable.js","../node_modules/next/dist/shared/lib/isomorphic/path.js","../node_modules/next/dist/shared/lib/lazy-dynamic/bailout-to-csr.js","../node_modules/next/dist/shared/lib/loadable-context.shared-runtime.js","../node_modules/next/dist/shared/lib/loadable.shared-runtime.js","../node_modules/next/dist/shared/lib/match-local-pattern.js","../node_modules/next/dist/shared/lib/match-remote-pattern.js","../node_modules/next/dist/shared/lib/modern-browserslist-target.js","../node_modules/next/dist/shared/lib/no-fallback-error.external.js","../node_modules/next/dist/shared/lib/page-path/absolute-path-to-page.js","../node_modules/next/dist/shared/lib/page-path/denormalize-page-path.js","../node_modules/next/dist/shared/lib/page-path/ensure-leading-slash.js","../node_modules/next/dist/shared/lib/page-path/normalize-data-path.js","../node_modules/next/dist/shared/lib/page-path/normalize-page-path.js","../node_modules/next/dist/shared/lib/page-path/normalize-path-sep.js","../node_modules/next/dist/shared/lib/page-path/remove-page-path-tail.js","../node_modules/next/dist/shared/lib/promise-with-resolvers.js","../node_modules/next/dist/shared/lib/request-insights.js","../node_modules/next/dist/shared/lib/router-context.shared-runtime.js","../node_modules/next/dist/shared/lib/router/adapters.js","../node_modules/next/dist/shared/lib/router/routes/app.js","../node_modules/next/dist/shared/lib/router/utils/add-locale.js","../node_modules/next/dist/shared/lib/router/utils/add-path-prefix.js","../node_modules/next/dist/shared/lib/router/utils/add-path-suffix.js","../node_modules/next/dist/shared/lib/router/utils/app-paths.js","../node_modules/next/dist/shared/lib/router/utils/as-path-to-search-params.js","../node_modules/next/dist/shared/lib/router/utils/cache-busting-search-param.js","../node_modules/next/dist/shared/lib/router/utils/escape-path-delimiters.js","../node_modules/next/dist/shared/lib/router/utils/format-next-pathname-info.js","../node_modules/next/dist/shared/lib/router/utils/format-url.js","../node_modules/next/dist/shared/lib/router/utils/get-dynamic-param.js","../node_modules/next/dist/shared/lib/router/utils/get-next-pathname-info.js","../node_modules/next/dist/shared/lib/router/utils/get-route-from-asset-path.js","../node_modules/next/dist/shared/lib/router/utils/get-segment-param.js","../node_modules/next/dist/shared/lib/router/utils/html-bots.js","../node_modules/next/dist/shared/lib/router/utils/index.js","../node_modules/next/dist/shared/lib/router/utils/interception-prefix-from-param-type.js","../node_modules/next/dist/shared/lib/router/utils/interception-routes.js","../node_modules/next/dist/shared/lib/router/utils/is-bot.js","../node_modules/next/dist/shared/lib/router/utils/is-dynamic.js","../node_modules/next/dist/shared/lib/router/utils/middleware-route-matcher.js","../node_modules/next/dist/shared/lib/router/utils/parse-loader-tree.js","../node_modules/next/dist/shared/lib/router/utils/parse-path.js","../node_modules/next/dist/shared/lib/router/utils/parse-relative-url.js","../node_modules/next/dist/shared/lib/router/utils/parse-url.js","../node_modules/next/dist/shared/lib/router/utils/path-has-prefix.js","../node_modules/next/dist/shared/lib/router/utils/path-match.js","../node_modules/next/dist/shared/lib/router/utils/prepare-destination.js","../node_modules/next/dist/shared/lib/router/utils/querystring.js","../node_modules/next/dist/shared/lib/router/utils/relativize-url.js","../node_modules/next/dist/shared/lib/router/utils/remove-path-prefix.js","../node_modules/next/dist/shared/lib/router/utils/remove-trailing-slash.js","../node_modules/next/dist/shared/lib/router/utils/resolve-param-value.js","../node_modules/next/dist/shared/lib/router/utils/route-match-utils.js","../node_modules/next/dist/shared/lib/router/utils/route-matcher.js","../node_modules/next/dist/shared/lib/router/utils/route-regex.js","../node_modules/next/dist/shared/lib/router/utils/sorted-routes.js","../node_modules/next/dist/shared/lib/segment-cache/segment-value-encoding.js","../node_modules/next/dist/shared/lib/segment-cache/vary-params-decoding.js","../node_modules/next/dist/shared/lib/segment.js","../node_modules/next/dist/shared/lib/server-inserted-html.shared-runtime.js","../node_modules/next/dist/shared/lib/server-reference-info.js","../node_modules/next/dist/shared/lib/side-effect.js","../node_modules/next/dist/shared/lib/size-limit.js","../node_modules/next/dist/shared/lib/utils.js","../node_modules/next/dist/shared/lib/utils/reflect-utils.js","../node_modules/next/dist/shared/lib/utils/warn-once.js","../node_modules/next/package.json","../node_modules/react-dom/cjs/react-dom-server-legacy.browser.production.js","../node_modules/react-dom/cjs/react-dom-server-legacy.node.production.js","../node_modules/react-dom/cjs/react-dom-server.browser.production.js","../node_modules/react-dom/cjs/react-dom-server.edge.production.js","../node_modules/react-dom/cjs/react-dom-server.node.production.js","../node_modules/react-dom/cjs/react-dom.production.js","../node_modules/react-dom/index.js","../node_modules/react-dom/package.json","../node_modules/react-dom/server.browser.js","../node_modules/react-dom/server.edge.js","../node_modules/react-dom/server.node.js","../node_modules/react-dom/static.node.js","../node_modules/react/cjs/react-compiler-runtime.production.js","../node_modules/react/cjs/react-jsx-dev-runtime.production.js","../node_modules/react/cjs/react-jsx-runtime.production.js","../node_modules/react/cjs/react.production.js","../node_modules/react/compiler-runtime.js","../node_modules/react/index.js","../node_modules/react/jsx-dev-runtime.js","../node_modules/react/jsx-runtime.js","../node_modules/react/package.json","../node_modules/semver/package.json","../node_modules/sharp/dist/channel.cjs","../node_modules/sharp/dist/channel.mjs","../node_modules/sharp/dist/colour.cjs","../node_modules/sharp/dist/colour.mjs","../node_modules/sharp/dist/composite.cjs","../node_modules/sharp/dist/composite.mjs","../node_modules/sharp/dist/constructor.cjs","../node_modules/sharp/dist/constructor.mjs","../node_modules/sharp/dist/index.cjs","../node_modules/sharp/dist/index.d.cts","../node_modules/sharp/dist/index.d.mts","../node_modules/sharp/dist/index.mjs","../node_modules/sharp/dist/input.cjs","../node_modules/sharp/dist/input.mjs","../node_modules/sharp/dist/is.cjs","../node_modules/sharp/dist/is.mjs","../node_modules/sharp/dist/libvips.cjs","../node_modules/sharp/dist/libvips.mjs","../node_modules/sharp/dist/operation.cjs","../node_modules/sharp/dist/operation.mjs","../node_modules/sharp/dist/output.cjs","../node_modules/sharp/dist/output.mjs","../node_modules/sharp/dist/resize.cjs","../node_modules/sharp/dist/resize.mjs","../node_modules/sharp/dist/sharp.cjs","../node_modules/sharp/dist/sharp.mjs","../node_modules/sharp/dist/utility.cjs","../node_modules/sharp/dist/utility.mjs","../node_modules/sharp/node_modules/semver/classes/comparator.js","../node_modules/sharp/node_modules/semver/classes/range.js","../node_modules/sharp/node_modules/semver/classes/semver.js","../node_modules/sharp/node_modules/semver/functions/clean.js","../node_modules/sharp/node_modules/semver/functions/cmp.js","../node_modules/sharp/node_modules/semver/functions/coerce.js","../node_modules/sharp/node_modules/semver/functions/compare-build.js","../node_modules/sharp/node_modules/semver/functions/compare-loose.js","../node_modules/sharp/node_modules/semver/functions/compare.js","../node_modules/sharp/node_modules/semver/functions/diff.js","../node_modules/sharp/node_modules/semver/functions/eq.js","../node_modules/sharp/node_modules/semver/functions/gt.js","../node_modules/sharp/node_modules/semver/functions/gte.js","../node_modules/sharp/node_modules/semver/functions/inc.js","../node_modules/sharp/node_modules/semver/functions/lt.js","../node_modules/sharp/node_modules/semver/functions/lte.js","../node_modules/sharp/node_modules/semver/functions/major.js","../node_modules/sharp/node_modules/semver/functions/minor.js","../node_modules/sharp/node_modules/semver/functions/neq.js","../node_modules/sharp/node_modules/semver/functions/parse.js","../node_modules/sharp/node_modules/semver/functions/patch.js","../node_modules/sharp/node_modules/semver/functions/prerelease.js","../node_modules/sharp/node_modules/semver/functions/rcompare.js","../node_modules/sharp/node_modules/semver/functions/rsort.js","../node_modules/sharp/node_modules/semver/functions/satisfies.js","../node_modules/sharp/node_modules/semver/functions/sort.js","../node_modules/sharp/node_modules/semver/functions/truncate.js","../node_modules/sharp/node_modules/semver/functions/valid.js","../node_modules/sharp/node_modules/semver/index.js","../node_modules/sharp/node_modules/semver/internal/constants.js","../node_modules/sharp/node_modules/semver/internal/debug.js","../node_modules/sharp/node_modules/semver/internal/identifiers.js","../node_modules/sharp/node_modules/semver/internal/lrucache.js","../node_modules/sharp/node_modules/semver/internal/parse-options.js","../node_modules/sharp/node_modules/semver/internal/re.js","../node_modules/sharp/node_modules/semver/package.json","../node_modules/sharp/node_modules/semver/ranges/gtr.js","../node_modules/sharp/node_modules/semver/ranges/intersects.js","../node_modules/sharp/node_modules/semver/ranges/ltr.js","../node_modules/sharp/node_modules/semver/ranges/max-satisfying.js","../node_modules/sharp/node_modules/semver/ranges/min-satisfying.js","../node_modules/sharp/node_modules/semver/ranges/min-version.js","../node_modules/sharp/node_modules/semver/ranges/outside.js","../node_modules/sharp/node_modules/semver/ranges/simplify.js","../node_modules/sharp/node_modules/semver/ranges/subset.js","../node_modules/sharp/node_modules/semver/ranges/to-comparators.js","../node_modules/sharp/node_modules/semver/ranges/valid.js","../node_modules/sharp/package.json","../node_modules/styled-jsx/dist/index/index.js","../node_modules/styled-jsx/index.js","../node_modules/styled-jsx/package.json","../node_modules/styled-jsx/style.js"],"fileHashes":["92519926ef64ba051767b8d7dc3e04db","3227bc008d6ef975a8e283791dedeae8","20ad250c4f0c674fdfed5d03aa1685df","df442fc2dd6f516430b27685d69fdc07","3244aedcb5f191fc8513314046d0c56e","48f9b95f646d8f41b6f88688982f5b0e","91b71286cd28d52165214d190af4d2a4","63d2dedd149e67f58d88be577e6a0374","939b31b4214b8eea2c07d9a939623838","ef6ac6914a3f24c9f4a98105a3bdd310","76b200cb3c669e7c34cd56d6e503039e","bcdfbca94848d30153fa83f8421423d7","173ade0f2b863232ea0249b2c999b779","50bb01754878225cf6730e02b44f84d6","95b8b6cc5ea1c5f51dc4fa5272e0e99d","d821895ce13c29c40cda3e461bf377b8","a7ca4ecc1be1eb72b8d09624d1e674a3","b26beb784562ab0dcf828679d6f80b04","56fa2535dcec16915fc9bd85111dd003","770e2aeef8d50edfbfb934b0b0817438","c86c55d93711ccdf465fbc27afc9ea4f","a5446fb306fcfec27c39f81de38ec842","40d7191a9aca2b4bcdae2f32d658aea6","e8e5cb6b5d84a624a4011292fafec9c9","6a06f7c1b2945d3c2896ad30f4d8c76b","b1b50bc249c690d8507c862ac57809e3","b0c3ae3f393a2907dba4a7da1a1c3882","b6d0618c6b7cddd9d957c9aad53eb2b2","814fc7d90cd6666b01b778690839381e","6b2a180b899d543457a66225579c0b63","602fb53a667c3de022e6c6eb10ffeaf5","630660b8193ffa3637190d8c9ba62c78","a6a7db54ecdac2802c5155d56a972bb0","854546bc632eb0ae6ce4e5c318fa86fb","725a568ed5426e6ff6f428265342e759","3c746096e212d02285d62e2d1b746fb4","cb08575830e2ccd60f0c25d95347d571","f7923825b7c93e941d5e2101e6a8bff4","28d5f56ff76c2cb2f286d6cebeeadb27","f10162241e59fc8a52f676b1144688fc","6800ff5d8bec519486cc7f726b27c632","74e0a4fbdce20fd39e3e30f8f019e48e","03ecb5ee2521e4db24d2dda5f59c4346","9c53694dd40423680deefb5a1e3c25af","e178aa9be5e8711c093e900d3f0bcd9e","918a752fe29be694e286fe64ae10780c","e3ecd542e13df8257d66d6a0ad05116f","3338ecfa49a949f997b8f93e0c852cf5","6ac9c790291bb8c0c335dffbf0e95e58","fa9da4b900812d3a4e5e12633c5250f3","77916c0272b98bc447d365cac5465f68","0612925af2855a12886d0fa19eacdc62","609fa69dee638db96936e7a9b326345d","43a3b2c10adcdd8490bb065e517615b3","f6d014605901b04c558e410ab9a5a844","c79c0f08ea97cd775720bb5907e553cd","fb0f2706e7e0cf0e3d98c36fa5583aea","e53f2bcbe8a69ebb30c35a49efcb3fc2","15139b70e2dab470fb4e4637e7e65f76","69493ddb4b7770db202daa6f8cee5ec1","7a646d2d8c079ab708dbb114bc06c585","18aa963143e77e31930c9b4b24802757","ade645765df589ed4a8a6244592e515e","ddb571727cc9c465a27d67b1b0d6eec5","c26a2f5caf4c3d5602571236740b2c4e","f5959c45e29d974f8ca7ea4fb12957d6","e309954374504789be30e7c47cac945e","ccf1a5686acd0c587eee8fc75c630922","27c99821059b5267e913ab0eed95af0d","18439a473275e784033e8fcd13681336","fa27137627215a3c2db235ffa018ce84","1c1579c620df6cdb7dd9239848213a32","322b6d284296a1ac19fd43dfb847e059","9a6f270fecbe89ccedc1b4e394ec2bd9","1be21c0e845f8b4a1409d3e2d78a4422","c6b6454744d91fe8a3ddb9da753b81cf","939815d34065704f287b7b87397b02b3","13d4f91a844a7dc7a8c9a9962868d57c","03f974bfbf9cb6f27dd33aacc694c422","d7dd3dcc206c2f47b3eb9525812224a4","1246bbbe158aac11c73362ecce74e482","bd0e1ffc8d876430c40150bcd3e745a4","c858ec95d44a1eb19162b46f7b39ef6b","2ba9c6871c53a3e0da410e55155fd72a","6ea6a39d246f7461277e26d7db56e800","1be4f4ad03b27243b1bbc00f5bc67fc9","5b4d6860796527b5efd546571c456a5a","7238d1ecd80f9d09ce43a9fc7a028e72","551156d53de84a7ce36b16a369588ff7","9f663d38627fa035e9207172019fe240","6a10a689e6bad57ecc891e0dff9deea9","9f97dfc5111c4aa08b1f86f1fc26eb55","ce221d763e8458af1c6dd1d7add2a3d8","02b328f305bdd4a4efa693b7ee5915bc","ef9661ddff3f5c1ca40d0c1238fd4226","3c3c531804c7de10c698975e3f9a4e8a","7b7ef6711811c2ca0caf43b4308cf775","57ca86e5858543e1466b92725355539a","972c677098b1a07318015d687ec0dbea","ca2e1906388f9da367b92df50c9db069","b4fb7ba6409cce12198dc455e46d4391","3983144bcc7a474c677fbf2b78a4d4a1","b11cbb96bca2b3573e66ff08cdb1ed4b","fb411f161c37c38a7c95e474692a2653","a913ada819f56000da61d3dba80be9a4","a4cf867d9472dba58d00b5bb2132203c","cae975f24bf5937220146ff8950b9a04","11eb668649d2434d25d26977b8e01e49","adbbd050bc16c52aff063ccd33b09346","33f425fe431c94b1890803e983c042a2","9f4e5272b4ce2cca697a48bf24702c1f","9d972adb5179c4f471e57cc6e994bf8b","9e65c79af87c8444e8abd1707b779569","950239b99766121e2bc0118e44b6c445","cdae9c08ab7d1f7cb4415eed8c6bb2dd","e6c1e3d5a021cdce9fb5ca19698d3157","8ba92dbe46dbf6e689c65a91c537e26b","43e367ab2e4aa36772fdf623da0b134d","7ef7ccdffdde33d5c5d514cba62a7bb5","02186196a2cc227a67f668f00873f72a","fa8a4dd27dcbde144881044b2fa74f64","60c49aa817d84375a802acc6f38ba1ec","6939bc8515406d7edb372bdba396509a","5fca0669bb765def9eb922fcc6488c57","e756004f7c415c1270a23cc3d1d661d7","578cac2a04688338ea564c44bcf6b809","f7a1806684f8af46487b8c713ab036ea","bab3e101082b6a97b79d9574509af73a","582de27f0eae78beedd5c990fbec8909","ac5ff15b0bf25cd2f05d57a9df24381e","54eec913777c62609f9db23e6feb55bd","20da04be706216fcebc8adcdd38a327a","202489f2d019e5e234b366577f729c27","1ba638a68394c063a2045ab16747d5af","7aeb50ca678781ca27f103d8b8ed7606","95a47659743480e11bb3b07c5035b2a1","64c5bd46fe3c664aa3a6e57f7faca0d1","61a763256ba6642bbc9c78018443c1cc","6333a0b97104aef3ccd752c3b71adb2d","cf3a05b96bbc941e35048cc7d7da0955","0631a68bf5a89262b72af6c7a36f2ddf","8b7185e035273eca161da9555318e5f2","cd28bbc5151decba058dfd44bd7f47ef","a8da0851d005c95af6d4ff8b8db146ce","96480e9544e18f1a33bdbd39cbba54b9","1350d3db0e53863e558190ae41a5f369","04e79694c32256b5b93e6caadcec0b1e","9791ca6a9c90d3537cf59c50161e7260","05077ef80b8bd5019cffa51519c44f7f","405e65bde91b85c6750186cf83c02b4e","cce681d429da744d73af3fa81e4254bd","bf2ed68b1dbe8d0898824426542e462e","e9c92ad3981c3054f6264e26e95b1404","18e421b65175ace7b4e03014c9d16024","0bb5dddb2d3ebf73939119a037e61d94","ba1927ebb10a6d4aadb0a514fa3ba5f6","8a8e3326ec57f6f89b3697a9dcc3ae60","119166d734033df6c10214e33a72be4d","5161486cfa504fefc0cefdaa89fbc62c","4826b69ae90b01ee72c3a8e8748112f8","360c3f44bc3456c85830e12f1319fd4d","f884e8381836603d254de532bcd419f7","e02ec2054773c9e3a640f449bdbb7d05","61445cc4a73d56b154f397d2e4213b60","4e6491a35b1970e74a940d26e575216a","0bcd39f6f5be09dab16374e3bf84459e","ce87d6acf7ef1610862d34a9c59528ea","d4c1317bda44ff5d05089638be1cb6b0","9a2550683f15caa2e8a40bb7018e4a37","cbee5cd206d20c7e0a2786377f7115e5","f0cae977d2cd2072718315886879a620","6212661c0afee88ba85eb2dfdeffd2f3","483242119b42801ed43dc8817598aea2","d1e9d6e75ad3a9d63cc0825ec4ebe282","b81183ad70cf2df4130a6f7853eff593","0aefaeda74c4e5f8d5a564807421aa18","d3b5aeeae7a3d401fcec01e804d22456","82389c3f9004f4b3fefc8fe4d49f86fe","1c3b03d50493da592987527ef8d906cd","9a3ea2cab170428fd2d998f934a326a8","ff8edda8887da4adfb157d077003f3bc","edcceea1e2a5c13a14d12f4d422f733a","92d7eec9f49250bf6325e1b4186fb521","4969c0e2bfcc383842e9920214647f1a","3c79982402d64957e57553fa1ea0cae0","adf59c98b782f31b5656699887adf3f3","04e85e93bbf2d10372b71b2762db02af","f313882f4fd46ff34a1d74dcfa39f922","ac4f7382fc29ee33ddaf0496dbf05eb9","910270b0ae6370de86a25414d6ce96a5","0b3ab74e31e82ffa9b20013ed883782e","15ad04875f6d43fc8bd602b20d828566","e4d880f32151b4cd3a31b7fdb361879d","5da16bf5ab72e0ff109e1235f90aac35","6c2fc3bbd648a81dc5c2fabb764cde13","5fe712e91d39531cd872b189115c7a25","1fe746116ef8a8a4fa2e689a5b82f877","8e772aadb57b95915a8eaf3bd1ee3d1c","cbb90f9db0b66483827275164b17ceef","9af4a657bc8011cd21e7ae4c2a16aed5","61aa9fde356ab5b4c73a8e15026c9f19","91c08b8f71b804ea9a5139df1e00144c","851cfc8408ccac325435940b3ba3001b","0131b0e6357d2daf9d237d43f32ea40a","f748156c96077b5a48aaa3d2419a64f0","c07db8edca1ca7e626b14dbf4e3584a8","9c2240d501c30c0c0e3be77e18dc4692","6094d895001d671da0cf3b09abd3c950","0aa24beea9e1b8ae34954feb1be5caa6","f9295c2e844d919b0be75fffe2e10989","6429665f38b69be97010d855d4fc92d9","ec22ed6cb8c265a086c4b7cf97615ad9","4948fac1c3997989fb37735137f3956a","c74458ed425d602c3908df72c147b98a","f616fcf64284227a6ec8bd4010372a9b","70db45ca6e497d88597c394d0fa7dcab","0c47793269d0860136c37ec2eae68e74","eac2e52be3e3058c9e749af8ab8a405e","44626113305690f9c7df6d327fcc63d9","90ba10e5d3028bb147452e2329eff750","3725d49a71a1f16d4ad42cbfe0aff3ca","144b32aad4f4678e52ab90c01da77b49","adefb64ba89e6a3a60c52884f0b35665","d9361d7caacf06487df324398b97f638","75d682ccc9546e56ccd977b2dd205515","bd1d35bdd5943a0061d88bbca4d099c3","a5ee47424f72b6e120d03d5e810bf59d","9b1c71085acfacbddbca5126bca3f550","6505c89743b18298e0e22489f1d956ed","b560f74f479d5543290a1cd40005a1e9","8f2d8843ff7d322ecc237601ab58e1d7","d90d4f1de46d810d671d85f21ec5d352","890aa4f97ad575ad7426e66aaeb5e24c","b6c9e6fe051857e2e40883279f7950bb","7f9c1cb1299991e1591cd48ea85349f1","1de427c7b1cd310cd07949228c1b722e","2eecc48be406b9c64276e31215c29e95","981807b2548ffbff8d9ad94a758813fb","9f6a333435676ba7b0045e6b0d2d9b98","e78d8395a004b5d5cb4955cbf3d16c15","2701737ab664a8fe7700053638aa0db8","33916079c6a49d35edf38970b6afa990","df14d694549fc011c15df98545f5e799","a4002fab65dc84c1416d605dffa2b898","8776d9cdd9164bb860f0ca1f0c7ac7bd","77bd0643f53d3ef488f9fb4421f408d8","1fbfd2d0a898fc89264ea07af32e2712","45bae032df28656f84063a94543a65bb","c5008dc0dc0f3202180efbab2d74e6af","7efe954bac3130702cdd7c6e139e2107","f435c90cb5af87b0790e52f2f1373ba2","7204a3fe4ba04b8355f2b75ebf588f82","67be4512867bda875556f8c0e68efc3a","9fe8d43fa8967a38595ce9059da7b63a","c42935ee304a2ff464546784bcf00e9f","046a57d6280182df9f32d77ba452677f","94e9332b8f4251c1b03791e57aad9399","6978bf3fb2c443a8c9022d43a243c56a","821a5e462671950abe0d4fb63bc787d2","337e864cfe7ed0a8216f39a0e32c96c4","0898dbc77eeed7ea05d4be34fb91cfb9","3a3d569c9eeeb4d09eb6014435aaf98a","46c41a135830d7f93a793e8d44e50c77","0b6357255cd2b2d107e8856002b39dfc","f67a287843cb7bea032ac826905bbedf","503ec2feb833fa7a1ccb605c3f6bfdca","63167f3cee46a3cb12fb23311218c3a4","2d2128f4057b382b632e41360888bfa9","edf9939a84f5f8eccbf71bc0971aff88","08788e871b11d9beaea805473d203c09","44256daa102dbd9b52816441d5244673","8fb4ea2a1e97dc7ad2cbbf5641b1aa23","6d75d94dca8e35d7cc63d0c4786ea44a","7175e4648ef6975b79e76f0f46dc69df","e516a0f76e0436bd257aa3bccfd3ebad","df42e1f26cf49e4b669530245231628a","807a81b4f7de96d9226d8a4e4832c9fe","5174d8c65b23e1309ebf410c8e99dad0","5662b15b45473188cadf96bd5f7288b3","9cf9f566db89803822e6dc070ea5c428","21daabebbf1852e6071c9b10733d0fbc","77140ab7721f399f672e66abf1b6a67f","b12487de4180fd13b3d7f2425e5f6434","eb4e29e130ee7663a758b525c04248f3","c60dbf993c51b27c4f355467f0824e4d","7a4c4e16ecb22ffb0ba224fa37e94a70","848334e0b7acedfd5656296df4adae7c","ad1bf07df0856b523d4de713f59288eb","b96558400c5a71926ae5de0a7cd48371","3321b4814eda4a69f4593389bd7859ad","f99c7798cc261e971a7589ace6e5efd5","dba1d5658878ad9d53b77a28e0ddfa74","75a2f48370e2b829c88dfa438740c92e","671a46e61cee5d2498975d3fe6e88193","daa497b7a8de79ebacdbf57b241d024e","1016d7aa64dd09f9fab1071b8b21632d","3368c85c758348f4ea0ab0f91ae23625","ea9d3e04e6640d1c2d2f5e789a36219b","e5b37fb241c4cb06ff1fa1ab54e9d7cc","0a201256d245b3a0e27ed288b6ba68ae","e278cc009558d3b174b5aaaca68252e2","718cfc9605b7629efb9e5bfbbc25f136","e7f1ff5605d63d30e7c367004c5a9550","b143137b9d45ba801f85da6bb3985872","54dedcb9370d19c08a3847aaab915b99","498fc15d07579c19b3cc959a96eb5bb8","8e6cb493f1c3789eb247f2c6444ea4c0","464c6dad634929b3a4450b5ba7d98fd6","a2b2bf54396ef172f1d55c1400b73fba","e42e58b9539a0f92c8a1b8def3dd5d54","3146d15306d87aebc6885f5e6c1ab44d","40c6916156cc44db5f0c8e266c9f1e60","1acc3875adfbadf8dd6721e71e776ecd","1eb18df669f40e7a0c8e077b365c907d","08cab8a9c8062eac4f6b9cbcc303417a","e7c4ddd091d9175bb4ef5e2a5afb0452","e59d1fca82abd51a6e6587ece56492e8","51be8e01526486050c0e1d5c9cf400a0","c8ea27d3955f909d2c97cf78f5768377","336c4008288776b89c67d3829b67eab2","44c9b9de5bcd7d63b081531dc969a0df","128e929242c03f54ac7c7770fc4d8cc0","f02d46eb38b26bded2e52d3d93aa29c3","71a367954ea309046ab4253e3b1ab727","c533445f2c3b4bbca33925262f102838","41cab862e457ed532fb3478b50548a0a","bcab863972f770fc9a590269f9b1794f","0084c0a2a2447a93ee34116a20d6dbce","372f6c255807133c31cc021982309284","c745ea26434f8ed927c5b2fc15ea6f9b","31086b6fa473893b8bd0770a26976a43","8ed8162a70b1cf85a8342995dd0feabb","d763157a64795b4311852410e0df7f07","6c574562e2c31d8176166cb2285d325e","0499aa7150bceaaa890fe95d4e68ff75","bef9750470e394d3052dfe5a7847e9a0","360fe04d5621abf98d5d91eb9e0b7662","540c122bfff5cedf7a39ae2973f0fb6d","056a6e3c094e42695ff24df975d499f0","abad8ae94fd445b03d9b8afc5212d344","881b927eee12e4846d4b46ecf564bb2d","ab586cfe88ef9dcb3451b27b6d2b7563","3589bfb8d47c18004c8a7e48d5835be1","e2292aba4d4532854a6b5c2a4389dbf8","c2cd273323f92248b95de00f156146f8","666fce469cb5a1a158470a8748e1453b","8e5fd07cdfe455b8540364d3784a5142","dd496cedc01af4759bdc75ab388c357d","f67ea375dd8e34ddeeaa5e81f581113e","38c1d05d948f4a9399d9faf7738b989d","235f114f6e595976f6fa700c375dfac7","45665296d2a50a0bc39ee7723208b0ed","91d7e6c6e97c697cd6fc30c5919bbdeb","83fd5a267c0301ba838234327ac94599","c1c1f34811a2989f4e4f9013271d0cb1","8663c19c743f595f201d3efaec1d9e8c","e8eda1f8a23854595c9c7eeaa2a7ed33","7754b5595008fe10111ec782e5ff2325","586c54cd828b2df2ea184d10d3841a9a","2991e6728ef98c28e804915a8c58d4a3","634acff096ccdb7b11ecea253dde8cfe","b0fc5d19290522732e8348d1ff234112","9eafe21d9b2db240aff401a8488a16af","4d1a01dfd6b6423b2d0ff0467f613bd8","e1baf81401c75a4f81e88b42aca78b31","25c099675fb731d3b74c68ca4c652f8e","3785e80d4c4c21818e9fc290d48874c6","9f38f7f6f6800a6b33b0f27f9230e49e","27c50df3e9273c25d71b8c8c2001ed5c","03c547eafa10e41df88f5edc4e73eefd","db9a20485e9de020e2d381bc0b985dfa","b973ce0fc63721378faba1a57ac8f7af","1e4499a6331294fde09619d7f5bb7e44","bdf448c5fe7a1fe43097b941cb41f422","2182fe5fbbfd4e6cf87335cdff8a2622","840e9f9661b24704759a4e5771096189","b7a82428a56ff559f9e4aa23f138e4bc","4bc6cdecbb7731873e1a38b9e16769bb","1bde53bec3eb275e0df5310d17bff4df","2dedf78e58f4b691692f4c0388365aa3","fc595b768fe092375e37e03664ff7e89","ad2554e47edb562365dab84cb5af25ec","97d6bb59c7639cfaf1ef5aa34bf2cb96","b1f2737151f89c092e47d49df2d4bf15","644495bf1c744692c2d210bcce85a899","e101cdf2490c1fad5fc611291bf26bc4","0fe9694a16b887e0e393e3fa0654b474","db584104f6bee7a3d09661eca23fd900","eca5c6e551f0c4aa3e02034c3b9407c1","9de591bfec6f7fadb3368e7342ba6e63","4c89575d07870a43d13d4b3cfd0084eb","8d1a5c27fb04a77c7335c53d0cf604c3","3f7d3ac0b1feb626ae5dd7e90bea76d9","2237be18243220941da6718e2d0c9c8a","bda0a767a003df005795453e9d768477","2301b7d7b009e88a98d8e8621a233a44","603b79d9cd96ecbbb9d0f8805b5e61c2","58a31830e21dd526151417d75d88e0b3","0b21b4b0d5c258ddfac87f56658a1f27","7cfcc764f9b49f84e568c2a8b481ef89","ecbf1e0ab3ad74e5979ab5771d710880","59f473418a3a0c96c8ec855aa72bd02a","35c9a7493ff07424cd25f96fbb0ac839","15545ea63db0ce2915b9285760ca7363","312920954fd752b64e12180de6dd74a3","1c710b8db8d9dc625bd694019dba5dcb","670235ab0f956eacbb18974935456c38","4c1c737889d1dfc8dbbc384c9dfd6991","d3c2a37fdf66b455a0ed47d33fc12229","01892a92e751c028b91bdbb5d42177cb","1279d3e4f5450ee8ccafcfc7b2b0c1d0","0f3f9888708f9f6a640bd67535566e5a","af7932b514d27fe4f22a467fdb900ab1","61e9d74f495aa155d406c8a4c8e57251","f9bd0ef986b850a7f1a4088b930ab8a9","9de8c9b03d88b4218c9330da4eb28203","215309237f9a05ec8f52edadcd0565bf","4e283d9ba3fcd2cf71a104a3bea7d4a0","33a95ca928a53a24c783e1385ae2a062","2a144d0f14e66d4c74196e69e9850644","cba934afaa65ceee8a6165fefbe1f4f4","8ca1362c39fdc8e2f057bdc8682e6f3f","1eb5cf32c7939229a4e5880344f842fc","e9f249863aed79faed1f472415cd3c10","6d699ecd643e7e6b7666b7f9925b268f","7a01179ef1ba0d24b387ed3c17644791","5014735d23ffc8d581bf557622418732","273f5bcfe5b62a40a0e023336950fbda","ac108368f997b9c111dedfcd9785926a","5f3e641690915ca863053b107ae0493a","44cca5b4413d63e3179289d31fe1bcf1","fd29e4232b6653eb215670abd141ac4a","3899d551221448d2a84c4ce43fc29f05","bdf8c2c09ee51b18b064b455a5853edd","634fc8b0d8de8a51e00354f9df09e77a","3ce77e48220cb83784975ba38125d024","a303cb38d29998ba7e06852a6083c39e","c5c7a2aa50f0dff733468cde97011c9e","03c547eafa10e41df88f5edc4e73eefd","5bc9edcf75fd17742b5aca4d9851f714","23ec668622ec9dde8573dbf3d2b57cbf","ce930365528e6b0f94d346e8a3a6c976","3cf49d03b66fb654752b29f1a83f8f55","3a780554de2ad6a252d8c0ad7588b4d4","bad32b21a4e8e68742bb5f2b6cc991e6","85ef440bb2c4d6dcc19f40e9d77059e3","fa8ef60b1961d49ac6f52f73f8d9261a","67ce59cd843a752fa222bd03f7b2abf8","2787b7a1e101d280ea8ab09da97e2167","36c4d14acad4d4bd9c02eec4e5330d9e","b73d42aa8f40f578ac38efd8516ad8a3","955c6c382153c715848244830f325c08","03c547eafa10e41df88f5edc4e73eefd","8d7ede5efd81c61285f1abdd12e92875","931b6eb2ae9d1e4c54ac2750d159613f","8c8d3c7405f9fde670e8a51a61fba76f","30659941d62592051fb34600f36f8ef1","fc4f7117734aa11e26028c3a1f0e9934","424c362d172074bcdc9112bddda34f2a","527c3cdf6fab2ffe071bb457551c770d","9d4e4d988affbac1efd21b612eb3abce","1d3d85bac491be5328a198a22af2473f","190a8912b50cd6e42bb5c1b64323630f","e2f8c97bc6fc8af7daa306356e828c15","b467a1e862785c1ef1c669b9910a36f8","18c77e3ba3078051e510cbfe9e9a46ec","8df51092fc3b37ea96fa4f30fd9985f7","6c0196bd16c14d7ecf19d6d6274a2171","26d95005b1ff236bc63b2bdbaa22e982","bd4c1da3ae90b8875ef56d8825213112","9608cf5b176b4559b7d1002b5787e936","6099d616cec63a47099360e57bfe6309","d1dd8686907a9cdce7306b5fecdd326c","5d1b6caf0f819f88724d7d031752f2cc","f67e98e0c8f5fb87a5a6bd8426a5274d","66b0c001b1a60385cf0a93d1f080b82d","2cf1af5c67a12d83fbf1edfa66eaa335","968677e0c89107b2e06649f5ffc5f653","4b5216f48144eab06a89f40a112df0f9","7f7c41d2d2c4e4ea0359ce7e30c4676d","a52c1bfa60cdd122eb82001cf748b39b","4daf2c54f6e769ac3f1c55e2d2356e62","67530655ee6d2037c694d851f60a4d3a","72e15054e5bb83aa2714e9aa0f2a8aaa","72944fa2cce5836dad49dfd7147626d0","caf2cedc86272db85ddbbb4650cfaf77","3c5c716d6aebf4093db91e57fe322e0c","64c0567172a45f553110cf14514d76dc","13c7c47d340ffa042f09191cfc59557a","f5232a6a89b9b1646513f6f36cfd6edc","ed734e4322f6faf639acccc2130bd1f9","3a55a78645b57706246de6914d4ce134","438a096196cbf3f40712fc244347eced","59be47cbf4cb15affb56354159123835","1b3975d96cdf1feda6c73ad6135d041f","9c56a6242f6b7bd63ee5d5cf90bbb63f","20dad2ab36a7a8720251f087cf5b44c2","91aa9862863435a7bc782c6a515a8305","0258cfa61471ed365f22acb22afd12db","b5103e0fbc5c4e1b940964051ce1dce6","c154880f0bbc7e7386f01a2aea06a4ac","94e790e5312c19bac66e8e71ce662328","3c6948567445cb98eff2de94dde66aa3","aaf160b443c4b40c49a74c937e85718c","e058f03843bee5261c81e8c41e651dfc","28e933b83b414e46206649c22899bef7","86bc178f8ba3aa2d1067939e9867af40","28dfa4cf2be84ac882b092ae5afabf32","d76aa30a74df75641346f19fb225f7fa","4e2189d871b3ed16bc71fa233685034f","d7eb9f6f67253be45d485a11dedce454","f3dced90888ee40a269e906a208b7016","bd0c61ed808af3d4cfb407b92b130d07","8c0c1cf26487de0523ca767fa63a0a2a","ac7459f3afc3f45d382ccfe252fcb146","c95b302532edadadef13c0ebb805ed0e","dbfa85b37328d28f5383d4a3929cece1","4c9c4bf389c624b596102b496c6b8c73","0f4f476108fd51aa5bad3e87f698b6d2","dc02066a8b40f378e2bae9cafbee6cd5","e124239b7fff31a73bfc3e95cfc593d3","569b5053ff9d7a0da013bcfc4253f847","b28d74b19e4c918878617248ead9242f","e450747ac1e13ce2660a87775087ebc8","78c413bd7698b4f0ecda1de9fdb664ef","973b723e320c93e54e280549cf807a48","14a5a55fd5f90fa203602e7885d5a71f","ee96b3aa030f9465a17b31331f141534","e14c96ceed1339005f798ee1b3f7e28a","01ad8f68c38ac840f5e33eaa2e5a2312","ae3323a840961f8c56aaaccd4768f723","1daf7d8560cb90e5caeee404cbf5d9d7","b6166d32d167faeb56d62f3fc1b2d315","7a3a5f897c0f4404aa02a9c3e40d0813","99d4cb4fd9638475004aa10d71164fdf","58bd5671bb319cca4a98f6b79a462137","a7e9157bd41d280ddbb20a5a57205261","38636bd694da4120897a2a695111039c","ec24502b81f207e9df711ffbc7953a86","a8d8c42ab40a78bec1b5f255f897c630","03f54ee64db45e6ac7025c881590f862","0aeea0c2a05218440797af73589fced5","058141d28b77d1a92c1958cdb5fde2c0","48b8858b387c1df11b96cb182d5fb0f0","59f3e3fdaca1e4d7732379ce62f8d9e5","5ed96e7f3f24c03b2af38a06aa671188","da0ad352e53496f60935c2baa0877784","8e0ed0287bcebcf8f16292c45fc31af4","2be1f9923708f391aff30f33072aa99b","a4a27afa18ed7c869d5f36d0434839ea","8a2f60fab25053af6bcbca52a2f11616","8e94ea58c868f46adea92fc533a21897","df6b0e8744489135e6c0c0520e07cca8","b48b14c6ab6ea684f8239e3aa648ce54","3ff7d3012c63cf00a30f7a68799174b3","095d9197f7cc45b16f3c414e1d61fc60","8f5b2390199487edf6ba79465fd38f09","bd95e93b24e7aa8aeb53d12fa914d619","d3ab6c089e8dee1e1299e83c2e5d37db","85083cc6274ef07aa3d5808254c36bd4","07475910f04f7306a7cdca0583709c3c","6817c41bb3aee51a6bc63141a93ac37b","f976265ca64839a68fafd10c14731973","666ec7bf132f6d5a9f6d6b2557d01647","6e45fc3410e64d78779ea17fb702ed96","641f4cac947c1ed527d20447d2f7e370","6421f73351bc6e96483641f5e652c40b","3fb9be2fea87146825dbfb7d23ac3e68","e719b3dd8354854d2ccde60ca555c0bc","e2f24ec573e8bbde0439f5656ff62492","f8f0105831da5ffb27b1af7695c1b228","1edc3ff53e77411881846350ebbfadc5","9b74433946006c51eb700779d5c1cb42","b49cbe74a06e43327e84eedda76a693e","b8acfaf5d98e29d9c98147045b9eb502","290817842734f97675b43f7d55be63bd","2fd3e9cff17963c47c0194af63d288f7","1387c9f2b980e5e6d9efa4eff6975271","c56733d88b4fc9b0223eb9635e7f081f","a5db8c20464ed34e71b97961d7c826a8","ce9875b47168c0bf79a02f2acd42a6c1","3a4fda6c83db824de4726d2e9080ef65","cc5644970c5e8fba6b03676b79f2a703","8ccd61c67d66245e0d178a6c4932e492","b6950ed73372d1b1036fce190e885415","ee89482388c1e05425723c798eb962ad","cb9edd25cfd17a834773ab659fdd2142","0d0b4bdfec0dfd29f6942885b29229a6","245bc9e29dc744b0a2902b478634cb59","641df79e4f80e2a02b3d838babd92495","2cc5552de8b5dfd5f1138bae3b38c058","31ab3a808d3d469ea683f8e3f3ba1f7f","6f87504559a0b3319072f9f99b8016c4","d8386087fbdf568e3dd7b4c33719ce4f","f5bce539ff900130b14d6db263acd8b9","b1c8e1e30255dde3d5b37f4b7152af56","f54a0c93d23298d5dd666083df8f07bd","ed25256b7f3102cfe89435f5454f6363","a0956ef21bb5b04d653d3a72eefc2852","f6c0be5885b371952ccf5521d854e2c0","d8b29946f303c7cca452ec6a304105de","ff61cbd2492e3523f338c0c6b088504c","2203707d8732cc44aba744f052286935","e9551e9306875e88207f3cdc9e4dece6","fbebbb9ac35c58b3b4f8d051a5d36fff","bfa58e5402a47276f81ff01b8d7e53f7","e68d3014c04fa224163a19305aee6677","5ae321fbc7bc2c57fedddb7459d91fbf","ec2d31aae58533625eefc7fda2ea9321","1860abf5c03f14c9325c82de3c629bbd","83c95f1607574c25b0a4c93eefc1793c","b96e0e379d4e4ab3fd6c2b60b07761fe","18a61e4ab9d76b5e1538e5fbf00ef834","a19972f295712eaccf782669d24699a5","bf29ab8f60ab52282bb2babc79d64ee5","30ebc79c036420a0f6c498be527cf27e","9c9734bec535a5029493279e68210505","4cd018f0f3c491fe301398bd71262f5c","bbe0bea72ddbc5c1a5d78d499a37a2c1","81a0f6f7f25ed101eb56c8020ff0f350","ba60ed86d889191f559a56e036d492ee","602f7f61681dd6f2b624cbb725f5b9a3","6ca5ba4d609d9b999efd9cf6fb0e65b8","dea1c5f8e63059f5385860c5c16a5ad2","93e98b1b88a1fcf7efe0f494de29b767","fff5751aa56143d4b18df2cf04bd886c","1cdf978f66fede7afb72676f28c32847","90b9a86615bd0a26ac3dd3d735a4b4c1","22bb210e1f4b605d9e390f0110c1f488","ae05ecb6f10b4a26708886d32b9f77eb","bc0aed79a65e5be051ecd969f6de8018","ba83f77d31669089f2ad9d671d6c3fd8","55d869edcc2322d41ca107ce337ab67b","31ab3a808d3d469ea683f8e3f3ba1f7f","d8d91224b6b59b9e47a8b13e818f19de","d8386087fbdf568e3dd7b4c33719ce4f","f5bce539ff900130b14d6db263acd8b9","05f38ee563f0646b0ecd80fbf98d2b0b","b1c8e1e30255dde3d5b37f4b7152af56","741b1d6ec5b871b871784cd2c307945b","365abcef4cfc2089e7a833a9505c9d8b","f54a0c93d23298d5dd666083df8f07bd","ed25256b7f3102cfe89435f5454f6363","77dce4a9577d466513e298f3eec2b318","48538028ed97d91e767563f56035e684","c3b2e83aa86c70aaffbefc307c52a718","de724732f4fb43cc031311fba77119dd","253310a97e8a2bf202c83c825a70e868","641abb68f13678dde34cecb0eeb8a741","26ec2b6a8dbfa33c160d5d9724722034","deced102dbf2bb1a6959c26cc3441474","bba272af62068aa7d058a930d7f8f72f","373edc7e31ba39b04b97a05d32426e32","ce75cdba00d782199750f99852b29265","64b99233c528805d841eefc7720ba70f","acc1ffaae165d0bf4c191e0dc81fe3d6","7c16361ab50be7b087bce1c4837e51d6","1e235e503f7f65431b0246ce9a9e74f6","7c99fca0c083f4b4ce9ad5e620f426de","e3cbf134e57e0ad14b9b4865f9c3a12e","69c94bf21bae745f719ee14c0e4f2bb8","10eab532d1af953a2d362b12dfa27565","a5683670661e7d56dc792eca7c4f5db8","3296550a6e5a994700d29036eb830f83","bbeebb90c86118bc6e8f9524c40dbc5b","7aacea0bab9b43d851a323f45c087046","638a26f9307e23369ad4d3170af3f8ef","440427cdcd932e0a23e39a1e9c4dfd42","33caf072ac437d8dfc0b937151a2d8c0","e1af37d69fbbd222fb30648357617bab","69ca87b7c99ff3487e8664bb2645e962","34fba5cd11db28cf53068f61a0972159","478340be2948334ffa53168b3ef20c3d","5831a5df64280eb964b586da8965a2eb","fe060cab5730680815e81ee5b1bf309b","3b6ec79284b3c128045e1efffd1f5634","17868218ebb536af39a5d3252211fe40","914dd84769c8140f206ec197bbdc9714","9601a285a114013abeef1ae7687886d0","a6fbb9f12fac8e4ba9ec9c1f6e556d23","a29a06fd051729334af66d50ad4d8d65","132f9359235957e37e423a4626ea7ba4","f9d2f981098cf4108a2ab4338a0c1e41","4fc80215f0412bec6fe54805a2eac7c7","4b6efc7d19432982998bb6cca52607d4","94a46c6741871f4f842cd30a7ccbe0ab","0aae4cd62e46be66bd85a45074ac5037","2cff22db4e639651c7ac2abe262e75ce","e02d880f439e8c89c5a7d15886f6ec5d","d91d3ea8e1a96b6963c287c38bfd8dfa","307dae601389b04c40168c4cedc9f431","d781a454055552425f4c9e4fa05dd4b0","5354a40ba479140772802b0ea4b782e0","3ac8af800c9a22b0b9336677656819cd","f3d819b0e1f795fac75658f074c91aa3","7cb515fa76d8c8d44397c59b6bf5f92b","b8592f301c1e6186d42cbba167a7b5ab","28232b474e6f8d4b784d8381a0f44e3e","5d5bf9311b79287fa1c7eb300acce062","5b78a5e1415d34cfd85caf992ce4d679","169f43e7f3bdd77348665762751cf305","a3d0611e3a66a2d7fad1e09f5155a6eb","eba2c666498d2b2ffd1ef26457625b19","182aa6c41bc57ae5af683c0947c6bd66","5ce7efdeb9ae27ca02b288f2cca9f90e","03c547eafa10e41df88f5edc4e73eefd","5afe4afe2d81c7bac0d06f52f67d89c8","0e06069bfebcd94ba15c8238d7163900","cd2d206026835c9c24103f89412b3597","87915e245c00c5431708ebed81e79ec8","43b062aeb78bb07410d82640422eb6c0","a11753ccfe63eccd48c6432f63ba6528","217152373b3f900ae15ce0920bb06da9","5c314b98ebc0ea959e4698fb42291a66","58d10d9d800628376a7fe31cad778196","fe2c9dded8ec0ba26740f5414bb03a69","9968d8e081b68b4323b6a473f80b4a4d","959daba0e39b0f3c1e99f1dd8cb0c3c6","c0904a069e7e45eacef628406d1de1ef","fab87eefce55b753c23d070f39b612cd","4654ecd8d040dcf8ddcc877bbc851c76","5bbe0831a9e52dc83ac588f4b5c66481","2b842417c4bf27adda669768bb8cd54e","c1b79b25766808bf13d43768a2cf7786","a29cc1df1c073624854a334e550e566b","3e33d55d2531182c8ece6cb02a79bf16","ff6638c46b7dfb417c9fe6eb9596dac7","ef229e92de99756605459456a30408f5","675f3188e62b0a19ed89a7f2519ead3e","19357828abce530a157838286c548d9e","ec45facec84f9d1218a841a9cd2573a9","6dadc2917fc514e7e4c6f4cabe7d69a6","a81a01b4510a203a8811e202d3537fe8","37ac4cbd6b18d52a47105218c3573c36","5ab4d38c634c37598fc59a79eeef302f","20fac386935c8514717d612e3025e677","e2a4479a35cb46058fa5fa4148e39287","fcecea1cc419d67f1ebc08971330d721","830991635147aeb99adb4471c7375337","0073c40999a0777e56322f28648ac250","f337c8cde850279640a90eb8f4d38433","7b32d39601b7fdf33144a449e1abd4f5","a5ceecfe744045263b3b4c06e4d48cce","0dcc713cd219e00908a362be298cd6c9","52d2fdd32b86b5a179497c23bb2a0894","3a4566f4bd473c7fdfbb61f33b3fc0bb","3eb3e618298ae57b12766fd94ad1bab5","44eca32d0e78189af01db90f90423c3f","5ad9c7cf18639336fc5ea30278f6886d","37e099c2755e8b2cc449ac45c2a5d218","5654b3d7d7805129b98db879f3bbd2af","d981c19db0a862baf67c001c466fb341","880767f7dc9d1bcd20060a67c5470857","6c33ee8ab8898083a4f77456ffe2ee0c","7256f267c19be991c629617e15d49f04","c626c5cb9f71ac7ece29c0566ae0b63c","c3dfc0dc327ea8db8c2f8d521aef145f","b9e2c6aa5cee7c1c5af1ad141ec72d89","ed93b2f81b4c649ac87acbaa5cc1c9b1","3a133d5d0ecf18fb821f6acbde7b4ccf","ead6709ed0622899065d82a8b95985cf","04d1b354d8adff1f9306d334e6abb42a","d341004e5e518512463f59cca24bdd29","6872f4f54ed1b4636e828f49d3038ee3","28ad25be3e9d17aa1b5b27cb748ded40","fcf492e3897fe77cc415951cad6e06f8","6a5b66dcacdfb38ec4e4ac90c1d3a70e","156daad8c50b05866af13d809c15d65d","d2555624a985433f20a5b22e0768552d","1f0dc12ac30b54f9bce844f5ae8b0906","4d81e1b86503157741c97ab60e5219ca","c5888b6071631a3067ee4ac41fbdb167","857fefe907afc7bad29ca9e908232705","22f2a2ad0edce5f59635f5ff2103737c","a9d93a90e48f2665e319a0a8228bff30","ef943c03a9ee7fc0a8c47e40de5dd470","3c93b5860e2c26a3ba24a1573869215a","14900a6898226ce144fa7c4329fcd96c","c74a9d9813915cefeec0acb20d60c7cf","035bca8ca16a414907dd9489d3a82da2","5061a374946b8bf77410d2113dbe739a","4e5abd50d764fe7e11c8db0ef185c43f","73897f5547c3b3d0578a056664251765","7398d0b2b415f555bfe62739e48181bf","1865bf730df7cd22ab7af90fd56f5191","6029fcde814adbc7148b1a12b9ba442d","a25179770ce933c6680e155d372e5c65","08292e9630010f32fbf65ffcb9b0c6a8","111f2269afd6e1d2c739cc2ea14e88aa","796dbf7500fad25f6fdee721a77195e1","9c695460b513c801721475c2933ff8cc","b222b7f2068f716bcc22d5c0dd0bf402","0e523c78673bb63ddbe8c976db074485","2e27f2fa52041541cbb3652a7b01c358","b3fdb33e402f762d310a24ce291bdab8","deef54fb4c402325da2038fd78856071","3056145eebf6a03087f4bcee4eaa788d","eb115b9728832183df71fbdda514ec03","0399a90269a2732ffe275bb1c1dd4cdc","fc3a6b1b67d4251f19599a818a3dbaa9","3d00e4de127fca7a2997b94c05f9c4d6","d1892b4874d38c2ebfc46f453c284495","0decda30f04fd6170f9efdd49374fad3","9ede0450b15d8ad49b80f8a5cd21204a","bb42ea896681c4538c802724efb71b1e","e17f690d316f1c91a625079d87f9768d","6954d51eb8c6ca876fbbdd9b2bc7393b","41fa1de0212afe52ad1859bee48790ca","9d8830e09fe8a111038fae3b1849137c","c53e47092986df73afef6cfb04917da1","4c023abe971ba4386e128c2c45775891","db5439db26e32bd2ecbc3a1eb4aa2423","52e322736072f42fa4880a3e1e9b8576","e07a77eb20e83f5c23b9bbba3d87dd9b","593b5712380d7d9add50c359e817c6eb","31584f88d6a91d2861e72765fdc788fb","62b9ae7609181383515c490d35eedea1","220a1d153fd4a6d65e4ef3ab23305e12","03f76c51198d835745ee606c8e17f4aa","bd95af69943c6b10d72a1520da203070","ae5b3121acddd02aa282ed57195a08c9","fccb392796428371a693231bf73d348f","2e2b6ee2ccf6a93255a41d6364a2937b","9013f46fc70de0da66b41371d9f8a80d","0984d053bf9f2135fdf3fbaee81c67f1","5f360922781d4e09b780a6a44e9bef1e","3afd936818935a9c5c8be1f2bed08bda","92b24c5182d48e9c8f481f32a1f71d19","a017ad66a730b3d783e2ab7ce8b10bd7","73f7039caf1eb1898661ee8d3eab5b26","11cd95ffd17ff91efef5946bb28a3574","84e01e994f0ac9c2c4d94b4c436e0d88","6c1b99e8b119273a86335217bef39ed5","d6e1470ada264160aba6cff085282164","63239882475a413643a60f27357a390f","ad75e8a2d998cef8efaf8773d046ff20","bee3fbe23c607163fba65389b1dbeaed","4472a6eeeb57680404b177803347c6b7","3f790349afe23a8795a2d80781442833","9106326644460ac304aaeb769b7f0849","7ba6ed7e4c8432845375f0983e35a768","8ad90cfa35d7b3fa943366e86325506d","ba4612fa9bb2f11413b93297c019fca9","682456fe82d398770e81397d59561a98","50b6ba18f3661ddd3b53036f53fee8a5","ca8a5f235d70848a5f75c1c817bbb5c4","8cec675161a18cf84106a86db324dc73","6184be03ebaadf9987a504010a0dc767","1a0f5fd07030e0b0f14d36bb72d91759","bdfc57d870f3005d703bd43f0a87be73","58d3a5c0d1592d6878590268971aca76","ddecc2697dc210390ce0a96538f53c13","23dd11a3497f4b203b2800aa35ed828f","70bd35fc20eed6b14b65925832da6698","058b68b4f7b91780f4de2db52ce3f201","723254ca8e6c58da08128f2400ce0114","7112d17f859b409cc8dc0a0d821a560e","4847fed73f9c5cd6ddc2413c72a09036","9155cd6b5e089d65ccee7acccfdd5af5","8e40682aaae0f2913f2f1662c8621d2e","4a1707faf517a8f960f0f40301314b13","9ff716d847e204048b1d4b869585cbce","07c49903b039a3bdea27d6cab3dbe59a","cedb8fcc5befd09a94cdfb752a60273e","ca53192e7d8ddec7a2e0ba578da3f497","c73d422aa75f4da2b842f30abc7f4a39","3c8c5fb3eb16f3ea25a602e899bcbe78","52b7325703c7d562656971372fe0c889","728525abaeb99c3d39d858b3bee12160","dad2127d45152df76b21c46363a32cb7","40cdc47c56221f63482b046d8ddd6b15","a995844f6f53f4c411c7a97d61983072","b2694af0193223969c3a695dabce342e","c402a21a458c92e882621d319940faf0","318ec0bce44385c7e284d0dd0f2ae98d","3097fb59fad4bfde5150e9c73c42b12e","ebb89e2ea94ffd4d02b48fdb719764f5","a05ebe5a91e9b85064e00abeaf623e4c","ccefc206811048f9adbdc2de7ec4e0c3","c4b632c8218c90af8dd64d5ba0bbdf81","5ef69e52181b787ae9db808d34e837f4","89d8e2c9f7541ffc362304f98568cd0a","0cfcadfb1791fef1b898f44403530897","d1efc88f91434c519ebeac1732a499b0","e075d598d7e045225edbb3e8bf97b9be","312ea7cbfc04883b3ce1fad724696821","4b085e69128b8e286f98cc5942037605","5cf23ccccedb6a0bb0e32e5b72f58052","6a8bfd2ac84cec818768618654b5149c","39347f634b09de9b5b6197a50d81e9e9","5437c549a7643956b1d8186ef4633c04","a124039640c9d6c688ec08747e03f8fe","0434100a906538f2ac1456ec4820c8c4","00919492124d30eb941dbeef4a2d1286","508c9c2dbdce1446bf2e2a5f351fd3d0","226f84788987e6ba9810a3508aabaf39","84c9b374dcf4475f1f198f0a013776ca","e28f62e18ab3caa0f36dd299674cd420","27ca75ddb829ce12d99fd1a95660d145","82c9149581730de74e077a592cbdbdbd","d103479e54467d2d65e56111e34847fa","2d2785f81c87b0c24f795ef209be5230","cb8314daf364b523f950ea40d24f40f6","5930f2ccf58b5223f4550813860e25f8"]}
-```
-
----
-
-## File: .next\package.json
-```json
-{"type": "commonjs"}
-```
-
----
-
-## File: .next\prerender-manifest.json
-```json
-{
-  "version": 4,
-  "routes": {
-    "/": {
-      "routeType": "page",
-      "response": "complete",
-      "compute": "static",
-      "htmlSize": 23664,
-      "experimentalBypassFor": [
-        {
-          "type": "header",
-          "key": "next-action"
-        },
-        {
-          "type": "header",
-          "key": "content-type",
-          "value": "multipart/form-data;.*"
-        }
-      ],
-      "initialRevalidateSeconds": false,
-      "srcRoute": "/",
-      "dataRoute": "/index.rsc",
-      "allowHeader": [
-        "host",
-        "x-matched-path",
-        "x-prerender-revalidate",
-        "x-prerender-revalidate-if-generated",
-        "x-next-revalidated-tags",
-        "x-next-revalidate-tag-token"
-      ]
-    },
-    "/_global-error": {
-      "routeType": "page",
-      "response": "complete",
-      "compute": "static",
-      "htmlSize": 9133,
-      "experimentalBypassFor": [
-        {
-          "type": "header",
-          "key": "next-action"
-        },
-        {
-          "type": "header",
-          "key": "content-type",
-          "value": "multipart/form-data;.*"
-        }
-      ],
-      "initialRevalidateSeconds": false,
-      "srcRoute": "/_global-error",
-      "dataRoute": "/_global-error.rsc",
-      "allowHeader": [
-        "host",
-        "x-matched-path",
-        "x-prerender-revalidate",
-        "x-prerender-revalidate-if-generated",
-        "x-next-revalidated-tags",
-        "x-next-revalidate-tag-token"
-      ]
-    },
-    "/_not-found": {
-      "initialStatus": 404,
-      "routeType": "page",
-      "response": "complete",
-      "compute": "static",
-      "htmlSize": 9063,
-      "experimentalBypassFor": [
-        {
-          "type": "header",
-          "key": "next-action"
-        },
-        {
-          "type": "header",
-          "key": "content-type",
-          "value": "multipart/form-data;.*"
-        }
-      ],
-      "initialRevalidateSeconds": false,
-      "srcRoute": "/_not-found",
-      "dataRoute": "/_not-found.rsc",
-      "allowHeader": [
-        "host",
-        "x-matched-path",
-        "x-prerender-revalidate",
-        "x-prerender-revalidate-if-generated",
-        "x-next-revalidated-tags",
-        "x-next-revalidate-tag-token"
-      ]
-    },
-    "/favicon.ico": {
-      "initialHeaders": {
-        "cache-control": "public, max-age=0, must-revalidate",
-        "content-type": "image/x-icon",
-        "x-next-cache-tags": "_N_T_/layout,_N_T_/favicon.ico/layout,_N_T_/favicon.ico/route,_N_T_/favicon.ico"
-      },
-      "routeType": "route",
-      "response": "complete",
-      "compute": "static",
-      "experimentalBypassFor": [
-        {
-          "type": "header",
-          "key": "next-action"
-        },
-        {
-          "type": "header",
-          "key": "content-type",
-          "value": "multipart/form-data;.*"
-        }
-      ],
-      "initialRevalidateSeconds": false,
-      "srcRoute": "/favicon.ico",
-      "dataRoute": null,
-      "allowHeader": [
-        "host",
-        "x-matched-path",
-        "x-prerender-revalidate",
-        "x-prerender-revalidate-if-generated",
-        "x-next-revalidated-tags",
-        "x-next-revalidate-tag-token"
-      ]
-    }
-  },
-  "dynamicRoutes": {},
-  "notFoundRoutes": [],
-  "preview": {
-    "previewModeId": "f3f60288921876ce27e9835a7f527fe2",
-    "previewModeSigningKey": "8ba1f56fea80afddc630eea11a0151d6dcda85f7cda60693565ececa759ee94f",
-    "previewModeEncryptionKey": "bddda385fa7a73b31e4072090ef72289714911e4e4551300ad1fe6e458d08707"
-  }
-}
-```
-
----
-
-## File: .next\required-server-files.json
-```json
-{
-  "version": 1,
-  "config": {
-    "env": {},
-    "webpack": null,
-    "typescript": {
-      "ignoreBuildErrors": false
-    },
-    "typedRoutes": false,
-    "distDir": ".next",
-    "cleanDistDir": true,
-    "assetPrefix": "",
-    "cacheMaxMemorySize": 52428800,
-    "configOrigin": "next.config.ts",
-    "useFileSystemPublicRoutes": true,
-    "generateEtags": true,
-    "pageExtensions": [
-      "tsx",
-      "ts",
-      "jsx",
-      "js"
-    ],
-    "instrumentationClientInject": [],
-    "poweredByHeader": true,
-    "compress": true,
-    "images": {
-      "deviceSizes": [
-        640,
-        750,
-        828,
-        1080,
-        1200,
-        1920,
-        2048,
-        3840
-      ],
-      "imageSizes": [
-        32,
-        48,
-        64,
-        96,
-        128,
-        256,
-        384
-      ],
-      "path": "/_next/image",
-      "loader": "default",
-      "loaderFile": "",
-      "domains": [],
-      "disableStaticImages": false,
-      "minimumCacheTTL": 14400,
-      "formats": [
-        "image/webp"
-      ],
-      "maximumRedirects": 3,
-      "maximumResponseBody": 50000000,
-      "dangerouslyAllowLocalIP": false,
-      "dangerouslyAllowSVG": false,
-      "contentSecurityPolicy": "script-src 'none'; frame-src 'none'; sandbox;",
-      "contentDispositionType": "attachment",
-      "localPatterns": [
-        {
-          "pathname": "**",
-          "search": ""
-        }
-      ],
-      "remotePatterns": [],
-      "qualities": [
-        75
-      ],
-      "unoptimized": false,
-      "customCacheHandler": false
-    },
-    "devIndicators": {
-      "position": "bottom-left"
-    },
-    "onDemandEntries": {
-      "maxInactiveAge": 60000,
-      "pagesBufferLength": 5
-    },
-    "basePath": "",
-    "sassOptions": {},
-    "trailingSlash": false,
-    "i18n": null,
-    "productionBrowserSourceMaps": false,
-    "excludeDefaultMomentLocales": true,
-    "reactProductionProfiling": false,
-    "reactStrictMode": null,
-    "reactMaxHeadersLength": 6000,
-    "httpAgentOptions": {
-      "keepAlive": true
-    },
-    "logging": {
-      "serverFunctions": true,
-      "browserToTerminal": "warn"
-    },
-    "compiler": {},
-    "expireTime": 31536000,
-    "staticPageGenerationTimeout": 60,
-    "modularizeImports": {
-      "@mui/icons-material": {
-        "transform": "@mui/icons-material/{{member}}"
-      },
-      "lodash": {
-        "transform": "lodash/{{member}}"
-      }
-    },
-    "outputFileTracingRoot": "d:\\Dev_PCode\\NIAS_LNG_Portal",
-    "enablePrerenderSourceMaps": true,
-    "cacheComponents": false,
-    "cacheLife": {
-      "default": {
-        "stale": 300,
-        "revalidate": 900,
-        "expire": 4294967294
-      },
-      "seconds": {
-        "stale": 30,
-        "revalidate": 1,
-        "expire": 60
-      },
-      "minutes": {
-        "stale": 300,
-        "revalidate": 60,
-        "expire": 3600
-      },
-      "hours": {
-        "stale": 300,
-        "revalidate": 3600,
-        "expire": 86400
-      },
-      "days": {
-        "stale": 300,
-        "revalidate": 86400,
-        "expire": 604800
-      },
-      "weeks": {
-        "stale": 300,
-        "revalidate": 604800,
-        "expire": 2592000
-      },
-      "max": {
-        "stale": 300,
-        "revalidate": 2592000,
-        "expire": 31536000
-      }
-    },
-    "cacheHandlers": {},
-    "experimental": {
-      "appNewScrollHandler": true,
-      "coldCacheBadge": false,
-      "devValidationWorker": true,
-      "useSkewCookie": false,
-      "cssChunking": true,
-      "multiZoneDraftMode": false,
-      "appNavFailHandling": false,
-      "prerenderEarlyExit": true,
-      "serverMinification": true,
-      "linkNoTouchStart": false,
-      "caseSensitiveRoutes": false,
-      "cachedNavigations": false,
-      "dynamicOnHover": false,
-      "useOffline": false,
-      "varyParams": true,
-      "optimisticRouting": true,
-      "instrumentationClientRouterTransitionEvents": false,
-      "prefetchInlining": {
-        "maxSize": 2048,
-        "maxBundleSize": 10240
-      },
-      "preloadEntriesOnStart": true,
-      "clientRouterFilter": true,
-      "clientRouterFilterRedirects": false,
-      "fetchCacheKeyPrefix": "",
-      "proxyPrefetch": "flexible",
-      "optimisticClientCache": true,
-      "manualClientBasePath": false,
-      "cpus": 7,
-      "memoryBasedWorkersCount": false,
-      "imgOptConcurrency": null,
-      "imgOptOperationCache": null,
-      "imgOptTimeoutInSeconds": 7,
-      "imgOptMaxInputPixels": 268402689,
-      "imgOptSequentialRead": null,
-      "isrFlushToDisk": true,
-      "workerThreads": false,
-      "optimizeCss": false,
-      "nextScriptWorkers": false,
-      "scrollRestoration": false,
-      "externalDir": false,
-      "devMemoryThresholdRestart": true,
-      "disableOptimizedLoading": false,
-      "gzipSize": true,
-      "craCompat": false,
-      "esmExternals": true,
-      "fullySpecified": false,
-      "swcTraceProfiling": false,
-      "forceSwcTransforms": false,
-      "requestInsights": false,
-      "largePageDataBytes": 128000,
-      "typedEnv": false,
-      "parallelServerCompiles": false,
-      "parallelServerBuildTraces": false,
-      "ppr": false,
-      "authInterrupts": false,
-      "webpackMemoryOptimizations": false,
-      "optimizeServerReact": true,
-      "strictRouteTypes": false,
-      "useTypeScriptCli": true,
-      "removeUncaughtErrorAndRejectionListeners": false,
-      "validateRSCRequestHeaders": true,
-      "staleTimes": {
-        "dynamic": 0,
-        "static": 300
-      },
-      "reactDebugChannel": true,
-      "serverComponentsHmrCache": true,
-      "serverComponentsHmrCancellation": false,
-      "staticGenerationMaxConcurrency": 8,
-      "staticGenerationMinPagesPerWorker": 25,
-      "transitionIndicator": false,
-      "gestureTransition": false,
-      "inlineCss": false,
-      "useCache": false,
-      "globalNotFound": false,
-      "browserDebugInfoInTerminal": "warn",
-      "lockDistDir": true,
-      "proxyClientMaxBodySize": 10485760,
-      "hideLogsAfterAbort": false,
-      "mcpServer": true,
-      "turbopackFileSystemCacheForDev": true,
-      "turbopackFileSystemCacheForBuild": true,
-      "turbopackInferModuleSideEffects": true,
-      "turbopackPluginRuntimeStrategy": "childProcesses",
-      "turbopackMemoryEvictionMode": "auto",
-      "optimizePackageImports": [
-        "lucide-react",
-        "date-fns",
-        "lodash-es",
-        "ramda",
-        "antd",
-        "react-bootstrap",
-        "ahooks",
-        "@ant-design/icons",
-        "@headlessui/react",
-        "@headlessui-float/react",
-        "@heroicons/react/20/solid",
-        "@heroicons/react/24/solid",
-        "@heroicons/react/24/outline",
-        "@visx/visx",
-        "@tremor/react",
-        "rxjs",
-        "@mui/material",
-        "@mui/icons-material",
-        "recharts",
-        "react-use",
-        "effect",
-        "@effect/schema",
-        "@effect/platform",
-        "@effect/platform-node",
-        "@effect/platform-browser",
-        "@effect/platform-bun",
-        "@effect/sql",
-        "@effect/sql-mssql",
-        "@effect/sql-mysql2",
-        "@effect/sql-pg",
-        "@effect/sql-sqlite-node",
-        "@effect/sql-sqlite-bun",
-        "@effect/sql-sqlite-wasm",
-        "@effect/sql-sqlite-react-native",
-        "@effect/rpc",
-        "@effect/rpc-http",
-        "@effect/typeclass",
-        "@effect/experimental",
-        "@effect/opentelemetry",
-        "@material-ui/core",
-        "@material-ui/icons",
-        "@tabler/icons-react",
-        "mui-core",
-        "react-icons/ai",
-        "react-icons/bi",
-        "react-icons/bs",
-        "react-icons/cg",
-        "react-icons/ci",
-        "react-icons/di",
-        "react-icons/fa",
-        "react-icons/fa6",
-        "react-icons/fc",
-        "react-icons/fi",
-        "react-icons/gi",
-        "react-icons/go",
-        "react-icons/gr",
-        "react-icons/hi",
-        "react-icons/hi2",
-        "react-icons/im",
-        "react-icons/io",
-        "react-icons/io5",
-        "react-icons/lia",
-        "react-icons/lib",
-        "react-icons/lu",
-        "react-icons/md",
-        "react-icons/pi",
-        "react-icons/ri",
-        "react-icons/rx",
-        "react-icons/si",
-        "react-icons/sl",
-        "react-icons/tb",
-        "react-icons/tfi",
-        "react-icons/ti",
-        "react-icons/vsc",
-        "react-icons/wi"
-      ],
-      "useCacheTimeout": 54,
-      "instantInsights": {
-        "validationLevel": "warning"
-      },
-      "trustHostHeader": false,
-      "isExperimentalCompile": false
-    },
-    "htmlLimitedBots": "[\\w-]+-Google|Google-[\\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight",
-    "bundlePagesRouterDependencies": false,
-    "configFileName": "next.config.ts",
-    "repoRoot": "d:\\Dev_PCode\\NIAS_LNG_Portal",
-    "turbopack": {
-      "root": "d:\\Dev_PCode\\NIAS_LNG_Portal"
-    },
-    "distDirRoot": ".next"
-  },
-  "appDir": "d:\\Dev_PCode\\NIAS_LNG_Portal",
-  "relativeAppDir": "",
-  "files": [
-    ".next\\package.json",
-    ".next\\routes-manifest.json",
-    ".next\\server\\pages-manifest.json",
-    ".next\\build-manifest.json",
-    ".next\\prerender-manifest.json",
-    ".next\\server\\functions-config-manifest.json",
-    ".next\\server\\middleware-manifest.json",
-    ".next\\server\\middleware-build-manifest.js",
-    ".next\\server\\app-paths-manifest.json",
-    ".next\\app-path-routes-manifest.json",
-    ".next\\server\\server-reference-manifest.js",
-    ".next\\server\\server-reference-manifest.json",
-    ".next\\server\\prefetch-hints.json",
-    ".next\\BUILD_ID",
-    ".next\\server\\next-font-manifest.js",
-    ".next\\server\\next-font-manifest.json",
-    ".next\\required-server-files.json"
-  ],
-  "ignore": []
-}
-```
-
----
-
-## File: .next\routes-manifest.json
-```json
-{
-  "version": 3,
-  "pages404": true,
-  "appType": "app",
-  "caseSensitive": false,
-  "basePath": "",
-  "redirects": [
-    {
-      "source": "/:path+/",
-      "destination": "/:path+",
-      "internal": true,
-      "priority": true,
-      "statusCode": 308,
-      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
-    }
-  ],
-  "headers": [],
-  "onMatchHeaders": [],
-  "rewrites": {
-    "beforeFiles": [],
-    "afterFiles": [],
-    "fallback": []
-  },
-  "dynamicRoutes": [],
-  "staticRoutes": [
-    {
-      "page": "/",
-      "regex": "^/(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/(?:/)?$"
-    },
-    {
-      "page": "/_global-error",
-      "regex": "^/_global\\-error(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/_global\\-error(?:/)?$"
-    },
-    {
-      "page": "/_not-found",
-      "regex": "^/_not\\-found(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/_not\\-found(?:/)?$"
-    },
-    {
-      "page": "/api/v1/ingestion/stream",
-      "regex": "^/api/v1/ingestion/stream(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/api/v1/ingestion/stream(?:/)?$"
-    },
-    {
-      "page": "/api/v1/process/pfd-overview",
-      "regex": "^/api/v1/process/pfd\\-overview(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/api/v1/process/pfd\\-overview(?:/)?$"
-    },
-    {
-      "page": "/favicon.ico",
-      "regex": "^/favicon\\.ico(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/favicon\\.ico(?:/)?$"
-    }
-  ],
-  "dataRoutes": [],
-  "rsc": {
-    "header": "rsc",
-    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
-    "prefetchHeader": "next-router-prefetch",
-    "didPostponeHeader": "x-nextjs-postponed",
-    "contentTypeHeader": "text/x-component",
-    "suffix": ".rsc",
-    "prefetchSegmentHeader": "next-router-segment-prefetch",
-    "prefetchSegmentSuffix": ".segment.rsc",
-    "prefetchSegmentDirSuffix": ".segments",
-    "clientParamParsing": false,
-    "dynamicRSCPrerender": false
-  },
-  "rewriteHeaders": {
-    "pathHeader": "x-nextjs-rewritten-path",
-    "queryHeader": "x-nextjs-rewritten-query"
-  }
-}
-```
-
----
-
-## File: .next\_events_11764.json
-```json
-[{"eventName":"NEXT_CLI_SESSION_STOPPED","payload":{"nextVersion":"16.3.2","nodeVersion":"v24.18.0","cliCommand":"dev","durationMilliseconds":1743,"turboFlag":false,"pagesDir":false,"appDir":true,"isRspack":false}}]
-```
-
----
-
-## File: .next\_events_6712.json
-```json
-[{"eventName":"NEXT_CLI_SESSION_STOPPED","payload":{"nextVersion":"16.3.2","nodeVersion":"v24.18.0","cliCommand":"dev","durationMilliseconds":4025,"turboFlag":false,"pagesDir":false,"appDir":true,"isRspack":false}}]
-```
-
----
-
-## File: .next\build\package.json
-```json
-{"type": "commonjs"}
-```
-
----
-
-## File: .next\dev\build-manifest.json
-```json
-{
-  "polyfillFiles": [
-    "static/chunks/polyfills.js"
-  ],
-  "devFiles": [],
-  "lowPriorityFiles": [
-    "static/development/_buildManifest.js",
-    "static/development/_ssgManifest.js"
-  ],
-  "rootMainFiles": [
-    "static/chunks/webpack.js",
-    "static/chunks/main-app.js"
-  ],
-  "rootMainFilesTree": {},
-  "pages": {
-    "/_app": []
-  }
-}
-```
-
----
-
-## File: .next\dev\package.json
-```json
-{"type": "commonjs"}
-```
-
----
-
-## File: .next\dev\prerender-manifest.json
-```json
-{
-  "version": 4,
-  "routes": {},
-  "dynamicRoutes": {},
-  "notFoundRoutes": [],
-  "preview": {
-    "previewModeId": "a5e20b1061b22463c2e4207cea6bfc64",
-    "previewModeSigningKey": "38633fedaea21178e9279288f4579836e53a3fd30e36609afccbb59514d805ac",
-    "previewModeEncryptionKey": "8d17cef4c666be7646f488bca7477b64b2390a96070083ba8079c395c92f8300"
-  }
-}
-```
-
----
-
-## File: .next\dev\react-loadable-manifest.json
-```json
-{
-  "..\\node_modules\\next\\dist\\client\\dev\\hot-reloader\\app\\web-socket.js -> @vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts": {
-    "id": "..\\node_modules\\next\\dist\\client\\dev\\hot-reloader\\app\\web-socket.js -> @vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js"
-    ]
-  }
-}
-```
-
----
-
-## File: .next\dev\routes-manifest.json
-```json
-{"version":3,"caseSensitive":false,"basePath":"","rewrites":{"beforeFiles":[],"afterFiles":[],"fallback":[]},"redirects":[{"source":"/:path+/","destination":"/:path+","permanent":true,"internal":true,"priority":true,"regex":"^(?:\\/((?:[^\\/]+?)(?:\\/(?:[^\\/]+?))*))\\/$"}],"headers":[],"onMatchHeaders":[]}
-```
-
----
-
-## File: .next\dev\cache\next-devtools-config.json
-```json
-{}
-```
-
----
-
-## File: .next\dev\server\app-paths-manifest.json
-```json
-{
-  "/page": "app/page.js"
-}
-```
-
----
-
-## File: .next\dev\server\middleware-manifest.json
-```json
-{
-  "version": 3,
-  "middleware": {},
-  "functions": {},
-  "sortedMiddleware": []
-}
-```
-
----
-
-## File: .next\dev\server\next-font-manifest.json
-```json
-{"pages":{},"app":{},"appUsingSizeAdjust":false,"pagesUsingSizeAdjust":false}
-```
-
----
-
-## File: .next\dev\server\pages-manifest.json
-```json
-{}
-```
-
----
-
-## File: .next\dev\server\server-reference-manifest.json
-```json
-{
-  "node": {},
-  "edge": {},
-  "encryptionKey": "q0FUhxaM3gIg/qLbDU15OWBcaeiuFKIP137KPEbNWfc="
-}
-```
-
----
-
-## File: .next\dev\static\webpack\1d86fa4ae3df8d08.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\2e90aaf9fc26dfbc.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\30b0714482c8ed1b.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\33ed9ff49e40ad8b.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\3653d29c65594014.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\39c768ba93712acf.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":["(app-pages-browser)/./node_modules/lucide-react/dist/esm/icons/award.mjs"]}
-```
-
----
-
-## File: .next\dev\static\webpack\5073f720c639b92d.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":["(app-pages-browser)/./node_modules/lucide-react/dist/esm/icons/file-clock.mjs"]}
-```
-
----
-
-## File: .next\dev\static\webpack\53d4cf3e645230e5.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\5e7c57633a08ef36.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\633457081244afec._.hot-update.json
-```json
-{"c":[],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\68eff60f416a04d2.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\8400f93491a3fd57.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\aac07283de8b356b.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\ac27632443adc558.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\c7e65f09e3b8a774.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\ccdf810b41c0ff16.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\ce0ba582480fb918.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\dd055813f428a227.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":[]}
-```
-
----
-
-## File: .next\dev\static\webpack\f30bfc23de50b886.webpack.hot-update.json
-```json
-{"c":["app/layout","app/page","webpack"],"r":[],"m":["(app-pages-browser)/./src/components/manpower/modals/OperationsOverrideModal.tsx"]}
-```
-
----
-
-## File: .next\dev\types\cache-life.d.ts
-```typescript
-// Type definitions for Next.js cacheLife configs
-
-declare module 'next/cache' {
-  export { unstable_cache } from 'next/dist/server/web/spec-extension/unstable-cache'
-  export {
-    updateTag,
-    revalidateTag,
-    revalidatePath,
-    refresh,
-  } from 'next/dist/server/web/spec-extension/revalidate'
-  export { unstable_noStore } from 'next/dist/server/web/spec-extension/unstable-no-store'
-  export { io } from 'next/dist/server/request/io'
-
-  
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"default"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 900 seconds (15 minutes)
-     *   expire:     never
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 15 minutes, start revalidating new values in the background.
-     * It lives for the maximum age of the server cache. If this entry has no traffic for a while, it may serve an old value the next request.
-     */
-    export function cacheLife(profile: "default"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"seconds"` profile.
-     * ```
-     *   stale:      30 seconds
-     *   revalidate: 1 seconds
-     *   expire:     60 seconds (1 minute)
-     * ```
-     * 
-     * This cache may be stale on clients for 30 seconds before checking with the server.
-     * If the server receives a new request after 1 seconds, start revalidating new values in the background.
-     * If this entry has no traffic for 1 minute it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "seconds"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"minutes"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 60 seconds (1 minute)
-     *   expire:     3600 seconds (1 hour)
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 1 minute, start revalidating new values in the background.
-     * If this entry has no traffic for 1 hour it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "minutes"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"hours"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 3600 seconds (1 hour)
-     *   expire:     86400 seconds (1 day)
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 1 hour, start revalidating new values in the background.
-     * If this entry has no traffic for 1 day it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "hours"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"days"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 86400 seconds (1 day)
-     *   expire:     604800 seconds (1 week)
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 1 day, start revalidating new values in the background.
-     * If this entry has no traffic for 1 week it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "days"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"weeks"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 604800 seconds (1 week)
-     *   expire:     2592000 seconds (1 month)
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 1 week, start revalidating new values in the background.
-     * If this entry has no traffic for 1 month it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "weeks"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"max"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 2592000 seconds (1 month)
-     *   expire:     31536000 seconds (365 days)
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 1 month, start revalidating new values in the background.
-     * If this entry has no traffic for 365 days it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "max"): void
-    
-    /**
-     * Cache this `"use cache"` using a custom timespan.
-     * ```
-     *   stale: ... // seconds
-     *   revalidate: ... // seconds
-     *   expire: ... // seconds
-     * ```
-     *
-     * This is similar to Cache-Control: max-age=`stale`,s-max-age=`revalidate`,stale-while-revalidate=`expire-revalidate`
-     *
-     * If a value is left out, the lowest of other cacheLife() calls or the default, is used instead.
-     */
-    export function cacheLife(profile: {
-      /**
-       * This cache may be stale on clients for ... seconds before checking with the server.
-       */
-      stale?: number,
-      /**
-       * If the server receives a new request after ... seconds, start revalidating new values in the background.
-       */
-      revalidate?: number,
-      /**
-       * If this entry has no traffic for ... seconds it will expire. The next request will recompute it.
-       */
-      expire?: number
-    }): void
-  
-
-  import { cacheTag } from 'next/dist/server/use-cache/cache-tag'
-  export { cacheTag }
-
-  export const unstable_cacheTag: typeof cacheTag
-  export const unstable_cacheLife: typeof cacheLife
-}
-
-```
-
----
-
-## File: .next\dev\types\package.json
-```json
-{"type": "module"}
-```
-
----
-
-## File: .next\dev\types\root-params.d.ts
-```typescript
-// Type definitions for Next.js root params (next/root-params)
-// No root params detected.
-export {}
-
-```
-
----
-
-## File: .next\dev\types\routes.d.ts
-```typescript
-// This file is generated automatically by Next.js
-// Do not edit this file manually
-
-type AppRoutes = "/"
-type AppRouteHandlerRoutes = "/api/v1/ingestion/stream" | "/api/v1/process/pfd-overview"
-type PageRoutes = never
-type LayoutRoutes = "/"
-type RedirectRoutes = never
-type RewriteRoutes = never
-type Routes = AppRoutes | PageRoutes | LayoutRoutes | RedirectRoutes | RewriteRoutes | AppRouteHandlerRoutes
-
-
-interface ParamMap {
-  "/": {}
-  "/api/v1/ingestion/stream": {}
-  "/api/v1/process/pfd-overview": {}
-}
-
-
-export type ParamsOf<Route extends Routes> = ParamMap[Route]
-
-interface LayoutSlotMap {
-  "/": never
-}
-
-
-export type { AppRoutes, PageRoutes, LayoutRoutes, RedirectRoutes, RewriteRoutes, ParamMap, AppRouteHandlerRoutes }
-
-declare global {
-  /**
-   * Props for Next.js App Router page components
-   * @example
-   * ```tsx
-   * export default function Page(props: PageProps<'/blog/[slug]'>) {
-   *   const { slug } = await props.params
-   *   return <div>Blog post: {slug}</div>
-   * }
-   * ```
-   */
-  interface PageProps<AppRoute extends AppRoutes> {
-    params: Promise<ParamMap[AppRoute]>
-    searchParams: Promise<Record<string, string | string[] | undefined>>
-  }
-
-  /**
-   * Props for Next.js App Router layout components
-   * @example
-   * ```tsx
-   * export default function Layout(props: LayoutProps<'/dashboard'>) {
-   *   return <div>{props.children}</div>
-   * }
-   * ```
-   */
-  type LayoutProps<LayoutRoute extends LayoutRoutes> = {
-    params: Promise<ParamMap[LayoutRoute]>
-    children: React.ReactNode
-  } & {
-    [K in LayoutSlotMap[LayoutRoute]]: React.ReactNode
-  }
-
-  /**
-   * Context for Next.js App Router route handlers
-   * @example
-   * ```tsx
-   * export async function GET(request: NextRequest, context: RouteContext<'/api/users/[id]'>) {
-   *   const { id } = await context.params
-   *   return Response.json({ id })
-   * }
-   * ```
-   */
-  interface RouteContext<AppRouteHandlerRoute extends AppRouteHandlerRoutes> {
-    params: Promise<ParamMap[AppRouteHandlerRoute]>
-  }
-}
-
-```
-
----
-
-## File: .next\dev\types\validator.ts
-```typescript
-// This file is generated automatically by Next.js
-// Do not edit this file manually
-// This file validates that all pages and layouts export the correct types
-
-import type { AppRoutes, LayoutRoutes, ParamMap, AppRouteHandlerRoutes } from "./routes.js"
-import type { ResolvingMetadata, ResolvingViewport } from "next/types.js"
-import type { NextRequest } from 'next/server.js'
-
-type AppPageConfig<Route extends AppRoutes = AppRoutes> = {
-  default: React.ComponentType<{ params: Promise<ParamMap[Route]> } & any> | ((props: { params: Promise<ParamMap[Route]> } & any) => React.ReactNode | Promise<React.ReactNode> | never | void | Promise<void>)
-  generateStaticParams?: (props: { params: ParamMap[Route] }) => Promise<any[]> | any[]
-  generateMetadata?: (
-    props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingMetadata
-  ) => Promise<any> | any
-  generateViewport?: (
-    props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingViewport
-  ) => Promise<any> | any
-  metadata?: any
-  viewport?: any
-}
-
-type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
-  default: React.ComponentType<LayoutProps<Route>> | ((props: LayoutProps<Route>) => React.ReactNode | Promise<React.ReactNode> | never | void | Promise<void>)
-  generateStaticParams?: (props: { params: ParamMap[Route] }) => Promise<any[]> | any[]
-  generateMetadata?: (
-    props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingMetadata
-  ) => Promise<any> | any
-  generateViewport?: (
-    props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingViewport
-  ) => Promise<any> | any
-  metadata?: any
-  viewport?: any
-}
-
-type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRoutes> = {
-  GET?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  POST?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  PUT?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  PATCH?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  DELETE?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  HEAD?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  OPTIONS?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-}
-
-
-// Validate ../../../src/app/page.tsx
-{
-  type __IsExpected<Specific extends AppPageConfig<"/">> = Specific
-  const handler = {} as typeof import("../../../src/app/page.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../../src/app/api/v1/ingestion/stream/route.ts
-{
-  type __IsExpected<Specific extends RouteHandlerConfig<"/api/v1/ingestion/stream">> = Specific
-  const handler = {} as typeof import("../../../src/app/api/v1/ingestion/stream/route.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../../src/app/api/v1/process/pfd-overview/route.ts
-{
-  type __IsExpected<Specific extends RouteHandlerConfig<"/api/v1/process/pfd-overview">> = Specific
-  const handler = {} as typeof import("../../../src/app/api/v1/process/pfd-overview/route.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-
-
-
-
-// Validate ../../../src/app/layout.tsx
-{
-  type __IsExpected<Specific extends LayoutConfig<"/">> = Specific
-  const handler = {} as typeof import("../../../src/app/layout.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-```
-
----
-
-## File: .next\dev\types\app\layout.ts
-```typescript
-// File: D:\Dev_PCode\NIAS_LNG_Portal\src\app\layout.tsx
-import * as entry from '../../../../src/app/layout.js'
-import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
-
-import type { InstantConfigForTypeCheckInternal, Prefetch } from 'next/dist/build/segment-config/app/app-segment-config.js'
-
-type TEntry = typeof import('../../../../src/app/layout.js')
-
-type SegmentParams<T extends Object = any> = T extends Record<string, any>
-  ? { [K in keyof T]: T[K] extends string ? string | string[] | undefined : never }
-  : T
-
-// Check that the entry is a valid entry
-checkFields<Diff<{
-  default: Function
-  config?: {}
-  generateStaticParams?: Function
-  instant?: InstantConfigForTypeCheckInternal
-  prefetch?: Prefetch
-  unstable_dynamicStaleTime?: number
-  revalidate?: RevalidateRange<TEntry> | false
-  dynamic?: 'auto' | 'force-dynamic' | 'error' | 'force-static'
-  dynamicParams?: boolean
-  fetchCache?: 'auto' | 'force-no-store' | 'only-no-store' | 'default-no-store' | 'default-cache' | 'only-cache' | 'force-cache'
-  /** @deprecated The `preferredRegion` config is deprecated. Remove this export. */
-  preferredRegion?: 'auto' | 'global' | 'home' | string | string[]
-  runtime?: 'nodejs' | 'experimental-edge' | 'edge'
-  maxDuration?: number
-  
-  metadata?: any
-  generateMetadata?: Function
-  viewport?: any
-  generateViewport?: Function
-  
-}, TEntry, ''>>()
-
-
-// Check the prop type of the entry function
-checkFields<Diff<LayoutProps, FirstArg<TEntry['default']>, 'default'>>()
-
-// Check the arguments and return type of the generateMetadata function
-if ('generateMetadata' in entry) {
-  checkFields<Diff<LayoutProps, FirstArg<MaybeField<TEntry, 'generateMetadata'>>, 'generateMetadata'>>()
-  checkFields<Diff<ResolvingMetadata, SecondArg<MaybeField<TEntry, 'generateMetadata'>>, 'generateMetadata'>>()
-}
-
-// Check the arguments and return type of the generateViewport function
-if ('generateViewport' in entry) {
-  checkFields<Diff<LayoutProps, FirstArg<MaybeField<TEntry, 'generateViewport'>>, 'generateViewport'>>()
-  checkFields<Diff<ResolvingViewport, SecondArg<MaybeField<TEntry, 'generateViewport'>>, 'generateViewport'>>()
-}
-
-// Check the arguments and return type of the generateStaticParams function
-if ('generateStaticParams' in entry) {
-  checkFields<Diff<{ params: SegmentParams }, FirstArg<MaybeField<TEntry, 'generateStaticParams'>>, 'generateStaticParams'>>()
-  checkFields<Diff<{ __tag__: 'generateStaticParams', __return_type__: any[] | Promise<any[]> }, { __tag__: 'generateStaticParams', __return_type__: ReturnType<MaybeField<TEntry, 'generateStaticParams'>> }>>()
-}
-
-export interface PageProps {
-  params?: Promise<SegmentParams>
-  searchParams?: Promise<any>
-}
-export interface LayoutProps {
-  children?: React.ReactNode
-
-  params?: Promise<SegmentParams>
-}
-
-// =============
-// Utility types
-type RevalidateRange<T> = T extends { revalidate: any } ? NonNegative<T['revalidate']> : never
-
-// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
-type OmitWithTag<T, K extends keyof any, _M> = Omit<T, K>
-type Diff<Base, T extends Base, Message extends string = ''> = 0 extends (1 & T) ? {} : OmitWithTag<T, keyof Base, Message>
-
-type FirstArg<T extends Function> = T extends (...args: [infer T, any]) => any ? unknown extends T ? any : T : never
-type SecondArg<T extends Function> = T extends (...args: [any, infer T]) => any ? unknown extends T ? any : T : never
-type MaybeField<T, K extends string> = T extends { [k in K]: infer G } ? G extends Function ? G : never : never
-
-
-
-function checkFields<_ extends { [k in keyof any]: never }>() {}
-
-// https://github.com/sindresorhus/type-fest
-type Numeric = number | bigint
-type Zero = 0 | 0n
-type Negative<T extends Numeric> = T extends Zero ? never : `${T}` extends `-${string}` ? T : never
-type NonNegative<T extends Numeric> = T extends Zero ? T : Negative<T> extends never ? T : '__invalid_negative_number__'
-
-```
-
----
-
-## File: .next\dev\types\app\page.ts
-```typescript
-// File: D:\Dev_PCode\NIAS_LNG_Portal\src\app\page.tsx
-import * as entry from '../../../../src/app/page.js'
-import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
-
-import type { InstantConfigForTypeCheckInternal, Prefetch } from 'next/dist/build/segment-config/app/app-segment-config.js'
-
-type TEntry = typeof import('../../../../src/app/page.js')
-
-type SegmentParams<T extends Object = any> = T extends Record<string, any>
-  ? { [K in keyof T]: T[K] extends string ? string | string[] | undefined : never }
-  : T
-
-// Check that the entry is a valid entry
-checkFields<Diff<{
-  default: Function
-  config?: {}
-  generateStaticParams?: Function
-  instant?: InstantConfigForTypeCheckInternal
-  prefetch?: Prefetch
-  unstable_dynamicStaleTime?: number
-  revalidate?: RevalidateRange<TEntry> | false
-  dynamic?: 'auto' | 'force-dynamic' | 'error' | 'force-static'
-  dynamicParams?: boolean
-  fetchCache?: 'auto' | 'force-no-store' | 'only-no-store' | 'default-no-store' | 'default-cache' | 'only-cache' | 'force-cache'
-  /** @deprecated The `preferredRegion` config is deprecated. Remove this export. */
-  preferredRegion?: 'auto' | 'global' | 'home' | string | string[]
-  runtime?: 'nodejs' | 'experimental-edge' | 'edge'
-  maxDuration?: number
-  
-  metadata?: any
-  generateMetadata?: Function
-  viewport?: any
-  generateViewport?: Function
-  
-}, TEntry, ''>>()
-
-
-// Check the prop type of the entry function
-checkFields<Diff<PageProps, FirstArg<TEntry['default']>, 'default'>>()
-
-// Check the arguments and return type of the generateMetadata function
-if ('generateMetadata' in entry) {
-  checkFields<Diff<PageProps, FirstArg<MaybeField<TEntry, 'generateMetadata'>>, 'generateMetadata'>>()
-  checkFields<Diff<ResolvingMetadata, SecondArg<MaybeField<TEntry, 'generateMetadata'>>, 'generateMetadata'>>()
-}
-
-// Check the arguments and return type of the generateViewport function
-if ('generateViewport' in entry) {
-  checkFields<Diff<PageProps, FirstArg<MaybeField<TEntry, 'generateViewport'>>, 'generateViewport'>>()
-  checkFields<Diff<ResolvingViewport, SecondArg<MaybeField<TEntry, 'generateViewport'>>, 'generateViewport'>>()
-}
-
-// Check the arguments and return type of the generateStaticParams function
-if ('generateStaticParams' in entry) {
-  checkFields<Diff<{ params: SegmentParams }, FirstArg<MaybeField<TEntry, 'generateStaticParams'>>, 'generateStaticParams'>>()
-  checkFields<Diff<{ __tag__: 'generateStaticParams', __return_type__: any[] | Promise<any[]> }, { __tag__: 'generateStaticParams', __return_type__: ReturnType<MaybeField<TEntry, 'generateStaticParams'>> }>>()
-}
-
-export interface PageProps {
-  params?: Promise<SegmentParams>
-  searchParams?: Promise<any>
-}
-export interface LayoutProps {
-  children?: React.ReactNode
-
-  params?: Promise<SegmentParams>
-}
-
-// =============
-// Utility types
-type RevalidateRange<T> = T extends { revalidate: any } ? NonNegative<T['revalidate']> : never
-
-// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
-type OmitWithTag<T, K extends keyof any, _M> = Omit<T, K>
-type Diff<Base, T extends Base, Message extends string = ''> = 0 extends (1 & T) ? {} : OmitWithTag<T, keyof Base, Message>
-
-type FirstArg<T extends Function> = T extends (...args: [infer T, any]) => any ? unknown extends T ? any : T : never
-type SecondArg<T extends Function> = T extends (...args: [any, infer T]) => any ? unknown extends T ? any : T : never
-type MaybeField<T, K extends string> = T extends { [k in K]: infer G } ? G extends Function ? G : never : never
-
-
-
-function checkFields<_ extends { [k in keyof any]: never }>() {}
-
-// https://github.com/sindresorhus/type-fest
-type Numeric = number | bigint
-type Zero = 0 | 0n
-type Negative<T extends Numeric> = T extends Zero ? never : `${T}` extends `-${string}` ? T : never
-type NonNegative<T extends Numeric> = T extends Zero ? T : Negative<T> extends never ? T : '__invalid_negative_number__'
-
-```
-
----
-
-## File: .next\diagnostics\build-diagnostics.json
-```json
-{
-  "buildStage": "static-generation",
-  "buildOptions": {
-    "useBuildWorker": "true"
-  }
-}
-```
-
----
-
-## File: .next\diagnostics\framework.json
-```json
-{"name":"Next.js","version":"16.3.2"}
-```
-
----
-
-## File: .next\diagnostics\route-bundle-stats.json
-```json
-[
-  {
-    "route": "/",
-    "firstLoadUncompressedJsBytes": 3262020,
-    "firstLoadChunkPaths": [
-      ".next\\static\\chunks\\3fntmmi971322.js",
-      ".next\\static\\chunks\\1b7qlvpzud2s9.js",
-      ".next\\static\\chunks\\1inwntv0b4r-7.js",
-      ".next\\static\\chunks\\2h1eivth_f3qo.js",
-      ".next\\static\\chunks\\1qe3i8urdd-pi.js",
-      ".next\\static\\chunks\\turbopack-2-wuwwgvehyn4.js"
-    ]
-  },
-  {
-    "route": "/_not-found",
-    "firstLoadUncompressedJsBytes": 453121,
-    "firstLoadChunkPaths": [
-      ".next\\static\\chunks\\3fntmmi971322.js",
-      ".next\\static\\chunks\\1inwntv0b4r-7.js",
-      ".next\\static\\chunks\\2h1eivth_f3qo.js",
-      ".next\\static\\chunks\\1qe3i8urdd-pi.js",
-      ".next\\static\\chunks\\turbopack-2-wuwwgvehyn4.js"
-    ]
-  }
-]
-```
-
----
-
-## File: .next\server\app-paths-manifest.json
-```json
-{
-  "/_global-error/page": "app/_global-error/page.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/v1/ingestion/stream/route": "app/api/v1/ingestion/stream/route.js",
-  "/api/v1/process/pfd-overview/route": "app/api/v1/process/pfd-overview/route.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/page": "app/page.js"
-}
-```
-
----
-
-## File: .next\server\functions-config-manifest.json
-```json
-{
-  "version": 1,
-  "functions": {}
-}
-```
-
----
-
-## File: .next\server\middleware-manifest.json
-```json
-{
-  "version": 3,
-  "middleware": {},
-  "sortedMiddleware": [],
-  "functions": {}
-}
-```
-
----
-
-## File: .next\server\next-font-manifest.json
-```json
-{
-  "app": {
-    "[project]/src/app/_not-found/page": [
-      "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
-    ],
-    "[project]/src/app/page": [
-      "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
-    ]
-  },
-  "appUsingSizeAdjust": true,
-  "pages": {},
-  "pagesUsingSizeAdjust": false
-}
-```
-
----
-
-## File: .next\server\pages-manifest.json
-```json
-{
-  "/404": "pages/404.html",
-  "/500": "pages/500.html"
-}
-```
-
----
-
-## File: .next\server\prefetch-hints.json
-```json
-{
-  "/_global-error": {
-    "hints": 64,
-    "slots": {
-      "children": {
-        "hints": 160,
-        "slots": null
-      }
-    }
-  },
-  "/_not-found": {
-    "hints": 64,
-    "slots": {
-      "children": {
-        "hints": 96,
-        "slots": {
-          "children": {
-            "hints": 160,
-            "slots": null
-          }
-        }
-      }
-    }
-  },
-  "/": {
-    "hints": 64,
-    "slots": {
-      "children": {
-        "hints": 160,
-        "slots": null
-      }
-    }
-  }
-}
-```
-
----
-
-## File: .next\server\server-reference-manifest.json
-```json
-{
-  "node": {},
-  "edge": {},
-  "encryptionKey": "BWn7zxtc1Lwxzxt0ZSvg+CJ8DIMo5R/JxiLktF0ppbo="
-}
-```
-
----
-
-## File: .next\server\app\page.js.nft.json
-```json
-{"version":1,"files":["../../../node_modules/@swc/helpers/cjs/_interop_require_default.cjs","../../../node_modules/@swc/helpers/esm/_interop_require_default.js","../../../node_modules/@swc/helpers/package.json","../../../node_modules/balanced-match/index.js","../../../node_modules/balanced-match/package.json","../../../node_modules/brace-expansion/index.js","../../../node_modules/brace-expansion/package.json","../../../node_modules/concat-map/index.js","../../../node_modules/concat-map/package.json","../../../node_modules/fs.realpath/LICENSE","../../../node_modules/fs.realpath/README.md","../../../node_modules/fs.realpath/index.js","../../../node_modules/fs.realpath/old.js","../../../node_modules/fs.realpath/package.json","../../../node_modules/fstream/lib/abstract.js","../../../node_modules/fstream/lib/collect.js","../../../node_modules/fstream/lib/dir-reader.js","../../../node_modules/fstream/lib/dir-writer.js","../../../node_modules/fstream/lib/file-reader.js","../../../node_modules/fstream/lib/file-writer.js","../../../node_modules/fstream/lib/get-type.js","../../../node_modules/fstream/lib/link-reader.js","../../../node_modules/fstream/lib/link-writer.js","../../../node_modules/fstream/lib/proxy-reader.js","../../../node_modules/fstream/lib/proxy-writer.js","../../../node_modules/fstream/lib/reader.js","../../../node_modules/fstream/lib/socket-reader.js","../../../node_modules/fstream/lib/writer.js","../../../node_modules/glob/LICENSE","../../../node_modules/glob/README.md","../../../node_modules/glob/common.js","../../../node_modules/glob/glob.js","../../../node_modules/glob/package.json","../../../node_modules/glob/sync.js","../../../node_modules/inflight/inflight.js","../../../node_modules/inflight/package.json","../../../node_modules/inherits/inherits.js","../../../node_modules/inherits/inherits_browser.js","../../../node_modules/inherits/package.json","../../../node_modules/minimatch/minimatch.js","../../../node_modules/minimatch/package.json","../../../node_modules/next/dist/build/adapter/setup-node-env.external.js","../../../node_modules/next/dist/client/components/hooks-server-context.js","../../../node_modules/next/dist/client/components/static-generation-bailout.js","../../../node_modules/next/dist/client/lib/console.js","../../../node_modules/next/dist/compiled/@opentelemetry/api/index.js","../../../node_modules/next/dist/compiled/@opentelemetry/api/package.json","../../../node_modules/next/dist/compiled/jsonwebtoken/index.js","../../../node_modules/next/dist/compiled/jsonwebtoken/package.json","../../../node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js","../../../node_modules/next/dist/compiled/source-map/package.json","../../../node_modules/next/dist/compiled/source-map/source-map.js","../../../node_modules/next/dist/compiled/stacktrace-parser/package.json","../../../node_modules/next/dist/compiled/stacktrace-parser/stack-trace-parser.cjs.js","../../../node_modules/next/dist/compiled/ws/index.js","../../../node_modules/next/dist/compiled/ws/package.json","../../../node_modules/next/dist/lib/client-and-server-references.js","../../../node_modules/next/dist/lib/constants.js","../../../node_modules/next/dist/lib/framework/boundary-constants.js","../../../node_modules/next/dist/lib/interop-default.js","../../../node_modules/next/dist/lib/is-error.js","../../../node_modules/next/dist/lib/picocolors.js","../../../node_modules/next/dist/lib/scheduler.js","../../../node_modules/next/dist/lib/semver-noop.js","../../../node_modules/next/dist/server/app-render/action-async-storage-instance.js","../../../node_modules/next/dist/server/app-render/action-async-storage.external.js","../../../node_modules/next/dist/server/app-render/after-task-async-storage-instance.js","../../../node_modules/next/dist/server/app-render/after-task-async-storage.external.js","../../../node_modules/next/dist/server/app-render/async-local-storage.js","../../../node_modules/next/dist/server/app-render/blocking-route-messages.js","../../../node_modules/next/dist/server/app-render/cache-signal.js","../../../node_modules/next/dist/server/app-render/console-async-storage-instance.js","../../../node_modules/next/dist/server/app-render/console-async-storage.external.js","../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage-instance.js","../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage.external.js","../../../node_modules/next/dist/server/app-render/dynamic-rendering.js","../../../node_modules/next/dist/server/app-render/instant-validation/boundary-constants.js","../../../node_modules/next/dist/server/app-render/instant-validation/boundary-tracking.js","../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.external.js","../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.instance.js","../../../node_modules/next/dist/server/app-render/staged-rendering.js","../../../node_modules/next/dist/server/app-render/sync-io-messages.js","../../../node_modules/next/dist/server/app-render/work-async-storage-instance.js","../../../node_modules/next/dist/server/app-render/work-async-storage.external.js","../../../node_modules/next/dist/server/app-render/work-unit-async-storage-instance.js","../../../node_modules/next/dist/server/app-render/work-unit-async-storage.external.js","../../../node_modules/next/dist/server/dev/browser-logs/file-logger.js","../../../node_modules/next/dist/server/dynamic-rendering-utils.js","../../../node_modules/next/dist/server/lib/incremental-cache/memory-cache.external.js","../../../node_modules/next/dist/server/lib/incremental-cache/shared-cache-controls.external.js","../../../node_modules/next/dist/server/lib/incremental-cache/tags-manifest.external.js","../../../node_modules/next/dist/server/lib/lru-cache.js","../../../node_modules/next/dist/server/lib/parse-stack.js","../../../node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js","../../../node_modules/next/dist/server/lib/router-utils/instrumentation-node-extensions.js","../../../node_modules/next/dist/server/lib/source-maps.js","../../../node_modules/next/dist/server/lib/trace/constants.js","../../../node_modules/next/dist/server/lib/trace/tracer.js","../../../node_modules/next/dist/server/load-manifest.external.js","../../../node_modules/next/dist/server/node-environment-baseline.js","../../../node_modules/next/dist/server/node-environment-extensions/console-dim.external.js","../../../node_modules/next/dist/server/node-environment-extensions/console-exit.js","../../../node_modules/next/dist/server/node-environment-extensions/console-file.js","../../../node_modules/next/dist/server/node-environment-extensions/date.js","../../../node_modules/next/dist/server/node-environment-extensions/error-inspect.js","../../../node_modules/next/dist/server/node-environment-extensions/fast-set-immediate.external.js","../../../node_modules/next/dist/server/node-environment-extensions/io-utils.js","../../../node_modules/next/dist/server/node-environment-extensions/node-crypto.js","../../../node_modules/next/dist/server/node-environment-extensions/random.js","../../../node_modules/next/dist/server/node-environment-extensions/unhandled-rejection.external.js","../../../node_modules/next/dist/server/node-environment-extensions/web-crypto.js","../../../node_modules/next/dist/server/node-environment.js","../../../node_modules/next/dist/server/node-polyfill-crypto.js","../../../node_modules/next/dist/server/patch-error-inspect.js","../../../node_modules/next/dist/server/require-hook.js","../../../node_modules/next/dist/server/response-cache/types.js","../../../node_modules/next/dist/server/runtime-reacts.external.js","../../../node_modules/next/dist/shared/lib/deep-freeze.js","../../../node_modules/next/dist/shared/lib/instant-messages.js","../../../node_modules/next/dist/shared/lib/invariant-error.js","../../../node_modules/next/dist/shared/lib/is-plain-object.js","../../../node_modules/next/dist/shared/lib/is-thenable.js","../../../node_modules/next/dist/shared/lib/lazy-dynamic/bailout-to-csr.js","../../../node_modules/next/dist/shared/lib/no-fallback-error.external.js","../../../node_modules/next/dist/shared/lib/promise-with-resolvers.js","../../../node_modules/next/dist/shared/lib/server-reference-info.js","../../../node_modules/next/package.json","../../../node_modules/once/once.js","../../../node_modules/once/package.json","../../../node_modules/path-is-absolute/index.js","../../../node_modules/path-is-absolute/package.json","../../../node_modules/react/cjs/react.development.js","../../../node_modules/react/cjs/react.production.js","../../../node_modules/react/index.js","../../../node_modules/react/package.json","../../../node_modules/readdir-glob/LICENSE","../../../node_modules/readdir-glob/README.md","../../../node_modules/readdir-glob/index.js","../../../node_modules/readdir-glob/package.json","../../../node_modules/rimraf/LICENSE","../../../node_modules/rimraf/README.md","../../../node_modules/rimraf/bin.js","../../../node_modules/rimraf/package.json","../../../node_modules/rimraf/rimraf.js","../../../node_modules/tmp/lib/tmp.js","../../../node_modules/wrappy/package.json","../../../node_modules/wrappy/wrappy.js","../../node_modules/rimraf-ca920c550f67ed39","../chunks/ssr/[externals]__1cf9dq2._.js","../chunks/ssr/[root-of-the-server]__0d-hx2p._.js","../chunks/ssr/[root-of-the-server]__0yw4rri._.js","../chunks/ssr/[root-of-the-server]__174cgu_._.js","../chunks/ssr/[root-of-the-server]__1gux7cw._.js","../chunks/ssr/[root-of-the-server]__1kicjey._.js","../chunks/ssr/[root-of-the-server]__1mr37or._.js","../chunks/ssr/[turbopack]_runtime.js","../chunks/ssr/_next-internal_server_app_page_actions_0hhsz1j.js","../chunks/ssr/node_modules_01xbj_9._.js","../chunks/ssr/node_modules_next_dist_10oqhbx._.js","../chunks/ssr/node_modules_next_dist_1n3w9lb._.js","../chunks/ssr/node_modules_next_dist_client_components_0wpq8j3._.js","../chunks/ssr/node_modules_next_dist_client_components_builtin_forbidden_0symwr9.js","../chunks/ssr/node_modules_next_dist_client_components_builtin_global-error_0q-w892.js","../chunks/ssr/node_modules_next_dist_client_components_builtin_unauthorized_0l_sp0x.js","./page/react-loadable-manifest.json","./page_client-reference-manifest.js"],"fileHashes":["ef6ac6914a3f24c9f4a98105a3bdd310","bcdfbca94848d30153fa83f8421423d7","50bb01754878225cf6730e02b44f84d6","d40b0a470b7aa3b907dd2d4128242319","c547ae04eaa18ce3dbd3e3fddb554707","c5a663762fb01036d06dd282861ba565","609245a44c9fefc85af4b51908c2be34","95c2a9d8f32620efc2703f89d38df262","415633d9a050755c321b476622a796cc","dbf841d38d4ba7ee883a588fe8e1fcac","0ccb33add625c5a253485a488cc89caa","d1228685fef74c12b8295ebeb081240d","189dacd1f2767b2a3eba83a893e1cbce","eec83f4a5bc81d84e74f2cb6f82b6b70","dc51d924d2efc0d5cffacfe485212a60","c9410c334db62d2086b88ee5833785cf","57247811c079e19a67467732c6055adb","cbfbd8b60398b4bb8877d6b1bc6bbed0","0b49f3a0bc8859e751dbb5a8796c3af0","0f59fdf2427476faf31935d1967103af","4a894b46eb90c580ec252bc003514d8a","2373143d9cbd29c4610a7c368ea83ddd","8ae9d158e7e1963e122aeca09b132e26","2c651920ecaeac40b4f7513395cb6aac","c81f1bff4ae6bb053fa8794db617a9bc","aa0adb975790debd7e6d0508cc7ec3b9","2d60c9078978b88e267573e2a5ffa69b","4ba3e7078d700ecd816e02dc92235e55","c8404cd47f5ecab10a2b1b935bd86657","abb0f44eab61a7eb9e681984ca5f3895","ad0908bdee12084779fe5426a39327bc","0330c0f6c5a661125576fa8c30eb6d3e","44ef3108a4b47757751662d75e212c6d","e2177920baf2bef5f5f479ec57ec9309","f438bb1196f9ce55c2ba41c5c4853455","3d7be98648909c288a0becca6762a75d","fddd4dc0f1511b40da8890d5501082a3","cb370d23089308aafc375182682c8d7a","0f1c2074421699d6ab1515e8e5f1ec61","79cc42d20397ed4c1f29bbfbde1817d8","099a5ca7574726ea0bc55bf337a98a78","a5446fb306fcfec27c39f81de38ec842","9c53694dd40423680deefb5a1e3c25af","57ca86e5858543e1466b92725355539a","11eb668649d2434d25d26977b8e01e49","02186196a2cc227a67f668f00873f72a","fa8a4dd27dcbde144881044b2fa74f64","cd28bbc5151decba058dfd44bd7f47ef","a8da0851d005c95af6d4ff8b8db146ce","9791ca6a9c90d3537cf59c50161e7260","61445cc4a73d56b154f397d2e4213b60","4e6491a35b1970e74a940d26e575216a","0bcd39f6f5be09dab16374e3bf84459e","ce87d6acf7ef1610862d34a9c59528ea","d1e9d6e75ad3a9d63cc0825ec4ebe282","b81183ad70cf2df4130a6f7853eff593","edcceea1e2a5c13a14d12f4d422f733a","92d7eec9f49250bf6325e1b4186fb521","0b3ab74e31e82ffa9b20013ed883782e","15ad04875f6d43fc8bd602b20d828566","5fe712e91d39531cd872b189115c7a25","c07db8edca1ca7e626b14dbf4e3584a8","0aa24beea9e1b8ae34954feb1be5caa6","f9295c2e844d919b0be75fffe2e10989","9b1c71085acfacbddbca5126bca3f550","6505c89743b18298e0e22489f1d956ed","8f2d8843ff7d322ecc237601ab58e1d7","d90d4f1de46d810d671d85f21ec5d352","2eecc48be406b9c64276e31215c29e95","981807b2548ffbff8d9ad94a758813fb","9f6a333435676ba7b0045e6b0d2d9b98","2701737ab664a8fe7700053638aa0db8","33916079c6a49d35edf38970b6afa990","046a57d6280182df9f32d77ba452677f","94e9332b8f4251c1b03791e57aad9399","6978bf3fb2c443a8c9022d43a243c56a","8fb4ea2a1e97dc7ad2cbbf5641b1aa23","7175e4648ef6975b79e76f0f46dc69df","7a4c4e16ecb22ffb0ba224fa37e94a70","848334e0b7acedfd5656296df4adae7c","0a201256d245b3a0e27ed288b6ba68ae","498fc15d07579c19b3cc959a96eb5bb8","40c6916156cc44db5f0c8e266c9f1e60","1acc3875adfbadf8dd6721e71e776ecd","1eb18df669f40e7a0c8e077b365c907d","08cab8a9c8062eac4f6b9cbcc303417a","bef9750470e394d3052dfe5a7847e9a0","4d1a01dfd6b6423b2d0ff0467f613bd8","7cfcc764f9b49f84e568c2a8b481ef89","ecbf1e0ab3ad74e5979ab5771d710880","59f473418a3a0c96c8ec855aa72bd02a","d3c2a37fdf66b455a0ed47d33fc12229","215309237f9a05ec8f52edadcd0565bf","5f3e641690915ca863053b107ae0493a","44cca5b4413d63e3179289d31fe1bcf1","ce930365528e6b0f94d346e8a3a6c976","85ef440bb2c4d6dcc19f40e9d77059e3","b73d42aa8f40f578ac38efd8516ad8a3","fc4f7117734aa11e26028c3a1f0e9934","4b5216f48144eab06a89f40a112df0f9","7f7c41d2d2c4e4ea0359ce7e30c4676d","a52c1bfa60cdd122eb82001cf748b39b","4daf2c54f6e769ac3f1c55e2d2356e62","67530655ee6d2037c694d851f60a4d3a","72e15054e5bb83aa2714e9aa0f2a8aaa","72944fa2cce5836dad49dfd7147626d0","3c5c716d6aebf4093db91e57fe322e0c","64c0567172a45f553110cf14514d76dc","f5232a6a89b9b1646513f6f36cfd6edc","ed734e4322f6faf639acccc2130bd1f9","3a55a78645b57706246de6914d4ce134","438a096196cbf3f40712fc244347eced","59be47cbf4cb15affb56354159123835","e124239b7fff31a73bfc3e95cfc593d3","38636bd694da4120897a2a695111039c","03f54ee64db45e6ac7025c881590f862","48538028ed97d91e767563f56035e684","217152373b3f900ae15ce0920bb06da9","6dadc2917fc514e7e4c6f4cabe7d69a6","a81a01b4510a203a8811e202d3537fe8","37ac4cbd6b18d52a47105218c3573c36","5ab4d38c634c37598fc59a79eeef302f","e2a4479a35cb46058fa5fa4148e39287","a5ceecfe744045263b3b4c06e4d48cce","5654b3d7d7805129b98db879f3bbd2af","deef54fb4c402325da2038fd78856071","d1892b4874d38c2ebfc46f453c284495","6b62615b4745876d848ae29b18202937","f4c7481ddad158c0a40ab5d69e888a73","6e2feaec9283c0ec5b3028b24fd2f69b","5f6ad89a8ac76f27d745c1cab978892c","dfea88cc5423da5be7ec5d44ddcaaedd","220a1d153fd4a6d65e4ef3ab23305e12","bd95af69943c6b10d72a1520da203070","2e2b6ee2ccf6a93255a41d6364a2937b","8884f358f1a9977f94e0f90b53e070b2","1f271da2045169a17c975743bdf72b90","0c5655e6c111190ad06b8be2b688f332","f322ea3aa3868a7f9f1fc95b7a4bbe57","f2689fdc9eada98ff2612490e233e974","c55118940367819cc31e2856cf14886e","fdfa7dbec4e884b93ea971487740c157","07977bf946f0a8b2b14a2a34d4bde9fa","4f5f6aef9ae7c4491a7be4168e6a6bf7","3de0773a7523a86e5f6ad44113a8e768","f5bd3dec6205048a72b79c2358564334","be2992ca758e2e8eb68bbd6b9ff162a8","103d8c8e384395a020029c280f0c1afe","c803f667da1b33fd6b1b9475e934acaf","9a5501787e02355ff4aab14578a3d6cb","d6f2fc96e0426809b4f1446b3e1985dd","3f4facc80a036af02bad43d1f2e91235","ea5506a393477d49bc517d5ceb540125","0a7ecaa755ab82b1e539536e44b4cfa0","05a6cc510fe660505eb5fbe73ca59415","0b2250eb6c263d49271dd230dd6cb198","aefc95f286b6959d554ed776b906468b","b5b6559047be969dc3946d5078c5804e","404525d7d20212a73472c2705013c38e","f1f9866f1230a22d5a4d536b35df27ff","1294c7f7c9aef85a83fcc84b949bc049","f72b6e4ab06ddd4f1d11cf7e15e754f8","7b9cdc171d5254d6cfd481a1d688d849","cedd0e303a2a58a21e0ed99701073ecb","16e46fdae0f9e53f20442b629714017f","09b5cd2aa2369724a3532ea54c08f017"],"entryHash":"67796b6fd0ea402034a227c54def5197"}
-```
-
----
-
-## File: .next\server\app\api\v1\ingestion\stream\route.js.nft.json
-```json
-{"version":1,"files":["../../../../../../../node_modules/@swc/helpers/cjs/_interop_require_default.cjs","../../../../../../../node_modules/@swc/helpers/esm/_interop_require_default.js","../../../../../../../node_modules/@swc/helpers/package.json","../../../../../../../node_modules/next/dist/build/adapter/setup-node-env.external.js","../../../../../../../node_modules/next/dist/client/components/hooks-server-context.js","../../../../../../../node_modules/next/dist/client/components/static-generation-bailout.js","../../../../../../../node_modules/next/dist/client/lib/console.js","../../../../../../../node_modules/next/dist/compiled/@opentelemetry/api/index.js","../../../../../../../node_modules/next/dist/compiled/@opentelemetry/api/package.json","../../../../../../../node_modules/next/dist/compiled/jsonwebtoken/index.js","../../../../../../../node_modules/next/dist/compiled/jsonwebtoken/package.json","../../../../../../../node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js","../../../../../../../node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js","../../../../../../../node_modules/next/dist/compiled/source-map/package.json","../../../../../../../node_modules/next/dist/compiled/source-map/source-map.js","../../../../../../../node_modules/next/dist/compiled/stacktrace-parser/package.json","../../../../../../../node_modules/next/dist/compiled/stacktrace-parser/stack-trace-parser.cjs.js","../../../../../../../node_modules/next/dist/compiled/ws/index.js","../../../../../../../node_modules/next/dist/compiled/ws/package.json","../../../../../../../node_modules/next/dist/lib/client-and-server-references.js","../../../../../../../node_modules/next/dist/lib/constants.js","../../../../../../../node_modules/next/dist/lib/framework/boundary-constants.js","../../../../../../../node_modules/next/dist/lib/interop-default.js","../../../../../../../node_modules/next/dist/lib/is-error.js","../../../../../../../node_modules/next/dist/lib/picocolors.js","../../../../../../../node_modules/next/dist/lib/scheduler.js","../../../../../../../node_modules/next/dist/lib/semver-noop.js","../../../../../../../node_modules/next/dist/server/app-render/action-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/action-async-storage.external.js","../../../../../../../node_modules/next/dist/server/app-render/after-task-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/after-task-async-storage.external.js","../../../../../../../node_modules/next/dist/server/app-render/async-local-storage.js","../../../../../../../node_modules/next/dist/server/app-render/blocking-route-messages.js","../../../../../../../node_modules/next/dist/server/app-render/cache-signal.js","../../../../../../../node_modules/next/dist/server/app-render/console-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/console-async-storage.external.js","../../../../../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage.external.js","../../../../../../../node_modules/next/dist/server/app-render/dynamic-rendering.js","../../../../../../../node_modules/next/dist/server/app-render/instant-validation/boundary-constants.js","../../../../../../../node_modules/next/dist/server/app-render/instant-validation/boundary-tracking.js","../../../../../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.external.js","../../../../../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.instance.js","../../../../../../../node_modules/next/dist/server/app-render/staged-rendering.js","../../../../../../../node_modules/next/dist/server/app-render/sync-io-messages.js","../../../../../../../node_modules/next/dist/server/app-render/work-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/work-async-storage.external.js","../../../../../../../node_modules/next/dist/server/app-render/work-unit-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/work-unit-async-storage.external.js","../../../../../../../node_modules/next/dist/server/dev/browser-logs/file-logger.js","../../../../../../../node_modules/next/dist/server/dynamic-rendering-utils.js","../../../../../../../node_modules/next/dist/server/lib/incremental-cache/memory-cache.external.js","../../../../../../../node_modules/next/dist/server/lib/incremental-cache/shared-cache-controls.external.js","../../../../../../../node_modules/next/dist/server/lib/incremental-cache/tags-manifest.external.js","../../../../../../../node_modules/next/dist/server/lib/lru-cache.js","../../../../../../../node_modules/next/dist/server/lib/parse-stack.js","../../../../../../../node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js","../../../../../../../node_modules/next/dist/server/lib/router-utils/instrumentation-node-extensions.js","../../../../../../../node_modules/next/dist/server/lib/source-maps.js","../../../../../../../node_modules/next/dist/server/lib/trace/constants.js","../../../../../../../node_modules/next/dist/server/lib/trace/tracer.js","../../../../../../../node_modules/next/dist/server/load-manifest.external.js","../../../../../../../node_modules/next/dist/server/node-environment-baseline.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/console-dim.external.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/console-exit.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/console-file.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/date.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/error-inspect.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/fast-set-immediate.external.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/io-utils.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/node-crypto.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/random.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/unhandled-rejection.external.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/web-crypto.js","../../../../../../../node_modules/next/dist/server/node-environment.js","../../../../../../../node_modules/next/dist/server/node-polyfill-crypto.js","../../../../../../../node_modules/next/dist/server/patch-error-inspect.js","../../../../../../../node_modules/next/dist/server/require-hook.js","../../../../../../../node_modules/next/dist/server/response-cache/types.js","../../../../../../../node_modules/next/dist/server/runtime-reacts.external.js","../../../../../../../node_modules/next/dist/shared/lib/deep-freeze.js","../../../../../../../node_modules/next/dist/shared/lib/instant-messages.js","../../../../../../../node_modules/next/dist/shared/lib/invariant-error.js","../../../../../../../node_modules/next/dist/shared/lib/is-plain-object.js","../../../../../../../node_modules/next/dist/shared/lib/is-thenable.js","../../../../../../../node_modules/next/dist/shared/lib/lazy-dynamic/bailout-to-csr.js","../../../../../../../node_modules/next/dist/shared/lib/no-fallback-error.external.js","../../../../../../../node_modules/next/dist/shared/lib/promise-with-resolvers.js","../../../../../../../node_modules/next/dist/shared/lib/server-reference-info.js","../../../../../../../node_modules/next/package.json","../../../../../../../node_modules/react/cjs/react.development.js","../../../../../../../node_modules/react/cjs/react.production.js","../../../../../../../node_modules/react/index.js","../../../../../../../node_modules/react/package.json","../../../../../chunks/[root-of-the-server]__0hc9bhz._.js","../../../../../chunks/[root-of-the-server]__0l3yhx4._.js","../../../../../chunks/[turbopack]_runtime.js","../../../../../chunks/_next-internal_server_app_api_v1_ingestion_stream_route_actions_008x-ur.js","./route_client-reference-manifest.js"],"fileHashes":["ef6ac6914a3f24c9f4a98105a3bdd310","bcdfbca94848d30153fa83f8421423d7","50bb01754878225cf6730e02b44f84d6","a5446fb306fcfec27c39f81de38ec842","9c53694dd40423680deefb5a1e3c25af","57ca86e5858543e1466b92725355539a","11eb668649d2434d25d26977b8e01e49","02186196a2cc227a67f668f00873f72a","fa8a4dd27dcbde144881044b2fa74f64","cd28bbc5151decba058dfd44bd7f47ef","a8da0851d005c95af6d4ff8b8db146ce","9791ca6a9c90d3537cf59c50161e7260","622a8420646f2c5fea55a23ee2b0d5de","61445cc4a73d56b154f397d2e4213b60","4e6491a35b1970e74a940d26e575216a","0bcd39f6f5be09dab16374e3bf84459e","ce87d6acf7ef1610862d34a9c59528ea","d1e9d6e75ad3a9d63cc0825ec4ebe282","b81183ad70cf2df4130a6f7853eff593","edcceea1e2a5c13a14d12f4d422f733a","92d7eec9f49250bf6325e1b4186fb521","0b3ab74e31e82ffa9b20013ed883782e","15ad04875f6d43fc8bd602b20d828566","5fe712e91d39531cd872b189115c7a25","c07db8edca1ca7e626b14dbf4e3584a8","0aa24beea9e1b8ae34954feb1be5caa6","f9295c2e844d919b0be75fffe2e10989","9b1c71085acfacbddbca5126bca3f550","6505c89743b18298e0e22489f1d956ed","8f2d8843ff7d322ecc237601ab58e1d7","d90d4f1de46d810d671d85f21ec5d352","2eecc48be406b9c64276e31215c29e95","981807b2548ffbff8d9ad94a758813fb","9f6a333435676ba7b0045e6b0d2d9b98","2701737ab664a8fe7700053638aa0db8","33916079c6a49d35edf38970b6afa990","046a57d6280182df9f32d77ba452677f","94e9332b8f4251c1b03791e57aad9399","6978bf3fb2c443a8c9022d43a243c56a","8fb4ea2a1e97dc7ad2cbbf5641b1aa23","7175e4648ef6975b79e76f0f46dc69df","7a4c4e16ecb22ffb0ba224fa37e94a70","848334e0b7acedfd5656296df4adae7c","0a201256d245b3a0e27ed288b6ba68ae","498fc15d07579c19b3cc959a96eb5bb8","40c6916156cc44db5f0c8e266c9f1e60","1acc3875adfbadf8dd6721e71e776ecd","1eb18df669f40e7a0c8e077b365c907d","08cab8a9c8062eac4f6b9cbcc303417a","bef9750470e394d3052dfe5a7847e9a0","4d1a01dfd6b6423b2d0ff0467f613bd8","7cfcc764f9b49f84e568c2a8b481ef89","ecbf1e0ab3ad74e5979ab5771d710880","59f473418a3a0c96c8ec855aa72bd02a","d3c2a37fdf66b455a0ed47d33fc12229","215309237f9a05ec8f52edadcd0565bf","5f3e641690915ca863053b107ae0493a","44cca5b4413d63e3179289d31fe1bcf1","ce930365528e6b0f94d346e8a3a6c976","85ef440bb2c4d6dcc19f40e9d77059e3","b73d42aa8f40f578ac38efd8516ad8a3","fc4f7117734aa11e26028c3a1f0e9934","4b5216f48144eab06a89f40a112df0f9","7f7c41d2d2c4e4ea0359ce7e30c4676d","a52c1bfa60cdd122eb82001cf748b39b","4daf2c54f6e769ac3f1c55e2d2356e62","67530655ee6d2037c694d851f60a4d3a","72e15054e5bb83aa2714e9aa0f2a8aaa","72944fa2cce5836dad49dfd7147626d0","3c5c716d6aebf4093db91e57fe322e0c","64c0567172a45f553110cf14514d76dc","f5232a6a89b9b1646513f6f36cfd6edc","ed734e4322f6faf639acccc2130bd1f9","3a55a78645b57706246de6914d4ce134","438a096196cbf3f40712fc244347eced","59be47cbf4cb15affb56354159123835","e124239b7fff31a73bfc3e95cfc593d3","38636bd694da4120897a2a695111039c","03f54ee64db45e6ac7025c881590f862","48538028ed97d91e767563f56035e684","217152373b3f900ae15ce0920bb06da9","6dadc2917fc514e7e4c6f4cabe7d69a6","a81a01b4510a203a8811e202d3537fe8","37ac4cbd6b18d52a47105218c3573c36","5ab4d38c634c37598fc59a79eeef302f","e2a4479a35cb46058fa5fa4148e39287","a5ceecfe744045263b3b4c06e4d48cce","5654b3d7d7805129b98db879f3bbd2af","deef54fb4c402325da2038fd78856071","d1892b4874d38c2ebfc46f453c284495","dfea88cc5423da5be7ec5d44ddcaaedd","220a1d153fd4a6d65e4ef3ab23305e12","bd95af69943c6b10d72a1520da203070","2e2b6ee2ccf6a93255a41d6364a2937b","d78261807ecf7fb636856dcd515da669","c2b8aed88bef4501187cde39f540f0dc","9aaaa4f59fa0fcca3134ae0f5f0aec4d","9491ef37de6a56f75a97052d29d04cba","0de5b93c1aca558041d3a8cb1f115a85"],"entryHash":"24cb0b88dfac7652ed6ff03c0da50550"}
-```
-
----
-
-## File: .next\server\app\api\v1\ingestion\stream\route\app-paths-manifest.json
-```json
-{
-  "/api/v1/ingestion/stream/route": "app/api/v1/ingestion/stream/route.js"
-}
-```
-
----
-
-## File: .next\server\app\api\v1\ingestion\stream\route\build-manifest.json
-```json
-{
-  "devFiles": [],
-  "ampDevFiles": [],
-  "polyfillFiles": [],
-  "lowPriorityFiles": [],
-  "rootMainFiles": [],
-  "pages": {},
-  "ampFirstPages": [],
-  "rootMainFilesTree": {},
-  "pagesChunkGroupBootstrapParams": {},
-  "chunkLoadingGlobal": "TURBOPACK"
-}
-```
-
----
-
-## File: .next\server\app\api\v1\ingestion\stream\route\server-reference-manifest.json
-```json
-{
-  "node": {},
-  "edge": {}
-}
-```
-
----
-
-## File: .next\server\app\api\v1\process\pfd-overview\route.js.nft.json
-```json
-{"version":1,"files":["../../../../../../../node_modules/@swc/helpers/cjs/_interop_require_default.cjs","../../../../../../../node_modules/@swc/helpers/esm/_interop_require_default.js","../../../../../../../node_modules/@swc/helpers/package.json","../../../../../../../node_modules/next/dist/build/adapter/setup-node-env.external.js","../../../../../../../node_modules/next/dist/client/components/hooks-server-context.js","../../../../../../../node_modules/next/dist/client/components/static-generation-bailout.js","../../../../../../../node_modules/next/dist/client/lib/console.js","../../../../../../../node_modules/next/dist/compiled/@opentelemetry/api/index.js","../../../../../../../node_modules/next/dist/compiled/@opentelemetry/api/package.json","../../../../../../../node_modules/next/dist/compiled/jsonwebtoken/index.js","../../../../../../../node_modules/next/dist/compiled/jsonwebtoken/package.json","../../../../../../../node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js","../../../../../../../node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js","../../../../../../../node_modules/next/dist/compiled/source-map/package.json","../../../../../../../node_modules/next/dist/compiled/source-map/source-map.js","../../../../../../../node_modules/next/dist/compiled/stacktrace-parser/package.json","../../../../../../../node_modules/next/dist/compiled/stacktrace-parser/stack-trace-parser.cjs.js","../../../../../../../node_modules/next/dist/compiled/ws/index.js","../../../../../../../node_modules/next/dist/compiled/ws/package.json","../../../../../../../node_modules/next/dist/lib/client-and-server-references.js","../../../../../../../node_modules/next/dist/lib/constants.js","../../../../../../../node_modules/next/dist/lib/framework/boundary-constants.js","../../../../../../../node_modules/next/dist/lib/interop-default.js","../../../../../../../node_modules/next/dist/lib/is-error.js","../../../../../../../node_modules/next/dist/lib/picocolors.js","../../../../../../../node_modules/next/dist/lib/scheduler.js","../../../../../../../node_modules/next/dist/lib/semver-noop.js","../../../../../../../node_modules/next/dist/server/app-render/action-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/action-async-storage.external.js","../../../../../../../node_modules/next/dist/server/app-render/after-task-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/after-task-async-storage.external.js","../../../../../../../node_modules/next/dist/server/app-render/async-local-storage.js","../../../../../../../node_modules/next/dist/server/app-render/blocking-route-messages.js","../../../../../../../node_modules/next/dist/server/app-render/cache-signal.js","../../../../../../../node_modules/next/dist/server/app-render/console-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/console-async-storage.external.js","../../../../../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage.external.js","../../../../../../../node_modules/next/dist/server/app-render/dynamic-rendering.js","../../../../../../../node_modules/next/dist/server/app-render/instant-validation/boundary-constants.js","../../../../../../../node_modules/next/dist/server/app-render/instant-validation/boundary-tracking.js","../../../../../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.external.js","../../../../../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.instance.js","../../../../../../../node_modules/next/dist/server/app-render/staged-rendering.js","../../../../../../../node_modules/next/dist/server/app-render/sync-io-messages.js","../../../../../../../node_modules/next/dist/server/app-render/work-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/work-async-storage.external.js","../../../../../../../node_modules/next/dist/server/app-render/work-unit-async-storage-instance.js","../../../../../../../node_modules/next/dist/server/app-render/work-unit-async-storage.external.js","../../../../../../../node_modules/next/dist/server/dev/browser-logs/file-logger.js","../../../../../../../node_modules/next/dist/server/dynamic-rendering-utils.js","../../../../../../../node_modules/next/dist/server/lib/incremental-cache/memory-cache.external.js","../../../../../../../node_modules/next/dist/server/lib/incremental-cache/shared-cache-controls.external.js","../../../../../../../node_modules/next/dist/server/lib/incremental-cache/tags-manifest.external.js","../../../../../../../node_modules/next/dist/server/lib/lru-cache.js","../../../../../../../node_modules/next/dist/server/lib/parse-stack.js","../../../../../../../node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js","../../../../../../../node_modules/next/dist/server/lib/router-utils/instrumentation-node-extensions.js","../../../../../../../node_modules/next/dist/server/lib/source-maps.js","../../../../../../../node_modules/next/dist/server/lib/trace/constants.js","../../../../../../../node_modules/next/dist/server/lib/trace/tracer.js","../../../../../../../node_modules/next/dist/server/load-manifest.external.js","../../../../../../../node_modules/next/dist/server/node-environment-baseline.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/console-dim.external.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/console-exit.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/console-file.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/date.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/error-inspect.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/fast-set-immediate.external.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/io-utils.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/node-crypto.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/random.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/unhandled-rejection.external.js","../../../../../../../node_modules/next/dist/server/node-environment-extensions/web-crypto.js","../../../../../../../node_modules/next/dist/server/node-environment.js","../../../../../../../node_modules/next/dist/server/node-polyfill-crypto.js","../../../../../../../node_modules/next/dist/server/patch-error-inspect.js","../../../../../../../node_modules/next/dist/server/require-hook.js","../../../../../../../node_modules/next/dist/server/response-cache/types.js","../../../../../../../node_modules/next/dist/server/runtime-reacts.external.js","../../../../../../../node_modules/next/dist/shared/lib/deep-freeze.js","../../../../../../../node_modules/next/dist/shared/lib/instant-messages.js","../../../../../../../node_modules/next/dist/shared/lib/invariant-error.js","../../../../../../../node_modules/next/dist/shared/lib/is-plain-object.js","../../../../../../../node_modules/next/dist/shared/lib/is-thenable.js","../../../../../../../node_modules/next/dist/shared/lib/lazy-dynamic/bailout-to-csr.js","../../../../../../../node_modules/next/dist/shared/lib/no-fallback-error.external.js","../../../../../../../node_modules/next/dist/shared/lib/promise-with-resolvers.js","../../../../../../../node_modules/next/dist/shared/lib/server-reference-info.js","../../../../../../../node_modules/next/package.json","../../../../../../../node_modules/react/cjs/react.development.js","../../../../../../../node_modules/react/cjs/react.production.js","../../../../../../../node_modules/react/index.js","../../../../../../../node_modules/react/package.json","../../../../../chunks/[root-of-the-server]__0l3yhx4._.js","../../../../../chunks/[root-of-the-server]__1tz37-9._.js","../../../../../chunks/[turbopack]_runtime.js","../../../../../chunks/_1_57rdn._.js","../../../../../chunks/_next-internal_server_app_api_v1_process_pfd-overview_route_actions_0g6vphz.js","./route_client-reference-manifest.js"],"fileHashes":["ef6ac6914a3f24c9f4a98105a3bdd310","bcdfbca94848d30153fa83f8421423d7","50bb01754878225cf6730e02b44f84d6","a5446fb306fcfec27c39f81de38ec842","9c53694dd40423680deefb5a1e3c25af","57ca86e5858543e1466b92725355539a","11eb668649d2434d25d26977b8e01e49","02186196a2cc227a67f668f00873f72a","fa8a4dd27dcbde144881044b2fa74f64","cd28bbc5151decba058dfd44bd7f47ef","a8da0851d005c95af6d4ff8b8db146ce","9791ca6a9c90d3537cf59c50161e7260","622a8420646f2c5fea55a23ee2b0d5de","61445cc4a73d56b154f397d2e4213b60","4e6491a35b1970e74a940d26e575216a","0bcd39f6f5be09dab16374e3bf84459e","ce87d6acf7ef1610862d34a9c59528ea","d1e9d6e75ad3a9d63cc0825ec4ebe282","b81183ad70cf2df4130a6f7853eff593","edcceea1e2a5c13a14d12f4d422f733a","92d7eec9f49250bf6325e1b4186fb521","0b3ab74e31e82ffa9b20013ed883782e","15ad04875f6d43fc8bd602b20d828566","5fe712e91d39531cd872b189115c7a25","c07db8edca1ca7e626b14dbf4e3584a8","0aa24beea9e1b8ae34954feb1be5caa6","f9295c2e844d919b0be75fffe2e10989","9b1c71085acfacbddbca5126bca3f550","6505c89743b18298e0e22489f1d956ed","8f2d8843ff7d322ecc237601ab58e1d7","d90d4f1de46d810d671d85f21ec5d352","2eecc48be406b9c64276e31215c29e95","981807b2548ffbff8d9ad94a758813fb","9f6a333435676ba7b0045e6b0d2d9b98","2701737ab664a8fe7700053638aa0db8","33916079c6a49d35edf38970b6afa990","046a57d6280182df9f32d77ba452677f","94e9332b8f4251c1b03791e57aad9399","6978bf3fb2c443a8c9022d43a243c56a","8fb4ea2a1e97dc7ad2cbbf5641b1aa23","7175e4648ef6975b79e76f0f46dc69df","7a4c4e16ecb22ffb0ba224fa37e94a70","848334e0b7acedfd5656296df4adae7c","0a201256d245b3a0e27ed288b6ba68ae","498fc15d07579c19b3cc959a96eb5bb8","40c6916156cc44db5f0c8e266c9f1e60","1acc3875adfbadf8dd6721e71e776ecd","1eb18df669f40e7a0c8e077b365c907d","08cab8a9c8062eac4f6b9cbcc303417a","bef9750470e394d3052dfe5a7847e9a0","4d1a01dfd6b6423b2d0ff0467f613bd8","7cfcc764f9b49f84e568c2a8b481ef89","ecbf1e0ab3ad74e5979ab5771d710880","59f473418a3a0c96c8ec855aa72bd02a","d3c2a37fdf66b455a0ed47d33fc12229","215309237f9a05ec8f52edadcd0565bf","5f3e641690915ca863053b107ae0493a","44cca5b4413d63e3179289d31fe1bcf1","ce930365528e6b0f94d346e8a3a6c976","85ef440bb2c4d6dcc19f40e9d77059e3","b73d42aa8f40f578ac38efd8516ad8a3","fc4f7117734aa11e26028c3a1f0e9934","4b5216f48144eab06a89f40a112df0f9","7f7c41d2d2c4e4ea0359ce7e30c4676d","a52c1bfa60cdd122eb82001cf748b39b","4daf2c54f6e769ac3f1c55e2d2356e62","67530655ee6d2037c694d851f60a4d3a","72e15054e5bb83aa2714e9aa0f2a8aaa","72944fa2cce5836dad49dfd7147626d0","3c5c716d6aebf4093db91e57fe322e0c","64c0567172a45f553110cf14514d76dc","f5232a6a89b9b1646513f6f36cfd6edc","ed734e4322f6faf639acccc2130bd1f9","3a55a78645b57706246de6914d4ce134","438a096196cbf3f40712fc244347eced","59be47cbf4cb15affb56354159123835","e124239b7fff31a73bfc3e95cfc593d3","38636bd694da4120897a2a695111039c","03f54ee64db45e6ac7025c881590f862","48538028ed97d91e767563f56035e684","217152373b3f900ae15ce0920bb06da9","6dadc2917fc514e7e4c6f4cabe7d69a6","a81a01b4510a203a8811e202d3537fe8","37ac4cbd6b18d52a47105218c3573c36","5ab4d38c634c37598fc59a79eeef302f","e2a4479a35cb46058fa5fa4148e39287","a5ceecfe744045263b3b4c06e4d48cce","5654b3d7d7805129b98db879f3bbd2af","deef54fb4c402325da2038fd78856071","d1892b4874d38c2ebfc46f453c284495","dfea88cc5423da5be7ec5d44ddcaaedd","220a1d153fd4a6d65e4ef3ab23305e12","bd95af69943c6b10d72a1520da203070","2e2b6ee2ccf6a93255a41d6364a2937b","c2b8aed88bef4501187cde39f540f0dc","c5af9d5537922a435bcbc156bb3cad7d","9aaaa4f59fa0fcca3134ae0f5f0aec4d","40b94ead9926661e9f3cc36ff28118fc","642165df82b9e9d63a27b8d2b0ca1d45","3b5ce056a83da43ffdb0f6c0cae34f94"],"entryHash":"5928effee78de5db59446a9d5021687c"}
-```
-
----
-
-## File: .next\server\app\api\v1\process\pfd-overview\route\app-paths-manifest.json
-```json
-{
-  "/api/v1/process/pfd-overview/route": "app/api/v1/process/pfd-overview/route.js"
-}
-```
-
----
-
-## File: .next\server\app\api\v1\process\pfd-overview\route\build-manifest.json
-```json
-{
-  "devFiles": [],
-  "ampDevFiles": [],
-  "polyfillFiles": [],
-  "lowPriorityFiles": [],
-  "rootMainFiles": [],
-  "pages": {},
-  "ampFirstPages": [],
-  "rootMainFilesTree": {},
-  "pagesChunkGroupBootstrapParams": {},
-  "chunkLoadingGlobal": "TURBOPACK"
-}
-```
-
----
-
-## File: .next\server\app\api\v1\process\pfd-overview\route\server-reference-manifest.json
-```json
-{
-  "node": {},
-  "edge": {}
-}
-```
-
----
-
-## File: .next\server\app\favicon.ico\route.js.nft.json
-```json
-{"version":1,"files":["../../../../node_modules/@swc/helpers/cjs/_interop_require_default.cjs","../../../../node_modules/@swc/helpers/esm/_interop_require_default.js","../../../../node_modules/@swc/helpers/package.json","../../../../node_modules/next/dist/build/adapter/setup-node-env.external.js","../../../../node_modules/next/dist/client/components/hooks-server-context.js","../../../../node_modules/next/dist/client/components/static-generation-bailout.js","../../../../node_modules/next/dist/client/lib/console.js","../../../../node_modules/next/dist/compiled/@opentelemetry/api/index.js","../../../../node_modules/next/dist/compiled/@opentelemetry/api/package.json","../../../../node_modules/next/dist/compiled/jsonwebtoken/index.js","../../../../node_modules/next/dist/compiled/jsonwebtoken/package.json","../../../../node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js","../../../../node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js","../../../../node_modules/next/dist/compiled/source-map/package.json","../../../../node_modules/next/dist/compiled/source-map/source-map.js","../../../../node_modules/next/dist/compiled/stacktrace-parser/package.json","../../../../node_modules/next/dist/compiled/stacktrace-parser/stack-trace-parser.cjs.js","../../../../node_modules/next/dist/compiled/ws/index.js","../../../../node_modules/next/dist/compiled/ws/package.json","../../../../node_modules/next/dist/lib/client-and-server-references.js","../../../../node_modules/next/dist/lib/constants.js","../../../../node_modules/next/dist/lib/framework/boundary-constants.js","../../../../node_modules/next/dist/lib/interop-default.js","../../../../node_modules/next/dist/lib/is-error.js","../../../../node_modules/next/dist/lib/picocolors.js","../../../../node_modules/next/dist/lib/scheduler.js","../../../../node_modules/next/dist/lib/semver-noop.js","../../../../node_modules/next/dist/server/app-render/action-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/action-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/after-task-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/after-task-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/async-local-storage.js","../../../../node_modules/next/dist/server/app-render/blocking-route-messages.js","../../../../node_modules/next/dist/server/app-render/cache-signal.js","../../../../node_modules/next/dist/server/app-render/console-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/console-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/dynamic-rendering.js","../../../../node_modules/next/dist/server/app-render/instant-validation/boundary-constants.js","../../../../node_modules/next/dist/server/app-render/instant-validation/boundary-tracking.js","../../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.external.js","../../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.instance.js","../../../../node_modules/next/dist/server/app-render/staged-rendering.js","../../../../node_modules/next/dist/server/app-render/sync-io-messages.js","../../../../node_modules/next/dist/server/app-render/work-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/work-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/work-unit-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/work-unit-async-storage.external.js","../../../../node_modules/next/dist/server/dev/browser-logs/file-logger.js","../../../../node_modules/next/dist/server/dynamic-rendering-utils.js","../../../../node_modules/next/dist/server/lib/incremental-cache/memory-cache.external.js","../../../../node_modules/next/dist/server/lib/incremental-cache/shared-cache-controls.external.js","../../../../node_modules/next/dist/server/lib/incremental-cache/tags-manifest.external.js","../../../../node_modules/next/dist/server/lib/lru-cache.js","../../../../node_modules/next/dist/server/lib/parse-stack.js","../../../../node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js","../../../../node_modules/next/dist/server/lib/router-utils/instrumentation-node-extensions.js","../../../../node_modules/next/dist/server/lib/source-maps.js","../../../../node_modules/next/dist/server/lib/trace/constants.js","../../../../node_modules/next/dist/server/lib/trace/tracer.js","../../../../node_modules/next/dist/server/load-manifest.external.js","../../../../node_modules/next/dist/server/node-environment-baseline.js","../../../../node_modules/next/dist/server/node-environment-extensions/console-dim.external.js","../../../../node_modules/next/dist/server/node-environment-extensions/console-exit.js","../../../../node_modules/next/dist/server/node-environment-extensions/console-file.js","../../../../node_modules/next/dist/server/node-environment-extensions/date.js","../../../../node_modules/next/dist/server/node-environment-extensions/error-inspect.js","../../../../node_modules/next/dist/server/node-environment-extensions/fast-set-immediate.external.js","../../../../node_modules/next/dist/server/node-environment-extensions/io-utils.js","../../../../node_modules/next/dist/server/node-environment-extensions/node-crypto.js","../../../../node_modules/next/dist/server/node-environment-extensions/random.js","../../../../node_modules/next/dist/server/node-environment-extensions/unhandled-rejection.external.js","../../../../node_modules/next/dist/server/node-environment-extensions/web-crypto.js","../../../../node_modules/next/dist/server/node-environment.js","../../../../node_modules/next/dist/server/node-polyfill-crypto.js","../../../../node_modules/next/dist/server/patch-error-inspect.js","../../../../node_modules/next/dist/server/require-hook.js","../../../../node_modules/next/dist/server/response-cache/types.js","../../../../node_modules/next/dist/server/runtime-reacts.external.js","../../../../node_modules/next/dist/shared/lib/deep-freeze.js","../../../../node_modules/next/dist/shared/lib/instant-messages.js","../../../../node_modules/next/dist/shared/lib/invariant-error.js","../../../../node_modules/next/dist/shared/lib/is-plain-object.js","../../../../node_modules/next/dist/shared/lib/is-thenable.js","../../../../node_modules/next/dist/shared/lib/lazy-dynamic/bailout-to-csr.js","../../../../node_modules/next/dist/shared/lib/no-fallback-error.external.js","../../../../node_modules/next/dist/shared/lib/promise-with-resolvers.js","../../../../node_modules/next/dist/shared/lib/server-reference-info.js","../../../../node_modules/next/package.json","../../../../node_modules/react/cjs/react.development.js","../../../../node_modules/react/cjs/react.production.js","../../../../node_modules/react/index.js","../../../../node_modules/react/package.json","../../chunks/[externals]__0l8ei7u._.js","../../chunks/[root-of-the-server]__0l3yhx4._.js","../../chunks/[turbopack]_runtime.js","../../chunks/_0uxp3uh._.js","../../chunks/_next-internal_server_app_favicon_ico_route_actions_0g2jjls.js"],"fileHashes":["ef6ac6914a3f24c9f4a98105a3bdd310","bcdfbca94848d30153fa83f8421423d7","50bb01754878225cf6730e02b44f84d6","a5446fb306fcfec27c39f81de38ec842","9c53694dd40423680deefb5a1e3c25af","57ca86e5858543e1466b92725355539a","11eb668649d2434d25d26977b8e01e49","02186196a2cc227a67f668f00873f72a","fa8a4dd27dcbde144881044b2fa74f64","cd28bbc5151decba058dfd44bd7f47ef","a8da0851d005c95af6d4ff8b8db146ce","9791ca6a9c90d3537cf59c50161e7260","622a8420646f2c5fea55a23ee2b0d5de","61445cc4a73d56b154f397d2e4213b60","4e6491a35b1970e74a940d26e575216a","0bcd39f6f5be09dab16374e3bf84459e","ce87d6acf7ef1610862d34a9c59528ea","d1e9d6e75ad3a9d63cc0825ec4ebe282","b81183ad70cf2df4130a6f7853eff593","edcceea1e2a5c13a14d12f4d422f733a","92d7eec9f49250bf6325e1b4186fb521","0b3ab74e31e82ffa9b20013ed883782e","15ad04875f6d43fc8bd602b20d828566","5fe712e91d39531cd872b189115c7a25","c07db8edca1ca7e626b14dbf4e3584a8","0aa24beea9e1b8ae34954feb1be5caa6","f9295c2e844d919b0be75fffe2e10989","9b1c71085acfacbddbca5126bca3f550","6505c89743b18298e0e22489f1d956ed","8f2d8843ff7d322ecc237601ab58e1d7","d90d4f1de46d810d671d85f21ec5d352","2eecc48be406b9c64276e31215c29e95","981807b2548ffbff8d9ad94a758813fb","9f6a333435676ba7b0045e6b0d2d9b98","2701737ab664a8fe7700053638aa0db8","33916079c6a49d35edf38970b6afa990","046a57d6280182df9f32d77ba452677f","94e9332b8f4251c1b03791e57aad9399","6978bf3fb2c443a8c9022d43a243c56a","8fb4ea2a1e97dc7ad2cbbf5641b1aa23","7175e4648ef6975b79e76f0f46dc69df","7a4c4e16ecb22ffb0ba224fa37e94a70","848334e0b7acedfd5656296df4adae7c","0a201256d245b3a0e27ed288b6ba68ae","498fc15d07579c19b3cc959a96eb5bb8","40c6916156cc44db5f0c8e266c9f1e60","1acc3875adfbadf8dd6721e71e776ecd","1eb18df669f40e7a0c8e077b365c907d","08cab8a9c8062eac4f6b9cbcc303417a","bef9750470e394d3052dfe5a7847e9a0","4d1a01dfd6b6423b2d0ff0467f613bd8","7cfcc764f9b49f84e568c2a8b481ef89","ecbf1e0ab3ad74e5979ab5771d710880","59f473418a3a0c96c8ec855aa72bd02a","d3c2a37fdf66b455a0ed47d33fc12229","215309237f9a05ec8f52edadcd0565bf","5f3e641690915ca863053b107ae0493a","44cca5b4413d63e3179289d31fe1bcf1","ce930365528e6b0f94d346e8a3a6c976","85ef440bb2c4d6dcc19f40e9d77059e3","b73d42aa8f40f578ac38efd8516ad8a3","fc4f7117734aa11e26028c3a1f0e9934","4b5216f48144eab06a89f40a112df0f9","7f7c41d2d2c4e4ea0359ce7e30c4676d","a52c1bfa60cdd122eb82001cf748b39b","4daf2c54f6e769ac3f1c55e2d2356e62","67530655ee6d2037c694d851f60a4d3a","72e15054e5bb83aa2714e9aa0f2a8aaa","72944fa2cce5836dad49dfd7147626d0","3c5c716d6aebf4093db91e57fe322e0c","64c0567172a45f553110cf14514d76dc","f5232a6a89b9b1646513f6f36cfd6edc","ed734e4322f6faf639acccc2130bd1f9","3a55a78645b57706246de6914d4ce134","438a096196cbf3f40712fc244347eced","59be47cbf4cb15affb56354159123835","e124239b7fff31a73bfc3e95cfc593d3","38636bd694da4120897a2a695111039c","03f54ee64db45e6ac7025c881590f862","48538028ed97d91e767563f56035e684","217152373b3f900ae15ce0920bb06da9","6dadc2917fc514e7e4c6f4cabe7d69a6","a81a01b4510a203a8811e202d3537fe8","37ac4cbd6b18d52a47105218c3573c36","5ab4d38c634c37598fc59a79eeef302f","e2a4479a35cb46058fa5fa4148e39287","a5ceecfe744045263b3b4c06e4d48cce","5654b3d7d7805129b98db879f3bbd2af","deef54fb4c402325da2038fd78856071","d1892b4874d38c2ebfc46f453c284495","dfea88cc5423da5be7ec5d44ddcaaedd","220a1d153fd4a6d65e4ef3ab23305e12","bd95af69943c6b10d72a1520da203070","2e2b6ee2ccf6a93255a41d6364a2937b","ff217dc4d9676ef9c2859067a49f6dda","c2b8aed88bef4501187cde39f540f0dc","9aaaa4f59fa0fcca3134ae0f5f0aec4d","87c4566119808b1d9cd5f89093834e88","ca3e8da5b75106f616d4f40bccecccc5"],"entryHash":"e7f420404bb44fc235c882cc6f009109"}
-```
-
----
-
-## File: .next\server\app\favicon.ico\route\app-paths-manifest.json
-```json
-{
-  "/favicon.ico/route": "app/favicon.ico/route.js"
-}
-```
-
----
-
-## File: .next\server\app\favicon.ico\route\build-manifest.json
-```json
-{
-  "devFiles": [],
-  "ampDevFiles": [],
-  "polyfillFiles": [],
-  "lowPriorityFiles": [],
-  "rootMainFiles": [],
-  "pages": {},
-  "ampFirstPages": [],
-  "rootMainFilesTree": {},
-  "pagesChunkGroupBootstrapParams": {},
-  "chunkLoadingGlobal": "TURBOPACK"
-}
-```
-
----
-
-## File: .next\server\app\page\app-paths-manifest.json
-```json
-{
-  "/page": "app/page.js"
-}
-```
-
----
-
-## File: .next\server\app\page\build-manifest.json
-```json
-{
-  "devFiles": [],
-  "ampDevFiles": [],
-  "polyfillFiles": [
-    "static/chunks/0cz1d0mv5g_q7.js"
-  ],
-  "lowPriorityFiles": [],
-  "rootMainFiles": [
-    "static/chunks/1inwntv0b4r-7.js",
-    "static/chunks/2h1eivth_f3qo.js",
-    "static/chunks/1qe3i8urdd-pi.js",
-    "static/chunks/turbopack-2-wuwwgvehyn4.js"
-  ],
-  "pages": {},
-  "ampFirstPages": [],
-  "rootMainFilesTree": {},
-  "pagesChunkGroupBootstrapParams": {},
-  "chunkLoadingGlobal": "TURBOPACK"
-}
-```
-
----
-
-## File: .next\server\app\page\next-font-manifest.json
-```json
-{
-  "pages": {},
-  "app": {
-    "[project]/src/app/page": [
-      "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
-    ]
-  },
-  "appUsingSizeAdjust": true,
-  "pagesUsingSizeAdjust": false
-}
-```
-
----
-
-## File: .next\server\app\page\react-loadable-manifest.json
-```json
-{}
-```
-
----
-
-## File: .next\server\app\page\server-reference-manifest.json
-```json
-{
-  "node": {},
-  "edge": {}
-}
-```
-
----
-
-## File: .next\server\app\_global-error\page.js.nft.json
-```json
-{"version":1,"files":["../../../../node_modules/@swc/helpers/cjs/_interop_require_default.cjs","../../../../node_modules/@swc/helpers/esm/_interop_require_default.js","../../../../node_modules/@swc/helpers/package.json","../../../../node_modules/next/dist/build/adapter/setup-node-env.external.js","../../../../node_modules/next/dist/client/components/hooks-server-context.js","../../../../node_modules/next/dist/client/components/static-generation-bailout.js","../../../../node_modules/next/dist/client/lib/console.js","../../../../node_modules/next/dist/compiled/@opentelemetry/api/index.js","../../../../node_modules/next/dist/compiled/@opentelemetry/api/package.json","../../../../node_modules/next/dist/compiled/jsonwebtoken/index.js","../../../../node_modules/next/dist/compiled/jsonwebtoken/package.json","../../../../node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js","../../../../node_modules/next/dist/compiled/source-map/package.json","../../../../node_modules/next/dist/compiled/source-map/source-map.js","../../../../node_modules/next/dist/compiled/stacktrace-parser/package.json","../../../../node_modules/next/dist/compiled/stacktrace-parser/stack-trace-parser.cjs.js","../../../../node_modules/next/dist/compiled/ws/index.js","../../../../node_modules/next/dist/compiled/ws/package.json","../../../../node_modules/next/dist/lib/client-and-server-references.js","../../../../node_modules/next/dist/lib/constants.js","../../../../node_modules/next/dist/lib/framework/boundary-constants.js","../../../../node_modules/next/dist/lib/interop-default.js","../../../../node_modules/next/dist/lib/is-error.js","../../../../node_modules/next/dist/lib/picocolors.js","../../../../node_modules/next/dist/lib/scheduler.js","../../../../node_modules/next/dist/lib/semver-noop.js","../../../../node_modules/next/dist/server/app-render/action-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/action-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/after-task-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/after-task-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/async-local-storage.js","../../../../node_modules/next/dist/server/app-render/blocking-route-messages.js","../../../../node_modules/next/dist/server/app-render/cache-signal.js","../../../../node_modules/next/dist/server/app-render/console-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/console-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/dynamic-rendering.js","../../../../node_modules/next/dist/server/app-render/instant-validation/boundary-constants.js","../../../../node_modules/next/dist/server/app-render/instant-validation/boundary-tracking.js","../../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.external.js","../../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.instance.js","../../../../node_modules/next/dist/server/app-render/staged-rendering.js","../../../../node_modules/next/dist/server/app-render/sync-io-messages.js","../../../../node_modules/next/dist/server/app-render/work-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/work-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/work-unit-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/work-unit-async-storage.external.js","../../../../node_modules/next/dist/server/dev/browser-logs/file-logger.js","../../../../node_modules/next/dist/server/dynamic-rendering-utils.js","../../../../node_modules/next/dist/server/lib/incremental-cache/memory-cache.external.js","../../../../node_modules/next/dist/server/lib/incremental-cache/shared-cache-controls.external.js","../../../../node_modules/next/dist/server/lib/incremental-cache/tags-manifest.external.js","../../../../node_modules/next/dist/server/lib/lru-cache.js","../../../../node_modules/next/dist/server/lib/parse-stack.js","../../../../node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js","../../../../node_modules/next/dist/server/lib/router-utils/instrumentation-node-extensions.js","../../../../node_modules/next/dist/server/lib/source-maps.js","../../../../node_modules/next/dist/server/lib/trace/constants.js","../../../../node_modules/next/dist/server/lib/trace/tracer.js","../../../../node_modules/next/dist/server/load-manifest.external.js","../../../../node_modules/next/dist/server/node-environment-baseline.js","../../../../node_modules/next/dist/server/node-environment-extensions/console-dim.external.js","../../../../node_modules/next/dist/server/node-environment-extensions/console-exit.js","../../../../node_modules/next/dist/server/node-environment-extensions/console-file.js","../../../../node_modules/next/dist/server/node-environment-extensions/date.js","../../../../node_modules/next/dist/server/node-environment-extensions/error-inspect.js","../../../../node_modules/next/dist/server/node-environment-extensions/fast-set-immediate.external.js","../../../../node_modules/next/dist/server/node-environment-extensions/io-utils.js","../../../../node_modules/next/dist/server/node-environment-extensions/node-crypto.js","../../../../node_modules/next/dist/server/node-environment-extensions/random.js","../../../../node_modules/next/dist/server/node-environment-extensions/unhandled-rejection.external.js","../../../../node_modules/next/dist/server/node-environment-extensions/web-crypto.js","../../../../node_modules/next/dist/server/node-environment.js","../../../../node_modules/next/dist/server/node-polyfill-crypto.js","../../../../node_modules/next/dist/server/patch-error-inspect.js","../../../../node_modules/next/dist/server/require-hook.js","../../../../node_modules/next/dist/server/response-cache/types.js","../../../../node_modules/next/dist/server/runtime-reacts.external.js","../../../../node_modules/next/dist/shared/lib/deep-freeze.js","../../../../node_modules/next/dist/shared/lib/instant-messages.js","../../../../node_modules/next/dist/shared/lib/invariant-error.js","../../../../node_modules/next/dist/shared/lib/is-plain-object.js","../../../../node_modules/next/dist/shared/lib/is-thenable.js","../../../../node_modules/next/dist/shared/lib/lazy-dynamic/bailout-to-csr.js","../../../../node_modules/next/dist/shared/lib/no-fallback-error.external.js","../../../../node_modules/next/dist/shared/lib/promise-with-resolvers.js","../../../../node_modules/next/dist/shared/lib/server-reference-info.js","../../../../node_modules/next/package.json","../../../../node_modules/react/cjs/react.development.js","../../../../node_modules/react/cjs/react.production.js","../../../../node_modules/react/index.js","../../../../node_modules/react/package.json","../../chunks/ssr/[root-of-the-server]__07jt5yb._.js","../../chunks/ssr/[root-of-the-server]__174cgu_._.js","../../chunks/ssr/[root-of-the-server]__1f2jx51._.js","../../chunks/ssr/[root-of-the-server]__1kicjey._.js","../../chunks/ssr/[turbopack]_runtime.js","../../chunks/ssr/_next-internal_server_app__global-error_page_actions_0zi5s8-.js","../../chunks/ssr/node_modules_next_dist_10oqhbx._.js","../../chunks/ssr/node_modules_next_dist_1n3w9lb._.js","../../chunks/ssr/node_modules_next_dist_client_components_builtin_global-error_0q-w892.js","./page/react-loadable-manifest.json","./page_client-reference-manifest.js"],"fileHashes":["ef6ac6914a3f24c9f4a98105a3bdd310","bcdfbca94848d30153fa83f8421423d7","50bb01754878225cf6730e02b44f84d6","a5446fb306fcfec27c39f81de38ec842","9c53694dd40423680deefb5a1e3c25af","57ca86e5858543e1466b92725355539a","11eb668649d2434d25d26977b8e01e49","02186196a2cc227a67f668f00873f72a","fa8a4dd27dcbde144881044b2fa74f64","cd28bbc5151decba058dfd44bd7f47ef","a8da0851d005c95af6d4ff8b8db146ce","9791ca6a9c90d3537cf59c50161e7260","61445cc4a73d56b154f397d2e4213b60","4e6491a35b1970e74a940d26e575216a","0bcd39f6f5be09dab16374e3bf84459e","ce87d6acf7ef1610862d34a9c59528ea","d1e9d6e75ad3a9d63cc0825ec4ebe282","b81183ad70cf2df4130a6f7853eff593","edcceea1e2a5c13a14d12f4d422f733a","92d7eec9f49250bf6325e1b4186fb521","0b3ab74e31e82ffa9b20013ed883782e","15ad04875f6d43fc8bd602b20d828566","5fe712e91d39531cd872b189115c7a25","c07db8edca1ca7e626b14dbf4e3584a8","0aa24beea9e1b8ae34954feb1be5caa6","f9295c2e844d919b0be75fffe2e10989","9b1c71085acfacbddbca5126bca3f550","6505c89743b18298e0e22489f1d956ed","8f2d8843ff7d322ecc237601ab58e1d7","d90d4f1de46d810d671d85f21ec5d352","2eecc48be406b9c64276e31215c29e95","981807b2548ffbff8d9ad94a758813fb","9f6a333435676ba7b0045e6b0d2d9b98","2701737ab664a8fe7700053638aa0db8","33916079c6a49d35edf38970b6afa990","046a57d6280182df9f32d77ba452677f","94e9332b8f4251c1b03791e57aad9399","6978bf3fb2c443a8c9022d43a243c56a","8fb4ea2a1e97dc7ad2cbbf5641b1aa23","7175e4648ef6975b79e76f0f46dc69df","7a4c4e16ecb22ffb0ba224fa37e94a70","848334e0b7acedfd5656296df4adae7c","0a201256d245b3a0e27ed288b6ba68ae","498fc15d07579c19b3cc959a96eb5bb8","40c6916156cc44db5f0c8e266c9f1e60","1acc3875adfbadf8dd6721e71e776ecd","1eb18df669f40e7a0c8e077b365c907d","08cab8a9c8062eac4f6b9cbcc303417a","bef9750470e394d3052dfe5a7847e9a0","4d1a01dfd6b6423b2d0ff0467f613bd8","7cfcc764f9b49f84e568c2a8b481ef89","ecbf1e0ab3ad74e5979ab5771d710880","59f473418a3a0c96c8ec855aa72bd02a","d3c2a37fdf66b455a0ed47d33fc12229","215309237f9a05ec8f52edadcd0565bf","5f3e641690915ca863053b107ae0493a","44cca5b4413d63e3179289d31fe1bcf1","ce930365528e6b0f94d346e8a3a6c976","85ef440bb2c4d6dcc19f40e9d77059e3","b73d42aa8f40f578ac38efd8516ad8a3","fc4f7117734aa11e26028c3a1f0e9934","4b5216f48144eab06a89f40a112df0f9","7f7c41d2d2c4e4ea0359ce7e30c4676d","a52c1bfa60cdd122eb82001cf748b39b","4daf2c54f6e769ac3f1c55e2d2356e62","67530655ee6d2037c694d851f60a4d3a","72e15054e5bb83aa2714e9aa0f2a8aaa","72944fa2cce5836dad49dfd7147626d0","3c5c716d6aebf4093db91e57fe322e0c","64c0567172a45f553110cf14514d76dc","f5232a6a89b9b1646513f6f36cfd6edc","ed734e4322f6faf639acccc2130bd1f9","3a55a78645b57706246de6914d4ce134","438a096196cbf3f40712fc244347eced","59be47cbf4cb15affb56354159123835","e124239b7fff31a73bfc3e95cfc593d3","38636bd694da4120897a2a695111039c","03f54ee64db45e6ac7025c881590f862","48538028ed97d91e767563f56035e684","217152373b3f900ae15ce0920bb06da9","6dadc2917fc514e7e4c6f4cabe7d69a6","a81a01b4510a203a8811e202d3537fe8","37ac4cbd6b18d52a47105218c3573c36","5ab4d38c634c37598fc59a79eeef302f","e2a4479a35cb46058fa5fa4148e39287","a5ceecfe744045263b3b4c06e4d48cce","5654b3d7d7805129b98db879f3bbd2af","deef54fb4c402325da2038fd78856071","d1892b4874d38c2ebfc46f453c284495","dfea88cc5423da5be7ec5d44ddcaaedd","220a1d153fd4a6d65e4ef3ab23305e12","bd95af69943c6b10d72a1520da203070","2e2b6ee2ccf6a93255a41d6364a2937b","153d664eb1924ee0155282939ec85560","3f4facc80a036af02bad43d1f2e91235","d2381459adb9ac72ae5e95c5e8045f0d","0a7ecaa755ab82b1e539536e44b4cfa0","0b2250eb6c263d49271dd230dd6cb198","595ac6332fef99ad918115b793c66822","404525d7d20212a73472c2705013c38e","f1f9866f1230a22d5a4d536b35df27ff","7b9cdc171d5254d6cfd481a1d688d849","16e46fdae0f9e53f20442b629714017f","de405fc85f6ff817815169995990082c"],"entryHash":"0fb7cbf9554ddc8e7495dfdd1e264fc7"}
-```
-
----
-
-## File: .next\server\app\_global-error\page\app-paths-manifest.json
-```json
-{
-  "/_global-error/page": "app/_global-error/page.js"
-}
-```
-
----
-
-## File: .next\server\app\_global-error\page\build-manifest.json
-```json
-{
-  "devFiles": [],
-  "ampDevFiles": [],
-  "polyfillFiles": [
-    "static/chunks/0cz1d0mv5g_q7.js"
-  ],
-  "lowPriorityFiles": [],
-  "rootMainFiles": [
-    "static/chunks/1inwntv0b4r-7.js",
-    "static/chunks/2h1eivth_f3qo.js",
-    "static/chunks/1qe3i8urdd-pi.js",
-    "static/chunks/turbopack-2-wuwwgvehyn4.js"
-  ],
-  "pages": {},
-  "ampFirstPages": [],
-  "rootMainFilesTree": {},
-  "pagesChunkGroupBootstrapParams": {},
-  "chunkLoadingGlobal": "TURBOPACK"
-}
-```
-
----
-
-## File: .next\server\app\_global-error\page\next-font-manifest.json
-```json
-{
-  "pages": {},
-  "app": {},
-  "appUsingSizeAdjust": false,
-  "pagesUsingSizeAdjust": false
-}
-```
-
----
-
-## File: .next\server\app\_global-error\page\react-loadable-manifest.json
-```json
-{}
-```
-
----
-
-## File: .next\server\app\_global-error\page\server-reference-manifest.json
-```json
-{
-  "node": {},
-  "edge": {}
-}
-```
-
----
-
-## File: .next\server\app\_not-found\page.js.nft.json
-```json
-{"version":1,"files":["../../../../node_modules/@swc/helpers/cjs/_interop_require_default.cjs","../../../../node_modules/@swc/helpers/esm/_interop_require_default.js","../../../../node_modules/@swc/helpers/package.json","../../../../node_modules/next/dist/build/adapter/setup-node-env.external.js","../../../../node_modules/next/dist/client/components/hooks-server-context.js","../../../../node_modules/next/dist/client/components/static-generation-bailout.js","../../../../node_modules/next/dist/client/lib/console.js","../../../../node_modules/next/dist/compiled/@opentelemetry/api/index.js","../../../../node_modules/next/dist/compiled/@opentelemetry/api/package.json","../../../../node_modules/next/dist/compiled/jsonwebtoken/index.js","../../../../node_modules/next/dist/compiled/jsonwebtoken/package.json","../../../../node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js","../../../../node_modules/next/dist/compiled/source-map/package.json","../../../../node_modules/next/dist/compiled/source-map/source-map.js","../../../../node_modules/next/dist/compiled/stacktrace-parser/package.json","../../../../node_modules/next/dist/compiled/stacktrace-parser/stack-trace-parser.cjs.js","../../../../node_modules/next/dist/compiled/ws/index.js","../../../../node_modules/next/dist/compiled/ws/package.json","../../../../node_modules/next/dist/lib/client-and-server-references.js","../../../../node_modules/next/dist/lib/constants.js","../../../../node_modules/next/dist/lib/framework/boundary-constants.js","../../../../node_modules/next/dist/lib/interop-default.js","../../../../node_modules/next/dist/lib/is-error.js","../../../../node_modules/next/dist/lib/picocolors.js","../../../../node_modules/next/dist/lib/scheduler.js","../../../../node_modules/next/dist/lib/semver-noop.js","../../../../node_modules/next/dist/server/app-render/action-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/action-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/after-task-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/after-task-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/async-local-storage.js","../../../../node_modules/next/dist/server/app-render/blocking-route-messages.js","../../../../node_modules/next/dist/server/app-render/cache-signal.js","../../../../node_modules/next/dist/server/app-render/console-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/console-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/dynamic-access-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/dynamic-rendering.js","../../../../node_modules/next/dist/server/app-render/instant-validation/boundary-constants.js","../../../../node_modules/next/dist/server/app-render/instant-validation/boundary-tracking.js","../../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.external.js","../../../../node_modules/next/dist/server/app-render/module-loading/track-module-loading.instance.js","../../../../node_modules/next/dist/server/app-render/staged-rendering.js","../../../../node_modules/next/dist/server/app-render/sync-io-messages.js","../../../../node_modules/next/dist/server/app-render/work-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/work-async-storage.external.js","../../../../node_modules/next/dist/server/app-render/work-unit-async-storage-instance.js","../../../../node_modules/next/dist/server/app-render/work-unit-async-storage.external.js","../../../../node_modules/next/dist/server/dev/browser-logs/file-logger.js","../../../../node_modules/next/dist/server/dynamic-rendering-utils.js","../../../../node_modules/next/dist/server/lib/incremental-cache/memory-cache.external.js","../../../../node_modules/next/dist/server/lib/incremental-cache/shared-cache-controls.external.js","../../../../node_modules/next/dist/server/lib/incremental-cache/tags-manifest.external.js","../../../../node_modules/next/dist/server/lib/lru-cache.js","../../../../node_modules/next/dist/server/lib/parse-stack.js","../../../../node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js","../../../../node_modules/next/dist/server/lib/router-utils/instrumentation-node-extensions.js","../../../../node_modules/next/dist/server/lib/source-maps.js","../../../../node_modules/next/dist/server/lib/trace/constants.js","../../../../node_modules/next/dist/server/lib/trace/tracer.js","../../../../node_modules/next/dist/server/load-manifest.external.js","../../../../node_modules/next/dist/server/node-environment-baseline.js","../../../../node_modules/next/dist/server/node-environment-extensions/console-dim.external.js","../../../../node_modules/next/dist/server/node-environment-extensions/console-exit.js","../../../../node_modules/next/dist/server/node-environment-extensions/console-file.js","../../../../node_modules/next/dist/server/node-environment-extensions/date.js","../../../../node_modules/next/dist/server/node-environment-extensions/error-inspect.js","../../../../node_modules/next/dist/server/node-environment-extensions/fast-set-immediate.external.js","../../../../node_modules/next/dist/server/node-environment-extensions/io-utils.js","../../../../node_modules/next/dist/server/node-environment-extensions/node-crypto.js","../../../../node_modules/next/dist/server/node-environment-extensions/random.js","../../../../node_modules/next/dist/server/node-environment-extensions/unhandled-rejection.external.js","../../../../node_modules/next/dist/server/node-environment-extensions/web-crypto.js","../../../../node_modules/next/dist/server/node-environment.js","../../../../node_modules/next/dist/server/node-polyfill-crypto.js","../../../../node_modules/next/dist/server/patch-error-inspect.js","../../../../node_modules/next/dist/server/require-hook.js","../../../../node_modules/next/dist/server/response-cache/types.js","../../../../node_modules/next/dist/server/runtime-reacts.external.js","../../../../node_modules/next/dist/shared/lib/deep-freeze.js","../../../../node_modules/next/dist/shared/lib/instant-messages.js","../../../../node_modules/next/dist/shared/lib/invariant-error.js","../../../../node_modules/next/dist/shared/lib/is-plain-object.js","../../../../node_modules/next/dist/shared/lib/is-thenable.js","../../../../node_modules/next/dist/shared/lib/lazy-dynamic/bailout-to-csr.js","../../../../node_modules/next/dist/shared/lib/no-fallback-error.external.js","../../../../node_modules/next/dist/shared/lib/promise-with-resolvers.js","../../../../node_modules/next/dist/shared/lib/server-reference-info.js","../../../../node_modules/next/package.json","../../../../node_modules/react/cjs/react.development.js","../../../../node_modules/react/cjs/react.production.js","../../../../node_modules/react/index.js","../../../../node_modules/react/package.json","../../chunks/ssr/[root-of-the-server]__0y_e9do._.js","../../chunks/ssr/[root-of-the-server]__174cgu_._.js","../../chunks/ssr/[root-of-the-server]__1gux7cw._.js","../../chunks/ssr/[root-of-the-server]__1kicjey._.js","../../chunks/ssr/[root-of-the-server]__1mr37or._.js","../../chunks/ssr/[turbopack]_runtime.js","../../chunks/ssr/_next-internal_server_app__not-found_page_actions_0pt47yr.js","../../chunks/ssr/node_modules_01xbj_9._.js","../../chunks/ssr/node_modules_next_dist_10oqhbx._.js","../../chunks/ssr/node_modules_next_dist_1n3w9lb._.js","../../chunks/ssr/node_modules_next_dist_client_components_0wpq8j3._.js","../../chunks/ssr/node_modules_next_dist_client_components_builtin_forbidden_0symwr9.js","../../chunks/ssr/node_modules_next_dist_client_components_builtin_unauthorized_0l_sp0x.js","./page/react-loadable-manifest.json","./page_client-reference-manifest.js"],"fileHashes":["ef6ac6914a3f24c9f4a98105a3bdd310","bcdfbca94848d30153fa83f8421423d7","50bb01754878225cf6730e02b44f84d6","a5446fb306fcfec27c39f81de38ec842","9c53694dd40423680deefb5a1e3c25af","57ca86e5858543e1466b92725355539a","11eb668649d2434d25d26977b8e01e49","02186196a2cc227a67f668f00873f72a","fa8a4dd27dcbde144881044b2fa74f64","cd28bbc5151decba058dfd44bd7f47ef","a8da0851d005c95af6d4ff8b8db146ce","9791ca6a9c90d3537cf59c50161e7260","61445cc4a73d56b154f397d2e4213b60","4e6491a35b1970e74a940d26e575216a","0bcd39f6f5be09dab16374e3bf84459e","ce87d6acf7ef1610862d34a9c59528ea","d1e9d6e75ad3a9d63cc0825ec4ebe282","b81183ad70cf2df4130a6f7853eff593","edcceea1e2a5c13a14d12f4d422f733a","92d7eec9f49250bf6325e1b4186fb521","0b3ab74e31e82ffa9b20013ed883782e","15ad04875f6d43fc8bd602b20d828566","5fe712e91d39531cd872b189115c7a25","c07db8edca1ca7e626b14dbf4e3584a8","0aa24beea9e1b8ae34954feb1be5caa6","f9295c2e844d919b0be75fffe2e10989","9b1c71085acfacbddbca5126bca3f550","6505c89743b18298e0e22489f1d956ed","8f2d8843ff7d322ecc237601ab58e1d7","d90d4f1de46d810d671d85f21ec5d352","2eecc48be406b9c64276e31215c29e95","981807b2548ffbff8d9ad94a758813fb","9f6a333435676ba7b0045e6b0d2d9b98","2701737ab664a8fe7700053638aa0db8","33916079c6a49d35edf38970b6afa990","046a57d6280182df9f32d77ba452677f","94e9332b8f4251c1b03791e57aad9399","6978bf3fb2c443a8c9022d43a243c56a","8fb4ea2a1e97dc7ad2cbbf5641b1aa23","7175e4648ef6975b79e76f0f46dc69df","7a4c4e16ecb22ffb0ba224fa37e94a70","848334e0b7acedfd5656296df4adae7c","0a201256d245b3a0e27ed288b6ba68ae","498fc15d07579c19b3cc959a96eb5bb8","40c6916156cc44db5f0c8e266c9f1e60","1acc3875adfbadf8dd6721e71e776ecd","1eb18df669f40e7a0c8e077b365c907d","08cab8a9c8062eac4f6b9cbcc303417a","bef9750470e394d3052dfe5a7847e9a0","4d1a01dfd6b6423b2d0ff0467f613bd8","7cfcc764f9b49f84e568c2a8b481ef89","ecbf1e0ab3ad74e5979ab5771d710880","59f473418a3a0c96c8ec855aa72bd02a","d3c2a37fdf66b455a0ed47d33fc12229","215309237f9a05ec8f52edadcd0565bf","5f3e641690915ca863053b107ae0493a","44cca5b4413d63e3179289d31fe1bcf1","ce930365528e6b0f94d346e8a3a6c976","85ef440bb2c4d6dcc19f40e9d77059e3","b73d42aa8f40f578ac38efd8516ad8a3","fc4f7117734aa11e26028c3a1f0e9934","4b5216f48144eab06a89f40a112df0f9","7f7c41d2d2c4e4ea0359ce7e30c4676d","a52c1bfa60cdd122eb82001cf748b39b","4daf2c54f6e769ac3f1c55e2d2356e62","67530655ee6d2037c694d851f60a4d3a","72e15054e5bb83aa2714e9aa0f2a8aaa","72944fa2cce5836dad49dfd7147626d0","3c5c716d6aebf4093db91e57fe322e0c","64c0567172a45f553110cf14514d76dc","f5232a6a89b9b1646513f6f36cfd6edc","ed734e4322f6faf639acccc2130bd1f9","3a55a78645b57706246de6914d4ce134","438a096196cbf3f40712fc244347eced","59be47cbf4cb15affb56354159123835","e124239b7fff31a73bfc3e95cfc593d3","38636bd694da4120897a2a695111039c","03f54ee64db45e6ac7025c881590f862","48538028ed97d91e767563f56035e684","217152373b3f900ae15ce0920bb06da9","6dadc2917fc514e7e4c6f4cabe7d69a6","a81a01b4510a203a8811e202d3537fe8","37ac4cbd6b18d52a47105218c3573c36","5ab4d38c634c37598fc59a79eeef302f","e2a4479a35cb46058fa5fa4148e39287","a5ceecfe744045263b3b4c06e4d48cce","5654b3d7d7805129b98db879f3bbd2af","deef54fb4c402325da2038fd78856071","d1892b4874d38c2ebfc46f453c284495","dfea88cc5423da5be7ec5d44ddcaaedd","220a1d153fd4a6d65e4ef3ab23305e12","bd95af69943c6b10d72a1520da203070","2e2b6ee2ccf6a93255a41d6364a2937b","a81053f4b0f53f501fdfcd3e85169550","3f4facc80a036af02bad43d1f2e91235","ea5506a393477d49bc517d5ceb540125","0a7ecaa755ab82b1e539536e44b4cfa0","05a6cc510fe660505eb5fbe73ca59415","0b2250eb6c263d49271dd230dd6cb198","f7daca906f84cde5a8354a0ac59ac4e2","b5b6559047be969dc3946d5078c5804e","404525d7d20212a73472c2705013c38e","f1f9866f1230a22d5a4d536b35df27ff","1294c7f7c9aef85a83fcc84b949bc049","f72b6e4ab06ddd4f1d11cf7e15e754f8","cedd0e303a2a58a21e0ed99701073ecb","16e46fdae0f9e53f20442b629714017f","9acfeed92b4ef3952287652d11306b8a"],"entryHash":"87991af887f53c735d470b3b8d942e38"}
-```
-
----
-
-## File: .next\server\app\_not-found\page\app-paths-manifest.json
-```json
-{
-  "/_not-found/page": "app/_not-found/page.js"
-}
-```
-
----
-
-## File: .next\server\app\_not-found\page\build-manifest.json
-```json
-{
-  "devFiles": [],
-  "ampDevFiles": [],
-  "polyfillFiles": [
-    "static/chunks/0cz1d0mv5g_q7.js"
-  ],
-  "lowPriorityFiles": [],
-  "rootMainFiles": [
-    "static/chunks/1inwntv0b4r-7.js",
-    "static/chunks/2h1eivth_f3qo.js",
-    "static/chunks/1qe3i8urdd-pi.js",
-    "static/chunks/turbopack-2-wuwwgvehyn4.js"
-  ],
-  "pages": {},
-  "ampFirstPages": [],
-  "rootMainFilesTree": {},
-  "pagesChunkGroupBootstrapParams": {},
-  "chunkLoadingGlobal": "TURBOPACK"
-}
-```
-
----
-
-## File: .next\server\app\_not-found\page\next-font-manifest.json
-```json
-{
-  "pages": {},
-  "app": {
-    "[project]/src/app/_not-found/page": [
-      "static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
-      "static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2"
-    ]
-  },
-  "appUsingSizeAdjust": true,
-  "pagesUsingSizeAdjust": false
-}
-```
-
----
-
-## File: .next\server\app\_not-found\page\react-loadable-manifest.json
-```json
-{}
-```
-
----
-
-## File: .next\server\app\_not-found\page\server-reference-manifest.json
-```json
-{
-  "node": {},
-  "edge": {}
-}
-```
-
----
-
-## File: .next\types\cache-life.d.ts
-```typescript
-// Type definitions for Next.js cacheLife configs
-
-declare module 'next/cache' {
-  export { unstable_cache } from 'next/dist/server/web/spec-extension/unstable-cache'
-  export {
-    updateTag,
-    revalidateTag,
-    revalidatePath,
-    refresh,
-  } from 'next/dist/server/web/spec-extension/revalidate'
-  export { unstable_noStore } from 'next/dist/server/web/spec-extension/unstable-no-store'
-  export { io } from 'next/dist/server/request/io'
-
-  
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"default"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 900 seconds (15 minutes)
-     *   expire:     never
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 15 minutes, start revalidating new values in the background.
-     * It lives for the maximum age of the server cache. If this entry has no traffic for a while, it may serve an old value the next request.
-     */
-    export function cacheLife(profile: "default"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"seconds"` profile.
-     * ```
-     *   stale:      30 seconds
-     *   revalidate: 1 seconds
-     *   expire:     60 seconds (1 minute)
-     * ```
-     * 
-     * This cache may be stale on clients for 30 seconds before checking with the server.
-     * If the server receives a new request after 1 seconds, start revalidating new values in the background.
-     * If this entry has no traffic for 1 minute it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "seconds"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"minutes"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 60 seconds (1 minute)
-     *   expire:     3600 seconds (1 hour)
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 1 minute, start revalidating new values in the background.
-     * If this entry has no traffic for 1 hour it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "minutes"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"hours"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 3600 seconds (1 hour)
-     *   expire:     86400 seconds (1 day)
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 1 hour, start revalidating new values in the background.
-     * If this entry has no traffic for 1 day it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "hours"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"days"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 86400 seconds (1 day)
-     *   expire:     604800 seconds (1 week)
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 1 day, start revalidating new values in the background.
-     * If this entry has no traffic for 1 week it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "days"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"weeks"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 604800 seconds (1 week)
-     *   expire:     2592000 seconds (1 month)
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 1 week, start revalidating new values in the background.
-     * If this entry has no traffic for 1 month it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "weeks"): void
-    
-    /**
-     * Cache this `"use cache"` for a timespan defined by the `"max"` profile.
-     * ```
-     *   stale:      300 seconds (5 minutes)
-     *   revalidate: 2592000 seconds (1 month)
-     *   expire:     31536000 seconds (365 days)
-     * ```
-     * 
-     * This cache may be stale on clients for 5 minutes before checking with the server.
-     * If the server receives a new request after 1 month, start revalidating new values in the background.
-     * If this entry has no traffic for 365 days it will expire. The next request will recompute it.
-     */
-    export function cacheLife(profile: "max"): void
-    
-    /**
-     * Cache this `"use cache"` using a custom timespan.
-     * ```
-     *   stale: ... // seconds
-     *   revalidate: ... // seconds
-     *   expire: ... // seconds
-     * ```
-     *
-     * This is similar to Cache-Control: max-age=`stale`,s-max-age=`revalidate`,stale-while-revalidate=`expire-revalidate`
-     *
-     * If a value is left out, the lowest of other cacheLife() calls or the default, is used instead.
-     */
-    export function cacheLife(profile: {
-      /**
-       * This cache may be stale on clients for ... seconds before checking with the server.
-       */
-      stale?: number,
-      /**
-       * If the server receives a new request after ... seconds, start revalidating new values in the background.
-       */
-      revalidate?: number,
-      /**
-       * If this entry has no traffic for ... seconds it will expire. The next request will recompute it.
-       */
-      expire?: number
-    }): void
-  
-
-  import { cacheTag } from 'next/dist/server/use-cache/cache-tag'
-  export { cacheTag }
-
-  export const unstable_cacheTag: typeof cacheTag
-  export const unstable_cacheLife: typeof cacheLife
-}
-
-```
-
----
-
-## File: .next\types\root-params.d.ts
-```typescript
-// Type definitions for Next.js root params (next/root-params)
-// No root params detected.
-export {}
-
-```
-
----
-
-## File: .next\types\routes.d.ts
-```typescript
-// This file is generated automatically by Next.js
-// Do not edit this file manually
-
-type AppRoutes = "/"
-type AppRouteHandlerRoutes = "/api/v1/ingestion/stream" | "/api/v1/process/pfd-overview"
-type PageRoutes = never
-type LayoutRoutes = "/"
-type RedirectRoutes = never
-type RewriteRoutes = never
-type Routes = AppRoutes | PageRoutes | LayoutRoutes | RedirectRoutes | RewriteRoutes | AppRouteHandlerRoutes
-
-
-interface ParamMap {
-  "/": {}
-  "/api/v1/ingestion/stream": {}
-  "/api/v1/process/pfd-overview": {}
-}
-
-
-export type ParamsOf<Route extends Routes> = ParamMap[Route]
-
-interface LayoutSlotMap {
-  "/": never
-}
-
-
-export type { AppRoutes, PageRoutes, LayoutRoutes, RedirectRoutes, RewriteRoutes, ParamMap, AppRouteHandlerRoutes }
-
-declare global {
-  /**
-   * Props for Next.js App Router page components
-   * @example
-   * ```tsx
-   * export default function Page(props: PageProps<'/blog/[slug]'>) {
-   *   const { slug } = await props.params
-   *   return <div>Blog post: {slug}</div>
-   * }
-   * ```
-   */
-  interface PageProps<AppRoute extends AppRoutes> {
-    params: Promise<ParamMap[AppRoute]>
-    searchParams: Promise<Record<string, string | string[] | undefined>>
-  }
-
-  /**
-   * Props for Next.js App Router layout components
-   * @example
-   * ```tsx
-   * export default function Layout(props: LayoutProps<'/dashboard'>) {
-   *   return <div>{props.children}</div>
-   * }
-   * ```
-   */
-  type LayoutProps<LayoutRoute extends LayoutRoutes> = {
-    params: Promise<ParamMap[LayoutRoute]>
-    children: React.ReactNode
-  } & {
-    [K in LayoutSlotMap[LayoutRoute]]: React.ReactNode
-  }
-
-  /**
-   * Context for Next.js App Router route handlers
-   * @example
-   * ```tsx
-   * export async function GET(request: NextRequest, context: RouteContext<'/api/users/[id]'>) {
-   *   const { id } = await context.params
-   *   return Response.json({ id })
-   * }
-   * ```
-   */
-  interface RouteContext<AppRouteHandlerRoute extends AppRouteHandlerRoutes> {
-    params: Promise<ParamMap[AppRouteHandlerRoute]>
-  }
-}
-
-```
-
----
-
-## File: .next\types\validator.ts
-```typescript
-// This file is generated automatically by Next.js
-// Do not edit this file manually
-// This file validates that all pages and layouts export the correct types
-
-import type { AppRoutes, LayoutRoutes, ParamMap, AppRouteHandlerRoutes } from "./routes.js"
-import type { ResolvingMetadata, ResolvingViewport } from "next/types.js"
-import type { NextRequest } from 'next/server.js'
-
-type AppPageConfig<Route extends AppRoutes = AppRoutes> = {
-  default: React.ComponentType<{ params: Promise<ParamMap[Route]> } & any> | ((props: { params: Promise<ParamMap[Route]> } & any) => React.ReactNode | Promise<React.ReactNode> | never | void | Promise<void>)
-  generateStaticParams?: (props: { params: ParamMap[Route] }) => Promise<any[]> | any[]
-  generateMetadata?: (
-    props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingMetadata
-  ) => Promise<any> | any
-  generateViewport?: (
-    props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingViewport
-  ) => Promise<any> | any
-  metadata?: any
-  viewport?: any
-}
-
-type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
-  default: React.ComponentType<LayoutProps<Route>> | ((props: LayoutProps<Route>) => React.ReactNode | Promise<React.ReactNode> | never | void | Promise<void>)
-  generateStaticParams?: (props: { params: ParamMap[Route] }) => Promise<any[]> | any[]
-  generateMetadata?: (
-    props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingMetadata
-  ) => Promise<any> | any
-  generateViewport?: (
-    props: { params: Promise<ParamMap[Route]> } & any,
-    parent: ResolvingViewport
-  ) => Promise<any> | any
-  metadata?: any
-  viewport?: any
-}
-
-type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRoutes> = {
-  GET?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  POST?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  PUT?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  PATCH?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  DELETE?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  HEAD?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-  OPTIONS?: (request: NextRequest, context: { params: Promise<ParamMap[Route]> }) => Promise<Response | void> | Response | void
-}
-
-
-// Validate ../../src/app/page.tsx
-{
-  type __IsExpected<Specific extends AppPageConfig<"/">> = Specific
-  const handler = {} as typeof import("../../src/app/page.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/app/api/v1/ingestion/stream/route.ts
-{
-  type __IsExpected<Specific extends RouteHandlerConfig<"/api/v1/ingestion/stream">> = Specific
-  const handler = {} as typeof import("../../src/app/api/v1/ingestion/stream/route.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/app/api/v1/process/pfd-overview/route.ts
-{
-  type __IsExpected<Specific extends RouteHandlerConfig<"/api/v1/process/pfd-overview">> = Specific
-  const handler = {} as typeof import("../../src/app/api/v1/process/pfd-overview/route.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-
-
-
-
-// Validate ../../src/app/layout.tsx
-{
-  type __IsExpected<Specific extends LayoutConfig<"/">> = Specific
-  const handler = {} as typeof import("../../src/app/layout.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-```
+<!--
+  Last Updated: September 9, 2026
+  System: NIAS LNG Portal Industrial SCADA & CMMS Architecture
+  Total Merged Files: 164
+  File Extensions: .py, .json, .ts, .tsx, .csv
+-->
+
+> **Snapshot Date**: September 9, 2026  
+> **Total Source Files**: 164  
+> **System Architecture**: Industrial SCADA & CMMS Portal (Next.js / TypeScript)  
+> **Scope**: Complete codebase components, data models, hooks, services, and utility calculations  
 
 ---
 
@@ -2560,970 +53,71 @@ BSG199551,Jefi R. Zega,HR / GA Coordinator,HR / GA,HR_GA,On-Site,D,2026-07-07,30
 
 ---
 
-## File: public\data\bay_plan_120_tanks.json
+## File: next-env.d.ts
+```typescript
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+import "./.next/dev/types/routes.d.ts";
+import "./.next/dev/types/root-params.d.ts";
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+```
+
+---
+
+## File: next.config.ts
+```typescript
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+
+```
+
+---
+
+## File: package.json
 ```json
-[
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 86",
-    "row": "ROW 06",
-    "serialNo": "SIMU 811129 7",
-    "tankNo": "ISOT-001"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 86",
-    "row": "ROW 06",
-    "serialNo": "SIMU 810288 6",
-    "tankNo": "ISOT-002"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 86",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810218 7",
-    "tankNo": "ISOT-003"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 86",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810197 7",
-    "tankNo": "ISOT-004"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 86",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810144 7",
-    "tankNo": "ISOT-005"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 86",
-    "row": "ROW 04",
-    "serialNo": "SIMU 811081 3",
-    "tankNo": "ISOT-006"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 86",
-    "row": "ROW 02",
-    "serialNo": "SIMU 811100 2",
-    "tankNo": "ISOT-007"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 86",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810165 8",
-    "tankNo": "ISOT-008"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 86",
-    "row": "ROW 02",
-    "serialNo": "SIMU 811122 9",
-    "tankNo": "ISOT-009"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 86",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810147 3",
-    "tankNo": "ISOT-010"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 86",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810367 1",
-    "tankNo": "ISOT-011"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 86",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810283 9",
-    "tankNo": "ISOT-012"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 86",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810359 0",
-    "tankNo": "ISOT-013"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 86",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810200 0",
-    "tankNo": "ISOT-014"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 86",
-    "row": "ROW 03",
-    "serialNo": "SIMU 811161 4",
-    "tankNo": "ISOT-015"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 86",
-    "row": "ROW 03",
-    "serialNo": "SIMU 810289 1",
-    "tankNo": "ISOT-016"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 86",
-    "row": "ROW 03",
-    "serialNo": "SIMU 810247 0",
-    "tankNo": "ISOT-017"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 86",
-    "row": "ROW 03",
-    "serialNo": "SIMU 810187 4",
-    "tankNo": "ISOT-018"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 86",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810371 1",
-    "tankNo": "ISOT-019"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 86",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810358 4",
-    "tankNo": "ISOT-020"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 86",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810205 8",
-    "tankNo": "ISOT-021"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 86",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810229 5",
-    "tankNo": "ISOT-022"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 86",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810175 0",
-    "tankNo": "ISOT-023"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 86",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810357 9",
-    "tankNo": "ISOT-024"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 86",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810207 9",
-    "tankNo": "ISOT-025"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 86",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810191 4",
-    "tankNo": "ISOT-026"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 84",
-    "row": "ROW 06",
-    "serialNo": "SIMU 810243 8",
-    "tankNo": "ISOT-027"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 84",
-    "row": "ROW 06",
-    "serialNo": "SIMU 810194 0",
-    "tankNo": "ISOT-028"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 84",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810256 7",
-    "tankNo": "ISOT-029"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 84",
-    "row": "ROW 04",
-    "serialNo": "SIMU 811117 3",
-    "tankNo": "ISOT-030"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 84",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810192 0",
-    "tankNo": "ISOT-031"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 84",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810178 7",
-    "tankNo": "ISOT-032"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 84",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810219 2",
-    "tankNo": "ISOT-033"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 84",
-    "row": "ROW 02",
-    "serialNo": "SIMU 811166 1",
-    "tankNo": "ISOT-034"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 84",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810176 6",
-    "tankNo": "ISOT-035"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 84",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810198 2",
-    "tankNo": "ISOT-036"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 84",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810159 7",
-    "tankNo": "ISOT-037"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 84",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 811096 3",
-    "tankNo": "ISOT-038"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 84",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810206 3",
-    "tankNo": "ISOT-039"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 84",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810127 8",
-    "tankNo": "ISOT-040"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 84",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810365 0",
-    "tankNo": "ISOT-041"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 84",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810223 2",
-    "tankNo": "ISOT-042"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 84",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 811151 1",
-    "tankNo": "ISOT-043"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 84",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 811078 9",
-    "tankNo": "ISOT-044"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 84",
-    "row": "ROW 03",
-    "serialNo": "SIMU 810158 1",
-    "tankNo": "ISOT-045"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 84",
-    "row": "ROW 03",
-    "serialNo": "SIMU 810360 3",
-    "tankNo": "ISOT-046"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 84",
-    "row": "ROW 03",
-    "serialNo": "SIMU 810374 8",
-    "tankNo": "ISOT-047"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 84",
-    "row": "ROW 03",
-    "serialNo": "SIMU 810235 6",
-    "tankNo": "ISOT-048"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 84",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810138 6",
-    "tankNo": "ISOT-049"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 84",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810152 9",
-    "tankNo": "ISOT-050"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 84",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810220 6",
-    "tankNo": "ISOT-051"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 84",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810231 4",
-    "tankNo": "ISOT-052"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 82",
-    "row": "ROW 06",
-    "serialNo": "SIMU 810356 3",
-    "tankNo": "ISOT-053"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 82",
-    "row": "ROW 06",
-    "serialNo": "SIMU 810361 9",
-    "tankNo": "ISOT-054"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 82",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810142 6",
-    "tankNo": "ISOT-055"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 82",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810148 9",
-    "tankNo": "ISOT-056"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 82",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810251 0",
-    "tankNo": "ISOT-057"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 82",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810172 4",
-    "tankNo": "ISOT-058"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 82",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810190 9",
-    "tankNo": "ISOT-059"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 82",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810131 8",
-    "tankNo": "ISOT-060"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 82",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810230 9",
-    "tankNo": "ISOT-061"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 82",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810282 3",
-    "tankNo": "ISOT-062"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 82",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810184 8",
-    "tankNo": "ISOT-063"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 82",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810372 7",
-    "tankNo": "ISOT-064"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 82",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 811315 5",
-    "tankNo": "ISOT-065"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 82",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810170 3",
-    "tankNo": "ISOT-066"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 82",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810373 2",
-    "tankNo": "ISOT-067"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 82",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810167 9",
-    "tankNo": "ISOT-068"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 82",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810163 7",
-    "tankNo": "ISOT-069"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 82",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810185 3",
-    "tankNo": "ISOT-070"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 82",
-    "row": "ROW 03",
-    "serialNo": "SIMU 811317 6",
-    "tankNo": "ISOT-071"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 82",
-    "row": "ROW 03",
-    "serialNo": "SIMU 811313 4",
-    "tankNo": "ISOT-072"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 82",
-    "row": "ROW 03",
-    "serialNo": "SIMU 810188 0",
-    "tankNo": "ISOT-073"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 82",
-    "row": "ROW 03",
-    "serialNo": "SIMU 811254 4",
-    "tankNo": "ISOT-074"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 17",
-    "tier": "Tier 82",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810151 3",
-    "tankNo": "ISOT-075"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 13",
-    "tier": "Tier 82",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810195 6",
-    "tankNo": "ISOT-076"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 09",
-    "tier": "Tier 82",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810284 4",
-    "tankNo": "ISOT-077"
-  },
-  {
-    "deckMode": "ON_DECK",
-    "bay": "BAY 05",
-    "tier": "Tier 82",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810189 5",
-    "tankNo": "ISOT-078"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 06",
-    "row": "ROW 06",
-    "serialNo": "SIMU 811298 7",
-    "tankNo": "ISOT-079"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 06",
-    "row": "ROW 06",
-    "serialNo": "SIMU 810366 6",
-    "tankNo": "ISOT-080"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 06",
-    "row": "ROW 06",
-    "serialNo": "SIMU 810202 1",
-    "tankNo": "ISOT-081"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 06",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810286 5",
-    "tankNo": "ISOT-082"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 06",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810123 6",
-    "tankNo": "ISOT-083"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 06",
-    "row": "ROW 04",
-    "serialNo": "SIMU 811125 5",
-    "tankNo": "ISOT-084"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 06",
-    "row": "ROW 02",
-    "serialNo": "SIMU 811314 0",
-    "tankNo": "ISOT-085"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 06",
-    "row": "ROW 02",
-    "serialNo": "SIMU 811164 0",
-    "tankNo": "ISOT-086"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 06",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810214 5",
-    "tankNo": "ISOT-087"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 05",
-    "tier": "Tier 06",
-    "row": "ROW 02",
-    "serialNo": "SIMU 811132 1",
-    "tankNo": "ISOT-088"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 06",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810168 4",
-    "tankNo": "ISOT-089"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 06",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810201 6",
-    "tankNo": "ISOT-090"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 06",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810214 1",
-    "tankNo": "ISOT-091"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 05",
-    "tier": "Tier 06",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810203 7",
-    "tankNo": "ISOT-092"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 06",
-    "row": "ROW 03",
-    "serialNo": "SIMU 810129 9",
-    "tankNo": "ISOT-093"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 06",
-    "row": "ROW 03",
-    "serialNo": "SIMU 811312 9",
-    "tankNo": "ISOT-094"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 06",
-    "row": "ROW 03",
-    "serialNo": "SIMU 811131 6",
-    "tankNo": "ISOT-095"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 06",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810369 2",
-    "tankNo": "ISOT-096"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 06",
-    "row": "ROW 05",
-    "serialNo": "SIMU 811130 0",
-    "tankNo": "ISOT-097"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 06",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810180 6",
-    "tankNo": "ISOT-098"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 19",
-    "tier": "Tier 04",
-    "row": "ROW 06",
-    "serialNo": "SIMU 811092 1",
-    "tankNo": "ISOT-099"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 04",
-    "row": "ROW 06",
-    "serialNo": "SIMU 810265 4",
-    "tankNo": "ISOT-100"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 04",
-    "row": "ROW 06",
-    "serialNo": "SIMU 810156 0",
-    "tankNo": "ISOT-101"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 04",
-    "row": "ROW 06",
-    "serialNo": "SIMU 811076 8",
-    "tankNo": "ISOT-102"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 04",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810164 2",
-    "tankNo": "ISOT-103"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 04",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810368 7",
-    "tankNo": "ISOT-104"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 04",
-    "row": "ROW 04",
-    "serialNo": "SIMU 810134 4",
-    "tankNo": "ISOT-105"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 04",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810244 3",
-    "tankNo": "ISOT-106"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 04",
-    "row": "ROW 02",
-    "serialNo": "SIMU 810204 2",
-    "tankNo": "ISOT-107"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 04",
-    "row": "ROW 02",
-    "serialNo": "SIMU 811134 2",
-    "tankNo": "ISOT-108"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 05",
-    "tier": "Tier 04",
-    "row": "ROW 02",
-    "serialNo": "SIMU 811121 3",
-    "tankNo": "ISOT-109"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 19",
-    "tier": "Tier 04",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810183 2",
-    "tankNo": "ISOT-110"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 04",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810281 8",
-    "tankNo": "ISOT-111"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 04",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810387 7",
-    "tankNo": "ISOT-112"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 04",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810150 8",
-    "tankNo": "ISOT-113"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 05",
-    "tier": "Tier 04",
-    "row": "ROW 00/01",
-    "serialNo": "SIMU 810140 5",
-    "tankNo": "ISOT-114"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 04",
-    "row": "ROW 03",
-    "serialNo": "SIMU 810355 8",
-    "tankNo": "ISOT-115"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 04",
-    "row": "ROW 03",
-    "serialNo": "SIMU 811141 9",
-    "tankNo": "ISOT-116"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 04",
-    "row": "ROW 03",
-    "serialNo": "SIMU 811101 8",
-    "tankNo": "ISOT-117"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 17",
-    "tier": "Tier 04",
-    "row": "ROW 05",
-    "serialNo": "SIMU 811089 7",
-    "tankNo": "ISOT-118"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 13",
-    "tier": "Tier 04",
-    "row": "ROW 05",
-    "serialNo": "SIMU 810362 4",
-    "tankNo": "ISOT-119"
-  },
-  {
-    "deckMode": "CARGO_HOLD",
-    "bay": "BAY 09",
-    "tier": "Tier 04",
-    "row": "ROW 05",
-    "serialNo": "SIMU 811163 5",
-    "tankNo": "ISOT-120"
+{
+  "name": "nias-lng-portal",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@types/papaparse": "^5.5.2",
+    "exceljs": "^4.4.0",
+    "lucide-react": "^1.33.0",
+    "next": "16.3.2",
+    "papaparse": "^5.6.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "recharts": "^3.10.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.2",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^2.1.9"
   }
-]
+}
+
 ```
 
 ---
@@ -3892,6 +486,134 @@ Report Date,Nitrogen (%) M-101A,Nitrogen (%) M-101B,CO2 (%) M-101A,CO2 (%) M-101
 2026-07-28,0,0.033,0,0,0,0,0,0,0,96.7138,0,2.584,0,0.4753,0,0.08427,0,0.07198,0,0.00511,0,0.01465,0,0.01788,0,0,0,0,0,0,0,0
 2026-07-29,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 2026-07-30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+```
+
+---
+
+## File: public\data\NIAS - ISO TANK Status, Location.csv
+```text
+No,ISO Tk No.,Serial No.,Location,Position,REMARKS
+1,ISOT - 1,SIMU-8101236,Ship,MV. SAVIOUR,-
+2,ISOT - 2,SIMU-8101241,Ship,MV. SAVIOUR,-
+3,ISOT - 3,SIMU-8101278,Ship,MV. SAVIOUR,-
+4,ISOT - 4,SIMU-8101299,Ship,MV. SAVIOUR,-
+5,ISOT - 5,SIMU-8101318,Ship,MV. SAVIOUR,-
+6,ISOT - 6,SIMU-8101344,Ship,MV. SAVIOUR,-
+7,ISOT - 7,SIMU-8101386,Aceh,LAYDOWN PAG,-
+8,ISOT - 8,SIMU-8101405,Ship,MV. SAVIOUR,-
+9,ISOT - 9,SIMU-8101426,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 49% (13 August 2026) Used for Gas Trail
+10,ISOT - 10,SIMU-8101447,Ship,MV. SAVIOUR,-
+11,ISOT - 11,SIMU-8101473,Ship,MV. SAVIOUR,-
+12,ISOT - 12,SIMU-8101489,Ship,MV. SAVIOUR,-
+13,ISOT - 13,SIMU-8101508,Ship,MV. SAVIOUR,-
+14,ISOT - 14,SIMU-8101513,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 54% (13 August 2026)
+15,ISOT - 15,SIMU-8101529,Ship,MV. SAVIOUR,-
+16,ISOT - 16,SIMU-8101560,Ship,MV. SAVIOUR,-
+17,ISOT - 17,SIMU-8101581,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 63% (13 August 2026)
+18,ISOT - 18,SIMU-8101597,Aceh,LAYDOWN PAG,-
+19,ISOT - 19,SIMU-8101637,Ship,MV. SAVIOUR,-
+20,ISOT - 20,SIMU-8101642,Ship,MV. SAVIOUR,-
+21,ISOT - 21,SIMU-8101658,Ship,MV. SAVIOUR,-
+22,ISOT - 22,SIMU-8101679,Ship,MV. SAVIOUR,-
+23,ISOT - 23,SIMU-8101684,Ship,MV. SAVIOUR,-
+24,ISOT - 24,SIMU-8101703,Ship,MV. SAVIOUR,-
+25,ISOT - 25,SIMU-8101724,Ship,MV. SAVIOUR,-
+26,ISOT - 26,SIMU-8101750,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 62% (13 August 2026)
+27,ISOT - 27,SIMU-8101766,Ship,MV. SAVIOUR,-
+28,ISOT - 28,SIMU-8101787,Ship,MV. SAVIOUR,-
+29,ISOT - 29,SIMU-8101806,Ship,MV. SAVIOUR,-
+30,ISOT - 30,SIMU-8101832,Ship,MV. SAVIOUR,-
+31,ISOT - 31,SIMU-8101848,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 55% (13 August 2026)
+32,ISOT - 32,SIMU-8101853,Ship,MV. SAVIOUR,-
+33,ISOT - 33,SIMU-8101874,Ship,MV. SAVIOUR,-
+34,ISOT - 34,SIMU-8101880,Ship,MV. SAVIOUR,-
+35,ISOT - 35,SIMU-8101895,Ship,MV. SAVIOUR,-
+36,ISOT - 36,SIMU-8101909,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 56% (13 August 2026)
+37,ISOT - 37,SIMU-8101914,Ship,MV. SAVIOUR,-
+38,ISOT - 38,SIMU-8101920,Ship,MV. SAVIOUR,-
+39,ISOT - 39,SIMU-8101940,Ship,MV. SAVIOUR,-
+40,ISOT - 40,SIMU-8101956,Ship,MV. SAVIOUR,-
+41,ISOT - 41,SIMU-8101977,Ship,MV. SAVIOUR,-
+42,ISOT - 42,SIMU-8101982,Ship,MV. SAVIOUR,-
+43,ISOT - 43,SIMU-8102000,Ship,MV. SAVIOUR,-
+44,ISOT - 44,SIMU-8102016,Ship,MV. SAVIOUR,-
+45,ISOT - 45,SIMU-8102021,Ship,MV. SAVIOUR,-
+46,ISOT - 46,SIMU-8102037,Ship,MV. SAVIOUR,-
+47,ISOT - 47,SIMU-8102042,Ship,MV. SAVIOUR,-
+48,ISOT - 48,SIMU-8102058,Ship,MV. SAVIOUR,-
+49,ISOT - 49,SIMU-8102063,Ship,MV. SAVIOUR,-
+50,ISOT - 50,SIMU-8102079,Ship,MV. SAVIOUR,-
+51,ISOT - 51,SIMU-8102145,Ship,MV. SAVIOUR,-
+52,ISOT - 52,SIMU-8102187,Aceh,LAYDOWN PAG,-
+53,ISOT - 53,SIMU-8102192,Aceh,LAYDOWN PAG,-
+54,ISOT - 54,SIMU-8102206,Ship,MV. SAVIOUR,-
+55,ISOT - 55,SIMU-8102232,Ship,MV. SAVIOUR,-
+56,ISOT - 56,SIMU-8102295,Ship,MV. SAVIOUR,-
+57,ISOT - 57,SIMU-8102309,Ship,MV. SAVIOUR,-
+58,ISOT - 58,SIMU-8102314,Ship,MV. SAVIOUR,-
+59,ISOT - 59,SIMU-8102356,Ship,MV. SAVIOUR,-
+60,ISOT - 60,SIMU-8102438,Aceh,LAYDOWN PAG,-
+61,ISOT - 61,SIMU-8102443,Ship,MV. SAVIOUR,-
+62,ISOT - 62,SIMU-8102470,Ship,MV. SAVIOUR,-
+63,ISOT - 63,SIMU-8102510,Ship,MV. SAVIOUR,-
+64,ISOT - 64,SIMU-8102567,ORU NIAS,LAYDOWN 1,Empty ISOTANK
+65,ISOT - 65,SIMU-8102654,Ship,MV. SAVIOUR,-
+66,ISOT - 66,SIMU-8102818,Ship,MV. SAVIOUR,-
+67,ISOT - 67,SIMU-8102823,Ship,MV. SAVIOUR,-
+68,ISOT - 68,SIMU-8102839,Ship,MV. SAVIOUR,-
+69,ISOT - 69,SIMU-8102844,Ship,MV. SAVIOUR,-
+70,ISOT - 70,SIMU-8102865,Ship,MV. SAVIOUR,-
+71,ISOT - 71,SIMU-8102886,Ship,MV. SAVIOUR,-
+72,ISOT - 72,SIMU-8102891,Ship,MV. SAVIOUR,-
+73,ISOT - 73,SIMU-8103558,Ship,MV. SAVIOUR,-
+74,ISOT - 74,SIMU-8103563,Aceh,LAYDOWN PAG,-
+75,ISOT - 75,SIMU-8103579,Ship,MV. SAVIOUR,-
+76,ISOT - 76,SIMU-8103584,Ship,MV. SAVIOUR,-
+77,ISOT - 77,SIMU-8103590,Ship,MV. SAVIOUR,-
+78,ISOT - 78,SIMU-8103603,Ship,MV. SAVIOUR,-
+79,ISOT - 79,SIMU-8103619,Ship,MV. SAVIOUR,-
+80,ISOT - 80,SIMU-8103624,Ship,MV. SAVIOUR,-
+81,ISOT - 81,SIMU-8103650,Aceh,LAYDOWN PAG,-
+82,ISOT - 82,SIMU-8103666,Ship,MV. SAVIOUR,-
+83,ISOT - 83,SIMU-8103671,Aceh,LAYDOWN PAG,-
+84,ISOT - 84,SIMU-8103687,Ship,MV. SAVIOUR,-
+85,ISOT - 85,SIMU-8103692,Ship,MV. SAVIOUR,-
+86,ISOT - 86,SIMU-8103711,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 74% (13 August 2026)
+87,ISOT - 87,SIMU-8103727,Ship,MV. SAVIOUR,-
+88,ISOT - 88,SIMU-8103732,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 62% (13 August 2026)
+89,ISOT - 89,SIMU-8103748,Ship,MV. SAVIOUR,-
+90,ISOT - 90,SIMU-8103877,Ship,MV. SAVIOUR,-
+91,ISOT - 91,SIMU-8110768,Ship,MV. SAVIOUR,-
+92,ISOT - 92,SIMU-8110789,Ship,MV. SAVIOUR,-
+93,ISOT - 93,SIMU-8110813,Ship,MV. SAVIOUR,-
+94,ISOT - 94,SIMU-8110897,Ship,MV. SAVIOUR,-
+95,ISOT - 95,SIMU-8110921,Ship,MV. SAVIOUR,-
+96,ISOT - 96,SIMU-8110963,Ship,MV. SAVIOUR,-
+97,ISOT - 97,SIMU-8111002,Aceh,LAYDOWN PAG,-
+98,ISOT - 98,SIMU-8111018,Ship,MV. SAVIOUR,-
+99,ISOT - 99,SIMU-8111173,Ship,MV. SAVIOUR,-
+100,ISOT - 100,SIMU-8111213,Ship,MV. SAVIOUR,-
+101,ISOT - 101,SIMU-8111229,Ship,MV. SAVIOUR,-
+102,ISOT - 102,SIMU-8111255,Ship,MV. SAVIOUR,-
+103,ISOT - 103,SIMU-8111297,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 59% (13 August 2026)
+104,ISOT - 104,SIMU-8111300,Ship,MV. SAVIOUR,-
+105,ISOT - 105,SIMU-8111316,Ship,MV. SAVIOUR,-
+106,ISOT - 106,SIMU-8111321,Ship,SAVIOUR,-
+107,ISOT - 107,SIMU-8111342,Ship,MV. SAVIOUR,-
+108,ISOT - 108,SIMU-8111419,Ship,MV. SAVIOUR,-
+109,ISOT - 109,SIMU-8111511,Ship,MV. SAVIOUR,-
+110,ISOT - 110,SIMU-8111614,Aceh,LAYDOWN PAG,-
+111,ISOT - 111,SIMU-8111635,Ship,MV. SAVIOUR,-
+112,ISOT - 112,SIMU-8111640,Ship,MV. SAVIOUR,-
+113,ISOT - 113,SIMU-8111661,Ship,MV. SAVIOUR,-
+114,ISOT - 114,SIMU-8112544,Ship,MV. SAVIOUR,-
+115,ISOT - 115,SIMU-8112987,Ship,MV. SAVIOUR,-
+116,ISOT - 116,SIMU-8113129,Ship,MV. SAVIOUR,-
+117,ISOT - 117,SIMU-8113134,Ship,MV. SAVIOUR,-
+118,ISOT - 118,SIMU-8113140,Ship,MV. SAVIOUR,-
+119,ISOT - 119,SIMU-8113155,Ship,MV. SAVIOUR,-
+120,ISOT - 120,SIMU-8113176,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 66% (13 August 2026)
 
 ```
 
@@ -5936,130 +2658,970 @@ Report Date,Serial No.,ISO Tk No.,Shipment,Level (%),Level (m),Level (mmH2O),Bat
 
 ---
 
-## File: public\data\NIAS - ISO TANK Status, Location.csv
-```text
-No,ISO Tk No.,Serial No.,Location,Position,REMARKS
-1,ISOT - 1,SIMU-8101236,Ship,MV. SAVIOUR,-
-2,ISOT - 2,SIMU-8101241,Ship,MV. SAVIOUR,-
-3,ISOT - 3,SIMU-8101278,Ship,MV. SAVIOUR,-
-4,ISOT - 4,SIMU-8101299,Ship,MV. SAVIOUR,-
-5,ISOT - 5,SIMU-8101318,Ship,MV. SAVIOUR,-
-6,ISOT - 6,SIMU-8101344,Ship,MV. SAVIOUR,-
-7,ISOT - 7,SIMU-8101386,Aceh,LAYDOWN PAG,-
-8,ISOT - 8,SIMU-8101405,Ship,MV. SAVIOUR,-
-9,ISOT - 9,SIMU-8101426,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 49% (13 August 2026) Used for Gas Trail
-10,ISOT - 10,SIMU-8101447,Ship,MV. SAVIOUR,-
-11,ISOT - 11,SIMU-8101473,Ship,MV. SAVIOUR,-
-12,ISOT - 12,SIMU-8101489,Ship,MV. SAVIOUR,-
-13,ISOT - 13,SIMU-8101508,Ship,MV. SAVIOUR,-
-14,ISOT - 14,SIMU-8101513,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 54% (13 August 2026)
-15,ISOT - 15,SIMU-8101529,Ship,MV. SAVIOUR,-
-16,ISOT - 16,SIMU-8101560,Ship,MV. SAVIOUR,-
-17,ISOT - 17,SIMU-8101581,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 63% (13 August 2026)
-18,ISOT - 18,SIMU-8101597,Aceh,LAYDOWN PAG,-
-19,ISOT - 19,SIMU-8101637,Ship,MV. SAVIOUR,-
-20,ISOT - 20,SIMU-8101642,Ship,MV. SAVIOUR,-
-21,ISOT - 21,SIMU-8101658,Ship,MV. SAVIOUR,-
-22,ISOT - 22,SIMU-8101679,Ship,MV. SAVIOUR,-
-23,ISOT - 23,SIMU-8101684,Ship,MV. SAVIOUR,-
-24,ISOT - 24,SIMU-8101703,Ship,MV. SAVIOUR,-
-25,ISOT - 25,SIMU-8101724,Ship,MV. SAVIOUR,-
-26,ISOT - 26,SIMU-8101750,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 62% (13 August 2026)
-27,ISOT - 27,SIMU-8101766,Ship,MV. SAVIOUR,-
-28,ISOT - 28,SIMU-8101787,Ship,MV. SAVIOUR,-
-29,ISOT - 29,SIMU-8101806,Ship,MV. SAVIOUR,-
-30,ISOT - 30,SIMU-8101832,Ship,MV. SAVIOUR,-
-31,ISOT - 31,SIMU-8101848,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 55% (13 August 2026)
-32,ISOT - 32,SIMU-8101853,Ship,MV. SAVIOUR,-
-33,ISOT - 33,SIMU-8101874,Ship,MV. SAVIOUR,-
-34,ISOT - 34,SIMU-8101880,Ship,MV. SAVIOUR,-
-35,ISOT - 35,SIMU-8101895,Ship,MV. SAVIOUR,-
-36,ISOT - 36,SIMU-8101909,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 56% (13 August 2026)
-37,ISOT - 37,SIMU-8101914,Ship,MV. SAVIOUR,-
-38,ISOT - 38,SIMU-8101920,Ship,MV. SAVIOUR,-
-39,ISOT - 39,SIMU-8101940,Ship,MV. SAVIOUR,-
-40,ISOT - 40,SIMU-8101956,Ship,MV. SAVIOUR,-
-41,ISOT - 41,SIMU-8101977,Ship,MV. SAVIOUR,-
-42,ISOT - 42,SIMU-8101982,Ship,MV. SAVIOUR,-
-43,ISOT - 43,SIMU-8102000,Ship,MV. SAVIOUR,-
-44,ISOT - 44,SIMU-8102016,Ship,MV. SAVIOUR,-
-45,ISOT - 45,SIMU-8102021,Ship,MV. SAVIOUR,-
-46,ISOT - 46,SIMU-8102037,Ship,MV. SAVIOUR,-
-47,ISOT - 47,SIMU-8102042,Ship,MV. SAVIOUR,-
-48,ISOT - 48,SIMU-8102058,Ship,MV. SAVIOUR,-
-49,ISOT - 49,SIMU-8102063,Ship,MV. SAVIOUR,-
-50,ISOT - 50,SIMU-8102079,Ship,MV. SAVIOUR,-
-51,ISOT - 51,SIMU-8102145,Ship,MV. SAVIOUR,-
-52,ISOT - 52,SIMU-8102187,Aceh,LAYDOWN PAG,-
-53,ISOT - 53,SIMU-8102192,Aceh,LAYDOWN PAG,-
-54,ISOT - 54,SIMU-8102206,Ship,MV. SAVIOUR,-
-55,ISOT - 55,SIMU-8102232,Ship,MV. SAVIOUR,-
-56,ISOT - 56,SIMU-8102295,Ship,MV. SAVIOUR,-
-57,ISOT - 57,SIMU-8102309,Ship,MV. SAVIOUR,-
-58,ISOT - 58,SIMU-8102314,Ship,MV. SAVIOUR,-
-59,ISOT - 59,SIMU-8102356,Ship,MV. SAVIOUR,-
-60,ISOT - 60,SIMU-8102438,Aceh,LAYDOWN PAG,-
-61,ISOT - 61,SIMU-8102443,Ship,MV. SAVIOUR,-
-62,ISOT - 62,SIMU-8102470,Ship,MV. SAVIOUR,-
-63,ISOT - 63,SIMU-8102510,Ship,MV. SAVIOUR,-
-64,ISOT - 64,SIMU-8102567,ORU NIAS,LAYDOWN 1,Empty ISOTANK
-65,ISOT - 65,SIMU-8102654,Ship,MV. SAVIOUR,-
-66,ISOT - 66,SIMU-8102818,Ship,MV. SAVIOUR,-
-67,ISOT - 67,SIMU-8102823,Ship,MV. SAVIOUR,-
-68,ISOT - 68,SIMU-8102839,Ship,MV. SAVIOUR,-
-69,ISOT - 69,SIMU-8102844,Ship,MV. SAVIOUR,-
-70,ISOT - 70,SIMU-8102865,Ship,MV. SAVIOUR,-
-71,ISOT - 71,SIMU-8102886,Ship,MV. SAVIOUR,-
-72,ISOT - 72,SIMU-8102891,Ship,MV. SAVIOUR,-
-73,ISOT - 73,SIMU-8103558,Ship,MV. SAVIOUR,-
-74,ISOT - 74,SIMU-8103563,Aceh,LAYDOWN PAG,-
-75,ISOT - 75,SIMU-8103579,Ship,MV. SAVIOUR,-
-76,ISOT - 76,SIMU-8103584,Ship,MV. SAVIOUR,-
-77,ISOT - 77,SIMU-8103590,Ship,MV. SAVIOUR,-
-78,ISOT - 78,SIMU-8103603,Ship,MV. SAVIOUR,-
-79,ISOT - 79,SIMU-8103619,Ship,MV. SAVIOUR,-
-80,ISOT - 80,SIMU-8103624,Ship,MV. SAVIOUR,-
-81,ISOT - 81,SIMU-8103650,Aceh,LAYDOWN PAG,-
-82,ISOT - 82,SIMU-8103666,Ship,MV. SAVIOUR,-
-83,ISOT - 83,SIMU-8103671,Aceh,LAYDOWN PAG,-
-84,ISOT - 84,SIMU-8103687,Ship,MV. SAVIOUR,-
-85,ISOT - 85,SIMU-8103692,Ship,MV. SAVIOUR,-
-86,ISOT - 86,SIMU-8103711,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 74% (13 August 2026)
-87,ISOT - 87,SIMU-8103727,Ship,MV. SAVIOUR,-
-88,ISOT - 88,SIMU-8103732,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 62% (13 August 2026)
-89,ISOT - 89,SIMU-8103748,Ship,MV. SAVIOUR,-
-90,ISOT - 90,SIMU-8103877,Ship,MV. SAVIOUR,-
-91,ISOT - 91,SIMU-8110768,Ship,MV. SAVIOUR,-
-92,ISOT - 92,SIMU-8110789,Ship,MV. SAVIOUR,-
-93,ISOT - 93,SIMU-8110813,Ship,MV. SAVIOUR,-
-94,ISOT - 94,SIMU-8110897,Ship,MV. SAVIOUR,-
-95,ISOT - 95,SIMU-8110921,Ship,MV. SAVIOUR,-
-96,ISOT - 96,SIMU-8110963,Ship,MV. SAVIOUR,-
-97,ISOT - 97,SIMU-8111002,Aceh,LAYDOWN PAG,-
-98,ISOT - 98,SIMU-8111018,Ship,MV. SAVIOUR,-
-99,ISOT - 99,SIMU-8111173,Ship,MV. SAVIOUR,-
-100,ISOT - 100,SIMU-8111213,Ship,MV. SAVIOUR,-
-101,ISOT - 101,SIMU-8111229,Ship,MV. SAVIOUR,-
-102,ISOT - 102,SIMU-8111255,Ship,MV. SAVIOUR,-
-103,ISOT - 103,SIMU-8111297,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 59% (13 August 2026)
-104,ISOT - 104,SIMU-8111300,Ship,MV. SAVIOUR,-
-105,ISOT - 105,SIMU-8111316,Ship,MV. SAVIOUR,-
-106,ISOT - 106,SIMU-8111321,Ship,SAVIOUR,-
-107,ISOT - 107,SIMU-8111342,Ship,MV. SAVIOUR,-
-108,ISOT - 108,SIMU-8111419,Ship,MV. SAVIOUR,-
-109,ISOT - 109,SIMU-8111511,Ship,MV. SAVIOUR,-
-110,ISOT - 110,SIMU-8111614,Aceh,LAYDOWN PAG,-
-111,ISOT - 111,SIMU-8111635,Ship,MV. SAVIOUR,-
-112,ISOT - 112,SIMU-8111640,Ship,MV. SAVIOUR,-
-113,ISOT - 113,SIMU-8111661,Ship,MV. SAVIOUR,-
-114,ISOT - 114,SIMU-8112544,Ship,MV. SAVIOUR,-
-115,ISOT - 115,SIMU-8112987,Ship,MV. SAVIOUR,-
-116,ISOT - 116,SIMU-8113129,Ship,MV. SAVIOUR,-
-117,ISOT - 117,SIMU-8113134,Ship,MV. SAVIOUR,-
-118,ISOT - 118,SIMU-8113140,Ship,MV. SAVIOUR,-
-119,ISOT - 119,SIMU-8113155,Ship,MV. SAVIOUR,-
-120,ISOT - 120,SIMU-8113176,ORU NIAS,LAYDOWN 1,Laden LNG ISOTANK 66% (13 August 2026)
-
+## File: public\data\bay_plan_120_tanks.json
+```json
+[
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 86",
+    "row": "ROW 06",
+    "serialNo": "SIMU 811129 7",
+    "tankNo": "ISOT-001"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 86",
+    "row": "ROW 06",
+    "serialNo": "SIMU 810288 6",
+    "tankNo": "ISOT-002"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 86",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810218 7",
+    "tankNo": "ISOT-003"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 86",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810197 7",
+    "tankNo": "ISOT-004"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 86",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810144 7",
+    "tankNo": "ISOT-005"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 86",
+    "row": "ROW 04",
+    "serialNo": "SIMU 811081 3",
+    "tankNo": "ISOT-006"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 86",
+    "row": "ROW 02",
+    "serialNo": "SIMU 811100 2",
+    "tankNo": "ISOT-007"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 86",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810165 8",
+    "tankNo": "ISOT-008"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 86",
+    "row": "ROW 02",
+    "serialNo": "SIMU 811122 9",
+    "tankNo": "ISOT-009"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 86",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810147 3",
+    "tankNo": "ISOT-010"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 86",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810367 1",
+    "tankNo": "ISOT-011"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 86",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810283 9",
+    "tankNo": "ISOT-012"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 86",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810359 0",
+    "tankNo": "ISOT-013"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 86",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810200 0",
+    "tankNo": "ISOT-014"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 86",
+    "row": "ROW 03",
+    "serialNo": "SIMU 811161 4",
+    "tankNo": "ISOT-015"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 86",
+    "row": "ROW 03",
+    "serialNo": "SIMU 810289 1",
+    "tankNo": "ISOT-016"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 86",
+    "row": "ROW 03",
+    "serialNo": "SIMU 810247 0",
+    "tankNo": "ISOT-017"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 86",
+    "row": "ROW 03",
+    "serialNo": "SIMU 810187 4",
+    "tankNo": "ISOT-018"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 86",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810371 1",
+    "tankNo": "ISOT-019"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 86",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810358 4",
+    "tankNo": "ISOT-020"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 86",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810205 8",
+    "tankNo": "ISOT-021"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 86",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810229 5",
+    "tankNo": "ISOT-022"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 86",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810175 0",
+    "tankNo": "ISOT-023"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 86",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810357 9",
+    "tankNo": "ISOT-024"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 86",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810207 9",
+    "tankNo": "ISOT-025"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 86",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810191 4",
+    "tankNo": "ISOT-026"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 84",
+    "row": "ROW 06",
+    "serialNo": "SIMU 810243 8",
+    "tankNo": "ISOT-027"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 84",
+    "row": "ROW 06",
+    "serialNo": "SIMU 810194 0",
+    "tankNo": "ISOT-028"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 84",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810256 7",
+    "tankNo": "ISOT-029"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 84",
+    "row": "ROW 04",
+    "serialNo": "SIMU 811117 3",
+    "tankNo": "ISOT-030"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 84",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810192 0",
+    "tankNo": "ISOT-031"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 84",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810178 7",
+    "tankNo": "ISOT-032"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 84",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810219 2",
+    "tankNo": "ISOT-033"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 84",
+    "row": "ROW 02",
+    "serialNo": "SIMU 811166 1",
+    "tankNo": "ISOT-034"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 84",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810176 6",
+    "tankNo": "ISOT-035"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 84",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810198 2",
+    "tankNo": "ISOT-036"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 84",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810159 7",
+    "tankNo": "ISOT-037"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 84",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 811096 3",
+    "tankNo": "ISOT-038"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 84",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810206 3",
+    "tankNo": "ISOT-039"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 84",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810127 8",
+    "tankNo": "ISOT-040"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 84",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810365 0",
+    "tankNo": "ISOT-041"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 84",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810223 2",
+    "tankNo": "ISOT-042"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 84",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 811151 1",
+    "tankNo": "ISOT-043"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 84",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 811078 9",
+    "tankNo": "ISOT-044"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 84",
+    "row": "ROW 03",
+    "serialNo": "SIMU 810158 1",
+    "tankNo": "ISOT-045"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 84",
+    "row": "ROW 03",
+    "serialNo": "SIMU 810360 3",
+    "tankNo": "ISOT-046"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 84",
+    "row": "ROW 03",
+    "serialNo": "SIMU 810374 8",
+    "tankNo": "ISOT-047"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 84",
+    "row": "ROW 03",
+    "serialNo": "SIMU 810235 6",
+    "tankNo": "ISOT-048"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 84",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810138 6",
+    "tankNo": "ISOT-049"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 84",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810152 9",
+    "tankNo": "ISOT-050"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 84",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810220 6",
+    "tankNo": "ISOT-051"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 84",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810231 4",
+    "tankNo": "ISOT-052"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 82",
+    "row": "ROW 06",
+    "serialNo": "SIMU 810356 3",
+    "tankNo": "ISOT-053"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 82",
+    "row": "ROW 06",
+    "serialNo": "SIMU 810361 9",
+    "tankNo": "ISOT-054"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 82",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810142 6",
+    "tankNo": "ISOT-055"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 82",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810148 9",
+    "tankNo": "ISOT-056"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 82",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810251 0",
+    "tankNo": "ISOT-057"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 82",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810172 4",
+    "tankNo": "ISOT-058"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 82",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810190 9",
+    "tankNo": "ISOT-059"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 82",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810131 8",
+    "tankNo": "ISOT-060"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 82",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810230 9",
+    "tankNo": "ISOT-061"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 82",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810282 3",
+    "tankNo": "ISOT-062"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 82",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810184 8",
+    "tankNo": "ISOT-063"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 82",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810372 7",
+    "tankNo": "ISOT-064"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 82",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 811315 5",
+    "tankNo": "ISOT-065"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 82",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810170 3",
+    "tankNo": "ISOT-066"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 82",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810373 2",
+    "tankNo": "ISOT-067"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 82",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810167 9",
+    "tankNo": "ISOT-068"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 82",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810163 7",
+    "tankNo": "ISOT-069"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 82",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810185 3",
+    "tankNo": "ISOT-070"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 82",
+    "row": "ROW 03",
+    "serialNo": "SIMU 811317 6",
+    "tankNo": "ISOT-071"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 82",
+    "row": "ROW 03",
+    "serialNo": "SIMU 811313 4",
+    "tankNo": "ISOT-072"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 82",
+    "row": "ROW 03",
+    "serialNo": "SIMU 810188 0",
+    "tankNo": "ISOT-073"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 82",
+    "row": "ROW 03",
+    "serialNo": "SIMU 811254 4",
+    "tankNo": "ISOT-074"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 17",
+    "tier": "Tier 82",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810151 3",
+    "tankNo": "ISOT-075"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 13",
+    "tier": "Tier 82",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810195 6",
+    "tankNo": "ISOT-076"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 09",
+    "tier": "Tier 82",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810284 4",
+    "tankNo": "ISOT-077"
+  },
+  {
+    "deckMode": "ON_DECK",
+    "bay": "BAY 05",
+    "tier": "Tier 82",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810189 5",
+    "tankNo": "ISOT-078"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 06",
+    "row": "ROW 06",
+    "serialNo": "SIMU 811298 7",
+    "tankNo": "ISOT-079"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 06",
+    "row": "ROW 06",
+    "serialNo": "SIMU 810366 6",
+    "tankNo": "ISOT-080"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 06",
+    "row": "ROW 06",
+    "serialNo": "SIMU 810202 1",
+    "tankNo": "ISOT-081"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 06",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810286 5",
+    "tankNo": "ISOT-082"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 06",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810123 6",
+    "tankNo": "ISOT-083"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 06",
+    "row": "ROW 04",
+    "serialNo": "SIMU 811125 5",
+    "tankNo": "ISOT-084"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 06",
+    "row": "ROW 02",
+    "serialNo": "SIMU 811314 0",
+    "tankNo": "ISOT-085"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 06",
+    "row": "ROW 02",
+    "serialNo": "SIMU 811164 0",
+    "tankNo": "ISOT-086"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 06",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810214 5",
+    "tankNo": "ISOT-087"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 05",
+    "tier": "Tier 06",
+    "row": "ROW 02",
+    "serialNo": "SIMU 811132 1",
+    "tankNo": "ISOT-088"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 06",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810168 4",
+    "tankNo": "ISOT-089"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 06",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810201 6",
+    "tankNo": "ISOT-090"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 06",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810214 1",
+    "tankNo": "ISOT-091"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 05",
+    "tier": "Tier 06",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810203 7",
+    "tankNo": "ISOT-092"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 06",
+    "row": "ROW 03",
+    "serialNo": "SIMU 810129 9",
+    "tankNo": "ISOT-093"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 06",
+    "row": "ROW 03",
+    "serialNo": "SIMU 811312 9",
+    "tankNo": "ISOT-094"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 06",
+    "row": "ROW 03",
+    "serialNo": "SIMU 811131 6",
+    "tankNo": "ISOT-095"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 06",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810369 2",
+    "tankNo": "ISOT-096"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 06",
+    "row": "ROW 05",
+    "serialNo": "SIMU 811130 0",
+    "tankNo": "ISOT-097"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 06",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810180 6",
+    "tankNo": "ISOT-098"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 19",
+    "tier": "Tier 04",
+    "row": "ROW 06",
+    "serialNo": "SIMU 811092 1",
+    "tankNo": "ISOT-099"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 04",
+    "row": "ROW 06",
+    "serialNo": "SIMU 810265 4",
+    "tankNo": "ISOT-100"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 04",
+    "row": "ROW 06",
+    "serialNo": "SIMU 810156 0",
+    "tankNo": "ISOT-101"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 04",
+    "row": "ROW 06",
+    "serialNo": "SIMU 811076 8",
+    "tankNo": "ISOT-102"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 04",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810164 2",
+    "tankNo": "ISOT-103"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 04",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810368 7",
+    "tankNo": "ISOT-104"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 04",
+    "row": "ROW 04",
+    "serialNo": "SIMU 810134 4",
+    "tankNo": "ISOT-105"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 04",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810244 3",
+    "tankNo": "ISOT-106"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 04",
+    "row": "ROW 02",
+    "serialNo": "SIMU 810204 2",
+    "tankNo": "ISOT-107"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 04",
+    "row": "ROW 02",
+    "serialNo": "SIMU 811134 2",
+    "tankNo": "ISOT-108"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 05",
+    "tier": "Tier 04",
+    "row": "ROW 02",
+    "serialNo": "SIMU 811121 3",
+    "tankNo": "ISOT-109"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 19",
+    "tier": "Tier 04",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810183 2",
+    "tankNo": "ISOT-110"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 04",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810281 8",
+    "tankNo": "ISOT-111"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 04",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810387 7",
+    "tankNo": "ISOT-112"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 04",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810150 8",
+    "tankNo": "ISOT-113"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 05",
+    "tier": "Tier 04",
+    "row": "ROW 00/01",
+    "serialNo": "SIMU 810140 5",
+    "tankNo": "ISOT-114"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 04",
+    "row": "ROW 03",
+    "serialNo": "SIMU 810355 8",
+    "tankNo": "ISOT-115"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 04",
+    "row": "ROW 03",
+    "serialNo": "SIMU 811141 9",
+    "tankNo": "ISOT-116"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 04",
+    "row": "ROW 03",
+    "serialNo": "SIMU 811101 8",
+    "tankNo": "ISOT-117"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 17",
+    "tier": "Tier 04",
+    "row": "ROW 05",
+    "serialNo": "SIMU 811089 7",
+    "tankNo": "ISOT-118"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 13",
+    "tier": "Tier 04",
+    "row": "ROW 05",
+    "serialNo": "SIMU 810362 4",
+    "tankNo": "ISOT-119"
+  },
+  {
+    "deckMode": "CARGO_HOLD",
+    "bay": "BAY 09",
+    "tier": "Tier 04",
+    "row": "ROW 05",
+    "serialNo": "SIMU 811163 5",
+    "tankNo": "ISOT-120"
+  }
+]
 ```
 
 ---
@@ -6073,54 +3635,6 @@ import React from 'react';
 import LNGPortalApp from './components/LNGPortalApp';
 
 export default function App() {
-  return <LNGPortalApp />;
-}
-
-```
-
----
-
-## File: src\app\layout.tsx
-```typescript
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata: Metadata = {
-  title: "LNG Virtual Pipeline Portal",
-  description: "LNG Virtual Pipeline Integrated Operations & Heat Settlement Portal",
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-screen w-screen overflow-hidden antialiased`}
-    >
-      <body className="h-screen w-screen overflow-hidden flex flex-col bg-[#d4d0c8]">{children}</body>
-    </html>
-  );
-}
-
-```
-
----
-
-## File: src\app\page.tsx
-```typescript
-import LNGPortalApp from '../components/LNGPortalApp';
-
-export default function Home() {
   return <LNGPortalApp />;
 }
 
@@ -6291,6 +3805,54 @@ export async function POST(req: NextRequest) {
     const errMsg = error instanceof Error ? error.message : 'Processing error in SCADA endpoint';
     return NextResponse.json({ success: false, error: errMsg }, { status: 500 });
   }
+}
+
+```
+
+---
+
+## File: src\app\layout.tsx
+```typescript
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "LNG Virtual Pipeline Portal",
+  description: "LNG Virtual Pipeline Integrated Operations & Heat Settlement Portal",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-screen w-screen overflow-hidden antialiased`}
+    >
+      <body className="h-screen w-screen overflow-hidden flex flex-col bg-[#d4d0c8]">{children}</body>
+    </html>
+  );
+}
+
+```
+
+---
+
+## File: src\app\page.tsx
+```typescript
+import LNGPortalApp from '../components/LNGPortalApp';
+
+export default function Home() {
+  return <LNGPortalApp />;
 }
 
 ```
@@ -8858,6 +6420,12 @@ const SUBPROCESS_TITLES: Record<
     icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
+  SAFETY_OVERVIEW: {
+    location: 'Safety & PTW',
+    process: 'Safety Overview',
+    icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
   PTW_PERMITS: {
     location: 'Safety & PTW',
     process: 'PTW Master Register',
@@ -9214,7 +6782,7 @@ function getInitialNav(key: SubProcessKey): { menu: string; subTab: string } {
   if (key.startsWith('MANPOWER')) {
     return { menu: key, subTab: key };
   }
-  if (key === 'PTW_PERMITS' || key === 'SAFETY_GAS_TESTING' || key === 'SAFETY_ERT_READINESS') {
+  if (key === 'SAFETY_OVERVIEW' || key === 'PTW_PERMITS' || key === 'SAFETY_GAS_TESTING' || key === 'SAFETY_ERT_READINESS') {
     return { menu: 'ptw-permits', subTab: key };
   }
   return { menu: 'lng-process', subTab: key };
@@ -9326,7 +6894,8 @@ function LNGPortalInner({
   const currentModuleId =
     activeKey === 'SECTOR_LAUNCHER'
       ? 'MOD_0_LAUNCHER'
-      : activeKey === 'PTW_PERMITS' ||
+      : activeKey === 'SAFETY_OVERVIEW' ||
+        activeKey === 'PTW_PERMITS' ||
         activeKey === 'MANPOWER_PTW' ||
         activeKey === 'SAFETY_GAS_TESTING' ||
         activeKey === 'SAFETY_ERT_READINESS'
@@ -9362,7 +6931,7 @@ function LNGPortalInner({
         handleManpowerSubTab('OVERVIEW');
         break;
       case 'MOD_5_SAFETY_PTW':
-        handleSelectSubProcess('PTW_PERMITS');
+        handleSelectSubProcess('SAFETY_OVERVIEW');
         break;
       default:
         handleSelectSubProcess('SECTOR_LAUNCHER');
@@ -9644,24 +7213,31 @@ function LNGPortalInner({
             {currentModuleId === 'MOD_5_SAFETY_PTW' && (
               <>
                 <button
+                  onClick={() => handleSelectSubProcess('SAFETY_OVERVIEW')}
+                  className={activeKey === 'SAFETY_OVERVIEW' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                >
+                  <span>Overview</span>
+                </button>
+
+                <button
                   onClick={() => handleSelectSubProcess('PTW_PERMITS')}
                   className={activeKey === 'PTW_PERMITS' || activeKey === 'MANPOWER_PTW' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>PTW Master Register</span>
+                  <span>Permits</span>
                 </button>
 
                 <button
                   onClick={() => handleSelectSubProcess('SAFETY_GAS_TESTING')}
                   className={activeKey === 'SAFETY_GAS_TESTING' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>Gas Testing Log</span>
+                  <span>Gas Logs</span>
                 </button>
 
                 <button
                   onClick={() => handleSelectSubProcess('SAFETY_ERT_READINESS')}
                   className={activeKey === 'SAFETY_ERT_READINESS' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
                 >
-                  <span>ERT Readiness</span>
+                  <span>ERT</span>
                 </button>
               </>
             )}
@@ -9818,10 +7394,20 @@ function LNGPortalInner({
               {/* MODULE 5: SAFETY & PTW (PRIMARY PROMOTED)                 */}
               {/* ========================================================= */}
               {(activeKey === 'MANPOWER_PTW' ||
+                activeKey === 'SAFETY_OVERVIEW' ||
                 activeKey === 'PTW_PERMITS' ||
                 activeKey === 'SAFETY_GAS_TESTING' ||
                 activeKey === 'SAFETY_ERT_READINESS') && (
                 <PTWManagementView
+                  activeTab={
+                    activeKey === 'SAFETY_OVERVIEW'
+                      ? 'SAFETY_OVERVIEW'
+                      : activeKey === 'SAFETY_GAS_TESTING'
+                      ? 'GAS_TESTING_LOG'
+                      : activeKey === 'SAFETY_ERT_READINESS'
+                      ? 'ERT_READINESS'
+                      : 'MASTER_REGISTER'
+                  }
                   personnelList={INITIAL_MANPOWER_MASTER_RECORDS}
                   isERTMet={true}
                   ertSummary={{
@@ -11402,14 +8988,15 @@ export default function SidebarNav({
             <span>Safety &amp; PTW</span>
           </div>
           <div className="bg-[#d4d0c8]">
+            {renderNavItem('SAFETY_OVERVIEW', 'Overview')}
             {renderNavItem(
               'PTW_PERMITS',
-              'PTW Master Register',
+              'Permits',
               undefined,
               activeKey === 'PTW_PERMITS' || activeKey === 'MANPOWER_PTW'
             )}
-            {renderNavItem('SAFETY_GAS_TESTING', 'Gas Testing Log')}
-            {renderNavItem('SAFETY_ERT_READINESS', 'ERT Readiness')}
+            {renderNavItem('SAFETY_GAS_TESTING', 'Gas Logs')}
+            {renderNavItem('SAFETY_ERT_READINESS', 'ERT')}
           </div>
         </div>
 
@@ -11759,7 +9346,7 @@ const SECTOR_BUTTONS: SectorButton[] = [
   { id: 'MOD_2', name: '[ Equipment & Asset ]', targetKey: 'EQUIPMENT_ASSET_REGISTRY' },
   { id: 'MOD_3', name: '[ Maintenance & Work Orders ]', targetKey: 'WORK_ORDER_DIRECTORY' },
   { id: 'MOD_4', name: '[ Site Manning & Roster ]', targetKey: 'MANPOWER_DAILY_SHIFT' },
-  { id: 'MOD_5', name: '[ Safety & PTW ]', targetKey: 'PTW_PERMITS' },
+  { id: 'MOD_5', name: '[ Safety & PTW ]', targetKey: 'SAFETY_OVERVIEW' },
 ];
 
 interface SectorLauncherHubProps {
@@ -36412,50 +33999,20 @@ export default function ManpowerRosterView({
 // src/components/manpower/PTWManagementView.tsx
 "use client";
 
-import React, { useState, useMemo } from 'react';
-import {
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  Flame,
-  Wind,
-  AlertTriangle,
-  CheckCircle2,
-  Lock,
-  Clock,
-  UserCheck,
-  UserX,
-  FileText,
-  Activity,
-  PlusCircle,
-  Filter,
-  CheckSquare,
-  Search,
-  Zap,
-  Radio,
-  Eye,
-  XCircle,
-  AlertOctagon,
-  ArrowRight,
-  Sparkles,
-} from 'lucide-react';
-import {
-  PTWPermit,
-  PTWType,
-  PTWWorkflowStatus,
-  StaffPersonnel,
-} from '../../types/lng';
-import {
-  PTW_SOP_FORMS,
-  INITIAL_PTW_PERMITS,
-  validatePTWWorkerEligibility,
-  validatePTWGasSafety,
-} from '../../data/ptwMasterData';
-import { getStaffCompetencyStatus } from '../../data/manpowerMasterData';
+import React from 'react';
+import { StaffPersonnel } from '../../types/lng';
+import SafetyOverviewTab from './tabs/SafetyOverviewTab';
+import PTWMasterRegisterTab from './tabs/PTWMasterRegisterTab';
+import GasTestingLogTab from './tabs/GasTestingLogTab';
+import ERTReadinessTab from './tabs/ERTReadinessTab';
+
+export type PTWActiveTab = 'SAFETY_OVERVIEW' | 'MASTER_REGISTER' | 'GAS_TESTING_LOG' | 'ERT_READINESS';
 
 interface PTWManagementViewProps {
+  activeTab: PTWActiveTab;
   personnelList: StaffPersonnel[];
   isERTMet: boolean;
+  // ERT Readiness 탭(Phase 4)에서 소비 예정 — Master Register / Gas Testing Log 탭은 사용하지 않는다.
   ertSummary: {
     icCount: number;
     fireChiefCount: number;
@@ -36466,821 +34023,34 @@ interface PTWManagementViewProps {
   onNavigateToDailyShift?: () => void;
 }
 
+/**
+ * PTW 관리 뷰의 경량 탭 라우터 셸.
+ * 실제 화면 로직은 각 tabs/*Tab.tsx가 담당하며, permits 공유 상태는
+ * PTWMasterRegisterTab 내부의 usePTWPermits 훅이 소유한다.
+ */
 export default function PTWManagementView({
+  activeTab,
   personnelList,
   isERTMet,
-  ertSummary,
   onNavigateToMatrix,
-  onNavigateToDailyShift,
 }: PTWManagementViewProps) {
-  const [permits, setPermits] = useState<PTWPermit[]>(INITIAL_PTW_PERMITS);
-  const [selectedTypeFilter, setSelectedTypeFilter] = useState<PTWType | 'ALL'>('ALL');
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState<PTWWorkflowStatus | 'ALL'>('ALL');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  
-  // Selected permit for detail & safety gas testing
-  const [selectedPermitId, setSelectedPermitId] = useState<string>(INITIAL_PTW_PERMITS[0]?.id || '');
-  
-  // Modal State for New PTW Permit
-  const [isNewPermitModalOpen, setIsNewPermitModalOpen] = useState<boolean>(false);
-  const [newPermitType, setNewPermitType] = useState<PTWType>('HOT_WORK');
-  const [newPermitTitle, setNewPermitTitle] = useState<string>('');
-  const [newPermitLocation, setNewPermitLocation] = useState<string>('Vaporization Skid #1');
-  const [newWorkLeaderId, setNewWorkLeaderId] = useState<string>('EMP-005');
-  const [newWorkerId, setNewWorkerId] = useState<string>('EMP-006');
-  const [newGasLel, setNewGasLel] = useState<number>(0.0);
-  const [newGasO2, setNewGasO2] = useState<number>(20.9);
-
-  // Active Permit Object
-  const activePermit = useMemo(
-    () => permits.find((p) => p.id === selectedPermitId) || permits[0] || null,
-    [permits, selectedPermitId]
-  );
-
-  // Filtered Permits
-  const filteredPermits = useMemo(() => {
-    return permits.filter((p) => {
-      const matchType = selectedTypeFilter === 'ALL' || p.type === selectedTypeFilter;
-      const matchStatus = selectedStatusFilter === 'ALL' || p.status === selectedStatusFilter;
-      const q = searchQuery.toLowerCase().trim();
-      const matchQuery =
-        !q ||
-        p.id.toLowerCase().includes(q) ||
-        p.formNumber.toLowerCase().includes(q) ||
-        p.title.toLowerCase().includes(q) ||
-        p.location.toLowerCase().includes(q) ||
-        p.workLeaderName.toLowerCase().includes(q);
-      return matchType && matchStatus && matchQuery;
-    });
-  }, [permits, selectedTypeFilter, selectedStatusFilter, searchQuery]);
-
-  // Dynamic Statistics
-  const stats = useMemo(() => {
-    const total = permits.length;
-    const activeCount = permits.filter((p) => p.status === 'ACTIVE').length;
-    const approvedCount = permits.filter((p) => p.status === 'APPROVED').length;
-    const preparedCount = permits.filter((p) => p.status === 'PREPARED').length;
-    const draftCount = permits.filter((p) => p.status === 'DRAFT').length;
-    const closedCount = permits.filter((p) => p.status === 'CLOSED').length;
-    const hotWorkCount = permits.filter((p) => p.type === 'HOT_WORK' && p.status === 'ACTIVE').length;
-    const confinedCount = permits.filter((p) => p.type === 'CONFINED_SPACE' && (p.status === 'ACTIVE' || p.status === 'APPROVED')).length;
-
-    return {
-      total,
-      activeCount,
-      approvedCount,
-      preparedCount,
-      draftCount,
-      closedCount,
-      hotWorkCount,
-      confinedCount,
-    };
-  }, [permits]);
-
-  // Gas safety evaluation for active permit
-  const currentGasSafety = useMemo(() => {
-    if (!activePermit) return { isSafe: true, blockReason: null };
-    return validatePTWGasSafety(activePermit.type, activePermit.gasReadings);
-  }, [activePermit]);
-
-  // Update Gas readings handler
-  const handleUpdateGasReadings = (permitId: string, lel: number, o2: number) => {
-    setPermits((prev) =>
-      prev.map((p) => {
-        if (p.id !== permitId) return p;
-        const newReadings = {
-          ...p.gasReadings,
-          lelPercent: lel,
-          o2Percent: o2,
-          testedAt: `2026-09-01 ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB`,
-        };
-        const safety = validatePTWGasSafety(p.type, newReadings);
-        return {
-          ...p,
-          gasReadings: {
-            ...newReadings,
-            isSafeForWork: safety.isSafe,
-          },
-        };
-      })
-    );
-  };
-
-  // Workflow State Transition Handlers (Draft -> Prepared -> Approved -> Active -> Closed)
-  const handleTransitionStatus = (permitId: string, nextStatus: PTWWorkflowStatus) => {
-    const target = permits.find((p) => p.id === permitId);
-    if (!target) return;
-
-    // Gate 1: Confined Space O2 band check for Approval / Activation
-    if (target.type === 'CONFINED_SPACE' && (nextStatus === 'APPROVED' || nextStatus === 'ACTIVE')) {
-      if (target.gasReadings.o2Percent < 19.5 || target.gasReadings.o2Percent > 23.5) {
-        alert(`⚠️ [CONFINED SPACE ENTRY BLOCKED]\nO2 concentration is ${target.gasReadings.o2Percent}%.\nSOP NP07-12 mandates safe atmospheric oxygen band of 19.5% ~ 23.5%.`);
-        return;
-      }
-    }
-
-    // Gate 2: Hot Work LEL 0.0% check for Activation
-    if (target.type === 'HOT_WORK' && nextStatus === 'ACTIVE') {
-      if (target.gasReadings.lelPercent > 0) {
-        alert(`⚠️ [HOT WORK ACTIVATION BLOCKED]\nHydrocarbon gas reading is ${target.gasReadings.lelPercent}% LEL.\nSOP NP07-11 strictly requires 0.0% LEL in cryogenic gas zones.`);
-        return;
-      }
-    }
-
-    // Gate 3: ERT Minimum Manning Check for High Risk Activation
-    if ((target.type === 'HOT_WORK' || target.type === 'CONFINED_SPACE') && nextStatus === 'ACTIVE' && !isERTMet) {
-      alert(`⚠️ [CRITICAL ERT DEFICIT]\nCannot activate high-risk ${target.type} permit.\nERT minimum manning is not met (19 Direct personnel standard required).`);
-      return;
-    }
-
-    setPermits((prev) =>
-      prev.map((p) => {
-        if (p.id !== permitId) return p;
-        return {
-          ...p,
-          status: nextStatus,
-          closedAt: nextStatus === 'CLOSED' ? '2026-09-01 18:00' : p.closedAt,
-        };
-      })
-    );
-  };
-
-  // Create New PTW Permit
-  const handleCreatePermit = () => {
-    if (!newPermitTitle.trim()) {
-      alert('Please enter a permit work title.');
-      return;
-    }
-
-    const leader = personnelList.find((s) => s.id === newWorkLeaderId);
-    const worker = personnelList.find((s) => s.id === newWorkerId);
-    if (!leader || !worker) return;
-
-    const leaderCheck = validatePTWWorkerEligibility(leader, newPermitType);
-    const workerCheck = validatePTWWorkerEligibility(worker, newPermitType);
-
-    if (!leaderCheck.isEligible) {
-      alert(`Work Leader (${leader.name}) is disqualified: ${leaderCheck.reason}`);
-      return;
-    }
-    if (!workerCheck.isEligible) {
-      alert(`Assigned Worker (${worker.name}) is disqualified: ${workerCheck.reason}`);
-      return;
-    }
-
-    const formDef = PTW_SOP_FORMS[newPermitType];
-    const newId = `PTW-2026-0901-${String(permits.length + 1).padStart(2, '0')}`;
-
-    const newPermit: PTWPermit = {
-      id: newId,
-      formNumber: formDef.formNumber,
-      type: newPermitType,
-      title: newPermitTitle,
-      location: newPermitLocation,
-      status: 'DRAFT',
-      workLeaderId: leader.id,
-      workLeaderName: leader.name,
-      assignedWorkerIds: [worker.id],
-      assignedWorkerNames: [worker.name],
-      agtStaffId: 'EMP-013',
-      approverStaffId: 'EMP-001',
-      gasReadings: {
-        lelPercent: newGasLel,
-        o2Percent: newGasO2,
-        h2sPpm: 0.0,
-        coPpm: 0.0,
-        testedAt: '2026-09-01 12:00 WIB',
-        isSafeForWork: newPermitType === 'HOT_WORK' ? newGasLel === 0 : newGasO2 >= 19.5 && newGasO2 <= 23.5,
-      },
-      safetyChecklist: {
-        fireWatchAssigned: newPermitType === 'HOT_WORK',
-        gasDetectorContinuous: true,
-        lotoApplied: newPermitType === 'ELECTRICAL',
-        forcedVentilation: newPermitType === 'CONFINED_SPACE',
-        ppeVerified: true,
-        barricadeSet: true,
-      },
-      validFrom: '2026-09-01 13:00',
-      validTo: '2026-09-01 18:00',
-      emergencyProtocol: 'Radio Channel 1 Emergency Channel Active',
-      createdAt: '2026-09-01 12:00',
-      hazardDescription: `${formDef.category} protocol active under SOP ${formDef.formNumber}.`,
-    };
-
-    setPermits((prev) => [newPermit, ...prev]);
-    setSelectedPermitId(newId);
-    setIsNewPermitModalOpen(false);
-    setNewPermitTitle('');
-  };
-
-  return (
-    <div className="space-y-3 font-sans">
-      
-      {/* 1. Top KPI Summary & ERT Gatekeeper Bar */}
-      <div className="bg-[#e9e6df] border border-slate-400 p-2.5 flex items-center justify-between gap-3 flex-wrap text-xs shadow-sm">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-1.5 font-bold text-slate-900">
-            <FileText className="w-4 h-4 text-blue-900" />
-            <span className="text-sm">PTW Master Register (SOP NP07-10 ~ NP07-15)</span>
-          </div>
-          <span className="bg-blue-900 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px]">
-            {stats.total} Permits Registered
-          </span>
-          <span className="bg-emerald-800 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px]">
-            {stats.activeCount} Active on Site
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* ERT Manning Warning */}
-          {!isERTMet ? (
-            <div className="flex items-center gap-1.5 bg-rose-100 border border-rose-400 text-rose-950 px-2.5 py-1 rounded font-bold text-[11px] animate-pulse">
-              <ShieldAlert className="w-4 h-4 text-rose-700 shrink-0" />
-              <span>[ERT DEFICIT] Hot Work / Confined Space Activation Suspended</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 bg-emerald-100 border border-emerald-400 text-emerald-950 px-2.5 py-1 rounded font-bold text-[11px]">
-              <ShieldCheck className="w-4 h-4 text-emerald-800 shrink-0" />
-              <span>ERT Manning Verified (19 Direct Staff Cleared)</span>
-            </div>
-          )}
-
-          <button
-            onClick={() => setIsNewPermitModalOpen(true)}
-            className="win-btn px-3 py-1 text-xs font-bold bg-blue-900 text-white hover:bg-blue-950 flex items-center gap-1.5 cursor-pointer shadow"
-          >
-            <PlusCircle className="w-3.5 h-3.5 text-amber-300" />
-            <span>+ Issue New PTW Form</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. SOP 6 Form Types Quick Filter Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs font-mono">
-        {Object.entries(PTW_SOP_FORMS).map(([typeKey, def]) => {
-          const count = permits.filter((p) => p.type === typeKey).length;
-          const isSelected = selectedTypeFilter === typeKey;
-          return (
-            <div
-              key={typeKey}
-              onClick={() => setSelectedTypeFilter(isSelected ? 'ALL' : (typeKey as PTWType))}
-              className={`p-2 border rounded cursor-pointer transition-all ${
-                isSelected
-                  ? 'ring-2 ring-blue-600 bg-white shadow-md border-blue-500'
-                  : 'bg-slate-50 hover:bg-white border-slate-300'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className={`px-1.5 py-0.2 rounded font-bold text-[10px] ${def.colorBg} ${def.colorText} border ${def.borderColor}`}>
-                  {def.formNumber}
-                </span>
-                <span className="font-bold text-slate-800 text-[11px]">{count}</span>
-              </div>
-              <div className="font-sans font-bold text-[11px] text-slate-900 truncate" title={def.title}>
-                {def.type.replace('_', ' ')}
-              </div>
-              <div className="text-[9px] text-slate-500 truncate">{def.category}</div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* 3. Main Workspace: Permit List (Left) + 5-Stage Workflow & Gas Gate Panel (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-        
-        {/* Left Column: Filter & PTW Table List (5 Cols) */}
-        <div className="lg:col-span-5 space-y-2">
-          
-          {/* Search & Status Filter */}
-          <div className="flex gap-2 text-xs">
-            <div className="relative flex-1">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search permit ID, title, leader..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-2 py-1.5 border border-slate-300 bg-white rounded text-xs"
-              />
-            </div>
-            <select
-              value={selectedStatusFilter}
-              onChange={(e) => setSelectedStatusFilter(e.target.value as any)}
-              className="border border-slate-300 bg-white px-2 py-1.5 rounded text-xs font-mono"
-            >
-              <option value="ALL">All Status</option>
-              <option value="DRAFT">Draft</option>
-              <option value="PREPARED">Prepared</option>
-              <option value="APPROVED">Approved</option>
-              <option value="ACTIVE">Active</option>
-              <option value="CLOSED">Closed</option>
-            </select>
-          </div>
-
-          {/* Permit List Cards */}
-          <div className="space-y-1.5 max-h-[580px] overflow-y-auto pr-1">
-            {filteredPermits.map((permit) => {
-              const formDef = PTW_SOP_FORMS[permit.type];
-              const isSelected = selectedPermitId === permit.id;
-              const gasSafety = validatePTWGasSafety(permit.type, permit.gasReadings);
-
-              return (
-                <div
-                  key={permit.id}
-                  onClick={() => setSelectedPermitId(permit.id)}
-                  className={`p-2.5 border-2 rounded cursor-pointer transition-all ${
-                    isSelected
-                      ? 'border-blue-800 bg-blue-50/70 shadow-md'
-                      : 'border-slate-300 bg-white hover:bg-slate-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${formDef.colorBg} ${formDef.colorText} border ${formDef.borderColor}`}>
-                        {permit.formNumber}
-                      </span>
-                      <span className="font-mono font-bold text-xs text-blue-950">{permit.id}</span>
-                    </div>
-                    
-                    {/* Status Badge */}
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-                      permit.status === 'ACTIVE'
-                        ? 'bg-emerald-700 text-white'
-                        : permit.status === 'APPROVED'
-                        ? 'bg-blue-700 text-white'
-                        : permit.status === 'PREPARED'
-                        ? 'bg-amber-600 text-white'
-                        : permit.status === 'DRAFT'
-                        ? 'bg-slate-500 text-white'
-                        : 'bg-slate-800 text-slate-300'
-                    }`}>
-                      [{permit.status}]
-                    </span>
-                  </div>
-
-                  <div className="font-bold text-xs text-slate-900 line-clamp-1 mb-1">{permit.title}</div>
-                  
-                  <div className="text-[10px] font-mono text-slate-600 flex justify-between items-center">
-                    <span>Location: {permit.location}</span>
-                    <span>Leader: <strong>{permit.workLeaderName}</strong></span>
-                  </div>
-
-                  {/* Gas Snapshot */}
-                  <div className="mt-1.5 pt-1 border-t border-slate-200 text-[10px] font-mono flex items-center justify-between">
-                    <span className="flex items-center gap-1">
-                      LEL: <strong className={permit.gasReadings.lelPercent > 0 ? 'text-rose-700 font-bold' : 'text-emerald-800'}>{permit.gasReadings.lelPercent}%</strong> | 
-                      O2: <strong className={permit.gasReadings.o2Percent < 19.5 || permit.gasReadings.o2Percent > 23.5 ? 'text-rose-700 font-bold' : 'text-emerald-800'}>{permit.gasReadings.o2Percent}%</strong>
-                    </span>
-                    {!gasSafety.isSafe && (
-                      <span className="text-[9px] bg-rose-100 text-rose-800 border border-rose-300 px-1 rounded font-bold animate-pulse">
-                        ⚠️ Gas Hazard
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-        </div>
-
-        {/* Right Column: 5-Stage Workflow Controller & Gas/Worker Gatekeeper (7 Cols) */}
-        <div className="lg:col-span-7">
-          {activePermit ? (
-            <div className="win-panel p-3 border-2 border-slate-400 bg-white space-y-3">
-              
-              {/* Header: Permit Summary */}
-              <div className="win-titlebar bg-blue-950 text-white p-2 px-3 flex justify-between items-center rounded-t">
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${PTW_SOP_FORMS[activePermit.type].colorBg} ${PTW_SOP_FORMS[activePermit.type].colorText}`}>
-                    {activePermit.formNumber} ({activePermit.type})
-                  </span>
-                  <span className="font-bold text-sm">{activePermit.id}</span>
-                </div>
-                <div className="text-xs font-mono font-bold bg-white text-blue-950 px-2 py-0.5 rounded">
-                  STATUS: [{activePermit.status}]
-                </div>
-              </div>
-
-              {/* 5-Stage Visual Workflow Pipeline */}
-              <div className="bg-slate-100 p-2 border border-slate-300 rounded">
-                <div className="text-[10px] font-bold text-slate-600 mb-1.5 uppercase font-mono">
-                  SOP 5-Stage Approval & Life-Cycle Pipeline:
-                </div>
-                <div className="grid grid-cols-5 gap-1 text-center font-mono text-[10px]">
-                  {(['DRAFT', 'PREPARED', 'APPROVED', 'ACTIVE', 'CLOSED'] as PTWWorkflowStatus[]).map((stage, idx) => {
-                    const isCurrent = activePermit.status === stage;
-                    const stageIndex = ['DRAFT', 'PREPARED', 'APPROVED', 'ACTIVE', 'CLOSED'].indexOf(activePermit.status);
-                    const isPassed = stageIndex > idx;
-
-                    return (
-                      <div
-                        key={stage}
-                        className={`p-1.5 border rounded font-bold ${
-                          isCurrent
-                            ? 'bg-blue-900 text-white border-blue-950 shadow ring-1 ring-blue-500'
-                            : isPassed
-                            ? 'bg-emerald-100 text-emerald-900 border-emerald-400'
-                            : 'bg-white text-slate-400 border-slate-200'
-                        }`}
-                      >
-                        <div>{idx + 1}. {stage}</div>
-                        <div className="text-[8px] font-normal mt-0.5">
-                          {isCurrent ? 'Current' : isPassed ? '✓ Complete' : 'Pending'}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Work Details & Location */}
-              <div className="p-2.5 bg-slate-50 border border-slate-300 rounded space-y-1 text-xs">
-                <div className="font-bold text-sm text-blue-950">{activePermit.title}</div>
-                <div className="text-slate-700 font-mono text-[11px] flex justify-between">
-                  <span>Location: <strong>{activePermit.location}</strong></span>
-                  <span>Validity: {activePermit.validFrom} ~ {activePermit.validTo}</span>
-                </div>
-                <div className="text-slate-600 text-[11px] pt-1">
-                  <strong>Hazard Scope:</strong> {activePermit.hazardDescription}
-                </div>
-              </div>
-
-              {/* Safety Gate 1: Gas Safety Interactivity (LEL & O2 Verification) */}
-              <div className={`p-3 border-2 rounded ${currentGasSafety.isSafe ? 'bg-emerald-50/50 border-emerald-400' : 'bg-red-50/80 border-red-500'}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-xs flex items-center gap-1.5 text-slate-900">
-                    <Activity className="w-4 h-4 text-cyan-700" />
-                    <span>Authorized Gas Tester (AGT) Real-Time Verification Gate</span>
-                  </span>
-                  <span className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded ${currentGasSafety.isSafe ? 'bg-emerald-800 text-white' : 'bg-red-700 text-white animate-pulse'}`}>
-                    {currentGasSafety.isSafe ? '✓ ATMOSPHERE SAFE' : '⚠️ ATMOSPHERIC HAZARD BLOCKED'}
-                  </span>
-                </div>
-
-                {!currentGasSafety.isSafe && (
-                  <div className="mb-2 p-2 bg-red-100 border border-red-400 rounded text-red-950 text-xs font-bold">
-                    {currentGasSafety.blockReason}
-                  </div>
-                )}
-
-                {/* Gas Sliders / Number Controls for simulation */}
-                <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-                  {/* LEL Control */}
-                  <div className="bg-white p-2 border border-slate-300 rounded">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="font-bold text-slate-800">LEL (Hydrocarbon Gas):</span>
-                      <span className={`font-black text-sm ${activePermit.gasReadings.lelPercent > 0 ? 'text-red-700' : 'text-emerald-700'}`}>
-                        {activePermit.gasReadings.lelPercent.toFixed(1)}% LEL
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="15"
-                      step="0.5"
-                      value={activePermit.gasReadings.lelPercent}
-                      onChange={(e) => handleUpdateGasReadings(activePermit.id, parseFloat(e.target.value), activePermit.gasReadings.o2Percent)}
-                      className="w-full cursor-pointer accent-blue-900"
-                    />
-                    <div className="text-[9px] text-slate-500 mt-1">
-                      {activePermit.type === 'HOT_WORK' ? '⚠️ Hot Work Mandate: LEL MUST BE 0.0%' : 'Max Allowed: 5% LEL'}
-                    </div>
-                  </div>
-
-                  {/* O2 Control */}
-                  <div className="bg-white p-2 border border-slate-300 rounded">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="font-bold text-slate-800">Oxygen (O2):</span>
-                      <span className={`font-black text-sm ${activePermit.gasReadings.o2Percent < 19.5 || activePermit.gasReadings.o2Percent > 23.5 ? 'text-red-700' : 'text-emerald-700'}`}>
-                        {activePermit.gasReadings.o2Percent.toFixed(1)}% O2
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="16.0"
-                      max="24.5"
-                      step="0.1"
-                      value={activePermit.gasReadings.o2Percent}
-                      onChange={(e) => handleUpdateGasReadings(activePermit.id, activePermit.gasReadings.lelPercent, parseFloat(e.target.value))}
-                      className="w-full cursor-pointer accent-blue-900"
-                    />
-                    <div className="text-[9px] text-slate-500 mt-1">
-                      Safe Band: 19.5% ~ 23.5% (Asphyxiation & O2 Enrichment Prevention)
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Safety Gate 2: Worker Competency & MCU Gatekeeper */}
-              <div className="p-2.5 bg-slate-50 border border-slate-300 rounded space-y-2 text-xs">
-                <div className="font-bold text-slate-900 flex items-center justify-between">
-                  <span className="flex items-center gap-1.5">
-                    <UserCheck className="w-4 h-4 text-blue-900" />
-                    <span>Worker & Work Leader Competency Gatekeeper</span>
-                  </span>
-                  <span className="text-[10px] text-blue-900 font-mono underline cursor-pointer" onClick={() => onNavigateToMatrix && onNavigateToMatrix(activePermit.workLeaderId)}>
-                    View in Training Matrix ➔
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
-                  {/* Work Leader Verification */}
-                  {(() => {
-                    const leader = personnelList.find((s) => s.id === activePermit.workLeaderId);
-                    const leaderStatus = leader ? validatePTWWorkerEligibility(leader, activePermit.type) : null;
-                    return (
-                      <div className="bg-white p-2 border border-slate-300 rounded">
-                        <div className="text-[10px] text-slate-500 font-bold">WORK LEADER:</div>
-                        <div className="font-bold text-slate-900">{activePermit.workLeaderName} ({activePermit.workLeaderId})</div>
-                        <div className="mt-1 flex items-center gap-1 text-[10px]">
-                          {leaderStatus?.isEligible ? (
-                            <span className="text-emerald-700 font-bold flex items-center gap-0.5">
-                              <CheckCircle2 className="w-3 h-3" /> MCU Valid & PTW Certified
-                            </span>
-                          ) : (
-                            <span className="text-rose-700 font-bold flex items-center gap-0.5">
-                              <AlertTriangle className="w-3 h-3" /> {leaderStatus?.reason}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Assigned Workers Verification */}
-                  {(() => {
-                    const workers = personnelList.filter((s) => activePermit.assignedWorkerIds.includes(s.id));
-                    const allWorkersValid = workers.every((w) => validatePTWWorkerEligibility(w, activePermit.type).isEligible);
-
-                    return (
-                      <div className="bg-white p-2 border border-slate-300 rounded">
-                        <div className="text-[10px] text-slate-500 font-bold">ASSIGNED WORKERS ({activePermit.assignedWorkerNames.length}):</div>
-                        <div className="font-bold text-slate-900">{activePermit.assignedWorkerNames.join(', ')}</div>
-                        <div className="mt-1 flex items-center gap-1 text-[10px]">
-                          {allWorkersValid ? (
-                            <span className="text-emerald-700 font-bold flex items-center gap-0.5">
-                              <CheckCircle2 className="w-3 h-3" /> All Workers Medically Cleared
-                            </span>
-                          ) : (
-                            <span className="text-rose-700 font-bold flex items-center gap-0.5">
-                              <AlertTriangle className="w-3 h-3" /> Worker Certification Attention Required
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              </div>
-
-              {/* Safety Checklist Chips */}
-              <div className="p-2 border border-slate-300 bg-slate-50 rounded text-[11px]">
-                <div className="font-bold text-slate-800 mb-1.5 font-mono">Mandatory Safety Controls Verification:</div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-mono text-[10px]">
-                  <div className={`p-1 rounded border flex items-center gap-1 ${activePermit.safetyChecklist.fireWatchAssigned ? 'bg-emerald-100 border-emerald-300 text-emerald-900 font-bold' : 'bg-slate-100 text-slate-500'}`}>
-                    <CheckSquare className="w-3 h-3" /> Fire Watch Designated
-                  </div>
-                  <div className={`p-1 rounded border flex items-center gap-1 ${activePermit.safetyChecklist.gasDetectorContinuous ? 'bg-emerald-100 border-emerald-300 text-emerald-900 font-bold' : 'bg-slate-100 text-slate-500'}`}>
-                    <CheckSquare className="w-3 h-3" /> Continuous Gas Monitor
-                  </div>
-                  <div className={`p-1 rounded border flex items-center gap-1 ${activePermit.safetyChecklist.lotoApplied ? 'bg-emerald-100 border-emerald-300 text-emerald-900 font-bold' : 'bg-slate-100 text-slate-500'}`}>
-                    <CheckSquare className="w-3 h-3" /> LOTO Padlocks Applied
-                  </div>
-                  <div className={`p-1 rounded border flex items-center gap-1 ${activePermit.safetyChecklist.forcedVentilation ? 'bg-emerald-100 border-emerald-300 text-emerald-900 font-bold' : 'bg-slate-100 text-slate-500'}`}>
-                    <CheckSquare className="w-3 h-3" /> Forced Ventilation Active
-                  </div>
-                  <div className={`p-1 rounded border flex items-center gap-1 ${activePermit.safetyChecklist.ppeVerified ? 'bg-emerald-100 border-emerald-300 text-emerald-900 font-bold' : 'bg-slate-100 text-slate-500'}`}>
-                    <CheckSquare className="w-3 h-3" /> Cryo / Special PPE
-                  </div>
-                  <div className={`p-1 rounded border flex items-center gap-1 ${activePermit.safetyChecklist.barricadeSet ? 'bg-emerald-100 border-emerald-300 text-emerald-900 font-bold' : 'bg-slate-100 text-slate-500'}`}>
-                    <CheckSquare className="w-3 h-3" /> Area Barricade Set
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons: 5-Stage State Transition Controller */}
-              <div className="flex justify-between items-center pt-2 border-t border-slate-300 flex-wrap gap-2">
-                <div className="text-[11px] font-mono text-slate-500">
-                  PTW ID: <strong>{activePermit.id}</strong> | Form: <strong>{activePermit.formNumber}</strong>
-                </div>
-
-                <div className="flex gap-2 flex-wrap">
-                  {/* Step 1: Draft -> Prepared */}
-                  {activePermit.status === 'DRAFT' && (
-                    <button
-                      onClick={() => handleTransitionStatus(activePermit.id, 'PREPARED')}
-                      className="win-btn px-4 py-1 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
-                    >
-                      <span>1. Prepare & Submit to HSE ➔</span>
-                    </button>
-                  )}
-
-                  {/* Step 2: Prepared -> Approved */}
-                  {activePermit.status === 'PREPARED' && (
-                    <button
-                      onClick={() => handleTransitionStatus(activePermit.id, 'APPROVED')}
-                      className="win-btn px-4 py-1 text-xs font-bold bg-blue-900 hover:bg-blue-950 text-white cursor-pointer flex items-center gap-1"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>2. Site Manager / HSE Approve ➔</span>
-                    </button>
-                  )}
-
-                  {/* Step 3: Approved -> Active (Strict Hot Work LEL 0% & Confined O2 check) */}
-                  {activePermit.status === 'APPROVED' && (
-                    <button
-                      disabled={!currentGasSafety.isSafe || ((activePermit.type === 'HOT_WORK' || activePermit.type === 'CONFINED_SPACE') && !isERTMet)}
-                      onClick={() => handleTransitionStatus(activePermit.id, 'ACTIVE')}
-                      className={`win-btn px-4 py-1 text-xs font-bold flex items-center gap-1.5 ${
-                        !currentGasSafety.isSafe || ((activePermit.type === 'HOT_WORK' || activePermit.type === 'CONFINED_SPACE') && !isERTMet)
-                          ? 'bg-slate-300 text-slate-500 cursor-not-allowed border-slate-400'
-                          : 'bg-emerald-800 hover:bg-emerald-900 text-white cursor-pointer shadow'
-                      }`}
-                      title={!currentGasSafety.isSafe ? currentGasSafety.blockReason || 'Gas reading unsafe' : 'Issue permit and begin work'}
-                    >
-                      <Flame className="w-3.5 h-3.5 text-amber-300" />
-                      <span>3. Issue & Authorize Active Work ➔</span>
-                    </button>
-                  )}
-
-                  {/* Step 4: Active -> Closed */}
-                  {activePermit.status === 'ACTIVE' && (
-                    <button
-                      onClick={() => handleTransitionStatus(activePermit.id, 'CLOSED')}
-                      className="win-btn px-4 py-1 text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white cursor-pointer"
-                    >
-                      <span>4. Close & Surrender Permit (Work Completed)</span>
-                    </button>
-                  )}
-
-                  {activePermit.status === 'CLOSED' && (
-                    <span className="px-3 py-1 bg-slate-200 text-slate-600 font-mono text-xs font-bold rounded border border-slate-300">
-                      ✓ PERMIT CLOSED & ARCHIVED
-                    </span>
-                  )}
-                </div>
-              </div>
-
-            </div>
-          ) : (
-            <div className="p-8 text-center text-slate-500 font-mono">No permit selected.</div>
-          )}
-        </div>
-
-      </div>
-
-      {/* 4. Modal: Issue New PTW Form (NP07-10 ~ NP07-15) */}
-      {isNewPermitModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="win-panel max-w-xl w-full bg-white shadow-2xl border-2 border-blue-950 text-slate-900 rounded-xl overflow-hidden font-sans">
-            <div className="bg-blue-950 text-white px-5 py-3.5 flex justify-between items-center border-b border-blue-800">
-              <span className="font-bold text-base flex items-center gap-2">
-                <FileText className="w-5 h-5 text-amber-400 shrink-0" />
-                <span>신규 작업허가서 발행 (Issue New PTW Form)</span>
-              </span>
-              <button
-                onClick={() => setIsNewPermitModalOpen(false)}
-                className="text-white font-bold p-1 px-2.5 bg-slate-800 hover:bg-slate-700 rounded text-xs cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-5 sm:p-6 space-y-3.5 text-xs sm:text-sm">
-              {/* 1. PTW Form Type Selection */}
-              <div className="space-y-1">
-                <label className="block font-bold text-slate-800">1. 작업허가서 분류 (SOP PTW Form Type):</label>
-                <select
-                  value={newPermitType}
-                  onChange={(e) => setNewPermitType(e.target.value as PTWType)}
-                  className="w-full h-9 px-3 border border-slate-300 rounded font-medium bg-white cursor-pointer"
-                >
-                  {Object.entries(PTW_SOP_FORMS).map(([k, def]) => (
-                    <option key={k} value={k}>
-                      {def.formNumber}: {def.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 2. Work Title */}
-              <div className="space-y-1">
-                <label className="block font-bold text-slate-800">2. 작업 명칭 (Work Description / Title):</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Laydown-2 Flare Header Pipe Tie-in Welding"
-                  value={newPermitTitle}
-                  onChange={(e) => setNewPermitTitle(e.target.value)}
-                  className="w-full h-9 px-3 border border-slate-300 rounded font-medium bg-white"
-                />
-              </div>
-
-              {/* 3. Location */}
-              <div className="space-y-1">
-                <label className="block font-bold text-slate-800">3. 작업 구역 (Plant Location / Area):</label>
-                <select
-                  value={newPermitLocation}
-                  onChange={(e) => setNewPermitLocation(e.target.value)}
-                  className="w-full h-9 px-3 border border-slate-300 rounded font-medium bg-white cursor-pointer"
-                >
-                  <option value="Vaporization Skid #1 (PRSS Area)">Vaporization Skid #1 (PRSS Area)</option>
-                  <option value="Loading Bay 01 & 02">Loading Bay 01 & 02</option>
-                  <option value="Laydown Area 2 & Flare Header">Laydown Area 2 & Flare Header</option>
-                  <option value="ORU Sump Pit Area">ORU Sump Pit Area</option>
-                  <option value="Main Substation MCC-01">Main Substation MCC-01</option>
-                  <option value="Marine Jetty LNG Transfer Header">Marine Jetty LNG Transfer Header</option>
-                </select>
-              </div>
-
-              {/* 4. Work Leader Assignment (Gatekeeper Checked) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="block font-bold text-slate-800">4. 작업 책임자 (Work Leader):</label>
-                  <select
-                    value={newWorkLeaderId}
-                    onChange={(e) => setNewWorkLeaderId(e.target.value)}
-                    className="w-full h-9 px-2 border border-slate-300 rounded font-medium bg-white cursor-pointer"
-                  >
-                    {personnelList.map((m) => {
-                      const check = validatePTWWorkerEligibility(m, newPermitType);
-                      return (
-                        <option key={m.id} value={m.id} disabled={!check.isEligible}>
-                          {m.name} ({m.role}) {!check.isEligible ? `[⚠️ ${check.reason}]` : '✓ Valid'}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block font-bold text-slate-800">5. 배정 작업원 (Worker):</label>
-                  <select
-                    value={newWorkerId}
-                    onChange={(e) => setNewWorkerId(e.target.value)}
-                    className="w-full h-9 px-2 border border-slate-300 rounded font-medium bg-white cursor-pointer"
-                  >
-                    {personnelList.map((m) => {
-                      const check = validatePTWWorkerEligibility(m, newPermitType);
-                      return (
-                        <option key={m.id} value={m.id} disabled={!check.isEligible}>
-                          {m.name} ({m.role}) {!check.isEligible ? `[⚠️ Disqualified]` : '✓ Valid'}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-              </div>
-
-              {/* 5. Gas Reading Initial Verification */}
-              <div className="bg-slate-50 p-3 rounded border border-slate-300 space-y-2">
-                <div className="font-bold text-slate-800 text-xs">Initial Gas Test Reading:</div>
-                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                  <div>
-                    <label>LEL (%):</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={newGasLel}
-                      onChange={(e) => setNewGasLel(parseFloat(e.target.value) || 0)}
-                      className="w-full h-8 px-2 border border-slate-300 rounded bg-white"
-                    />
-                  </div>
-                  <div>
-                    <label>O2 (%):</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={newGasO2}
-                      onChange={(e) => setNewGasO2(parseFloat(e.target.value) || 20.9)}
-                      className="w-full h-8 px-2 border border-slate-300 rounded bg-white"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Modal Actions */}
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
-                <button
-                  onClick={() => setIsNewPermitModalOpen(false)}
-                  className="win-btn px-4 py-1.5 text-xs font-semibold cursor-pointer hover:bg-slate-200 rounded"
-                >
-                  취소 (Cancel)
-                </button>
-                <button
-                  onClick={handleCreatePermit}
-                  className="win-btn px-5 py-1.5 text-xs font-bold bg-blue-900 hover:bg-blue-950 text-white rounded cursor-pointer"
-                >
-                  발행 및 등록 (Submit Draft)
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-    </div>
-  );
+  switch (activeTab) {
+    case 'SAFETY_OVERVIEW':
+      return <SafetyOverviewTab />;
+    case 'GAS_TESTING_LOG':
+      return <GasTestingLogTab />;
+    case 'ERT_READINESS':
+      return <ERTReadinessTab />;
+    case 'MASTER_REGISTER':
+    default:
+      return (
+        <PTWMasterRegisterTab
+          personnelList={personnelList}
+          isERTMet={isERTMet}
+          onNavigateToMatrix={onNavigateToMatrix}
+        />
+      );
+  }
 }
 
 ```
@@ -38049,6 +34819,560 @@ export default function TrainingMatrixView({
 
 ---
 
+## File: src\components\manpower\cargoHandling\CargoHandlingDetailSection.tsx
+```typescript
+// src/components/manpower/cargoHandling/CargoHandlingDetailSection.tsx
+"use client";
+
+import React from 'react';
+import { Anchor, CheckSquare } from 'lucide-react';
+import type { CargoHandlingPermitDetails } from '../../../types/lng';
+import {
+  CARGO_HANDLING_AGT_MANDATORY_POINTS,
+  CARGO_HANDLING_SOP_BY_ACTIVITY,
+  GROUNDING_RESISTANCE_MAX_OHM,
+  UNLOADING_LEL_MAX_PERCENT,
+  UNLOADING_O2_MAX_PERCENT,
+  UNLOADING_O2_MIN_PERCENT,
+} from '../../../data/ptwCargoHandlingRules';
+import { evaluateMandatorySafetyControls } from '../../../data/ptwCargoHandlingValidators';
+
+export interface CargoHandlingDetailSectionProps {
+  cargoHandling: CargoHandlingPermitDetails;
+}
+
+function isPointSafe(lelPercent: number, o2Percent: number): boolean {
+  return lelPercent < UNLOADING_LEL_MAX_PERCENT && o2Percent >= UNLOADING_O2_MIN_PERCENT && o2Percent <= UNLOADING_O2_MAX_PERCENT;
+}
+
+export default function CargoHandlingDetailSection({ cargoHandling }: CargoHandlingDetailSectionProps) {
+  const readingByTag = new Map(cargoHandling.gasReadingPoints.map((p) => [p.tagId, p]));
+  const isGroundingSafe = cargoHandling.groundingResistanceOhm < GROUNDING_RESISTANCE_MAX_OHM;
+  const sopCodes = CARGO_HANDLING_SOP_BY_ACTIVITY[cargoHandling.activityType];
+  const safetyControls = evaluateMandatorySafetyControls(cargoHandling.activityType, cargoHandling);
+
+  return (
+    <div className="p-2.5 border-2 border-cyan-700 bg-cyan-50/40 rounded space-y-2.5">
+      <div className="flex items-center justify-between">
+        <span className="font-bold text-xs flex items-center gap-1.5 text-slate-900">
+          <Anchor className="w-4 h-4 text-cyan-800" />
+          <span>Cargo Handling Extension ({cargoHandling.activityType})</span>
+        </span>
+        <div className="flex flex-wrap gap-1 justify-end">
+          {sopCodes.map((code) => (
+            <span key={code} className="px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-900 border border-cyan-300 text-[10px] font-mono font-bold">
+              {code}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* AGT 4-point grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 font-mono text-[10px]">
+        {CARGO_HANDLING_AGT_MANDATORY_POINTS.map((tagId) => {
+          const point = readingByTag.get(tagId);
+          const safe = point ? isPointSafe(point.lelPercent, point.o2Percent) : false;
+          return (
+            <div key={tagId} className={`p-1.5 border rounded bg-white ${safe ? 'border-emerald-300' : 'border-red-400'}`}>
+              <div className="flex justify-between items-center mb-0.5">
+                <span className="font-bold text-slate-800">{tagId}</span>
+                <span className={`px-1 py-0.5 rounded text-[9px] font-bold ${safe ? 'bg-emerald-800 text-white' : 'bg-red-700 text-white'}`}>
+                  {safe ? 'SAFE' : 'UNSAFE'}
+                </span>
+              </div>
+              {point ? (
+                <div className="text-slate-600">
+                  <div>LEL: {point.lelPercent.toFixed(1)}%</div>
+                  <div>O2: {point.o2Percent.toFixed(1)}%</div>
+                </div>
+              ) : (
+                <div className="text-red-700">No Reading</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Grounding resistance */}
+      <div className="flex items-center justify-between p-1.5 bg-white border border-slate-300 rounded text-[11px] font-mono">
+        <span className="font-bold text-slate-800">Grounding Resistance:</span>
+        <span className="flex items-center gap-1.5">
+          <span className={isGroundingSafe ? 'text-emerald-700 font-bold' : 'text-red-700 font-bold'}>
+            {cargoHandling.groundingResistanceOhm.toFixed(1)} Ω
+          </span>
+          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${isGroundingSafe ? 'bg-emerald-800 text-white' : 'bg-red-700 text-white'}`}>
+            {isGroundingSafe ? `< ${GROUNDING_RESISTANCE_MAX_OHM}Ω OK` : `>= ${GROUNDING_RESISTANCE_MAX_OHM}Ω FAIL`}
+          </span>
+        </span>
+      </div>
+
+      {/* Mandatory Safety Controls + LOTO */}
+      <div className="p-1.5 border border-slate-300 bg-white rounded text-[11px]">
+        <div className="font-bold text-slate-800 mb-1 font-mono">Mandatory Safety Controls / LOTO:</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-mono text-[10px]">
+          <div className={`p-1 rounded border flex items-center gap-1 ${cargoHandling.fireWatchAssigned ? 'bg-emerald-100 border-emerald-300 text-emerald-900 font-bold' : 'bg-slate-100 text-slate-500'}`}>
+            <CheckSquare className="w-3 h-3" /> Fire Watch
+          </div>
+          <div className={`p-1 rounded border flex items-center gap-1 ${safetyControls.allSatisfied ? 'bg-emerald-100 border-emerald-300 text-emerald-900 font-bold' : 'bg-slate-100 text-slate-500'}`}>
+            <CheckSquare className="w-3 h-3" /> Barricade ({cargoHandling.barricadeRadiusM}m)
+          </div>
+          <div className={`p-1 rounded border flex items-center gap-1 ${cargoHandling.ertStandbyReady ? 'bg-emerald-100 border-emerald-300 text-emerald-900 font-bold' : 'bg-slate-100 text-slate-500'}`}>
+            <CheckSquare className="w-3 h-3" /> ERT Standby
+          </div>
+          <div className={`p-1 rounded border flex items-center gap-1 ${cargoHandling.allLotoLocksRemoved ? 'bg-emerald-100 border-emerald-300 text-emerald-900 font-bold' : 'bg-slate-100 text-slate-500'}`}>
+            <CheckSquare className="w-3 h-3" /> LOTO Locks Removed
+          </div>
+        </div>
+        {!safetyControls.allSatisfied && (
+          <div className="mt-1 text-[10px] text-red-700">{safetyControls.missingItems.join('; ')}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\cargoHandling\CargoHandlingPermitForm.tsx
+```typescript
+// src/components/manpower/cargoHandling/CargoHandlingPermitForm.tsx
+"use client";
+
+import React from 'react';
+import { X, Ship } from 'lucide-react';
+import type { CargoHandlingActivityType, PTWPermit } from '../../../types/lng';
+import { CARGO_HANDLING_AGT_MANDATORY_POINTS } from '../../../data/ptwCargoHandlingRules';
+import { mapCargoHandlingFormToPermit } from '../../../data/ptwCargoHandlingMapper';
+import { useCargoHandlingPermitForm } from './hooks/useCargoHandlingPermitForm';
+import StatusGateChecklist from './StatusGateChecklist';
+
+export interface CargoHandlingPermitFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  sequenceNumber: number;
+  onSubmitSuccess: (newPermit: PTWPermit) => void;
+}
+
+const ACTIVITY_LABELS: Record<CargoHandlingActivityType, string> = {
+  UNLOADING: 'ISO Tank 하역 (Unloading)',
+  LIFTING: '크레인/리치스태커 인양 (Lifting)',
+  COMBINED: '하역 + 인양 연속 조업 (Combined)',
+};
+
+export default function CargoHandlingPermitForm({ isOpen, onClose, sequenceNumber, onSubmitSuccess }: CargoHandlingPermitFormProps) {
+  const { details, identity, update, updateIdentity, updateGasPoint, setActivityType, gates } = useCargoHandlingPermitForm();
+
+  if (!isOpen) return null;
+
+  const isUnloading = details.activityType !== 'LIFTING';
+  const isLifting = details.activityType !== 'UNLOADING';
+
+  const handleSubmit = () => {
+    if (!identity.title.trim() || !identity.location.trim() || !identity.workLeaderName.trim()) {
+      alert('Please enter Title, Location, and Work Leader.');
+      return;
+    }
+    const newPermit = mapCargoHandlingFormToPermit(identity, details, gates.requiredSopCodes, sequenceNumber);
+    onSubmitSuccess(newPermit);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div className="win-panel w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-[#d4d0c8] border-2 border-t-white border-l-white border-r-[#404040] border-b-[#404040] p-1 shadow-2xl font-sans text-xs">
+        <div className="bg-blue-950 text-white px-3 py-1.5 flex justify-between items-center font-bold tracking-wide">
+          <span className="flex items-center gap-2">
+            <Ship className="w-4 h-4 text-amber-400" />
+            <span>Cargo Handling PTW — Issuance & Status Gate</span>
+          </span>
+          <button onClick={onClose} className="win-btn px-1.5 py-0.5 text-black font-black bg-[#d4d0c8] border border-gray-600 hover:bg-slate-300">
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+
+        <div className="p-3 grid grid-cols-2 gap-3 bg-[#d4d0c8]">
+          <div className="space-y-2">
+            <div className="border border-[#808080] p-2 bg-slate-50 rounded space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-700 block">작업 유형 (Activity Type)</label>
+              <select value={details.activityType} onChange={(e) => setActivityType(e.target.value as CargoHandlingActivityType)} className="w-full win-sunken p-1 text-xs font-semibold bg-white border border-gray-400">
+                {(Object.keys(ACTIVITY_LABELS) as CargoHandlingActivityType[]).map((k) => (
+                  <option key={k} value={k}>{ACTIVITY_LABELS[k]}</option>
+                ))}
+              </select>
+              <input placeholder="Title" value={identity.title} onChange={(e) => updateIdentity('title', e.target.value)} className="w-full win-sunken p-1 text-xs bg-white border border-gray-400" />
+              <input placeholder="Location" value={identity.location} onChange={(e) => updateIdentity('location', e.target.value)} className="w-full win-sunken p-1 text-xs bg-white border border-gray-400" />
+              <input placeholder="Work Leader" value={identity.workLeaderName} onChange={(e) => updateIdentity('workLeaderName', e.target.value)} className="w-full win-sunken p-1 text-xs bg-white border border-gray-400" />
+            </div>
+
+            <div className="border border-[#808080] p-2 bg-slate-50 rounded space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-700 block">Critical High Risk Inputs</label>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] w-28">적재 중량 (ton)</span>
+                <input type="number" value={details.loadedWeightTon} onChange={(e) => update('loadedWeightTon', Number(e.target.value))} className="win-sunken p-1 text-xs bg-white border border-gray-400 w-24" />
+              </div>
+              <label className="flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={details.isActiveCryogenicFlow} onChange={(e) => update('isActiveCryogenicFlow', e.target.checked)} /> 가압/극저온 유동 중 (Active Cryogenic Flow)
+              </label>
+              <label className="flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={details.hoseDisconnectionInProgress} onChange={(e) => update('hoseDisconnectionInProgress', e.target.checked)} /> 배관/호스 분리 작업 진행
+              </label>
+            </div>
+
+            {isUnloading && (
+              <div className="border border-[#808080] p-2 bg-slate-50 rounded space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-700 block">AGT (T-201~T-204) / Grounding</label>
+                {CARGO_HANDLING_AGT_MANDATORY_POINTS.map((tagId) => {
+                  const point = details.gasReadingPoints.find((p) => p.tagId === tagId)!;
+                  return (
+                    <div key={tagId} className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-mono w-10">{tagId}</span>
+                      <input type="number" step="0.1" value={point.lelPercent} onChange={(e) => updateGasPoint(tagId, { lelPercent: Number(e.target.value) })} className="win-sunken p-1 text-[11px] bg-white border border-gray-400 w-16" placeholder="LEL%" />
+                      <input type="number" step="0.1" value={point.o2Percent} onChange={(e) => updateGasPoint(tagId, { o2Percent: Number(e.target.value) })} className="win-sunken p-1 text-[11px] bg-white border border-gray-400 w-16" placeholder="O2%" />
+                      <input type="datetime-local" value={point.testedAt} onChange={(e) => updateGasPoint(tagId, { testedAt: e.target.value })} className="win-sunken p-1 text-[10px] bg-white border border-gray-400 flex-1" />
+                    </div>
+                  );
+                })}
+                <label className="flex items-center gap-1.5 text-[11px] pt-1">
+                  <input type="checkbox" checked={details.atmosphereSafeCertifiedByHseOfficer} disabled={!gates.agt.isAtmosphereSafeCertifiable} onChange={(e) => update('atmosphereSafeCertifiedByHseOfficer', e.target.checked)} />
+                  Atmosphere Safe 최종 인증 (HSE Officer)
+                </label>
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="text-[10px] w-28">접지 저항 (Ω)</span>
+                  <input type="number" step="0.1" value={details.groundingResistanceOhm} onChange={(e) => update('groundingResistanceOhm', Number(e.target.value))} className="win-sunken p-1 text-xs bg-white border border-gray-400 w-24" />
+                </div>
+                <label className={`flex items-center gap-1.5 text-[11px] ${!gates.depressurization.isDisconnectionApproved ? 'opacity-50' : ''}`} title={!gates.depressurization.isDisconnectionApproved ? '감압 목표 미충족 — 배관/호스 분리 완료 체크 불가' : undefined}>
+                  <input type="checkbox" checked={details.allHosesDisconnected} disabled={!gates.depressurization.isDisconnectionApproved} onChange={(e) => update('allHosesDisconnected', e.target.checked)} /> 모든 배관/호스 분리 완료
+                </label>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <div className="border border-[#808080] p-2 bg-slate-50 rounded space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-700 block">Depressurization</label>
+              <select value={details.depressurizationTagId} onChange={(e) => update('depressurizationTagId', e.target.value)} className="w-full win-sunken p-1 text-xs bg-white border border-gray-400">
+                {['T-203', 'ISO-TANK-GENERAL'].map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] w-28">현재 압력 (MPa)</span>
+                <input type="number" step="0.01" value={details.currentPressureMPa} onChange={(e) => update('currentPressureMPa', Number(e.target.value))} className="win-sunken p-1 text-xs bg-white border border-gray-400 w-24" />
+              </div>
+              <label className="flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={details.isFlexibleHoseOrQccDisconnection} onChange={(e) => update('isFlexibleHoseOrQccDisconnection', e.target.checked)} /> 극저온 호스/QCC 커플러 탈거
+              </label>
+              <label className="flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={details.icingPresent} onChange={(e) => update('icingPresent', e.target.checked)} /> 배관 결빙 (Icing) 존재
+              </label>
+            </div>
+
+            <div className="border border-[#808080] p-2 bg-slate-50 rounded space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-700 block">Mandatory Safety Controls</label>
+              <label className="flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={details.fireWatchAssigned} onChange={(e) => update('fireWatchAssigned', e.target.checked)} /> Fire Watch 배치 (DCP/CO2 휴대)
+              </label>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] w-28">바리케이드 반경 (m)</span>
+                <input type="number" value={details.barricadeRadiusM} onChange={(e) => update('barricadeRadiusM', Number(e.target.value))} className="win-sunken p-1 text-xs bg-white border border-gray-400 w-24" />
+              </div>
+              <label className="flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={details.ertStandbyReady} onChange={(e) => update('ertStandbyReady', e.target.checked)} /> ERT Standby (SCBA 완비)
+              </label>
+              {isLifting && (
+                <>
+                  <label className="flex items-center gap-1.5 text-[11px]">
+                    <input type="checkbox" checked={details.craneOperatorSioClassIIOrAbove} onChange={(e) => update('craneOperatorSioClassIIOrAbove', e.target.checked)} /> Crane Operator SIO Class II+
+                  </label>
+                  <label className="flex items-center gap-1.5 text-[11px]">
+                    <input type="checkbox" checked={details.riggerCertificateHeld} onChange={(e) => update('riggerCertificateHeld', e.target.checked)} /> Rigger Certificate 보유
+                  </label>
+                </>
+              )}
+            </div>
+
+            <div className="border border-[#808080] p-2 bg-slate-50 rounded space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-700 block">Approval & Closure Signatures</label>
+              <label className="flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={details.siteManagerAvailable} onChange={(e) => update('siteManagerAvailable', e.target.checked)} /> Site Manager 재직 중 (Available)
+              </label>
+              <label className="flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={details.delegationMemoAttached} onChange={(e) => update('delegationMemoAttached', e.target.checked)} /> 위임 Memo 첨부 (Sr. O&M Leader 대행 시)
+              </label>
+              <label className="flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={details.esdvThreeStageIsolationConfirmed} onChange={(e) => update('esdvThreeStageIsolationConfirmed', e.target.checked)} /> ESDV 3단계 완전 고립 확인
+              </label>
+              <div className="grid grid-cols-3 gap-1 pt-1">
+                <label className="flex items-center gap-1 text-[10px]"><input type="checkbox" checked={details.workLeaderSignedOff} onChange={(e) => update('workLeaderSignedOff', e.target.checked)} /> Work Leader</label>
+                <label className="flex items-center gap-1 text-[10px]"><input type="checkbox" checked={details.hseOfficerSignedOff} onChange={(e) => update('hseOfficerSignedOff', e.target.checked)} /> HSE Officer</label>
+                <label className="flex items-center gap-1 text-[10px]"><input type="checkbox" checked={details.siteManagerSignedOff} onChange={(e) => update('siteManagerSignedOff', e.target.checked)} /> Site Manager</label>
+              </div>
+              <label className="flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={details.allLotoLocksRemoved} onChange={(e) => update('allLotoLocksRemoved', e.target.checked)} /> LOTO 잠금 전체 해제
+              </label>
+              <label className="flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={details.leakTestPassed} onChange={(e) => update('leakTestPassed', e.target.checked)} /> 배관 기밀/누설 테스트 통과
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-3 pb-3 bg-[#d4d0c8]">
+          <div className="border-t border-gray-500 pt-2">
+            <StatusGateChecklist gates={gates} />
+          </div>
+          <div className="flex justify-end gap-2 pt-3">
+            <button onClick={onClose} className="win-btn px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] border border-gray-600 hover:bg-slate-300">
+              Cancel
+            </button>
+            <button onClick={handleSubmit} className="win-btn px-3 py-1 text-xs font-bold text-white bg-blue-900 border border-gray-600 hover:bg-blue-800">
+              Submit (DRAFT)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\cargoHandling\StatusGateChecklist.tsx
+```typescript
+// src/components/manpower/cargoHandling/StatusGateChecklist.tsx
+"use client";
+
+import React from 'react';
+import { CheckCircle2, XCircle, AlertTriangle, ShieldAlert, Clock } from 'lucide-react';
+import type { useCargoHandlingPermitForm } from './hooks/useCargoHandlingPermitForm';
+
+export interface StatusGateChecklistProps {
+  gates: ReturnType<typeof useCargoHandlingPermitForm>['gates'];
+}
+
+function GateRow({ ok, label, detail }: { ok: boolean; label: string; detail?: string }) {
+  return (
+    <div className={`flex items-start gap-1.5 px-2 py-1 border-b border-gray-300 last:border-b-0 ${ok ? 'text-emerald-800' : 'text-rose-800'}`}>
+      {ok ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-600" /> : <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0 text-rose-600" />}
+      <div className="text-[11px]">
+        <div className="font-bold">{label}</div>
+        {detail && <div className="opacity-80">{detail}</div>}
+      </div>
+    </div>
+  );
+}
+
+export default function StatusGateChecklist({ gates }: StatusGateChecklistProps) {
+  const { requiredSopCodes, criticalRisk, agt, isRetestDue, depressurization, grounding, safetyControls, competency, prepare, approve, activate, close } = gates;
+
+  return (
+    <div className="space-y-2 text-xs">
+      <div className="flex flex-wrap gap-1">
+        {requiredSopCodes.map((code) => (
+          <span key={code} className="px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-900 border border-cyan-300 text-[10px] font-mono font-bold">
+            {code}
+          </span>
+        ))}
+      </div>
+
+      {criticalRisk.isCriticalHighRisk && (
+        <div className="bg-rose-100 border border-rose-500 text-rose-900 p-2 rounded flex items-start gap-2 animate-pulse">
+          <ShieldAlert className="w-4 h-4 text-rose-700 shrink-0 mt-0.5" />
+          <div>
+            <div className="font-bold text-[11px]">Critical High Risk — Site Manager 서면 승인 및 ESDV 3단계 완전 고립 필요</div>
+            <ul className="text-[10px] opacity-85 list-disc list-inside">
+              {criticalRisk.reasons.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      <div className="border border-[#808080] rounded bg-white">
+        <div className="bg-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-700">AGT Gas Safety Gate</div>
+        <GateRow ok={agt.isSafe} label="Atmosphere Safe for Work" detail={agt.blockReason || undefined} />
+        {agt.scbaRequiredTagIds.length > 0 && (
+          <GateRow ok={false} label="SCBA 착용 필수" detail={`O2 < 19.5%: ${agt.scbaRequiredTagIds.join(', ')}`} />
+        )}
+        {isRetestDue && (
+          <div className="flex items-center gap-1.5 px-2 py-1 text-amber-800">
+            <Clock className="w-3.5 h-3.5 shrink-0" />
+            <span className="text-[11px] font-bold">재측정 필요 (4시간 경과) — ACTIVE 유지 불가 후보</span>
+          </div>
+        )}
+        <GateRow ok={agt.isAtmosphereSafeCertifiable} label="Atmosphere Safe 최종 인증 가능 (LEL 0% & O2 20.9±0.4%)" />
+      </div>
+
+      <div className="border border-[#808080] rounded bg-white">
+        <div className="bg-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-700">Grounding / Depressurization Sequence</div>
+        <GateRow ok={depressurization.isDisconnectionApproved} label={`Depressurization (Target ${depressurization.targetPressureMPa} MPa)`} detail={depressurization.blockReason || undefined} />
+        <GateRow ok={grounding.canCheckDegrounding} label="배관/호스 분리 완료 → Degrounding 가능" detail={grounding.canCheckDegrounding ? undefined : '모든 배관/호스 분리 완료 후 접지 해제 가능'} />
+        <GateRow ok={grounding.canStartPressurizedTransfer} label="Pressurized Transfer 시작 가능" detail={grounding.blockReason || undefined} />
+      </div>
+
+      <div className="border border-[#808080] rounded bg-white">
+        <div className="bg-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-700">Mandatory Safety Controls</div>
+        {safetyControls.allSatisfied ? (
+          <GateRow ok={true} label="전체 항목 충족" />
+        ) : (
+          safetyControls.missingItems.map((item) => <GateRow key={item} ok={false} label={item} />)
+        )}
+      </div>
+
+      <div className="border border-[#808080] rounded bg-white">
+        <div className="bg-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-700">Competency Gate</div>
+        {competency.isEligible ? (
+          <GateRow ok={true} label="Crane Operator / Rigger 자격 충족" />
+        ) : (
+          competency.blockReasons.map((r) => <GateRow key={r} ok={false} label={r} />)
+        )}
+      </div>
+
+      <div className="border border-[#808080] rounded bg-white">
+        <div className="bg-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-700">Status Transition Readiness</div>
+        <GateRow ok={prepare.canTransition} label="DRAFT → PREPARED" detail={prepare.blockReasons.join('; ') || undefined} />
+        <GateRow ok={approve.canTransition} label={`PREPARED → APPROVED (Approver: ${approve.requiredApproverRole})`} detail={approve.blockReasons.join('; ') || undefined} />
+        <GateRow ok={activate.canTransition} label="APPROVED → ACTIVE" detail={activate.blockReasons.join('; ') || undefined} />
+        <GateRow ok={close.canTransition} label="ACTIVE → CLOSED" detail={close.incompleteItems.join('; ') || undefined} />
+      </div>
+
+      {!close.canTransition && close.incompleteItems.length > 0 && (
+        <div className="flex items-start gap-1.5 text-amber-800 text-[10px]">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+          <span>미완료 항목: {close.incompleteItems.join(', ')}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\cargoHandling\hooks\useCargoHandlingPermitForm.ts
+```typescript
+// src/components/manpower/cargoHandling/hooks/useCargoHandlingPermitForm.ts
+import { useMemo, useState, useCallback } from 'react';
+import type { CargoHandlingActivityType, CargoHandlingGasPoint, CargoHandlingPermitDetails } from '../../../../types/lng';
+import { CARGO_HANDLING_AGT_MANDATORY_POINTS } from '../../../../data/ptwCargoHandlingRules';
+import {
+  resolveCargoHandlingSopCodes,
+  evaluateCriticalHighRiskEscalation,
+  evaluateAgtGate,
+  isGasRetestDue,
+  evaluateGroundingGate,
+  evaluateDepressurizationGate,
+  evaluateMandatorySafetyControls,
+  evaluateCompetencyGate,
+} from '../../../../data/ptwCargoHandlingValidators';
+import {
+  canPrepareCargoHandlingPermit,
+  canApproveCargoHandlingPermit,
+  canActivateCargoHandlingPermit,
+  canCloseCargoHandlingPermit,
+} from '../../../../data/ptwCargoHandlingTransitions';
+
+const createDefaultDetails = (): CargoHandlingPermitDetails => ({
+  activityType: 'UNLOADING',
+  loadedWeightTon: 0,
+  isActiveCryogenicFlow: false,
+  hoseDisconnectionInProgress: false,
+  siteManagerAvailable: true,
+  delegationMemoAttached: false,
+  esdvThreeStageIsolationConfirmed: false,
+  gasReadingPoints: CARGO_HANDLING_AGT_MANDATORY_POINTS.map<CargoHandlingGasPoint>((tagId) => ({
+    tagId,
+    lelPercent: 0,
+    o2Percent: 20.9,
+    testedAt: '',
+  })),
+  lastGasTestAt: undefined,
+  atmosphereSafeCertifiedByHseOfficer: false,
+  groundingResistanceOhm: 0,
+  allHosesDisconnected: false,
+  depressurizationTagId: 'T-203',
+  currentPressureMPa: 0,
+  isFlexibleHoseOrQccDisconnection: false,
+  icingPresent: false,
+  fireWatchAssigned: false,
+  barricadeRadiusM: 0,
+  ertStandbyReady: false,
+  craneOperatorSioClassIIOrAbove: false,
+  riggerCertificateHeld: false,
+  workLeaderSignedOff: false,
+  hseOfficerSignedOff: false,
+  siteManagerSignedOff: false,
+  allLotoLocksRemoved: false,
+  leakTestPassed: false,
+});
+
+export interface CargoHandlingIdentity {
+  title: string;
+  location: string;
+  workLeaderName: string;
+}
+
+export function useCargoHandlingPermitForm(initialDetails?: Partial<CargoHandlingPermitDetails>) {
+  const [details, setDetails] = useState<CargoHandlingPermitDetails>({
+    ...createDefaultDetails(),
+    ...initialDetails,
+  });
+  const [identity, setIdentity] = useState<CargoHandlingIdentity>({
+    title: '',
+    location: '',
+    workLeaderName: '',
+  });
+
+  const update = useCallback(<K extends keyof CargoHandlingPermitDetails>(key: K, value: CargoHandlingPermitDetails[K]) => {
+    setDetails((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const updateIdentity = useCallback(<K extends keyof CargoHandlingIdentity>(key: K, value: CargoHandlingIdentity[K]) => {
+    setIdentity((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const updateGasPoint = useCallback((tagId: string, patch: Partial<CargoHandlingGasPoint>) => {
+    setDetails((prev) => {
+      const gasReadingPoints = prev.gasReadingPoints.map((p) => (p.tagId === tagId ? { ...p, ...patch } : p));
+      const latestTestedAt = gasReadingPoints
+        .map((p) => p.testedAt)
+        .filter(Boolean)
+        .sort()
+        .pop();
+      return { ...prev, gasReadingPoints, lastGasTestAt: latestTestedAt || prev.lastGasTestAt };
+    });
+  }, []);
+
+  const setActivityType = useCallback((activityType: CargoHandlingActivityType) => update('activityType', activityType), [update]);
+
+  const gates = useMemo(() => {
+    const requiredSopCodes = resolveCargoHandlingSopCodes(details.activityType);
+    const criticalRisk = evaluateCriticalHighRiskEscalation(details);
+    const agt = evaluateAgtGate(details.activityType, details.gasReadingPoints);
+    const isRetestDue = isGasRetestDue(details.lastGasTestAt, new Date().toISOString());
+    const depressurization = evaluateDepressurizationGate(details);
+    const grounding = evaluateGroundingGate(details);
+    const safetyControls = evaluateMandatorySafetyControls(details.activityType, details);
+    const competency = evaluateCompetencyGate(details.activityType, details);
+    const prepare = canPrepareCargoHandlingPermit(details);
+    const approve = canApproveCargoHandlingPermit({ isCriticalHighRisk: criticalRisk.isCriticalHighRisk, ...details });
+    const activate = canActivateCargoHandlingPermit(details);
+    const close = canCloseCargoHandlingPermit(details);
+
+    return { requiredSopCodes, criticalRisk, agt, isRetestDue, depressurization, grounding, safetyControls, competency, prepare, approve, activate, close };
+  }, [details]);
+
+  return { details, identity, update, updateIdentity, updateGasPoint, setActivityType, gates };
+}
+
+```
+
+---
+
 ## File: src\components\manpower\hooks\useActualDutyLogs.ts
 ```typescript
 import { useState, useEffect, useCallback } from 'react';
@@ -38173,6 +35497,165 @@ export function useManagerOverrides() {
     revokeOverride,
     getOverride,
   };
+}
+
+```
+
+---
+
+## File: src\components\manpower\hooks\usePTWPermits.ts
+```typescript
+// src/components/manpower/hooks/usePTWPermits.ts
+import { useMemo, useState } from 'react';
+import { GasTestLogEntry, GasTestLogEntryInput, PTWPermit, PTWWorkflowStatus } from '../../../types/lng';
+import { INITIAL_PTW_PERMITS, validatePTWGasSafety } from '../../../data/ptwMasterData';
+
+/**
+ * Shared PTW permit register state (Master Register 소유, 향후 Gas Testing Log /
+ * ERT Readiness 탭이 읽기 전용으로 참조할 수 있도록 셸 레벨에서 관리한다).
+ */
+export function usePTWPermits() {
+  const [permits, setPermits] = useState<PTWPermit[]>(INITIAL_PTW_PERMITS);
+
+  const addPermit = (permit: PTWPermit) => {
+    setPermits((prev) => [permit, ...prev]);
+  };
+
+  // NOTE(redundancy): no call site actually invokes this anymore — the prop is
+  // still threaded through PTWPermitDetailPanel/PTWGasSafetyGate but never
+  // called from their JSX (superseded by addGasTestLogEntry below, which also
+  // writes gasTestHistory). Kept as-is per task instructions; not removed here.
+  const updateGasReadings = (permitId: string, lel: number, o2: number) => {
+    setPermits((prev) =>
+      prev.map((p) => {
+        if (p.id !== permitId) return p;
+        const newReadings = {
+          ...p.gasReadings,
+          lelPercent: lel,
+          o2Percent: o2,
+          testedAt: `2026-09-01 ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB`,
+        };
+        const safety = validatePTWGasSafety(p.type, newReadings);
+        return {
+          ...p,
+          gasReadings: {
+            ...newReadings,
+            isSafeForWork: safety.isSafe,
+          },
+        };
+      })
+    );
+  };
+
+  // Single-point re-test entry (Hot Work / Confined Space / etc). CARGO_HANDLING
+  // is explicitly rejected — that category has its own multi-point AGT update
+  // path (src/data/ptwCargoHandlingValidators.ts) and must not go through here.
+  const addGasTestLogEntry = (permitId: string, entryInput: GasTestLogEntryInput) => {
+    const target = permits.find((p) => p.id === permitId);
+    if (!target) return;
+
+    if (target.type === 'CARGO_HANDLING') {
+      console.error(
+        `[usePTWPermits] addGasTestLogEntry rejected for ${permitId}: CARGO_HANDLING permits must use the dedicated Cargo Handling gas-reading update path, not the single-point re-test flow.`
+      );
+      return;
+    }
+
+    // isSafeForWork is computed here, from the real validatePTWGasSafety() gate —
+    // it is never accepted from entryInput (GasTestLogEntryInput omits it entirely).
+    const safety = validatePTWGasSafety(target.type, {
+      ...target.gasReadings,
+      lelPercent: entryInput.lelPercent,
+      o2Percent: entryInput.o2Percent,
+      h2sPpm: entryInput.h2sPpm,
+    });
+
+    const newEntry: GasTestLogEntry = {
+      ...entryInput,
+      isSafeForWork: safety.isSafe,
+    };
+
+    setPermits((prev) =>
+      prev.map((p) => {
+        if (p.id !== permitId) return p;
+        return {
+          ...p,
+          gasTestHistory: [...(p.gasTestHistory || []), newEntry],
+          gasReadings: {
+            ...p.gasReadings,
+            lelPercent: newEntry.lelPercent,
+            o2Percent: newEntry.o2Percent,
+            h2sPpm: newEntry.h2sPpm,
+            testedAt: newEntry.testedAt,
+            isSafeForWork: newEntry.isSafeForWork,
+          },
+        };
+      })
+    );
+  };
+
+  // Workflow State Transition (Draft -> Prepared -> Approved -> Active -> Closed)
+  const transitionStatus = (permitId: string, nextStatus: PTWWorkflowStatus, isERTMet: boolean) => {
+    const target = permits.find((p) => p.id === permitId);
+    if (!target) return;
+
+    // Gate 1: Confined Space O2 band check for Approval / Activation
+    if (target.type === 'CONFINED_SPACE' && (nextStatus === 'APPROVED' || nextStatus === 'ACTIVE')) {
+      if (target.gasReadings.o2Percent < 19.5 || target.gasReadings.o2Percent > 23.5) {
+        alert(`⚠️ [CONFINED SPACE ENTRY BLOCKED]\nO2 concentration is ${target.gasReadings.o2Percent}%.\nSOP NP07-12 mandates safe atmospheric oxygen band of 19.5% ~ 23.5%.`);
+        return;
+      }
+    }
+
+    // Gate 2: Hot Work LEL 0.0% check for Activation
+    if (target.type === 'HOT_WORK' && nextStatus === 'ACTIVE') {
+      if (target.gasReadings.lelPercent > 0) {
+        alert(`⚠️ [HOT WORK ACTIVATION BLOCKED]\nHydrocarbon gas reading is ${target.gasReadings.lelPercent}% LEL.\nSOP NP07-11 strictly requires 0.0% LEL in cryogenic gas zones.`);
+        return;
+      }
+    }
+
+    // Gate 3: ERT Minimum Manning Check for High Risk Activation
+    if ((target.type === 'HOT_WORK' || target.type === 'CONFINED_SPACE') && nextStatus === 'ACTIVE' && !isERTMet) {
+      alert(`⚠️ [CRITICAL ERT DEFICIT]\nCannot activate high-risk ${target.type} permit.\nERT minimum manning is not met (19 Direct personnel standard required).`);
+      return;
+    }
+
+    setPermits((prev) =>
+      prev.map((p) => {
+        if (p.id !== permitId) return p;
+        return {
+          ...p,
+          status: nextStatus,
+          closedAt: nextStatus === 'CLOSED' ? '2026-09-01 18:00' : p.closedAt,
+        };
+      })
+    );
+  };
+
+  const stats = useMemo(() => {
+    const total = permits.length;
+    const activeCount = permits.filter((p) => p.status === 'ACTIVE').length;
+    const approvedCount = permits.filter((p) => p.status === 'APPROVED').length;
+    const preparedCount = permits.filter((p) => p.status === 'PREPARED').length;
+    const draftCount = permits.filter((p) => p.status === 'DRAFT').length;
+    const closedCount = permits.filter((p) => p.status === 'CLOSED').length;
+    const hotWorkCount = permits.filter((p) => p.type === 'HOT_WORK' && p.status === 'ACTIVE').length;
+    const confinedCount = permits.filter((p) => p.type === 'CONFINED_SPACE' && (p.status === 'ACTIVE' || p.status === 'APPROVED')).length;
+
+    return {
+      total,
+      activeCount,
+      approvedCount,
+      preparedCount,
+      draftCount,
+      closedCount,
+      hotWorkCount,
+      confinedCount,
+    };
+  }, [permits]);
+
+  return { permits, addPermit, updateGasReadings, addGasTestLogEntry, transitionStatus, stats };
 }
 
 ```
@@ -38814,6 +36297,240 @@ export default function FitToWorkOverrideModal({
 
 ---
 
+## File: src\components\manpower\modals\NewPTWPermitModal.tsx
+```typescript
+// src/components/manpower/modals/NewPTWPermitModal.tsx
+"use client";
+
+import React from 'react';
+import { FileText } from 'lucide-react';
+import { PTWPermit, PTWType, StaffPersonnel } from '../../../types/lng';
+import { PTW_SOP_FORMS, isGasMeasurementApplicable, validatePTWWorkerEligibility } from '../../../data/ptwMasterData';
+import { PLANT_WORK_LOCATIONS } from '../../../data/ptwWorkAreas';
+import { useNewPTWPermitForm } from './ptw/useNewPTWPermitForm';
+import PRACChecklistSection from './ptw/PRACChecklistSection';
+
+export interface NewPTWPermitModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  personnelList: StaffPersonnel[];
+  sequenceNumber: number;
+  onSubmitSuccess: (newPermit: PTWPermit) => void;
+}
+
+export default function NewPTWPermitModal({
+  isOpen,
+  onClose,
+  personnelList,
+  sequenceNumber,
+  onSubmitSuccess,
+}: NewPTWPermitModalProps) {
+  const form = useNewPTWPermitForm({ personnelList, sequenceNumber, onSubmitSuccess, onClose });
+
+  if (!isOpen) return null;
+
+  const isHighRisk = PTW_SOP_FORMS[form.newPermitType].category === 'CRITICAL HIGH RISK';
+  const isGasRequired = isGasMeasurementApplicable(form.newPermitType);
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 animate-in fade-in duration-200">
+      <div className="win-panel w-[90vw] max-w-6xl bg-white shadow-2xl border-2 border-blue-950 text-slate-900 rounded-xl overflow-hidden font-sans flex flex-col max-h-[90vh]">
+        <div className="bg-blue-950 text-white px-6 py-4 flex justify-between items-center border-b border-blue-800 shrink-0">
+          <div className="flex items-center gap-3">
+            <FileText className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2 py-0.5 text-xs font-black bg-amber-400 text-blue-950 rounded font-mono shadow-sm">
+                SOP [{form.headerFormLabel}]
+              </span>
+              <span className="font-bold text-base sm:text-lg">
+                Create New Permit to Work (PTW) — Stage 1 Draft
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-white font-bold px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded text-sm cursor-pointer transition-colors"
+            title="Close"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-6 sm:p-8 space-y-5 text-sm overflow-y-auto flex-1">
+          {/* 1. PTW Form Type & Plant Location */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-800">Permit Category (SOP Standard Form)</label>
+              <select
+                value={form.newPermitType}
+                onChange={(e) => form.setNewPermitType(e.target.value as PTWType)}
+                className="w-full h-10 px-3.5 border border-slate-300 rounded-md font-medium bg-white cursor-pointer shadow-sm"
+              >
+                {Object.entries(PTW_SOP_FORMS).map(([k, def]) => (
+                  <option key={k} value={k}>
+                    {def.formNumber}: {def.title.split(' (')[0]}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-800">
+                Plant Work Location / Equipment Tag
+                <span className="text-xs font-normal text-slate-500 ml-1.5">(Specific equipment / Tag location)</span>
+              </label>
+              <select
+                value={form.newPermitLocation}
+                onChange={(e) => form.setNewPermitLocation(e.target.value)}
+                className="w-full h-10 px-3.5 border border-slate-300 rounded-md font-medium bg-white cursor-pointer shadow-sm"
+              >
+                {PLANT_WORK_LOCATIONS.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* 1b. Safety & PPE Zone (NP-09 App 01) */}
+          <div className="space-y-1.5">
+            <label className="block font-bold text-slate-800">
+              Safety & PPE Zone (NP-09)
+              <span className="text-xs font-normal text-slate-500 ml-1.5">(App 01 standard 11 English PPE zones)</span>
+            </label>
+            <select
+              value={form.newWorkArea}
+              onChange={(e) => form.setNewWorkArea(e.target.value)}
+              className="w-full h-10 px-3.5 border border-slate-300 rounded-md font-medium bg-white cursor-pointer shadow-sm"
+            >
+              {form.availablePpeZones.map((area) => (
+                <option key={area} value={area}>
+                  {area}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 2. Work Description / Title */}
+          <div className="space-y-1.5">
+            <label className="block font-bold text-slate-800">Work Description & Scope</label>
+            <input
+              type="text"
+              placeholder="e.g. Precision welding on Flare Header Line 2"
+              value={form.newPermitTitle}
+              onChange={(e) => form.setNewPermitTitle(e.target.value)}
+              className="w-full h-10 px-3.5 border border-slate-300 rounded-md font-medium bg-white shadow-sm"
+            />
+          </div>
+
+          {/* 3. Roles: Work Leader & Assigned Workforce */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-800">Work Leader</label>
+              <select
+                value={form.newWorkLeaderId}
+                onChange={(e) => form.setNewWorkLeaderId(e.target.value)}
+                className="w-full h-10 px-3.5 border border-slate-300 rounded-md font-medium bg-white cursor-pointer shadow-sm"
+              >
+                {personnelList.map((m) => {
+                  const check = validatePTWWorkerEligibility(m, form.newPermitType);
+                  return (
+                    <option key={m.id} value={m.id} disabled={!check.isEligible}>
+                      {m.name} ({m.role}) {!check.isEligible ? `[⚠️ Ineligible: ${check.reason}]` : '✓ Qualified'}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-800">Assigned Workforce (PJSM Participants)</label>
+              <select
+                multiple
+                value={form.assignedWorkerIds}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions, (opt) => opt.value);
+                  form.setAssignedWorkerIds(selected.length > 0 ? selected : [e.target.value]);
+                }}
+                className="w-full h-24 px-3 py-1.5 border border-slate-300 rounded-md font-medium bg-white shadow-sm"
+              >
+                {personnelList.map((m) => {
+                  const check = validatePTWWorkerEligibility(m, form.newPermitType);
+                  return (
+                    <option key={m.id} value={m.id} disabled={!check.isEligible}>
+                      {m.name} ({m.role}) {!check.isEligible ? `[⚠️ Ineligible: ${check.reason}]` : '✓ Qualified'}
+                    </option>
+                  );
+                })}
+              </select>
+              <p className="text-[11px] text-slate-500">Hold Ctrl / Cmd to select multiple workforce members.</p>
+            </div>
+          </div>
+
+          {/* 4. Stage-1 Derived Summary Flags */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between p-3 bg-white rounded-md border border-slate-200">
+              <span className="font-semibold text-slate-700">High-Risk Activity:</span>
+              <span className={`px-2.5 py-1 text-xs font-bold rounded ${
+                isHighRisk ? 'bg-rose-100 text-rose-800 border border-rose-300' : 'bg-slate-100 text-slate-700 border border-slate-300'
+              }`}>
+                {isHighRisk ? 'YES (High Risk)' : 'NO (Standard Risk)'}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-white rounded-md border border-slate-200">
+              <span className="font-semibold text-slate-700">Gas Test Required:</span>
+              <span className={`px-2.5 py-1 text-xs font-bold rounded ${
+                isGasRequired ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-slate-100 text-slate-600 border border-slate-300'
+              }`}>
+                {isGasRequired ? 'YES' : 'N/A'}
+              </span>
+            </div>
+          </div>
+
+          {/* 5. PRAC Checklist Section (NIAS NP-09 §NP09-01) */}
+          <PRACChecklistSection />
+
+          {/* 6. Additional Safety Controls */}
+          <div className="bg-slate-50 p-4 sm:p-5 rounded-lg border border-slate-300">
+            <div className="font-bold text-slate-800 text-xs sm:text-sm mb-2">Additional Safety Controls:</div>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.newWorkingAtHeight}
+                onChange={(e) => form.setNewWorkingAtHeight(e.target.checked)}
+                className="w-4 h-4 cursor-pointer"
+              />
+              Working at Height
+            </label>
+          </div>
+
+          {/* Modal Actions */}
+          <div className="flex justify-end gap-3 pt-5 border-t border-slate-200 shrink-0">
+            <button
+              onClick={onClose}
+              className="win-btn px-5 py-2.5 text-xs sm:text-sm font-semibold cursor-pointer hover:bg-slate-200 rounded-md"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={form.handleCreatePermit}
+              className="win-btn px-7 py-2.5 text-xs sm:text-sm font-bold bg-blue-900 hover:bg-blue-950 text-white rounded-md cursor-pointer shadow"
+            >
+              Submit Permit Draft
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
 ## File: src\components\manpower\modals\OperationsOverrideModal.tsx
 ```typescript
 "use client";
@@ -38876,7 +36593,7 @@ export default function OperationsOverrideModal({
   if (!isOpen) return null;
 
   const statusEntries = Object.entries(dailyStaffStatus);
-  const absences = statusEntries.filter(([_, status]) => status.status !== 'PRESENT');
+  const absences = statusEntries.filter(([, status]) => status.status !== 'PRESENT');
 
   return (
     <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
@@ -38897,7 +36614,7 @@ export default function OperationsOverrideModal({
         <div className="space-y-3 text-xs">
           <div className="win-sunken bg-white p-3 border border-slate-400 space-y-1.5">
             <div className="font-bold text-blue-950 font-mono text-[11px] border-b border-slate-200 pb-1 flex justify-between items-center">
-              <span>[1. 당일 인원 변동 사항 요약 (Today's SSOT Variations)]</span>
+              <span>[1. 당일 인원 변동 사항 요약 (Today&apos;s SSOT Variations)]</span>
               <span className="text-[10px] font-normal text-slate-600">Total Variations: {absences.length}p</span>
             </div>
 
@@ -39815,6 +37532,473 @@ export default function TeamShortageModal({ message, onClose }: TeamShortageModa
 
 ---
 
+## File: src\components\manpower\modals\ptw\GasTestGateSection.tsx
+```typescript
+// src/components/manpower/modals/ptw/GasTestGateSection.tsx
+"use client";
+
+import React from 'react';
+import { PTWType, PTWPermit } from '../../../../types/lng';
+import { isGasMeasurementApplicable, validatePTWGasSafety } from '../../../../data/ptwMasterData';
+
+export interface GasTestGateSectionProps {
+  type: PTWType;
+  lelPercent: number;
+  o2Percent: number;
+  h2sPpm: number;
+  onLelChange: (value: number) => void;
+  onO2Change: (value: number) => void;
+  onH2sChange: (value: number) => void;
+}
+
+// Cargo Handling has its own multi-point AGT gate (T-201..T-204, NP08-15) —
+// see src/data/ptwCargoHandlingValidators.ts. This section never applies to
+// it, to avoid duplicating that gate here.
+function isSectionApplicable(type: PTWType): boolean {
+  return isGasMeasurementApplicable(type) && type !== 'CARGO_HANDLING';
+}
+
+export default function GasTestGateSection({
+  type,
+  lelPercent,
+  o2Percent,
+  h2sPpm,
+  onLelChange,
+  onO2Change,
+  onH2sChange,
+}: GasTestGateSectionProps) {
+  if (!isSectionApplicable(type)) {
+    return null;
+  }
+
+  const gasReadings: PTWPermit['gasReadings'] = {
+    lelPercent,
+    o2Percent,
+    h2sPpm,
+    coPpm: 0,
+    testedAt: '',
+    isSafeForWork: false,
+  };
+  const gateResult = validatePTWGasSafety(type, gasReadings);
+
+  return (
+    <div className="bg-slate-50 p-4 sm:p-5 rounded-lg border border-slate-300 space-y-3">
+      <div className="font-bold text-slate-800 text-xs sm:text-sm">
+        6. Initial Gas Test Reading (Pre-Work Verification):
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono">
+        <div>
+          <label className="block text-slate-600 text-xs mb-1">LEL (%):</label>
+          <input
+            type="number"
+            step="0.1"
+            value={lelPercent}
+            onChange={(e) => onLelChange(parseFloat(e.target.value) || 0)}
+            className="w-full h-9 px-3 border border-slate-300 rounded bg-white text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-slate-600 text-xs mb-1">O2 (%):</label>
+          <input
+            type="number"
+            step="0.1"
+            value={o2Percent}
+            onChange={(e) => onO2Change(parseFloat(e.target.value) || 0)}
+            className="w-full h-9 px-3 border border-slate-300 rounded bg-white text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-slate-600 text-xs mb-1">H2S (ppm):</label>
+          <input
+            type="number"
+            step="0.1"
+            value={h2sPpm}
+            onChange={(e) => onH2sChange(parseFloat(e.target.value) || 0)}
+            className="w-full h-9 px-3 border border-slate-300 rounded bg-white text-sm"
+          />
+        </div>
+      </div>
+      <div
+        className={`text-xs font-bold px-3 py-2 rounded ${
+          gateResult.isSafe ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'
+        }`}
+      >
+        {gateResult.isSafe ? 'PASS — Gas readings within SOP safe band.' : `FAIL — ${gateResult.blockReason}`}
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\modals\ptw\PRACChecklistSection.tsx
+```typescript
+// src/components/manpower/modals/ptw/PRACChecklistSection.tsx
+"use client";
+
+import React, { useState } from 'react';
+import { AlertTriangle, ShieldCheck } from 'lucide-react';
+
+export interface PRACItem {
+  id: string;
+  hazardName: string;
+  identified: boolean;
+  mitigationDetail: string;
+  isAlarp: boolean;
+}
+
+const DEFAULT_PRAC_ITEMS: PRACItem[] = [
+  {
+    id: 'prac-1',
+    hazardName: 'Flammable Gas / Explosive Atmosphere (LEL Risk)',
+    identified: false,
+    mitigationDetail: '',
+    isAlarp: true,
+  },
+  {
+    id: 'prac-2',
+    hazardName: 'Toxic Vapor / Asphyxiating Atmosphere (H2S / O2 Risk)',
+    identified: false,
+    mitigationDetail: '',
+    isAlarp: true,
+  },
+  {
+    id: 'prac-3',
+    hazardName: 'Pressurized Pipe / Stored Energy Release',
+    identified: false,
+    mitigationDetail: '',
+    isAlarp: true,
+  },
+  {
+    id: 'prac-4',
+    hazardName: 'Electrical Shock / Arc Flash / Stored Electrical Energy',
+    identified: false,
+    mitigationDetail: '',
+    isAlarp: true,
+  },
+  {
+    id: 'prac-5',
+    hazardName: 'Working at Height / Dropped Objects (>1.8m elevation)',
+    identified: false,
+    mitigationDetail: '',
+    isAlarp: true,
+  },
+  {
+    id: 'prac-6',
+    hazardName: 'Hot Surface / Mechanical Sparks / Open Flame Ignition',
+    identified: false,
+    mitigationDetail: '',
+    isAlarp: true,
+  },
+];
+
+export default function PRACChecklistSection() {
+  const [pracItems, setPracItems] = useState<PRACItem[]>(DEFAULT_PRAC_ITEMS);
+
+  const updateItem = (id: string, patch: Partial<PRACItem>) => {
+    setPracItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
+    );
+  };
+
+  const hasNonAlarpRisk = pracItems.some((item) => item.identified && !item.isAlarp);
+
+  return (
+    <div className="space-y-3 bg-slate-50 p-4 sm:p-5 rounded-lg border border-slate-200">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h4 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-blue-700" />
+            Preliminary Risk Assessment Checklist (PRAC — NIAS NP-09 §NP09-01)
+          </h4>
+          <p className="text-xs text-slate-500">
+            Stage 1 Originator assessment: Identify task hazards, record control details, and verify residual risk ALARP status.
+          </p>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded border border-slate-300 bg-white">
+        <table className="w-full text-xs text-left border-collapse">
+          <thead className="bg-slate-100 text-slate-700 font-semibold border-b border-slate-300">
+            <tr>
+              <th className="py-2.5 px-3 w-1/4">Hazard Description</th>
+              <th className="py-2.5 px-3 w-1/5 text-center">Col 1: Hazard Identified?</th>
+              <th className="py-2.5 px-3 w-2/5">Col 2: Mitigation / Control Detail</th>
+              <th className="py-2.5 px-3 w-1/5 text-center">Col 3: Residual Risk ALARP?</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200">
+            {pracItems.map((item) => (
+              <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                <td className="py-2.5 px-3 font-medium text-slate-800">
+                  {item.hazardName}
+                </td>
+                <td className="py-2.5 px-3 text-center">
+                  <div className="inline-flex items-center gap-2">
+                    <label className="inline-flex items-center gap-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`identified-${item.id}`}
+                        checked={item.identified}
+                        onChange={() => updateItem(item.id, { identified: true })}
+                        className="cursor-pointer"
+                      />
+                      <span>Yes</span>
+                    </label>
+                    <label className="inline-flex items-center gap-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`identified-${item.id}`}
+                        checked={!item.identified}
+                        onChange={() => updateItem(item.id, { identified: false, isAlarp: true })}
+                        className="cursor-pointer"
+                      />
+                      <span>No</span>
+                    </label>
+                  </div>
+                </td>
+                <td className="py-2.5 px-3">
+                  {item.identified ? (
+                    <input
+                      type="text"
+                      value={item.mitigationDetail}
+                      onChange={(e) => updateItem(item.id, { mitigationDetail: e.target.value })}
+                      placeholder="Specify mitigation / refer to attached JSA..."
+                      className="w-full h-8 px-2.5 text-xs border border-slate-300 rounded bg-white"
+                    />
+                  ) : (
+                    <span className="text-slate-400 italic">N/A — No hazard identified</span>
+                  )}
+                </td>
+                <td className="py-2.5 px-3 text-center">
+                  {item.identified ? (
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-2">
+                        <label className="inline-flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`alarp-${item.id}`}
+                            checked={item.isAlarp}
+                            onChange={() => updateItem(item.id, { isAlarp: true })}
+                            className="cursor-pointer"
+                          />
+                          <span className="text-emerald-700 font-bold">Yes</span>
+                        </label>
+                        <label className="inline-flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`alarp-${item.id}`}
+                            checked={!item.isAlarp}
+                            onChange={() => updateItem(item.id, { isAlarp: false })}
+                            className="cursor-pointer"
+                          />
+                          <span className="text-rose-700 font-bold">No</span>
+                        </label>
+                      </div>
+                      {!item.isAlarp && (
+                        <div className="text-[10px] text-rose-600 font-bold">
+                          Further RA Required
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-slate-400 italic">N/A</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {hasNonAlarpRisk && (
+        <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-300 rounded-md text-xs text-amber-900">
+          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold">Further Risk Assessment Required: </span>
+            One or more identified hazards have residual risk evaluated as NOT ALARP. In accordance with NIAS NP-09 §NP09-01, a formal Job Safety Analysis (JSA) or Stage-2 assessment must be completed prior to permit authorization.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\modals\ptw\useNewPTWPermitForm.ts
+```typescript
+// src/components/manpower/modals/ptw/useNewPTWPermitForm.ts
+"use client";
+
+import { useState } from 'react';
+import { PTWPermit, PTWType, StaffPersonnel } from '../../../../types/lng';
+import { PTW_SOP_FORMS, validatePTWWorkerEligibility } from '../../../../data/ptwMasterData';
+import { getCargoHandlingSOPInfo } from '../../../../data/ptwCargoHandlingRules';
+import {
+  PLANT_WORK_LOCATIONS,
+  PlantWorkLocation,
+  LOCATION_TO_PPE_ZONES,
+  PTW_WORK_AREAS,
+  PTWWorkArea,
+} from '../../../../data/ptwWorkAreas';
+
+export interface UseNewPTWPermitFormArgs {
+  personnelList: StaffPersonnel[];
+  sequenceNumber: number;
+  onSubmitSuccess: (newPermit: PTWPermit) => void;
+  onClose: () => void;
+}
+
+// Cargo Handling has no single formNumber (1:N SOP set by activity type) —
+// resolve its real NP08 codes here instead of reusing the CARGO_HANDLING
+// placeholder entry in PTW_SOP_FORMS. COMBINED is used as this modal collects
+// no activityType (that flow lives in CargoHandlingPermitForm.tsx).
+export function resolveHeaderFormLabel(type: PTWType): string {
+  if (type === 'CARGO_HANDLING') {
+    return getCargoHandlingSOPInfo('COMBINED')
+      .map((f) => f.formNumber)
+      .join(' / ');
+  }
+  return PTW_SOP_FORMS[type].formNumber;
+}
+
+export function useNewPTWPermitForm({
+  personnelList,
+  sequenceNumber,
+  onSubmitSuccess,
+  onClose,
+}: UseNewPTWPermitFormArgs) {
+  const [newPermitType, setNewPermitType] = useState<PTWType>('HOT_WORK');
+  const [newPermitTitle, setNewPermitTitle] = useState<string>('');
+  const [newPermitLocation, setNewPermitLocation] = useState<string>(PLANT_WORK_LOCATIONS[0]);
+  const [newWorkArea, setNewWorkArea] = useState<string>(
+    LOCATION_TO_PPE_ZONES[PLANT_WORK_LOCATIONS[0]][0]
+  );
+  const [newWorkLeaderId, setNewWorkLeaderId] = useState<string>('EMP-005');
+  const [assignedWorkerIds, setAssignedWorkerIds] = useState<string[]>(['EMP-006']);
+  const [newWorkingAtHeight, setNewWorkingAtHeight] = useState<boolean>(false);
+
+  const handleLocationChange = (loc: string) => {
+    setNewPermitLocation(loc);
+    const validZones = LOCATION_TO_PPE_ZONES[loc as PlantWorkLocation];
+    if (validZones && validZones.length > 0) {
+      setNewWorkArea(validZones[0]);
+    }
+  };
+
+  const availablePpeZones: readonly PTWWorkArea[] =
+    LOCATION_TO_PPE_ZONES[newPermitLocation as PlantWorkLocation] || PTW_WORK_AREAS;
+
+  const handleCreatePermit = () => {
+    if (!newPermitTitle.trim()) {
+      alert('Please enter a permit work description / title.');
+      return;
+    }
+
+    const leader = personnelList.find((s) => s.id === newWorkLeaderId);
+    const workers = personnelList.filter((s) => assignedWorkerIds.includes(s.id));
+    if (!leader) {
+      alert('Please designate a qualified Work Leader.');
+      return;
+    }
+    if (workers.length === 0) {
+      alert('Please assign at least one workforce member (PJSM participant).');
+      return;
+    }
+
+    const leaderCheck = validatePTWWorkerEligibility(leader, newPermitType);
+    if (!leaderCheck.isEligible) {
+      alert(`Work Leader (${leader.name}) is ineligible: ${leaderCheck.reason}`);
+      return;
+    }
+
+    for (const worker of workers) {
+      const workerCheck = validatePTWWorkerEligibility(worker, newPermitType);
+      if (!workerCheck.isEligible) {
+        alert(`Assigned Workforce member (${worker.name}) is ineligible: ${workerCheck.reason}`);
+        return;
+      }
+    }
+
+    const formDef = PTW_SOP_FORMS[newPermitType];
+    const newId = `PTW-2026-0901-${String(sequenceNumber).padStart(2, '0')}`;
+
+    const newPermit: PTWPermit = {
+      id: newId,
+      formNumber: formDef.formNumber,
+      type: newPermitType,
+      title: newPermitTitle,
+      location: newPermitLocation,
+      workArea: newWorkArea,
+      responsiblePerson: leader.name,
+      status: 'DRAFT',
+      workLeaderId: leader.id,
+      workLeaderName: leader.name,
+      assignedWorkerIds: workers.map((w) => w.id),
+      assignedWorkerNames: workers.map((w) => w.name),
+      agtStaffId: 'EMP-013',
+      approverStaffId: 'EMP-001',
+      gasReadings: {
+        lelPercent: 0.0,
+        o2Percent: 20.9,
+        h2sPpm: 0.0,
+        coPpm: 0.0,
+        testedAt: 'Pending AGT Live Gas Test (Stage 4)',
+        isSafeForWork: false,
+      },
+      safetyChecklist: {
+        fireWatchAssigned: newPermitType === 'HOT_WORK',
+        gasDetectorContinuous: true,
+        lotoApplied: newPermitType === 'ELECTRICAL',
+        forcedVentilation: newPermitType === 'CONFINED_SPACE',
+        ppeVerified: true,
+        barricadeSet: true,
+        workingAtHeight: newWorkingAtHeight,
+      },
+      validFrom: '2026-09-01 13:00',
+      validTo: '2026-09-01 18:00',
+      emergencyProtocol: 'Radio Channel 1 Emergency Channel Active',
+      createdAt: '2026-09-01 12:00',
+      hazardDescription: `${formDef.category} protocol active under SOP ${formDef.formNumber}.`,
+    };
+
+    onSubmitSuccess(newPermit);
+    setNewPermitTitle('');
+    onClose();
+  };
+
+  return {
+    newPermitType,
+    setNewPermitType,
+    newPermitTitle,
+    setNewPermitTitle,
+    newPermitLocation,
+    setNewPermitLocation: handleLocationChange,
+    newWorkArea,
+    setNewWorkArea,
+    availablePpeZones,
+    newWorkLeaderId,
+    setNewWorkLeaderId,
+    newWorkerId: assignedWorkerIds[0] || '',
+    setNewWorkerId: (id: string) => setAssignedWorkerIds([id]),
+    assignedWorkerIds,
+    setAssignedWorkerIds,
+    newWorkingAtHeight,
+    setNewWorkingAtHeight,
+    handleCreatePermit,
+    headerFormLabel: resolveHeaderFormLabel(newPermitType),
+  };
+}
+
+```
+
+---
+
 ## File: src\components\manpower\tabs\DailyBoardTab.tsx
 ```typescript
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
@@ -40597,6 +38781,288 @@ export default function DailyBoardTab({
             <span className="font-bold text-white">{dayEvacLead?.name || nightEvacLead?.name || 'Unassigned (Deficit)'}</span>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ERTReadinessTab.tsx
+```typescript
+// src/components/manpower/tabs/ERTReadinessTab.tsx
+"use client";
+
+import React, { useMemo } from 'react';
+import { ShieldAlert, ShieldCheck, Users, Wind, FlameKindling, Droplets } from 'lucide-react';
+import {
+  MOCK_ERT_ASSIGNMENTS,
+  MOCK_SCBA_SETS,
+  MOCK_EXTINGUISHERS,
+  MOCK_EMERGENCY_STATIONS,
+  ERT_POSITION_LABEL,
+  SCBA_MIN_PRESSURE_BAR,
+  computeERTReadinessSummary,
+  ERTReadinessStatus,
+} from '../../../data/ertReadinessData';
+
+const READINESS_BADGE: Record<ERTReadinessStatus, string> = {
+  ALL_READY: 'bg-emerald-800 text-white',
+  ATTENTION: 'bg-amber-600 text-white',
+  STANDBY: 'bg-red-700 text-white animate-pulse',
+};
+
+const READINESS_LABEL: Record<ERTReadinessStatus, string> = {
+  ALL_READY: 'ALL READY',
+  ATTENTION: 'ATTENTION',
+  STANDBY: 'STANDBY',
+};
+
+export default function ERTReadinessTab() {
+  const summary = useMemo(
+    () => computeERTReadinessSummary(MOCK_ERT_ASSIGNMENTS, MOCK_SCBA_SETS, MOCK_EXTINGUISHERS, MOCK_EMERGENCY_STATIONS),
+    []
+  );
+
+  return (
+    <div className="space-y-3 font-sans">
+      {/* KPI Summary */}
+      <div className="bg-[#e9e6df] border border-slate-400 p-2.5 flex items-center justify-between gap-3 flex-wrap text-xs shadow-sm">
+        <div className="flex items-center gap-1.5 font-bold text-slate-900">
+          <ShieldAlert className="w-4 h-4 text-cyan-700" />
+          <span className="text-sm">ERT Readiness (SOP NP08-33 / NP08-37)</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="bg-blue-900 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px] flex items-center gap-1">
+            <Users className="w-3.5 h-3.5" /> POB {summary.totalPOB} / ERT {summary.ertAssignedCount}
+          </span>
+          <span className="bg-slate-700 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px] flex items-center gap-1">
+            <Wind className="w-3.5 h-3.5" /> SCBA {summary.scbaReadyCount}/{summary.scbaTotalCount}
+          </span>
+          <span className="bg-slate-700 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px] flex items-center gap-1">
+            <FlameKindling className="w-3.5 h-3.5" /> DCP/CO2 {summary.extinguisherGreenCount}/{summary.extinguisherTotalCount}
+          </span>
+          <span className="bg-slate-700 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px] flex items-center gap-1">
+            <Droplets className="w-3.5 h-3.5" /> Eye Wash {summary.stationsOperationalCount}/{summary.stationsTotalCount}
+          </span>
+          <span className={`font-mono font-bold px-2.5 py-0.5 rounded text-[11px] flex items-center gap-1 ${READINESS_BADGE[summary.readinessStatus]}`}>
+            <ShieldCheck className="w-3.5 h-3.5" /> {READINESS_LABEL[summary.readinessStatus]}
+          </span>
+        </div>
+      </div>
+
+      {/* ERT Team Assignment Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {MOCK_ERT_ASSIGNMENTS.map((a) => (
+          <div key={a.position} className={`win-panel border-2 rounded p-2.5 ${a.isOnSite ? 'border-emerald-400 bg-emerald-50/40' : 'border-red-500 bg-red-50/60'}`}>
+            <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">{ERT_POSITION_LABEL[a.position]}</div>
+            <div className="font-bold text-sm text-slate-900">{a.name}</div>
+            <div className="text-[11px] text-slate-600 mb-1.5">{a.jobTitle}</div>
+            <div className="flex items-center justify-between text-[10px] font-mono">
+              <span className="text-slate-600">{a.radioChannel}</span>
+              <span className={`px-1.5 py-0.5 rounded font-bold ${a.isOnSite ? 'bg-emerald-800 text-white' : 'bg-red-700 text-white'}`}>
+                {a.isOnSite ? 'ON SITE' : 'VACANT'}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Emergency Equipment Status Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="win-panel border-2 border-slate-400 bg-white overflow-x-auto">
+          <div className="bg-slate-800 text-white text-[11px] font-bold px-2 py-1.5">SCBA Air Breathing Sets (Min. {SCBA_MIN_PRESSURE_BAR} bar)</div>
+          <table className="w-full text-xs font-mono border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-600 text-[10px] uppercase">
+                <th className="px-2 py-1 text-left">Set ID</th>
+                <th className="px-2 py-1 text-right">Pressure</th>
+                <th className="px-2 py-1 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {MOCK_SCBA_SETS.map((s) => {
+                const ready = s.pressureBar >= SCBA_MIN_PRESSURE_BAR;
+                return (
+                  <tr key={s.id} className="border-b border-slate-200">
+                    <td className="px-2 py-1 font-bold text-blue-950">{s.id}</td>
+                    <td className={`px-2 py-1 text-right ${ready ? 'text-emerald-800' : 'text-red-700 font-bold'}`}>{s.pressureBar} bar</td>
+                    <td className="px-2 py-1 text-center">
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${ready ? 'bg-emerald-800 text-white' : 'bg-red-700 text-white animate-pulse'}`}>
+                        {ready ? 'GREEN' : 'RED'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="win-panel border-2 border-slate-400 bg-white overflow-x-auto">
+          <div className="bg-slate-800 text-white text-[11px] font-bold px-2 py-1.5">DCP / CO2 Extinguishers (Unloading Skid &amp; PRSS)</div>
+          <table className="w-full text-xs font-mono border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-600 text-[10px] uppercase">
+                <th className="px-2 py-1 text-left">Unit</th>
+                <th className="px-2 py-1 text-left">Location</th>
+                <th className="px-2 py-1 text-center">Type</th>
+                <th className="px-2 py-1 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {MOCK_EXTINGUISHERS.map((e) => (
+                <tr key={e.id} className="border-b border-slate-200">
+                  <td className="px-2 py-1 font-bold text-blue-950">{e.id}</td>
+                  <td className="px-2 py-1 text-slate-700">{e.tagId}</td>
+                  <td className="px-2 py-1 text-center text-slate-600">{e.type}</td>
+                  <td className="px-2 py-1 text-center">
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                      e.status === 'GREEN' ? 'bg-emerald-800 text-white' : e.status === 'DUE' ? 'bg-amber-600 text-white' : 'bg-red-700 text-white animate-pulse'
+                    }`}>
+                      {e.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Emergency Stations */}
+      <div className="win-panel border-2 border-slate-400 bg-white p-2.5">
+        <div className="text-[11px] font-bold text-slate-800 mb-1.5">Emergency Eye Wash &amp; Safety Shower</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {MOCK_EMERGENCY_STATIONS.map((s) => (
+            <div key={s.id} className="flex items-center justify-between text-xs font-mono border border-slate-200 rounded px-2 py-1.5">
+              <span className="text-slate-700">{s.name} — {s.location}</span>
+              <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${s.isOperational ? 'bg-emerald-800 text-white' : 'bg-red-700 text-white animate-pulse'}`}>
+                {s.isOperational ? 'OPERATIONAL' : 'ATTENTION'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\GasTestingLogTab.tsx
+```typescript
+// src/components/manpower/tabs/GasTestingLogTab.tsx
+"use client";
+
+import React, { useMemo } from 'react';
+import { Wind, ShieldCheck, ShieldAlert, Clock } from 'lucide-react';
+import {
+  MOCK_GAS_TEST_READINGS,
+  GAS_TEST_ZONE_LABEL,
+  evaluateGasTestReading,
+  computeGasTestingStats,
+  GasTestSeverity,
+} from '../../../data/gasTestingLogData';
+
+const SEVERITY_BADGE: Record<GasTestSeverity, string> = {
+  SAFE: 'bg-emerald-800 text-white',
+  CAUTION: 'bg-amber-600 text-white',
+  DANGER: 'bg-red-700 text-white animate-pulse',
+};
+
+const SEVERITY_LABEL: Record<GasTestSeverity, string> = {
+  SAFE: 'SAFE',
+  CAUTION: 'CAUTION',
+  DANGER: 'DANGER',
+};
+
+function cellTone(isSafe: boolean): string {
+  return isSafe ? 'text-emerald-800' : 'text-red-700 font-bold';
+}
+
+export default function GasTestingLogTab() {
+  const readings = MOCK_GAS_TEST_READINGS;
+  const stats = useMemo(() => computeGasTestingStats(readings), [readings]);
+
+  return (
+    <div className="space-y-3 font-sans">
+      {/* KPI Summary */}
+      <div className="bg-[#e9e6df] border border-slate-400 p-2.5 flex items-center justify-between gap-3 flex-wrap text-xs shadow-sm">
+        <div className="flex items-center gap-1.5 font-bold text-slate-900">
+          <Wind className="w-4 h-4 text-cyan-700" />
+          <span className="text-sm">Gas Testing Log (SOP NP08-15) — Unloading &amp; Vaporizer AGT Register</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="bg-blue-900 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px]">
+            {stats.total} Readings Logged
+          </span>
+          <span className="bg-emerald-800 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px] flex items-center gap-1">
+            <ShieldCheck className="w-3.5 h-3.5" /> {stats.safeCount} Safe
+          </span>
+          <span className="bg-amber-600 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px]">
+            {stats.cautionCount} Caution
+          </span>
+          <span className={`font-mono font-bold px-2 py-0.5 rounded text-[11px] flex items-center gap-1 ${
+            stats.dangerCount > 0 ? 'bg-red-700 text-white animate-pulse' : 'bg-slate-500 text-white'
+          }`}>
+            <ShieldAlert className="w-3.5 h-3.5" /> {stats.dangerCount} Danger
+          </span>
+          {stats.lastTestedAt && (
+            <span className="flex items-center gap-1 text-[11px] font-mono text-slate-700">
+              <Clock className="w-3.5 h-3.5" /> Last Test: {stats.lastTestedAt.slice(11, 16)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Data Grid */}
+      <div className="win-panel border-2 border-slate-400 bg-white overflow-x-auto">
+        <table className="w-full text-xs font-mono border-collapse">
+          <thead>
+            <tr className="bg-slate-800 text-white text-[10px] uppercase">
+              <th className="px-2 py-1.5 text-left">Zone</th>
+              <th className="px-2 py-1.5 text-left">Tag</th>
+              <th className="px-2 py-1.5 text-center">Cycle</th>
+              <th className="px-2 py-1.5 text-right">LEL %</th>
+              <th className="px-2 py-1.5 text-right">O2 %</th>
+              <th className="px-2 py-1.5 text-right">H2S ppm</th>
+              <th className="px-2 py-1.5 text-right">CO ppm</th>
+              <th className="px-2 py-1.5 text-center">Atmosphere</th>
+              <th className="px-2 py-1.5 text-left">Tested By</th>
+            </tr>
+          </thead>
+          <tbody>
+            {readings.map((r) => {
+              const evalResult = evaluateGasTestReading(r);
+              return (
+                <tr key={r.id} className="border-b border-slate-200 hover:bg-slate-50">
+                  <td className="px-2 py-1.5 text-slate-800">{GAS_TEST_ZONE_LABEL[r.zone]}</td>
+                  <td className="px-2 py-1.5 font-bold text-blue-950">{r.tagId}</td>
+                  <td className="px-2 py-1.5 text-center text-slate-600">{r.cycleTime}</td>
+                  <td className={`px-2 py-1.5 text-right ${cellTone(evalResult.lelSeverity === 'SAFE')}`}>
+                    {r.lelPercent.toFixed(1)}
+                  </td>
+                  <td className={`px-2 py-1.5 text-right ${cellTone(evalResult.o2Safe)}`}>
+                    {r.o2Percent.toFixed(1)}
+                  </td>
+                  <td className={`px-2 py-1.5 text-right ${cellTone(evalResult.h2sSafe)}`}>{r.h2sPpm}</td>
+                  <td className={`px-2 py-1.5 text-right ${cellTone(evalResult.coSafe)}`}>{r.coPpm}</td>
+                  <td className="px-2 py-1.5 text-center">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${SEVERITY_BADGE[evalResult.overallSeverity]}`}>
+                      {SEVERITY_LABEL[evalResult.overallSeverity]}
+                    </span>
+                  </td>
+                  <td className="px-2 py-1.5 text-slate-600">{r.testedBy}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -41438,6 +39904,128 @@ export default function MonthlyPlanTab({
 
 ---
 
+## File: src\components\manpower\tabs\PTWMasterRegisterTab.tsx
+```typescript
+// src/components/manpower/tabs/PTWMasterRegisterTab.tsx
+"use client";
+
+import React, { useMemo, useState } from 'react';
+import { PTWWorkflowStatus, StaffPersonnel } from '../../../types/lng';
+import { usePTWPermits } from '../hooks/usePTWPermits';
+import CargoHandlingPermitForm from '../cargoHandling/CargoHandlingPermitForm';
+import NewPTWPermitModal from '../modals/NewPTWPermitModal';
+import PTWSummaryBar from './ptw/PTWSummaryBar';
+import PTWTypeFilterStrip, { PTWCategoryFilter } from './ptw/PTWTypeFilterStrip';
+import PTWPermitListPanel from './ptw/PTWPermitListPanel';
+import PTWPermitDetailPanel from './ptw/PTWPermitDetailPanel';
+
+export interface PTWMasterRegisterTabProps {
+  personnelList: StaffPersonnel[];
+  isERTMet: boolean;
+  onNavigateToMatrix?: (empId: string) => void;
+}
+
+export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix }: PTWMasterRegisterTabProps) {
+  const { permits, addPermit, updateGasReadings, addGasTestLogEntry, transitionStatus, stats } = usePTWPermits();
+
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<PTWCategoryFilter>('ALL');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<PTWWorkflowStatus | 'ALL'>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedPermitId, setSelectedPermitId] = useState<string>(permits[0]?.id || '');
+
+  const [isNewPermitModalOpen, setIsNewPermitModalOpen] = useState<boolean>(false);
+  const [isCargoHandlingModalOpen, setIsCargoHandlingModalOpen] = useState<boolean>(false);
+
+  const activePermit = useMemo(
+    () => permits.find((p) => p.id === selectedPermitId) || permits[0] || null,
+    [permits, selectedPermitId]
+  );
+
+  const filteredPermits = useMemo(() => {
+    return permits.filter((p) => {
+      const matchType =
+        selectedTypeFilter === 'ALL' ||
+        (selectedTypeFilter === 'LIFTING'
+          ? p.type === 'CARGO_HANDLING' && p.cargoHandling?.activityType === 'LIFTING'
+          : p.type === selectedTypeFilter);
+      const matchStatus = selectedStatusFilter === 'ALL' || p.status === selectedStatusFilter;
+      const q = searchQuery.toLowerCase().trim();
+      const matchQuery =
+        !q ||
+        p.id.toLowerCase().includes(q) ||
+        p.formNumber.toLowerCase().includes(q) ||
+        p.title.toLowerCase().includes(q) ||
+        p.location.toLowerCase().includes(q) ||
+        p.workLeaderName.toLowerCase().includes(q);
+      return matchType && matchStatus && matchQuery;
+    });
+  }, [permits, selectedTypeFilter, selectedStatusFilter, searchQuery]);
+
+  return (
+    <div className="space-y-3 font-sans">
+      <div className="bg-[#d4d0c8] border border-t-white border-l-white border-b-neutral-500 border-r-neutral-500 shadow-sm p-2 space-y-2 rounded-none">
+        <PTWSummaryBar
+          totalPermits={stats.total}
+          activeCount={stats.activeCount}
+          isERTMet={isERTMet}
+          onOpenNewPermitModal={() => setIsNewPermitModalOpen(true)}
+          onOpenCargoHandlingModal={() => setIsCargoHandlingModalOpen(true)}
+        />
+
+        <PTWTypeFilterStrip permits={permits} selectedTypeFilter={selectedTypeFilter} onSelectTypeFilter={setSelectedTypeFilter} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        <PTWPermitListPanel
+          permits={filteredPermits}
+          selectedPermitId={selectedPermitId}
+          searchQuery={searchQuery}
+          selectedStatusFilter={selectedStatusFilter}
+          onSearchQueryChange={setSearchQuery}
+          onStatusFilterChange={setSelectedStatusFilter}
+          onSelectPermit={setSelectedPermitId}
+        />
+
+        <PTWPermitDetailPanel
+          activePermit={activePermit}
+          personnelList={personnelList}
+          isERTMet={isERTMet}
+          onNavigateToMatrix={onNavigateToMatrix}
+          onUpdateGasReadings={updateGasReadings}
+          onAddGasTestLogEntry={addGasTestLogEntry}
+          onTransitionStatus={(permitId, nextStatus) => transitionStatus(permitId, nextStatus, isERTMet)}
+        />
+      </div>
+
+      <NewPTWPermitModal
+        isOpen={isNewPermitModalOpen}
+        onClose={() => setIsNewPermitModalOpen(false)}
+        personnelList={personnelList}
+        sequenceNumber={permits.length + 1}
+        onSubmitSuccess={(newPermit) => {
+          addPermit(newPermit);
+          setSelectedPermitId(newPermit.id);
+        }}
+      />
+
+      <CargoHandlingPermitForm
+        isOpen={isCargoHandlingModalOpen}
+        onClose={() => setIsCargoHandlingModalOpen(false)}
+        sequenceNumber={permits.length + 1}
+        onSubmitSuccess={(newPermit) => {
+          addPermit(newPermit);
+          setSelectedPermitId(newPermit.id);
+          setIsCargoHandlingModalOpen(false);
+        }}
+      />
+    </div>
+  );
+}
+
+```
+
+---
+
 ## File: src\components\manpower\tabs\RotationPlanTab.tsx
 ```typescript
 import React, { useState, useMemo, useEffect } from 'react';
@@ -42072,6 +40660,133 @@ export default function RotationPlanTab({
 
 ---
 
+## File: src\components\manpower\tabs\SafetyOverviewTab.tsx
+```typescript
+// src/components/manpower/tabs/SafetyOverviewTab.tsx
+"use client";
+
+import React, { useMemo } from 'react';
+import { ShieldAlert, Activity, Radio, Siren, Clock, AlertTriangle } from 'lucide-react';
+import {
+  MOCK_PLANT_SAFETY_ZONES,
+  MOCK_SAFETY_ACTIONS,
+  computeSafetyOverviewKpis,
+  ZoneSafetyStatus,
+  ActionUrgency,
+} from '../../../data/safetyOverviewData';
+
+const ZONE_BADGE: Record<ZoneSafetyStatus, string> = {
+  SAFE: 'bg-emerald-800 text-white',
+  CAUTION: 'bg-amber-600 text-white',
+  ALERT: 'bg-red-700 text-white animate-pulse',
+};
+
+const ZONE_BORDER: Record<ZoneSafetyStatus, string> = {
+  SAFE: 'border-emerald-400 bg-emerald-50/40',
+  CAUTION: 'border-amber-400 bg-amber-50/50',
+  ALERT: 'border-red-500 bg-red-50/60',
+};
+
+const ACTION_ICON: Record<ActionUrgency, string> = {
+  RETEST_DUE: 'bg-cyan-700 text-white',
+  EXPIRY_IMMINENT: 'bg-amber-600 text-white',
+};
+
+const ACTION_LABEL: Record<ActionUrgency, string> = {
+  RETEST_DUE: 'RETEST DUE',
+  EXPIRY_IMMINENT: 'EXPIRY IMMINENT',
+};
+
+export default function SafetyOverviewTab() {
+  const kpis = useMemo(() => computeSafetyOverviewKpis(), []);
+
+  return (
+    <div className="space-y-3 font-sans">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="win-panel border-2 border-red-500 bg-red-50/60 rounded p-2.5">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-red-800 mb-1">
+            <ShieldAlert className="w-3.5 h-3.5" /> Active High Risk
+          </div>
+          <div className="text-2xl font-black text-red-900 font-mono">{kpis.activeHighRiskCount}</div>
+          <div className="text-[10px] text-slate-600">Hot Work / Confined Space (ACTIVE)</div>
+        </div>
+
+        <div className="win-panel border-2 border-cyan-600 bg-cyan-50/50 rounded p-2.5">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-cyan-800 mb-1">
+            <Activity className="w-3.5 h-3.5" /> AGT Atmosphere Safe
+          </div>
+          <div className="text-2xl font-black text-cyan-900 font-mono">{kpis.agtSafeRatePercent}%</div>
+          <div className="text-[10px] text-slate-600">Gas Testing Log Safe Rate</div>
+        </div>
+
+        <div className={`win-panel border-2 rounded p-2.5 ${kpis.simopsAlertCount > 0 ? 'border-amber-500 bg-amber-50/60' : 'border-slate-400 bg-slate-50'}`}>
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-amber-800 mb-1">
+            <Siren className="w-3.5 h-3.5" /> SIMOPS Alerts
+          </div>
+          <div className="text-2xl font-black text-amber-900 font-mono">{kpis.simopsAlertCount}</div>
+          <div className="text-[10px] text-slate-600">Zones w/ 2+ Concurrent Works</div>
+        </div>
+
+        <div className="win-panel border-2 border-emerald-500 bg-emerald-50/50 rounded p-2.5">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-emerald-800 mb-1">
+            <Radio className="w-3.5 h-3.5" /> ERT Dispatch Ready
+          </div>
+          <div className="text-2xl font-black text-emerald-900 font-mono">{kpis.ertDispatchReadyRatePercent}%</div>
+          <div className="text-[10px] text-slate-600">ERT Position Coverage</div>
+        </div>
+      </div>
+
+      {/* Plant Safety Zone Matrix */}
+      <div className="win-panel border-2 border-slate-400 bg-white p-2.5">
+        <div className="text-[11px] font-bold text-slate-800 mb-2 font-mono">Plant Safety Zone Matrix</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {MOCK_PLANT_SAFETY_ZONES.map((zone) => (
+            <div key={zone.id} className={`border-2 rounded p-2.5 ${ZONE_BORDER[zone.status]}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-bold text-sm text-slate-900">{zone.name}</span>
+                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${ZONE_BADGE[zone.status]}`}>{zone.status}</span>
+              </div>
+              <div className="text-[11px] font-mono text-slate-700 mb-1">Ongoing Work: {zone.ongoingWorkCount}</div>
+              <div className="text-[10px] text-slate-600">{zone.note}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Actions Needed */}
+      <div className="win-panel border-2 border-slate-400 bg-white p-2.5">
+        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-800 mb-2 font-mono">
+          <AlertTriangle className="w-3.5 h-3.5 text-amber-700" /> Actions Needed
+        </div>
+        <div className="space-y-1.5">
+          {MOCK_SAFETY_ACTIONS.map((action) => (
+            <div key={action.id} className="flex items-center justify-between gap-2 border border-slate-200 rounded px-2 py-1.5 text-xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className={`shrink-0 px-1.5 py-0.5 rounded text-[9px] font-bold ${ACTION_ICON[action.urgency]}`}>
+                  {ACTION_LABEL[action.urgency]}
+                </span>
+                <span className="font-bold text-blue-950 font-mono shrink-0">{action.permitId}</span>
+                <span className="text-slate-700 truncate">{action.description}</span>
+              </div>
+              <span className="flex items-center gap-1 text-[10px] font-mono text-slate-500 shrink-0">
+                <Clock className="w-3 h-3" /> {action.dueAt}
+              </span>
+            </div>
+          ))}
+          {MOCK_SAFETY_ACTIONS.length === 0 && (
+            <div className="text-center text-slate-500 text-xs py-3">No pending safety actions.</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
 ## File: src\components\manpower\tabs\SiteManningOverviewTab.tsx
 ```typescript
 import React, { useMemo } from 'react';
@@ -42365,6 +41080,1241 @@ export default function TrainingMatrixTab({
 
 ---
 
+## File: src\components\manpower\tabs\ptw\GasRetestEntryModal.tsx
+```typescript
+// src/components/manpower/tabs/ptw/GasRetestEntryModal.tsx
+"use client";
+
+import React, { useState } from 'react';
+import { GasTestLogEntryInput, PTWPermit } from '../../../../types/lng';
+import { validatePTWGasSafety } from '../../../../data/ptwMasterData';
+
+export interface GasRetestEntryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  activePermit: PTWPermit;
+  onSubmit: (permitId: string, entryInput: GasTestLogEntryInput) => void;
+}
+
+function nowWibTimestamp(): string {
+  return `2026-09-01 ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB`;
+}
+
+export default function GasRetestEntryModal({ isOpen, onClose, activePermit, onSubmit }: GasRetestEntryModalProps) {
+  const [lel, setLel] = useState<string>('');
+  const [o2, setO2] = useState<string>('20.9');
+  const [h2s, setH2s] = useState<string>('0');
+  const [testerName, setTesterName] = useState<string>('');
+  const [testerId, setTesterId] = useState<string>('');
+  const [note, setNote] = useState<string>('');
+
+  if (!isOpen) return null;
+
+  const lelNum = parseFloat(lel);
+  const o2Num = parseFloat(o2);
+  const h2sNum = parseFloat(h2s);
+  const hasValidNumbers = [lelNum, o2Num, h2sNum].every((n) => Number.isFinite(n));
+
+  // Real gate — never a reimplemented copy of the threshold logic.
+  const liveSafety = hasValidNumbers
+    ? validatePTWGasSafety(activePermit.type, {
+        ...activePermit.gasReadings,
+        lelPercent: lelNum,
+        o2Percent: o2Num,
+        h2sPpm: h2sNum,
+      })
+    : null;
+
+  const canSubmit = hasValidNumbers && testerName.trim().length > 0;
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    const entryInput: GasTestLogEntryInput = {
+      id: `GTL-${activePermit.id}-${Date.now()}`,
+      lelPercent: lelNum,
+      o2Percent: o2Num,
+      h2sPpm: h2sNum,
+      testedAt: nowWibTimestamp(),
+      testerName: testerName.trim(),
+      testerId: testerId.trim() || undefined,
+      note: note.trim() || undefined,
+    };
+    onSubmit(activePermit.id, entryInput);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="max-w-md w-full bg-[#1B242C] border-2 border-[#0B192C] shadow-2xl rounded-none font-mono text-xs text-slate-100 overflow-hidden">
+        <div className="bg-[#2A3B4C] text-white font-mono text-sm font-bold text-center py-1.5 flex items-center justify-between px-3">
+          <span>RE-TEST GAS READING — {activePermit.id}</span>
+          <button onClick={onClose} className="text-white/80 hover:text-white cursor-pointer px-1">
+            ✕
+          </button>
+        </div>
+
+        <div className="p-3 space-y-2.5">
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="block text-[10px] text-slate-400 font-bold mb-0.5">LEL (%)</label>
+              <input
+                type="number"
+                step="0.1"
+                value={lel}
+                onChange={(e) => setLel(e.target.value)}
+                className="w-full h-8 px-2 bg-[#0F1620] border border-slate-600 text-slate-100 font-mono text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] text-slate-400 font-bold mb-0.5">O2 (%)</label>
+              <input
+                type="number"
+                step="0.1"
+                value={o2}
+                onChange={(e) => setO2(e.target.value)}
+                className="w-full h-8 px-2 bg-[#0F1620] border border-slate-600 text-slate-100 font-mono text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] text-slate-400 font-bold mb-0.5">H2S (ppm)</label>
+              <input
+                type="number"
+                step="0.1"
+                value={h2s}
+                onChange={(e) => setH2s(e.target.value)}
+                className="w-full h-8 px-2 bg-[#0F1620] border border-slate-600 text-slate-100 font-mono text-xs"
+              />
+            </div>
+          </div>
+
+          <div
+            className={`p-2 text-center font-bold text-xs border ${
+              !liveSafety
+                ? 'border-slate-600 text-slate-400'
+                : liveSafety.isSafe
+                ? 'border-emerald-700 text-emerald-400 bg-emerald-950/40'
+                : 'border-red-700 text-red-400 bg-red-950/40'
+            }`}
+          >
+            {!liveSafety
+              ? 'ENTER ALL READINGS TO EVALUATE'
+              : liveSafety.isSafe
+              ? 'WILL SAVE AS: SAFE'
+              : `WILL SAVE AS: UNSAFE — ${liveSafety.blockReason}`}
+          </div>
+
+          <div>
+            <label className="block text-[10px] text-slate-400 font-bold mb-0.5">TESTER NAME</label>
+            <input
+              type="text"
+              value={testerName}
+              onChange={(e) => setTesterName(e.target.value)}
+              className="w-full h-8 px-2 bg-[#0F1620] border border-slate-600 text-slate-100 font-mono text-xs"
+            />
+          </div>
+
+          {/* TODO(gas-tester-cert-gate): SSHQE §3.2 requires Gas Tester certification validation before this signature is accepted — not yet implemented, hard-block missing */}
+          <div>
+            <label className="block text-[10px] text-slate-400 font-bold mb-0.5">TESTER ID (optional)</label>
+            <input
+              type="text"
+              value={testerId}
+              onChange={(e) => setTesterId(e.target.value)}
+              className="w-full h-8 px-2 bg-[#0F1620] border border-slate-600 text-slate-100 font-mono text-xs"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] text-slate-400 font-bold mb-0.5">NOTE (optional)</label>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              className="w-full px-2 py-1 bg-[#0F1620] border border-slate-600 text-slate-100 font-mono text-xs resize-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              onClick={onClose}
+              className="px-3 py-1.5 text-[11px] font-bold bg-slate-700 hover:bg-slate-600 text-white cursor-pointer"
+            >
+              CANCEL
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className="px-3 py-1.5 text-[11px] font-bold bg-[#2A3B4C] hover:bg-[#354c62] disabled:opacity-40 disabled:cursor-not-allowed text-white cursor-pointer"
+            >
+              SUBMIT RE-TEST
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ptw\PTWCompetencyGate.tsx
+```typescript
+// src/components/manpower/tabs/ptw/PTWCompetencyGate.tsx
+"use client";
+
+import React from 'react';
+import { PTWPermit, StaffPersonnel } from '../../../../types/lng';
+import { validatePTWWorkerEligibility } from '../../../../data/ptwMasterData';
+
+export interface PTWCompetencyGateProps {
+  activePermit: PTWPermit;
+  personnelList: StaffPersonnel[];
+  onNavigateToMatrix?: (empId: string) => void;
+}
+
+export default function PTWCompetencyGate({ activePermit, personnelList, onNavigateToMatrix }: PTWCompetencyGateProps) {
+  const leader = personnelList.find((s) => s.id === activePermit.workLeaderId);
+  const leaderStatus = leader ? validatePTWWorkerEligibility(leader, activePermit.type) : null;
+
+  const workers = personnelList.filter((s) => activePermit.assignedWorkerIds.includes(s.id));
+  const allWorkersValid = workers.every((w) => validatePTWWorkerEligibility(w, activePermit.type).isEligible);
+
+  return (
+    <div className="border border-neutral-300 bg-[#ebe7df] p-2 rounded-none space-y-2 font-mono text-xs">
+      <div className="bg-[#2A3B4C] text-white font-mono text-sm font-bold text-center py-1 px-2 border border-[#2A3B4C] flex justify-between items-center rounded-none">
+        <span className="w-24 hidden sm:inline-block" />
+        <span className="flex-1 text-center font-bold tracking-wide">
+          PERSONNEL COMPETENCY VERIFICATION
+        </span>
+        <button
+          type="button"
+          className="text-[10px] font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] border border-[#808080] px-1.5 py-0.5 rounded-none cursor-pointer shrink-0"
+          onClick={() => onNavigateToMatrix && onNavigateToMatrix(activePermit.workLeaderId)}
+        >
+          [TRAINING MATRIX]
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-2 text-[11px] font-mono">
+        {/* Work Leader Verification */}
+        <div className="bg-neutral-50 p-2 border border-neutral-300 rounded-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]">
+          <div className="flex justify-between items-center">
+            <span>LEADER: <strong className="text-slate-900">{activePermit.workLeaderName}</strong></span>
+            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-none border ${leaderStatus?.isEligible ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-rose-100 text-rose-900 border-rose-300'}`}>
+              [{leaderStatus?.isEligible ? 'MCU OK' : 'DEFICIT'}]
+            </span>
+          </div>
+          <div className="text-[10px] text-slate-500 mt-1">ID: {activePermit.workLeaderId}</div>
+        </div>
+
+        {/* Assigned Workers Verification */}
+        <div className="bg-neutral-50 p-2 border border-neutral-300 rounded-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]">
+          <div className="flex justify-between items-center">
+            <span>WORKERS: <strong className="text-slate-900">{activePermit.assignedWorkerNames.length} CLEARED</strong></span>
+            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-none border ${allWorkersValid ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-rose-100 text-rose-900 border-rose-300'}`}>
+              [{allWorkersValid ? 'ALL CLEARED' : 'ATTN REQ'}]
+            </span>
+          </div>
+          <div className="text-[10px] text-slate-500 mt-1 truncate" title={activePermit.assignedWorkerNames.join(', ')}>
+            NAMES: {activePermit.assignedWorkerNames.join(', ')}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ptw\PTWGasSafetyGate.tsx
+```typescript
+// src/components/manpower/tabs/ptw/PTWGasSafetyGate.tsx
+"use client";
+
+import React, { useState } from 'react';
+import { GasTestLogEntryInput, PTWPermit, StaffPersonnel } from '../../../../types/lng';
+import { PTW_SOP_FORMS, isGasMeasurementApplicable } from '../../../../data/ptwMasterData';
+import { O2_MIN_PERCENT, O2_MAX_PERCENT, H2S_MAX_PPM } from '../../../../data/ptwGasSafetyRules';
+import GasRetestEntryModal from './GasRetestEntryModal';
+
+export interface PTWGasSafetyGateProps {
+  activePermit: PTWPermit;
+  personnelList: StaffPersonnel[];
+  isSafe: boolean;
+  blockReason: string | null;
+  onUpdateGasReadings: (permitId: string, lel: number, o2: number) => void;
+  onAddGasTestLogEntry: (permitId: string, entryInput: GasTestLogEntryInput) => void;
+}
+
+function formatGasValue(value: number, unit: string): string {
+  return Number.isFinite(value) ? `${value.toFixed(1)}${unit}` : 'NOT TESTED';
+}
+
+export default function PTWGasSafetyGate({
+  activePermit,
+  personnelList,
+  isSafe,
+  blockReason,
+  onAddGasTestLogEntry,
+}: PTWGasSafetyGateProps) {
+  const [isRetestModalOpen, setIsRetestModalOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  const isCargoHandling = activePermit.type === 'CARGO_HANDLING';
+  const headerText = isCargoHandling
+    ? 'AUTHORIZED GAS TESTER (AGT) VERIFICATION RECORD - NP08-15'
+    : 'AUTHORIZED GAS TESTER (AGT) VERIFICATION RECORD';
+
+  const applicable = isGasMeasurementApplicable(activePermit.type);
+  const gateLabel = !applicable ? 'N/A' : isSafe ? 'ATMOSPHERE SAFE' : 'GATE FAILED';
+  const gateLabelClass = !applicable
+    ? 'text-slate-500'
+    : isSafe
+    ? 'text-emerald-700 font-bold'
+    : 'text-red-700 font-bold';
+
+  const tester = personnelList.find((s) => s.id === activePermit.agtStaffId);
+  const testerLabel = activePermit.agtStaffId ? tester?.name || activePermit.agtStaffId : 'NOT ASSIGNED';
+
+  const { lelPercent, o2Percent, h2sPpm, testedAt } = activePermit.gasReadings;
+  const lelLimit = PTW_SOP_FORMS[activePermit.type].gasRestrictions.maxLelPercent;
+  const canRetest = activePermit.status === 'ACTIVE' && applicable && !isCargoHandling;
+  const history = [...(activePermit.gasTestHistory || [])].reverse();
+
+  const metrics = [
+    {
+      key: 'LEL',
+      value: lelPercent,
+      unit: '%',
+      limitText: lelLimit !== undefined ? `<= ${lelLimit}%` : 'N/A',
+      pass: lelLimit === undefined || lelPercent <= lelLimit,
+    },
+    {
+      key: 'O2',
+      value: o2Percent,
+      unit: '%',
+      limitText: `${O2_MIN_PERCENT}% ~ ${O2_MAX_PERCENT}%`,
+      pass: o2Percent >= O2_MIN_PERCENT && o2Percent <= O2_MAX_PERCENT,
+    },
+    {
+      key: 'H2S',
+      value: h2sPpm,
+      unit: 'ppm',
+      limitText: `< ${H2S_MAX_PPM}ppm`,
+      pass: h2sPpm < H2S_MAX_PPM,
+    },
+  ];
+
+  return (
+    <div className="border border-neutral-300 bg-white rounded-none font-mono">
+      <div className="bg-[#2A3B4C] text-white font-mono text-sm font-bold text-center py-1">
+        {headerText}
+      </div>
+
+      <div className="bg-neutral-200 border-b border-neutral-300 px-2 py-1 flex justify-between items-center gap-2 text-[11px] font-mono flex-wrap">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setIsHistoryOpen((v) => !v)}
+            className="cursor-pointer hover:underline decoration-dotted"
+            title="Click to view re-test history"
+          >
+            TEST TIME: <strong className="text-slate-900">{testedAt || '—'}</strong>
+          </button>
+
+          {isHistoryOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsHistoryOpen(false)} />
+              <div className="absolute left-0 top-full mt-1 w-72 max-h-48 overflow-y-auto bg-white border border-neutral-400 shadow-lg z-50 font-mono text-[10px]">
+                <div className="bg-[#2A3B4C] text-white font-bold px-2 py-1 sticky top-0">GAS RE-TEST HISTORY</div>
+                {history.length === 0 ? (
+                  <div className="p-2 text-neutral-500 text-center">No re-test entries yet.</div>
+                ) : (
+                  history.map((entry) => (
+                    <div key={entry.id} className="px-2 py-1 border-b border-neutral-200 text-neutral-800">
+                      <div className="flex justify-between font-bold">
+                        <span>{entry.testedAt}</span>
+                        <span className={entry.isSafeForWork ? 'text-emerald-700' : 'text-red-700'}>
+                          [{entry.isSafeForWork ? 'PASS' : 'FAIL'}]
+                        </span>
+                      </div>
+                      <div>TESTER: {entry.testerName}{entry.testerId ? ` (${entry.testerId})` : ''}</div>
+                      <div>LEL {entry.lelPercent}% / O2 {entry.o2Percent}% / H2S {entry.h2sPpm}ppm</div>
+                      {entry.note && <div className="text-neutral-500">NOTE: {entry.note}</div>}
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        <span>TESTER: <strong className="text-slate-900">{testerLabel}</strong></span>
+        <span className={gateLabelClass}>[{gateLabel}]</span>
+
+        {canRetest && (
+          <button
+            type="button"
+            onClick={() => setIsRetestModalOpen(true)}
+            className="px-2 py-0.5 bg-[#2A3B4C] hover:bg-[#354c62] text-white font-bold text-[10px] cursor-pointer"
+          >
+            [RE-TEST GAS READING]
+          </button>
+        )}
+      </div>
+
+      <GasRetestEntryModal
+        isOpen={isRetestModalOpen}
+        onClose={() => setIsRetestModalOpen(false)}
+        activePermit={activePermit}
+        onSubmit={onAddGasTestLogEntry}
+      />
+
+      {applicable && !isSafe && blockReason && (
+        <div className="p-1.5 bg-red-900 text-white text-[10px] font-bold border-b border-red-950">
+          ALARM: {blockReason}
+        </div>
+      )}
+
+      {!applicable ? (
+        <div className="bg-neutral-100 border-t border-neutral-300 text-neutral-600 font-mono text-xs p-3 text-center">
+          AGT: N/A — gas testing not applicable to this work category
+        </div>
+      ) : (
+        <div className="bg-neutral-200 p-2 border-t border-neutral-300 grid grid-cols-3 gap-2 font-mono text-xs">
+          {metrics.map((m) => (
+            <div
+              key={m.key}
+              className="bg-neutral-100 border border-neutral-400 text-neutral-900 font-mono text-xs p-2 text-center shadow-sm"
+            >
+              <div className="text-[10px] text-neutral-600 font-bold tracking-wider">{m.key}</div>
+              <div className="text-lg font-bold font-mono tracking-wider mt-0.5 text-neutral-900">
+                {formatGasValue(m.value, m.unit)}
+              </div>
+              <div className="text-[9px] text-neutral-500 font-bold mt-1">LIMIT: {m.limitText}</div>
+              <div className={`text-[10px] font-bold mt-0.5 ${m.pass ? 'text-emerald-700' : 'text-red-700'}`}>
+                [{m.pass ? 'PASS' : 'FAIL'}]
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ptw\PTWPermitDetailPanel.tsx
+```typescript
+// src/components/manpower/tabs/ptw/PTWPermitDetailPanel.tsx
+"use client";
+
+import React, { useMemo } from 'react';
+import { GasTestLogEntryInput, PTWPermit, PTWWorkflowStatus, StaffPersonnel } from '../../../../types/lng';
+import { PTW_SOP_FORMS, validatePTWGasSafety } from '../../../../data/ptwMasterData';
+import { getCargoHandlingSOPInfo } from '../../../../data/ptwCargoHandlingRules';
+import PTWWorkflowPipeline from './PTWWorkflowPipeline';
+import PTWGasSafetyGate from './PTWGasSafetyGate';
+import PTWCompetencyGate from './PTWCompetencyGate';
+import PTWSafetyChecklist from './PTWSafetyChecklist';
+import PTWStatusActions from './PTWStatusActions';
+import CargoHandlingDetailSection from '../../cargoHandling/CargoHandlingDetailSection';
+
+export interface PTWPermitDetailPanelProps {
+  activePermit: PTWPermit | null;
+  personnelList: StaffPersonnel[];
+  isERTMet: boolean;
+  onNavigateToMatrix?: (empId: string) => void;
+  onUpdateGasReadings: (permitId: string, lel: number, o2: number) => void;
+  onAddGasTestLogEntry: (permitId: string, entryInput: GasTestLogEntryInput) => void;
+  onTransitionStatus: (permitId: string, nextStatus: PTWWorkflowStatus) => void;
+}
+
+export default function PTWPermitDetailPanel({
+  activePermit,
+  personnelList,
+  isERTMet,
+  onNavigateToMatrix,
+  onUpdateGasReadings,
+  onAddGasTestLogEntry,
+  onTransitionStatus,
+}: PTWPermitDetailPanelProps) {
+  const currentGasSafety = useMemo(() => {
+    if (!activePermit) return { isSafe: true, blockReason: null };
+    return validatePTWGasSafety(activePermit.type, activePermit.gasReadings);
+  }, [activePermit]);
+
+  const sopFormBadge = useMemo(() => {
+    if (!activePermit) return '';
+    if (activePermit.type === 'CARGO_HANDLING') {
+      const activityType = activePermit.cargoHandling?.activityType ?? 'COMBINED';
+      return getCargoHandlingSOPInfo(activityType)
+        .map((f) => f.formNumber)
+        .join(' / ');
+    }
+    return PTW_SOP_FORMS[activePermit.type].formNumber;
+  }, [activePermit]);
+
+  if (!activePermit) {
+    return (
+      <div className="lg:col-span-7">
+        <div className="bg-neutral-200/60 border border-neutral-400 p-8 text-center text-slate-500 font-mono rounded-none">
+          No permit selected.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="lg:col-span-7">
+      <div className="bg-neutral-200/60 border border-neutral-400 p-2 space-y-2 rounded-none font-mono">
+        {/* Header: Permit Summary */}
+        <div className="bg-[#2A3B4C] text-white p-2 px-3 flex justify-between items-center rounded-none font-mono border border-[#2A3B4C]">
+          <span className="w-20 hidden sm:inline-block" />
+          <span className="font-bold text-xs tracking-wider text-center text-white font-mono flex-1">
+            [{activePermit.type.replace(/_/g, ' ')} PERMIT] {activePermit.id}
+          </span>
+          <div className="flex items-center gap-1.5 justify-end">
+            <span className="text-[11px] font-mono font-bold bg-amber-300 text-black px-2 py-0.5 border border-[#808080] rounded-none shrink-0">
+              SOP [{sopFormBadge}]
+            </span>
+            <span className="text-[11px] font-mono font-bold bg-[#d4d0c8] text-black px-2 py-0.5 border border-[#808080] rounded-none shrink-0">
+              STATUS: [{activePermit.status}]
+            </span>
+          </div>
+        </div>
+
+        <PTWWorkflowPipeline currentStatus={activePermit.status} />
+
+        {/* Block 1: Work Details & Location Table */}
+        <div className="border border-neutral-300 bg-white rounded-none overflow-hidden font-mono text-xs">
+          <table className="table-fixed w-full border-collapse">
+            <thead className="bg-[#8A9EA7] text-slate-900 font-bold text-xs h-7 uppercase tracking-wider border-b border-neutral-300">
+              <tr>
+                <th className="w-28 text-center py-1 px-2 border-r border-neutral-300">PARAMETER</th>
+                <th className="text-left py-1 px-2">VALUE / SPECIFICATION</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-300">
+              <tr className="bg-[#ebe7df]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[TASK]</td>
+                <td className="py-1 px-2 font-bold text-blue-950 truncate" title={activePermit.title}>{activePermit.title}</td>
+              </tr>
+              <tr className="bg-[#f4f1ea]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[LOCATION]</td>
+                <td className="py-1 px-2 text-slate-800">{activePermit.location}</td>
+              </tr>
+              <tr className="bg-[#ebe7df]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[WORK AREA]</td>
+                <td className="py-1 px-2 text-slate-800">{activePermit.workArea ?? 'N/A'}</td>
+              </tr>
+              <tr className="bg-[#f4f1ea]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[RESP. PERSON]</td>
+                <td className="py-1 px-2 text-slate-800">{activePermit.responsiblePerson ?? 'N/A'}</td>
+              </tr>
+              <tr className="bg-[#ebe7df]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[HEIGHT WORK]</td>
+                <td className="py-1 px-2 text-slate-800">
+                  {activePermit.safetyChecklist.workingAtHeight === undefined
+                    ? 'N/A'
+                    : activePermit.safetyChecklist.workingAtHeight
+                      ? 'YES'
+                      : 'NA'}
+                </td>
+              </tr>
+              <tr className="bg-[#f4f1ea]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[VALIDITY]</td>
+                <td className="py-1 px-2 text-slate-800">{activePermit.validFrom} ~ {activePermit.validTo}</td>
+              </tr>
+              <tr className="bg-[#ebe7df]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[HAZARD]</td>
+                <td className="py-1 px-2 text-slate-700">{activePermit.hazardDescription}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <PTWGasSafetyGate
+          activePermit={activePermit}
+          personnelList={personnelList}
+          isSafe={currentGasSafety.isSafe}
+          blockReason={currentGasSafety.blockReason}
+          onUpdateGasReadings={onUpdateGasReadings}
+          onAddGasTestLogEntry={onAddGasTestLogEntry}
+        />
+
+        {/* Block 3 & Block 4: Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <PTWCompetencyGate activePermit={activePermit} personnelList={personnelList} onNavigateToMatrix={onNavigateToMatrix} />
+          <PTWSafetyChecklist checklist={activePermit.safetyChecklist} />
+        </div>
+
+        {activePermit.cargoHandling && <CargoHandlingDetailSection cargoHandling={activePermit.cargoHandling} />}
+
+        <PTWStatusActions
+          activePermit={activePermit}
+          isERTMet={isERTMet}
+          isGasSafe={currentGasSafety.isSafe}
+          gasBlockReason={currentGasSafety.blockReason}
+          onTransitionStatus={onTransitionStatus}
+        />
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ptw\PTWPermitListPanel.tsx
+```typescript
+// src/components/manpower/tabs/ptw/PTWPermitListPanel.tsx
+"use client";
+
+import React from 'react';
+import { PTWPermit, PTWWorkflowStatus } from '../../../../types/lng';
+import PermitSlotSection from './PermitSlotSection';
+
+export interface PTWPermitListPanelProps {
+  permits: PTWPermit[];
+  selectedPermitId: string;
+  searchQuery?: string;
+  selectedStatusFilter?: PTWWorkflowStatus | 'ALL';
+  onSearchQueryChange?: (query: string) => void;
+  onStatusFilterChange?: (status: PTWWorkflowStatus | 'ALL') => void;
+  onSelectPermit: (permitId: string) => void;
+}
+
+export default function PTWPermitListPanel({
+  permits,
+  selectedPermitId,
+  onSelectPermit,
+}: PTWPermitListPanelProps) {
+  return (
+    <div className="lg:col-span-5 bg-neutral-200/60 border border-neutral-400 p-2 space-y-2 rounded-none font-mono">
+      <div className="space-y-1.5 max-h-[640px] overflow-y-auto overflow-x-hidden">
+        {/* 1. DRAFT / SUBMISSION */}
+        <PermitSlotSection
+          title="DRAFT / SUBMISSION"
+          permits={permits}
+          predicate={(p) => p.status === 'DRAFT'}
+          selectedPermitId={selectedPermitId}
+          onSelectPermit={onSelectPermit}
+        />
+
+        {/* 2. PREPARED */}
+        <PermitSlotSection
+          title="PREPARED"
+          permits={permits}
+          predicate={(p) => p.status === 'PREPARED'}
+          selectedPermitId={selectedPermitId}
+          onSelectPermit={onSelectPermit}
+        />
+
+        {/* 3. APPROVED */}
+        <PermitSlotSection
+          title="APPROVED"
+          permits={permits}
+          predicate={(p) => p.status === 'APPROVED'}
+          selectedPermitId={selectedPermitId}
+          onSelectPermit={onSelectPermit}
+        />
+
+        {/* 4. ACTIVE PERMITS */}
+        <PermitSlotSection
+          title="ACTIVE PERMITS"
+          permits={permits}
+          predicate={(p) => p.status === 'ACTIVE'}
+          selectedPermitId={selectedPermitId}
+          onSelectPermit={onSelectPermit}
+        />
+
+        {/* 5. CLOSED / ARCHIVED */}
+        <PermitSlotSection
+          title="CLOSED / ARCHIVED"
+          permits={permits}
+          predicate={(p) => p.status === 'CLOSED'}
+          selectedPermitId={selectedPermitId}
+          onSelectPermit={onSelectPermit}
+          defaultCollapsed
+        />
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ptw\PTWSafetyChecklist.tsx
+```typescript
+// src/components/manpower/tabs/ptw/PTWSafetyChecklist.tsx
+"use client";
+
+import React from 'react';
+import { PTWPermit } from '../../../../types/lng';
+
+export interface PTWSafetyChecklistProps {
+  checklist: PTWPermit['safetyChecklist'];
+}
+
+const CHECKLIST_LABELS: { key: keyof PTWPermit['safetyChecklist']; label: string }[] = [
+  { key: 'fireWatchAssigned', label: 'FIRE WATCH' },
+  { key: 'gasDetectorContinuous', label: 'GAS MONITOR' },
+  { key: 'lotoApplied', label: 'LOTO ISOLATION' },
+  { key: 'forcedVentilation', label: 'VENTILATION' },
+  { key: 'ppeVerified', label: 'CRYO / PPE' },
+  { key: 'barricadeSet', label: 'BARRICADE' },
+];
+
+export default function PTWSafetyChecklist({ checklist }: PTWSafetyChecklistProps) {
+  return (
+    <div className="border border-neutral-300 bg-[#ebe7df] p-2 rounded-none text-[11px] font-mono space-y-1.5">
+      <div className="bg-[#2A3B4C] text-white font-mono text-sm font-bold text-center py-1 px-2 border border-[#2A3B4C] rounded-none">
+        MANDATORY SAFETY CONTROLS
+      </div>
+      <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
+        {CHECKLIST_LABELS.map(({ key, label }) => {
+          const isApplied = checklist[key];
+          return (
+            <div
+              key={key}
+              className={`px-2 py-1.5 border rounded-none flex items-center justify-between shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] ${
+                isApplied
+                  ? 'border-neutral-400 bg-[#d8d4cc] text-blue-950 font-bold'
+                  : 'border-neutral-300 bg-neutral-100 text-slate-400'
+              }`}
+            >
+              <span>{label}</span>
+              <span className="font-bold">[{isApplied ? 'YES' : 'NO'}]</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ptw\PTWStatusActions.tsx
+```typescript
+// src/components/manpower/tabs/ptw/PTWStatusActions.tsx
+"use client";
+
+import React from 'react';
+import { PTWPermit } from '../../../../types/lng';
+
+export interface PTWStatusActionsProps {
+  activePermit: PTWPermit;
+  isERTMet: boolean;
+  isGasSafe: boolean;
+  gasBlockReason: string | null;
+  onTransitionStatus: (permitId: string, nextStatus: PTWPermit['status']) => void;
+}
+
+export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, gasBlockReason, onTransitionStatus }: PTWStatusActionsProps) {
+  const isHighRisk = activePermit.type === 'HOT_WORK' || activePermit.type === 'CONFINED_SPACE';
+  const activationBlocked = !isGasSafe || (isHighRisk && !isERTMet);
+
+  return (
+    <div className="border border-neutral-300 bg-white rounded-none overflow-hidden font-mono space-y-2">
+      <div className="bg-[#2A3B4C] text-white font-mono text-sm font-bold text-center py-1 px-2 border border-[#2A3B4C] rounded-none">
+        WORKFLOW STATUS & TRANSITION CONTROLS
+      </div>
+      <div className="bg-[#ebe7df] border border-neutral-300 px-2 py-1.5 flex justify-between items-center flex-wrap gap-2 rounded-none">
+        <div className="text-[11px] font-mono text-slate-600">
+          PTW ID: <strong className="text-blue-950">{activePermit.id}</strong> | TYPE: <strong className="text-slate-900">{activePermit.type.replace(/_/g, ' ')}</strong>
+        </div>
+
+        <div className="flex gap-2 flex-wrap">
+          {/* Step 1: Draft -> Prepared */}
+          {activePermit.status === 'DRAFT' && (
+            <button
+              onClick={() => onTransitionStatus(activePermit.id, 'PREPARED')}
+              className="px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none border border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+            >
+              <span>[1. PREPARE & SUBMIT TO HSE]</span>
+            </button>
+          )}
+
+          {/* Step 2: Prepared -> Approved */}
+          {activePermit.status === 'PREPARED' && (
+            <button
+              onClick={() => onTransitionStatus(activePermit.id, 'APPROVED')}
+              className="px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none border border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+            >
+              <span>[2. HSE / SM APPROVE]</span>
+            </button>
+          )}
+
+          {/* Step 3: Approved -> Active */}
+          {activePermit.status === 'APPROVED' && (
+            <button
+              disabled={activationBlocked}
+              onClick={() => onTransitionStatus(activePermit.id, 'ACTIVE')}
+              className={`px-3 py-1 text-xs font-bold rounded-none border ${
+                activationBlocked
+                  ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-300'
+                  : 'text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]'
+              }`}
+              title={!isGasSafe ? gasBlockReason || 'Gas reading unsafe' : 'Issue permit and begin work'}
+            >
+              <span>[3. AUTHORIZE ACTIVE WORK]</span>
+            </button>
+          )}
+
+          {/* Step 4: Active -> Closed */}
+          {activePermit.status === 'ACTIVE' && (
+            <button
+              onClick={() => onTransitionStatus(activePermit.id, 'CLOSED')}
+              className="px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none border border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+            >
+              <span>[4. CLOSE PERMIT (COMPLETE)]</span>
+            </button>
+          )}
+
+          {activePermit.status === 'CLOSED' && (
+            <span className="px-3 py-1 bg-slate-200 text-slate-600 font-mono text-xs font-bold rounded-none border border-slate-300">
+              [PERMIT CLOSED & ARCHIVED]
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ptw\PTWSummaryBar.tsx
+```typescript
+// src/components/manpower/tabs/ptw/PTWSummaryBar.tsx
+"use client";
+
+import React from 'react';
+
+export interface PTWSummaryBarProps {
+  totalPermits: number;
+  activeCount: number;
+  isERTMet: boolean;
+  onOpenNewPermitModal: () => void;
+  onOpenCargoHandlingModal: () => void;
+}
+
+export default function PTWSummaryBar({
+  totalPermits,
+  activeCount,
+  isERTMet,
+  onOpenNewPermitModal,
+  onOpenCargoHandlingModal,
+}: PTWSummaryBarProps) {
+  return (
+    <div className="flex items-center justify-between gap-3 flex-wrap text-xs bg-[#d4d0c8] border border-t-white border-l-white border-b-neutral-500 border-r-neutral-500 shadow-sm p-2">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="font-bold text-slate-900">
+          <span className="text-sm">PERMIT TO WORK</span>
+        </div>
+        <span className="bg-blue-900 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px]">
+          TOTAL: {totalPermits}
+        </span>
+        <span className="bg-emerald-800 text-white font-mono font-bold px-2 py-0.5 rounded text-[11px]">
+          ACTIVE: {activeCount}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        {!isERTMet ? (
+          <div className="ptw-raised-static bg-rose-100 border border-rose-400 text-rose-950 px-2.5 py-1 rounded-none font-mono font-bold text-[11px]">
+            ERT STATUS: DEFICIT — HOT WORK / CONFINED SPACE SUSPENDED
+          </div>
+        ) : (
+          <div className="ptw-raised-static bg-emerald-100 border border-emerald-400 text-emerald-950 px-2.5 py-1 rounded-none font-mono font-bold text-[11px]">
+            ERT STATUS: NORMAL (12 POB)
+          </div>
+        )}
+
+        <button
+          onClick={onOpenNewPermitModal}
+          className="win-btn px-2.5 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer"
+        >
+          + ISSUE PTW
+        </button>
+
+        <button
+          onClick={onOpenCargoHandlingModal}
+          className="win-btn px-2.5 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer"
+        >
+          + CARGO PTW
+        </button>
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ptw\PTWTypeFilterStrip.tsx
+```typescript
+// src/components/manpower/tabs/ptw/PTWTypeFilterStrip.tsx
+"use client";
+
+import React from 'react';
+import { PTWPermit, PTWType } from '../../../../types/lng';
+
+export type PTWCategoryFilter = PTWType | 'ALL' | 'LIFTING';
+
+export interface PTWTypeFilterStripProps {
+  permits: PTWPermit[];
+  selectedTypeFilter: PTWCategoryFilter;
+  onSelectTypeFilter: (type: PTWCategoryFilter) => void;
+}
+
+const CATEGORY_BUTTONS: { key: PTWCategoryFilter; label: string }[] = [
+  { key: 'HOT_WORK', label: 'HOT WORK' },
+  { key: 'COLD_WORK', label: 'COLD WORK' },
+  { key: 'CONFINED_SPACE', label: 'CONFINED SPACE' },
+  { key: 'ELECTRICAL', label: 'ELECTRICAL' },
+  { key: 'LIFTING', label: 'LIFTING' },
+];
+
+function countFor(permits: PTWPermit[], key: PTWCategoryFilter): number {
+  if (key === 'ALL') return permits.length;
+  if (key === 'LIFTING') {
+    return permits.filter((p) => p.type === 'CARGO_HANDLING' && p.cargoHandling?.activityType === 'LIFTING').length;
+  }
+  return permits.filter((p) => p.type === key).length;
+}
+
+function NavButton({
+  label,
+  count,
+  isSelected,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  const stateClass =
+    count === 0
+      ? 'shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] border-t-neutral-500 border-l-neutral-500 border-b-white border-r-white bg-[#d4d0c8] text-slate-600 opacity-40 cursor-not-allowed'
+      : isSelected
+      ? 'shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] border-t-neutral-600 border-l-neutral-600 border-b-white border-r-white bg-[#c8c4bc] text-blue-950 font-bold cursor-pointer'
+      : 'shadow-[0_2px_3px_rgba(0,0,0,0.15)] hover:shadow-[0_1px_1px_rgba(0,0,0,0.15)] active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] transition-all duration-150 ease-out border-t-white border-l-white border-b-neutral-600 border-r-neutral-600 bg-[#d4d0c8] text-slate-900 hover:bg-[#dfdbd3] cursor-pointer';
+
+  return (
+    <button
+      onClick={onClick}
+      className={`shrink-0 border px-2 py-0.5 text-xs font-mono ${stateClass}`}
+    >
+      {label} ({count})
+    </button>
+  );
+}
+
+export default function PTWTypeFilterStrip({ permits, selectedTypeFilter, onSelectTypeFilter }: PTWTypeFilterStripProps) {
+  return (
+    <div className="flex items-center gap-1 flex-wrap border-t border-[#808080]/30 pt-1.5">
+      <NavButton
+        label="ALL"
+        count={countFor(permits, 'ALL')}
+        isSelected={selectedTypeFilter === 'ALL'}
+        onClick={() => onSelectTypeFilter('ALL')}
+      />
+
+      {CATEGORY_BUTTONS.map(({ key, label }) => {
+        const isSelected = selectedTypeFilter === key;
+        return (
+          <NavButton
+            key={key}
+            label={label}
+            count={countFor(permits, key)}
+            isSelected={isSelected}
+            onClick={() => onSelectTypeFilter(isSelected ? 'ALL' : key)}
+          />
+        );
+      })}
+
+      <div className="h-4 w-px bg-[#808080]/40 mx-1 shrink-0" />
+
+      <NavButton
+        label="CARGO HANDLING"
+        count={countFor(permits, 'CARGO_HANDLING')}
+        isSelected={selectedTypeFilter === 'CARGO_HANDLING'}
+        onClick={() => onSelectTypeFilter(selectedTypeFilter === 'CARGO_HANDLING' ? 'ALL' : 'CARGO_HANDLING')}
+      />
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ptw\PTWWorkflowPipeline.tsx
+```typescript
+// src/components/manpower/tabs/ptw/PTWWorkflowPipeline.tsx
+"use client";
+
+import React from 'react';
+import { PTWWorkflowStatus } from '../../../../types/lng';
+
+const STAGES: { key: PTWWorkflowStatus; label: string }[] = [
+  { key: 'DRAFT', label: '1. DRAFT' },
+  { key: 'PREPARED', label: '2. PREPARED' },
+  { key: 'APPROVED', label: '3. APPROVED' },
+  { key: 'ACTIVE', label: '4. ACTIVE' },
+  { key: 'CLOSED', label: '5. CLOSED' },
+];
+
+export interface PTWWorkflowPipelineProps {
+  currentStatus: PTWWorkflowStatus;
+}
+
+export default function PTWWorkflowPipeline({ currentStatus }: PTWWorkflowPipelineProps) {
+  const stageIndex = STAGES.findIndex((s) => s.key === currentStatus);
+
+  return (
+    <div className="border border-neutral-300 bg-white p-2 rounded-none">
+      <div className="grid grid-cols-5 gap-1.5 text-center font-mono text-xs font-bold">
+        {STAGES.map((stage, idx) => {
+          const isCurrent = currentStatus === stage.key;
+          const isPassed = stageIndex > idx;
+
+          return (
+            <div
+              key={stage.key}
+              className={`py-1 px-0.5 rounded-none select-none ${
+                isCurrent
+                  ? 'bg-[#2A3B4C] text-white font-mono text-xs font-bold border border-neutral-600'
+                  : isPassed
+                  ? 'bg-neutral-300 text-neutral-800 border border-neutral-400 font-bold'
+                  : 'bg-neutral-100 text-neutral-400 border border-neutral-300 font-bold'
+              }`}
+            >
+              {stage.label}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ptw\PermitRow.tsx
+```typescript
+// src/components/manpower/tabs/ptw/PermitRow.tsx
+"use client";
+
+import React from 'react';
+import { PTWPermit, PTWType } from '../../../../types/lng';
+import {
+  isGasMeasurementApplicable,
+  isLotoApplicable,
+  isFireWatchApplicable,
+  validatePTWGasSafety,
+} from '../../../../data/ptwMasterData';
+
+export interface PermitRowProps {
+  permit: PTWPermit;
+  isSelected: boolean;
+  rowIndex: number;
+  onSelect: (permitId: string) => void;
+}
+
+// Short activity-type label keyed by the PTWType enum (never touches the
+// NP07-xx formNumber string, so it cannot drift out of sync with the SSHQE
+// §4.1 mapping fix in ptwMasterData.ts — see PTW_AUDIT_REPORT_2026-09-08.md).
+const TYPE_SHORT_LABEL: Record<PTWType, string> = {
+  HOT_WORK: 'HOT',
+  COLD_WORK: 'COLD',
+  CONFINED_SPACE: 'CONF',
+  ELECTRICAL: 'ELEC',
+  RADIOGRAPHY: 'RAD',
+  EXCAVATION: 'EXCV',
+  CARGO_HANDLING: 'CRGO',
+};
+
+function getEquipmentTag(permit: PTWPermit): string {
+  if (permit.equipmentTag && permit.equipmentTag !== 'N/A') return permit.equipmentTag;
+  if (permit.id.endsWith('01')) return 'PRSS-CMP-01';
+  if (permit.id.endsWith('02')) return 'FL-201';
+  if (permit.id.endsWith('03')) return 'ORU-PIT-02';
+  if (permit.id.endsWith('04')) return 'MCC-01';
+  if (permit.id.endsWith('05')) return 'BAY-02-VLV';
+  if (permit.id.endsWith('06')) return 'JTY-HDR-01';
+  return 'EQ-TAG-01';
+}
+
+type SafeDotStatus = 'PASS' | 'FAIL' | 'NA';
+
+// Aggregates the existing per-gate helpers into one indicator. No new safety
+// rules are introduced here — this only combines results already computed by
+// isGasMeasurementApplicable/isLotoApplicable/isFireWatchApplicable and the
+// existing validatePTWGasSafety() gate.
+function computeSafeDotStatus(permit: PTWPermit): SafeDotStatus {
+  const applicableResults: boolean[] = [];
+
+  if (isGasMeasurementApplicable(permit.type)) {
+    applicableResults.push(validatePTWGasSafety(permit.type, permit.gasReadings).isSafe);
+  }
+  if (isLotoApplicable(permit.type)) {
+    applicableResults.push(permit.safetyChecklist.lotoApplied);
+  }
+  if (isFireWatchApplicable(permit.type)) {
+    applicableResults.push(permit.safetyChecklist.fireWatchAssigned);
+  }
+
+  if (applicableResults.length === 0) return 'NA';
+  return applicableResults.every(Boolean) ? 'PASS' : 'FAIL';
+}
+
+const SAFE_DOT_CLASS: Record<SafeDotStatus, string> = {
+  PASS: 'bg-emerald-600',
+  FAIL: 'bg-rose-600',
+  NA: 'bg-neutral-400',
+};
+
+export default function PermitRow({ permit, isSelected, rowIndex, onSelect }: PermitRowProps) {
+  const equipmentTag = getEquipmentTag(permit);
+  const typeLabel = TYPE_SHORT_LABEL[permit.type] || permit.type.slice(0, 4);
+  const safeStatus = computeSafeDotStatus(permit);
+
+  const rowBgClass = isSelected
+    ? 'border-l-4 border-[#0B192C] bg-blue-50 font-semibold'
+    : rowIndex % 2 === 0
+    ? 'border-l-4 border-transparent bg-slate-50 hover:bg-slate-100'
+    : 'border-l-4 border-transparent bg-white hover:bg-slate-100';
+
+  return (
+    <tr
+      onClick={() => onSelect(permit.id)}
+      className={`h-7.5 cursor-pointer border-b border-slate-300 select-none text-slate-800 ${rowBgClass}`}
+    >
+      <td className="w-14 text-center text-xs">
+        <span className="px-1 py-0.2 font-bold border border-slate-300 bg-slate-100 text-slate-800">
+          {typeLabel}
+        </span>
+      </td>
+      <td className="w-24 font-bold text-neutral-900 px-1 text-xs truncate" title={equipmentTag}>
+        {equipmentTag}
+      </td>
+      <td className="w-12 text-center" title={`Safety gate: ${safeStatus}`}>
+        {safeStatus === 'NA' ? (
+          <span className="text-neutral-400 text-xs">–</span>
+        ) : (
+          <span className={`inline-block w-2 h-2 rounded-full ${SAFE_DOT_CLASS[safeStatus]}`} />
+        )}
+      </td>
+      <td className="flex-1 truncate px-1 text-xs" title={permit.title}>
+        {permit.title}
+      </td>
+      <td className="w-24 truncate px-1 text-xs font-mono" title={permit.workLeaderName}>
+        {permit.workLeaderName}
+      </td>
+    </tr>
+  );
+}
+
+```
+
+---
+
+## File: src\components\manpower\tabs\ptw\PermitSlotSection.tsx
+```typescript
+// src/components/manpower/tabs/ptw/PermitSlotSection.tsx
+"use client";
+
+import React, { useState } from 'react';
+import { PTWPermit } from '../../../../types/lng';
+import PermitRow from './PermitRow';
+
+export interface PermitSlotSectionProps {
+  title: string;
+  permits: PTWPermit[]; // already top-level filtered (type/status/search) by the parent
+  predicate: (permit: PTWPermit) => boolean;
+  selectedPermitId: string;
+  onSelectPermit: (permitId: string) => void;
+  defaultCollapsed?: boolean;
+}
+
+export default function PermitSlotSection({
+  title,
+  permits,
+  predicate,
+  selectedPermitId,
+  onSelectPermit,
+  defaultCollapsed = false,
+}: PermitSlotSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(!defaultCollapsed);
+  const slotPermits = permits.filter(predicate);
+
+  return (
+    <div className="border border-slate-300 rounded-none">
+      <button
+        onClick={() => setIsExpanded((prev) => !prev)}
+        className="w-full h-7 px-2 font-mono text-xs font-bold tracking-wider text-white bg-[#2A3B4C] flex items-center justify-between text-center cursor-pointer border border-[#2A3B4C]"
+      >
+        <span className="w-6" />
+        <span className="flex-1 text-center font-bold tracking-wider">
+          {title} ({slotPermits.length})
+        </span>
+        <span className="w-6 text-right text-slate-300">{isExpanded ? '[-]' : '[+]'}</span>
+      </button>
+
+      {isExpanded && (
+        <table className="table-fixed w-full overflow-x-hidden border-collapse font-mono text-xs">
+          <thead className="bg-[#8A9EA7] text-slate-900 font-bold text-xs uppercase tracking-wider border-b-2 border-white">
+            <tr>
+              <th className="w-14 text-center py-1 px-1 border border-white">TYPE</th>
+              <th className="w-24 text-center py-1 px-1 border border-white">TAG NO</th>
+              <th className="w-12 text-center py-1 px-1 border border-white">SAFE</th>
+              <th className="text-center py-1 px-1.5 border border-white">TASK</th>
+              <th className="w-24 text-center py-1 px-1 border border-white">LEADER</th>
+            </tr>
+          </thead>
+          <tbody>
+            {slotPermits.map((permit, index) => (
+              <PermitRow
+                key={permit.id}
+                permit={permit}
+                isSelected={selectedPermitId === permit.id}
+                rowIndex={index}
+                onSelect={onSelectPermit}
+              />
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+```
+
+---
+
 ## File: src\config\siteConfig.ts
 ```typescript
 // src/config/siteConfig.ts
@@ -42419,7 +42369,7 @@ export const CMMS_MODULES: CMMSModule[] = [
     name: "Safety & PTW",
     code: "SAFETY",
     description: "PTW 6-Form Master, AGT Gas Testing Log & ERT Readiness",
-    defaultKey: "PTW_PERMITS",
+    defaultKey: "SAFETY_OVERVIEW",
   },
 ];
 
@@ -42582,7 +42532,12 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
     }
   }, [mergeStoredDomainData]);
 
-  useEffect(() => { initData(); }, []);
+  // Run once on mount only: initData's identity is unstable because it depends on
+  // the non-memoized mergeStoredDomainData from usePortalStorageSync, so including
+  // it here would re-trigger this effect on every render. The call is deferred to a
+  // microtask so initData's setState calls do not run synchronously within the effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { queueMicrotask(() => { initData(); }); }, []);
 
   const updateTankLog = (tankNo: string, updatedFields: Partial<FleetTankItem>) => {
     setFleetTanks((prev) => applyTankUpdate(prev, tankNo, updatedFields));
@@ -42957,6 +42912,656 @@ export function useTheme() {
 
 ---
 
+## File: src\data\Operation Manpower Roster.csv
+```text
+NIAS LNG TERMINAL — MANPOWER & SHIFT ROSTER,,,,,,,,,,,,,,,
+Baseline Date: 2026-09-01 (Current Today) | 3:1 Rotation Cycle Engine (3Mo On-Site / 30d Off-Duty) | Total Manning: 22 Personnel,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+,ON-SITE ACTIVE: 18 / 22 (82%),,,,OFF-DUTY LEAVE (AL): 4 / 22 (18%),,,,,ERT COMPLIANCE: 100% CLEARED [AUTHORIZED],,,,,
+,,,,,,,,,,,,,,,
+ID,Personnel Name,Position,Team,Department,Status,Today Shift,On-Site Days,,Target Cycle/Day,Cycle Start,Next Rotation (AL),Designated Reliever,Contact No,Radio CH,ERT Role
+BSG259529,Edi Hermawan,Site Manager,Management,MANAGEMENT,On-Site,D,2026-07-09,28,92,2026-08-08,2026-11-08,HQ Delegate,0812-3332-8894,CH-01 (CMD),Incident Commander
+BSG259524,Shadiq M. Shalih,OP Team Leader,Management ( Team A ),MANAGEMENT,Off-Site,Off,2026-08-13,0,91,2026-09-12,2026-12-12,Asman Sampeaman,+62 811-6502-3341,CH-01 (CMD),Incident Commander
+BSG259736,Yusuf,Field Operator,TEAM-A,Operation Team ,On-Site,D,2026-05-20,78,92,2026-06-19,2026-09-19,Muradi,+62 813-8822-1044,CH-02 (OPS),Gas Leak Response
+BSG259743,Erwin Supriatna,Field Operator,TEAM-A,Operation Team ,Off-Site,Off,2026-08-27,0,91,2026-09-26,2026-12-26,Ripal Fadiah,+62 812-4433-8890,CH-02 (OPS),First Aider
+BSG259833,Asman Sampeaman,OP Team Leader,TEAM-B,Operation Team ,On-Site,D,2026-06-08,59,92,2026-07-08,2026-10-08,Juli Surungan,+62 812-9900-1122,CH-02 (OPS),Incident Commander
+BSG258742,Muradi,Field Operator,TEAM-B,Operation Team ,On-Site,D,2026-06-08,59,92,2026-07-08,2026-10-08,Danang,+62 813-1122-3344,CH-02 (OPS),Gas Leak Response
+BSG259735,Ripal Fadiah,Field Operator,TEAM-B,Operation Team ,On-Site,D,2026-06-28,39,92,2026-07-28,2026-10-28,Uliyansyah,+62 812-3344-5566,CH-02 (OPS),First Aider
+BSG259530,Juli Surungan,OP Team Leader,TEAM-C,Operation Team ,On-Site,D,2026-07-09,28,92,2026-08-08,2026-11-08,Shadiq M. Shalih,+62 811-7788-9900,CH-02 (OPS),Incident Commander
+BSG259634,Danang,Field Operator,TEAM-C,Operation Team ,On-Site,D,2026-06-08,59,92,2026-07-08,2026-10-08,Yusuf,+62 813-9988-7766,CH-02 (OPS),Gas Leak Response
+BSG259532,Uliyansyah,Field Operator,TEAM-C,Operation Team ,On-Site,D,2026-07-13,24,92,2026-08-12,2026-11-12,Erwin Supriatna,+62 812-6655-4433,CH-02 (OPS),First Aider
+BSG259237,Indra Prabayugo,Mechanic Engineer,Maintenance,MAINTENANCE,On-Site,D,2026-06-28,39,92,2026-07-28,2026-10-28,Agunawan,+62 812-7766-5544,CH-03 (MAINT),First Aider
+BSG259420,Agunawan,Maintenance E&I,Maintenance,MAINTENANCE,On-Site,D,2026-05-25,73,92,2026-06-24,2026-09-24,Indra Prabayugo,+62 811-2233-4455,CH-03 (MAINT),Gas Leak Response
+BSG259641,Arsyan AN,HSE Officer,HSSE Team,HSSE,On-Site,D,2026-06-28,39,92,2026-07-28,2026-10-28,Chandra R.D,+62 812-1144-7788,CH-04 (HSSE),Fire Chief
+BSG259919,Chandra R.D,HSE Officer,HSSE Team,HSSE,On-Site,D,2026-04-21,107,92,2026-05-21,2026-08-21,Arsyan AN,+62 811-9988-1122,CH-04 (HSSE),Fire Chief
+BSG259245,Indra Parulian,Super Cargo,Cargo Operation,Cargo Logistic,On-Site,D,2026-06-15,52,92,2026-07-15,2026-10-15,Rafi Anggara,+62 812-1144-7788,CH-04 (HSSE),Fire Chief
+BSG259646,Rafi Anggara,Crane Operator,Cargo Operation,Cargo Logistic,On-Site,D,2026-06-11,56,92,2026-07-11,2026-10-11,Indra Parulian,+62 811-9988-1122,CH-04 (HSSE),Fire Chief
+BSG259444,Albert A. Gea,HR / GA Officer,HR / GA,HR_GA,On-Site,D,2026-06-04,63,92,2026-07-04,2026-10-04,Jefi R. Zega,+62 813-6655-2211,CH-05 (LOG),First Aider
+BSG199551,Jefi R. Zega,HR / GA Coordinator,HR / GA,HR_GA,On-Site,D,2026-07-07,30,92,2026-08-06,2026-11-06,Albert A. Gea,082165171882,CH-05 (LOG),First Aider
+,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+,,,,,,D,,,,,,,,,
+
+```
+
+---
+
+## File: src\data\__tests__\ptwCargoHandlingValidators.test.ts
+```typescript
+// src/data/__tests__/ptwCargoHandlingValidators.test.ts
+// Boundary-value tests for the 13 pure gatekeeping functions in
+// ptwCargoHandlingValidators.ts. Safety thresholds are exercised at the exact
+// boundary and one increment past it in the direction that must fail.
+
+import { describe, it, expect } from 'vitest';
+import type { CargoHandlingGasPoint } from '../../types/lng';
+import { CARGO_HANDLING_SOP_BY_ACTIVITY } from '../ptwCargoHandlingRules';
+import {
+  resolveCargoHandlingSopCodes,
+  evaluateCriticalHighRiskEscalation,
+  evaluateAgtGate,
+  isGasRetestDue,
+  evaluateGroundingGate,
+  evaluateDepressurizationGate,
+  validateBarricadeRadius,
+  evaluateMandatorySafetyControls,
+  evaluateCompetencyGate,
+} from '../ptwCargoHandlingValidators';
+import {
+  canPrepareCargoHandlingPermit,
+  canApproveCargoHandlingPermit,
+  canActivateCargoHandlingPermit,
+  canCloseCargoHandlingPermit,
+} from '../ptwCargoHandlingTransitions';
+
+const MANDATORY_TAGS = ['T-201', 'T-202', 'T-203', 'T-204'] as const;
+
+// All 4 mandatory AGT points at a fully "Atmosphere Safe" baseline
+// (LEL 0%, O2 20.9%), with one tag optionally overridden for the case
+// under test — keeps the "missing tag" short-circuit out of unrelated tests.
+function buildGasPoints(overrideTagId?: string, overrides?: Partial<CargoHandlingGasPoint>): CargoHandlingGasPoint[] {
+  return MANDATORY_TAGS.map((tagId) => ({
+    tagId,
+    lelPercent: 0,
+    o2Percent: 20.9,
+    testedAt: '2026-01-01T00:00:00.000Z',
+    ...(tagId === overrideTagId ? overrides : {}),
+  }));
+}
+
+describe('resolveCargoHandlingSopCodes', () => {
+  it('returns the UNLOADING SOP set', () => {
+    expect(resolveCargoHandlingSopCodes('UNLOADING')).toEqual(CARGO_HANDLING_SOP_BY_ACTIVITY.UNLOADING);
+  });
+
+  it('returns the LIFTING SOP set', () => {
+    expect(resolveCargoHandlingSopCodes('LIFTING')).toEqual(CARGO_HANDLING_SOP_BY_ACTIVITY.LIFTING);
+  });
+
+  it('returns all 4 SOP codes for COMBINED', () => {
+    expect(resolveCargoHandlingSopCodes('COMBINED')).toHaveLength(4);
+  });
+});
+
+describe('evaluateCriticalHighRiskEscalation (weight threshold >= 25t)', () => {
+  it('does not escalate at 24.99t', () => {
+    const result = evaluateCriticalHighRiskEscalation({
+      loadedWeightTon: 24.99,
+      isActiveCryogenicFlow: false,
+      hoseDisconnectionInProgress: false,
+    });
+    expect(result.isCriticalHighRisk).toBe(false);
+  });
+
+  it('escalates at exactly 25.0t', () => {
+    const result = evaluateCriticalHighRiskEscalation({
+      loadedWeightTon: 25.0,
+      isActiveCryogenicFlow: false,
+      hoseDisconnectionInProgress: false,
+    });
+    expect(result.isCriticalHighRisk).toBe(true);
+  });
+
+  it('escalates at 25.01t', () => {
+    const result = evaluateCriticalHighRiskEscalation({
+      loadedWeightTon: 25.01,
+      isActiveCryogenicFlow: false,
+      hoseDisconnectionInProgress: false,
+    });
+    expect(result.isCriticalHighRisk).toBe(true);
+  });
+
+  it('escalates regardless of weight when active cryogenic flow + hose disconnection coincide', () => {
+    const result = evaluateCriticalHighRiskEscalation({
+      loadedWeightTon: 1,
+      isActiveCryogenicFlow: true,
+      hoseDisconnectionInProgress: true,
+    });
+    expect(result.isCriticalHighRisk).toBe(true);
+  });
+});
+
+describe('evaluateAgtGate — LEL gate (Stop Action >= 10%)', () => {
+  it('is Safe at LEL 9.99%', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { lelPercent: 9.99 }));
+    expect(result.isSafe).toBe(true);
+  });
+
+  it('is Stop Action at exactly LEL 10.0%', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { lelPercent: 10.0 }));
+    expect(result.isSafe).toBe(false);
+    expect(result.blockReason).toContain('STOP ACTION');
+  });
+
+  it('is Stop Action at LEL 10.01%', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { lelPercent: 10.01 }));
+    expect(result.isSafe).toBe(false);
+  });
+});
+
+describe('evaluateAgtGate — O2 gate (safe band 19.5%~23.5% inclusive)', () => {
+  it('passes at exactly O2 19.5%', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { o2Percent: 19.5 }));
+    expect(result.isSafe).toBe(true);
+  });
+
+  it('is entry-blocked at O2 19.49% (also flags SCBA requirement)', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { o2Percent: 19.49 }));
+    expect(result.isSafe).toBe(false);
+    expect(result.blockReason).toContain('ENTRY BLOCKED');
+    expect(result.scbaRequiredTagIds).toContain('T-201');
+  });
+
+  it('passes at exactly O2 23.5%', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { o2Percent: 23.5 }));
+    expect(result.isSafe).toBe(true);
+  });
+
+  it('fails (range exceeded) at O2 23.51%', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { o2Percent: 23.51 }));
+    expect(result.isSafe).toBe(false);
+  });
+});
+
+describe('evaluateAgtGate — Atmosphere Safe final certification (LEL === 0 AND O2 20.5%~21.3%)', () => {
+  it('is certifiable at O2 exactly 20.5% with LEL 0', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { lelPercent: 0, o2Percent: 20.5 }));
+    expect(result.isAtmosphereSafeCertifiable).toBe(true);
+  });
+
+  it('is not certifiable at O2 20.49% with LEL 0', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { lelPercent: 0, o2Percent: 20.49 }));
+    expect(result.isAtmosphereSafeCertifiable).toBe(false);
+  });
+
+  it('is certifiable at O2 exactly 21.3% with LEL 0', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { lelPercent: 0, o2Percent: 21.3 }));
+    expect(result.isAtmosphereSafeCertifiable).toBe(true);
+  });
+
+  it('is not certifiable at O2 21.31% with LEL 0', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { lelPercent: 0, o2Percent: 21.31 }));
+    expect(result.isAtmosphereSafeCertifiable).toBe(false);
+  });
+
+  it('is not certifiable when LEL is not exactly 0, even with O2 at target 20.9%', () => {
+    const result = evaluateAgtGate('UNLOADING', buildGasPoints('T-201', { lelPercent: 0.01, o2Percent: 20.9 }));
+    expect(result.isAtmosphereSafeCertifiable).toBe(false);
+  });
+});
+
+describe('isGasRetestDue (4-hour cycle)', () => {
+  it('is due at exactly 240 minutes elapsed', () => {
+    expect(isGasRetestDue('2026-01-01T00:00:00.000Z', '2026-01-01T04:00:00.000Z')).toBe(true);
+  });
+
+  it('is not due at 239 minutes elapsed', () => {
+    expect(isGasRetestDue('2026-01-01T00:00:00.000Z', '2026-01-01T03:59:00.000Z')).toBe(false);
+  });
+
+  it('is due at 241 minutes elapsed', () => {
+    expect(isGasRetestDue('2026-01-01T00:00:00.000Z', '2026-01-01T04:01:00.000Z')).toBe(true);
+  });
+});
+
+describe('evaluateGroundingGate (< 5 Ohm to pass)', () => {
+  it('passes at 4.99 Ohm', () => {
+    const result = evaluateGroundingGate({ groundingResistanceOhm: 4.99, allHosesDisconnected: false });
+    expect(result.canStartPressurizedTransfer).toBe(true);
+  });
+
+  it('fails at exactly 5.0 Ohm', () => {
+    const result = evaluateGroundingGate({ groundingResistanceOhm: 5.0, allHosesDisconnected: false });
+    expect(result.canStartPressurizedTransfer).toBe(false);
+  });
+
+  it('fails at 5.01 Ohm', () => {
+    const result = evaluateGroundingGate({ groundingResistanceOhm: 5.01, allHosesDisconnected: false });
+    expect(result.canStartPressurizedTransfer).toBe(false);
+  });
+});
+
+describe('evaluateDepressurizationGate — general ISO Tank separation (target <= 0.4 MPa)', () => {
+  it('approves at exactly 0.4 MPa', () => {
+    const result = evaluateDepressurizationGate({
+      depressurizationTagId: 'ISO-TANK-GENERAL',
+      currentPressureMPa: 0.4,
+      isFlexibleHoseOrQccDisconnection: false,
+      icingPresent: false,
+    });
+    expect(result.isDisconnectionApproved).toBe(true);
+    expect(result.targetPressureMPa).toBe(0.4);
+  });
+
+  it('rejects at 0.41 MPa', () => {
+    const result = evaluateDepressurizationGate({
+      depressurizationTagId: 'ISO-TANK-GENERAL',
+      currentPressureMPa: 0.41,
+      isFlexibleHoseOrQccDisconnection: false,
+      icingPresent: false,
+    });
+    expect(result.isDisconnectionApproved).toBe(false);
+  });
+});
+
+describe('evaluateDepressurizationGate — T-203 dedicated target (<= 0.1 MPa)', () => {
+  it('approves at exactly 0.1 MPa', () => {
+    const result = evaluateDepressurizationGate({
+      depressurizationTagId: 'T-203',
+      currentPressureMPa: 0.1,
+      isFlexibleHoseOrQccDisconnection: false,
+      icingPresent: false,
+    });
+    expect(result.isDisconnectionApproved).toBe(true);
+    expect(result.targetPressureMPa).toBe(0.1);
+  });
+
+  it('rejects at 0.11 MPa', () => {
+    const result = evaluateDepressurizationGate({
+      depressurizationTagId: 'T-203',
+      currentPressureMPa: 0.11,
+      isFlexibleHoseOrQccDisconnection: false,
+      icingPresent: false,
+    });
+    expect(result.isDisconnectionApproved).toBe(false);
+  });
+});
+
+describe('evaluateDepressurizationGate — cryogenic hose/QCC disconnection (0.0 MPa convergence AND no icing)', () => {
+  it('approves at 0.0 MPa with no icing', () => {
+    const result = evaluateDepressurizationGate({
+      depressurizationTagId: 'HOSE-1',
+      currentPressureMPa: 0.0,
+      isFlexibleHoseOrQccDisconnection: true,
+      icingPresent: false,
+    });
+    expect(result.isDisconnectionApproved).toBe(true);
+  });
+
+  it('rejects at 0.01 MPa', () => {
+    const result = evaluateDepressurizationGate({
+      depressurizationTagId: 'HOSE-1',
+      currentPressureMPa: 0.01,
+      isFlexibleHoseOrQccDisconnection: true,
+      icingPresent: false,
+    });
+    expect(result.isDisconnectionApproved).toBe(false);
+  });
+
+  it('rejects at 0.0 MPa when icing is present', () => {
+    const result = evaluateDepressurizationGate({
+      depressurizationTagId: 'HOSE-1',
+      currentPressureMPa: 0.0,
+      isFlexibleHoseOrQccDisconnection: true,
+      icingPresent: true,
+    });
+    expect(result.isDisconnectionApproved).toBe(false);
+  });
+});
+
+describe('validateBarricadeRadius — UNLOADING (min 25m)', () => {
+  it('is valid at exactly 25m', () => {
+    expect(validateBarricadeRadius('UNLOADING', 25).isValid).toBe(true);
+  });
+
+  it('is invalid at 24.99m', () => {
+    expect(validateBarricadeRadius('UNLOADING', 24.99).isValid).toBe(false);
+  });
+});
+
+describe('validateBarricadeRadius — LIFTING (min 50m)', () => {
+  it('is valid at exactly 50m', () => {
+    expect(validateBarricadeRadius('LIFTING', 50).isValid).toBe(true);
+  });
+
+  it('is invalid at 49.99m', () => {
+    expect(validateBarricadeRadius('LIFTING', 49.99).isValid).toBe(false);
+  });
+
+  it('is valid at exactly 100m', () => {
+    expect(validateBarricadeRadius('LIFTING', 100).isValid).toBe(true);
+  });
+
+  // NOTE: the current implementation only compares against
+  // BARRICADE_RADIUS_LIFTING_MIN_M — BARRICADE_RADIUS_LIFTING_MAX_M (100m) is
+  // defined as a constant but never checked in validateBarricadeRadius, so
+  // radii above 100m are NOT rejected today. Per task instructions, the
+  // "upper bound" boundary case (100.01m -> invalid) is skipped rather than
+  // asserting behavior the implementation doesn't have. Reported separately
+  // as a possible gap, not fixed here.
+  it('is (currently) also valid above 100m, since no upper bound is enforced', () => {
+    expect(validateBarricadeRadius('LIFTING', 100.01).isValid).toBe(true);
+  });
+});
+
+describe('evaluateMandatorySafetyControls', () => {
+  it('is satisfied when all required items are true', () => {
+    const result = evaluateMandatorySafetyControls('UNLOADING', {
+      fireWatchAssigned: true,
+      barricadeRadiusM: 25,
+      ertStandbyReady: true,
+    });
+    expect(result.allSatisfied).toBe(true);
+    expect(result.missingItems).toEqual([]);
+  });
+
+  it('is not satisfied when a single required item is false', () => {
+    const result = evaluateMandatorySafetyControls('UNLOADING', {
+      fireWatchAssigned: false,
+      barricadeRadiusM: 25,
+      ertStandbyReady: true,
+    });
+    expect(result.allSatisfied).toBe(false);
+    expect(result.missingItems.length).toBeGreaterThan(0);
+  });
+});
+
+describe('evaluateCompetencyGate (LIFTING/COMBINED require crane operator + rigger certs)', () => {
+  it('is eligible when both certifications are held', () => {
+    const result = evaluateCompetencyGate('LIFTING', {
+      craneOperatorSioClassIIOrAbove: true,
+      riggerCertificateHeld: true,
+    });
+    expect(result.isEligible).toBe(true);
+    expect(result.blockReasons).toEqual([]);
+  });
+
+  it('is not eligible when a single certification is missing', () => {
+    const result = evaluateCompetencyGate('LIFTING', {
+      craneOperatorSioClassIIOrAbove: false,
+      riggerCertificateHeld: true,
+    });
+    expect(result.isEligible).toBe(false);
+    expect(result.blockReasons.length).toBeGreaterThan(0);
+  });
+});
+
+describe('canPrepareCargoHandlingPermit (DRAFT -> PREPARED)', () => {
+  it('can transition when competency gate is fully satisfied', () => {
+    const result = canPrepareCargoHandlingPermit({
+      activityType: 'LIFTING',
+      craneOperatorSioClassIIOrAbove: true,
+      riggerCertificateHeld: true,
+    });
+    expect(result.canTransition).toBe(true);
+  });
+
+  it('cannot transition when a competency requirement is false', () => {
+    const result = canPrepareCargoHandlingPermit({
+      activityType: 'LIFTING',
+      craneOperatorSioClassIIOrAbove: true,
+      riggerCertificateHeld: false,
+    });
+    expect(result.canTransition).toBe(false);
+  });
+});
+
+describe('canApproveCargoHandlingPermit (PREPARED -> APPROVED)', () => {
+  it('can transition on the fully-satisfied happy path', () => {
+    const result = canApproveCargoHandlingPermit({
+      isCriticalHighRisk: false,
+      siteManagerAvailable: true,
+      delegationMemoAttached: false,
+      esdvThreeStageIsolationConfirmed: false,
+    });
+    expect(result.canTransition).toBe(true);
+  });
+
+  it('blocks Critical High Risk + missing delegation memo (Site Manager absent -> acting approver)', () => {
+    const result = canApproveCargoHandlingPermit({
+      isCriticalHighRisk: true,
+      siteManagerAvailable: false,
+      delegationMemoAttached: false,
+      esdvThreeStageIsolationConfirmed: true,
+    });
+    expect(result.canTransition).toBe(false);
+    expect(result.requiredApproverRole).toBe('SR_OM_LEADER_ACTING');
+    expect(result.blockReasons.some((r) => r.includes('delegation memo'))).toBe(true);
+  });
+
+  it('blocks Critical High Risk + unconfirmed ESDV 3-stage isolation', () => {
+    const result = canApproveCargoHandlingPermit({
+      isCriticalHighRisk: true,
+      siteManagerAvailable: true,
+      delegationMemoAttached: true,
+      esdvThreeStageIsolationConfirmed: false,
+    });
+    expect(result.canTransition).toBe(false);
+    expect(result.blockReasons.some((r) => r.includes('ESDV'))).toBe(true);
+  });
+});
+
+describe('canActivateCargoHandlingPermit (APPROVED -> ACTIVE)', () => {
+  it('can transition when all safety controls are satisfied', () => {
+    const result = canActivateCargoHandlingPermit({
+      activityType: 'UNLOADING',
+      fireWatchAssigned: true,
+      barricadeRadiusM: 25,
+      ertStandbyReady: true,
+    });
+    expect(result.canTransition).toBe(true);
+  });
+
+  it('cannot transition when a safety control is false', () => {
+    const result = canActivateCargoHandlingPermit({
+      activityType: 'UNLOADING',
+      fireWatchAssigned: true,
+      barricadeRadiusM: 25,
+      ertStandbyReady: false,
+    });
+    expect(result.canTransition).toBe(false);
+  });
+});
+
+describe('canCloseCargoHandlingPermit (ACTIVE -> CLOSED)', () => {
+  const allSatisfied = {
+    workLeaderSignedOff: true,
+    hseOfficerSignedOff: true,
+    siteManagerSignedOff: true,
+    allLotoLocksRemoved: true,
+    leakTestPassed: true,
+  };
+
+  it('can transition when all closure items are satisfied', () => {
+    const result = canCloseCargoHandlingPermit(allSatisfied);
+    expect(result.canTransition).toBe(true);
+    expect(result.incompleteItems).toEqual([]);
+  });
+
+  it('cannot transition when only workLeaderSignedOff is false', () => {
+    const result = canCloseCargoHandlingPermit({ ...allSatisfied, workLeaderSignedOff: false });
+    expect(result.canTransition).toBe(false);
+  });
+
+  it('cannot transition when only hseOfficerSignedOff is false', () => {
+    const result = canCloseCargoHandlingPermit({ ...allSatisfied, hseOfficerSignedOff: false });
+    expect(result.canTransition).toBe(false);
+  });
+
+  it('cannot transition when only siteManagerSignedOff is false', () => {
+    const result = canCloseCargoHandlingPermit({ ...allSatisfied, siteManagerSignedOff: false });
+    expect(result.canTransition).toBe(false);
+  });
+
+  it('cannot transition when allLotoLocksRemoved is false', () => {
+    const result = canCloseCargoHandlingPermit({ ...allSatisfied, allLotoLocksRemoved: false });
+    expect(result.canTransition).toBe(false);
+  });
+
+  it('cannot transition when leakTestPassed is false', () => {
+    const result = canCloseCargoHandlingPermit({ ...allSatisfied, leakTestPassed: false });
+    expect(result.canTransition).toBe(false);
+  });
+});
+
+```
+
+---
+
+## File: src\data\ertReadinessData.ts
+```typescript
+// src/data/ertReadinessData.ts
+// ERT Readiness mock data & evaluation — SOP NP08-33 (ERT Manning) / NP08-37 (Firefighting & Emergency Equipment)
+
+export type ERTPosition = 'INCIDENT_COMMANDER' | 'FIRE_TEAM_LEADER' | 'FIRE_WATCH' | 'FIRST_AIDER';
+
+export const ERT_POSITION_LABEL: Record<ERTPosition, string> = {
+  INCIDENT_COMMANDER: 'Incident Commander',
+  FIRE_TEAM_LEADER: 'Fire Team Leader',
+  FIRE_WATCH: 'Fire Watch',
+  FIRST_AIDER: 'First Aider',
+};
+
+export interface ERTAssignment {
+  position: ERTPosition;
+  name: string;
+  jobTitle: string;
+  radioChannel: string;
+  isOnSite: boolean;
+}
+
+export const TOTAL_POB = 12;
+
+export const MOCK_ERT_ASSIGNMENTS: ERTAssignment[] = [
+  { position: 'INCIDENT_COMMANDER', name: 'Edi Hermawan', jobTitle: 'Site Manager', radioChannel: 'CH-01 (CMD)', isOnSite: true },
+  { position: 'FIRE_TEAM_LEADER', name: 'Arsyan AN', jobTitle: 'HSE Officer', radioChannel: 'CH-04 (HSSE)', isOnSite: true },
+  { position: 'FIRE_WATCH', name: 'Yusuf', jobTitle: 'Field Operator (Work Area Dedicated)', radioChannel: 'CH-02 (OPS)', isOnSite: true },
+  { position: 'FIRST_AIDER', name: 'Erwin Supriatna', jobTitle: 'Field Operator', radioChannel: 'CH-02 (OPS)', isOnSite: true },
+];
+
+export type EquipmentStatus = 'GREEN' | 'DUE' | 'RED';
+
+export interface ScbaSet {
+  id: string;
+  pressureBar: number;
+}
+
+export const MOCK_SCBA_SETS: ScbaSet[] = [
+  { id: 'SCBA-01', pressureBar: 210 },
+  { id: 'SCBA-02', pressureBar: 205 },
+  { id: 'SCBA-03', pressureBar: 198 },
+  { id: 'SCBA-04', pressureBar: 215 },
+];
+
+export const SCBA_MIN_PRESSURE_BAR = 200;
+
+export interface ExtinguisherUnit {
+  id: string;
+  tagId: string; // T-201..204 (Unloading Skid) or PRSS-HDR
+  type: 'DCP' | 'CO2';
+  status: EquipmentStatus;
+}
+
+export const MOCK_EXTINGUISHERS: ExtinguisherUnit[] = [
+  { id: 'EXT-01', tagId: 'T-201', type: 'DCP', status: 'GREEN' },
+  { id: 'EXT-02', tagId: 'T-201', type: 'CO2', status: 'GREEN' },
+  { id: 'EXT-03', tagId: 'T-202', type: 'DCP', status: 'GREEN' },
+  { id: 'EXT-04', tagId: 'T-202', type: 'CO2', status: 'GREEN' },
+  { id: 'EXT-05', tagId: 'T-203', type: 'DCP', status: 'DUE' },
+  { id: 'EXT-06', tagId: 'T-203', type: 'CO2', status: 'GREEN' },
+  { id: 'EXT-07', tagId: 'T-204', type: 'DCP', status: 'GREEN' },
+  { id: 'EXT-08', tagId: 'T-204', type: 'CO2', status: 'GREEN' },
+  { id: 'EXT-09', tagId: 'PRSS-HDR', type: 'DCP', status: 'GREEN' },
+  { id: 'EXT-10', tagId: 'PRSS-HDR', type: 'CO2', status: 'GREEN' },
+];
+
+export const MIN_EXTINGUISHER_COUNT = 8;
+
+export interface EmergencyStation {
+  id: string;
+  name: string;
+  location: string;
+  isOperational: boolean;
+}
+
+export const MOCK_EMERGENCY_STATIONS: EmergencyStation[] = [
+  { id: 'EWS-01', name: 'Emergency Eye Wash & Safety Shower', location: 'Unloading Skid Platform', isOperational: true },
+  { id: 'EWS-02', name: 'Emergency Eye Wash & Safety Shower', location: 'PRSS Header Deck', isOperational: true },
+];
+
+export type ERTReadinessStatus = 'ALL_READY' | 'ATTENTION' | 'STANDBY';
+
+export interface ERTReadinessSummary {
+  totalPOB: number;
+  ertAssignedCount: number;
+  ertPositionsFilled: boolean;
+  scbaReadyCount: number;
+  scbaTotalCount: number;
+  extinguisherGreenCount: number;
+  extinguisherTotalCount: number;
+  stationsOperationalCount: number;
+  stationsTotalCount: number;
+  readinessStatus: ERTReadinessStatus;
+}
+
+export function computeERTReadinessSummary(
+  assignments: ERTAssignment[],
+  scbaSets: ScbaSet[],
+  extinguishers: ExtinguisherUnit[],
+  stations: EmergencyStation[]
+): ERTReadinessSummary {
+  const ertAssignedCount = assignments.filter((a) => a.isOnSite).length;
+  const ertPositionsFilled = ertAssignedCount === assignments.length;
+
+  const scbaReadyCount = scbaSets.filter((s) => s.pressureBar >= SCBA_MIN_PRESSURE_BAR).length;
+  const extinguisherGreenCount = extinguishers.filter((e) => e.status === 'GREEN').length;
+  const stationsOperationalCount = stations.filter((s) => s.isOperational).length;
+
+  const equipmentAllReady =
+    scbaReadyCount === scbaSets.length &&
+    extinguisherGreenCount === extinguishers.length &&
+    extinguisherGreenCount >= MIN_EXTINGUISHER_COUNT &&
+    stationsOperationalCount === stations.length;
+
+  const readinessStatus: ERTReadinessStatus = !ertPositionsFilled
+    ? 'STANDBY'
+    : equipmentAllReady
+    ? 'ALL_READY'
+    : 'ATTENTION';
+
+  return {
+    totalPOB: TOTAL_POB,
+    ertAssignedCount,
+    ertPositionsFilled,
+    scbaReadyCount,
+    scbaTotalCount: scbaSets.length,
+    extinguisherGreenCount,
+    extinguisherTotalCount: extinguishers.length,
+    stationsOperationalCount,
+    stationsTotalCount: stations.length,
+    readinessStatus,
+  };
+}
+
+```
+
+---
+
 ## File: src\data\gasQualityMasterData.ts
 ```typescript
 // src/data/gasQualityMasterData.ts
@@ -43059,6 +43664,113 @@ export const INITIAL_GAS_QUALITY_MASTER_RECORDS: GasQualityMasterRecord[] = [
     submittedAt: '27/07/2026, 17:00:00 WIB',
   },
 ];
+
+```
+
+---
+
+## File: src\data\gasTestingLogData.ts
+```typescript
+// src/data/gasTestingLogData.ts
+// Gas Testing Log (AGT) mock records & safety evaluation — SOP NP08-15
+// Measurement zones: Unloading Skid (T-201~204), Ambient Air Vaporizer (VAP-101~106),
+// PRSS Header, BOG Compressor Skid. Cycle: every 4h during unloading (00/04/08/12/16/20:00).
+
+export type GasTestZone = 'UNLOADING_SKID' | 'AMBIENT_VAPORIZER' | 'PRSS_HEADER' | 'BOG_COMPRESSOR';
+
+export const GAS_TEST_ZONE_LABEL: Record<GasTestZone, string> = {
+  UNLOADING_SKID: 'Unloading Skid',
+  AMBIENT_VAPORIZER: 'Ambient Air Vaporizer',
+  PRSS_HEADER: 'PRSS Header',
+  BOG_COMPRESSOR: 'BOG Compressor Skid',
+};
+
+export interface GasTestReading {
+  id: string;
+  zone: GasTestZone;
+  tagId: string; // T-201..204 / VAP-101..106 / PRSS-HDR / BOG-SKID
+  cycleTime: string; // fixed 4h cycle slot, e.g. '16:00'
+  testedAt: string; // ISO timestamp
+  lelPercent: number;
+  o2Percent: number;
+  h2sPpm: number;
+  coPpm: number;
+  testedBy: string;
+}
+
+export type GasTestSeverity = 'SAFE' | 'CAUTION' | 'DANGER';
+
+export interface GasTestEvaluation {
+  lelSeverity: GasTestSeverity;
+  o2Safe: boolean;
+  h2sSafe: boolean;
+  coSafe: boolean;
+  overallSeverity: GasTestSeverity;
+  isAtmosphereSafe: boolean;
+}
+
+const D = '2026-09-08';
+
+export const MOCK_GAS_TEST_READINGS: GasTestReading[] = [
+  { id: 'GT-001', zone: 'UNLOADING_SKID', tagId: 'T-201', cycleTime: '20:00', testedAt: `${D}T20:00:00`, lelPercent: 0.0, o2Percent: 20.9, h2sPpm: 0, coPpm: 2, testedBy: 'AGT-Santoso' },
+  { id: 'GT-002', zone: 'UNLOADING_SKID', tagId: 'T-202', cycleTime: '20:00', testedAt: `${D}T20:00:00`, lelPercent: 0.0, o2Percent: 20.8, h2sPpm: 1, coPpm: 3, testedBy: 'AGT-Santoso' },
+  { id: 'GT-003', zone: 'UNLOADING_SKID', tagId: 'T-203', cycleTime: '16:00', testedAt: `${D}T16:00:00`, lelPercent: 2.5, o2Percent: 20.5, h2sPpm: 3, coPpm: 8, testedBy: 'AGT-Wijaya' },
+  { id: 'GT-004', zone: 'UNLOADING_SKID', tagId: 'T-204', cycleTime: '16:00', testedAt: `${D}T16:00:00`, lelPercent: 0.0, o2Percent: 20.7, h2sPpm: 0, coPpm: 1, testedBy: 'AGT-Wijaya' },
+  { id: 'GT-005', zone: 'AMBIENT_VAPORIZER', tagId: 'VAP-101', cycleTime: '20:00', testedAt: `${D}T20:00:00`, lelPercent: 0.0, o2Percent: 20.9, h2sPpm: 0, coPpm: 0, testedBy: 'AGT-Santoso' },
+  { id: 'GT-006', zone: 'AMBIENT_VAPORIZER', tagId: 'VAP-104', cycleTime: '16:00', testedAt: `${D}T16:00:00`, lelPercent: 12.0, o2Percent: 18.9, h2sPpm: 6, coPpm: 30, testedBy: 'AGT-Wijaya' },
+  { id: 'GT-007', zone: 'PRSS_HEADER', tagId: 'PRSS-HDR', cycleTime: '20:00', testedAt: `${D}T20:00:00`, lelPercent: 0.0, o2Percent: 20.8, h2sPpm: 0, coPpm: 2, testedBy: 'AGT-Santoso' },
+  { id: 'GT-008', zone: 'BOG_COMPRESSOR', tagId: 'BOG-SKID', cycleTime: '16:00', testedAt: `${D}T16:00:00`, lelPercent: 1.0, o2Percent: 20.6, h2sPpm: 2, coPpm: 5, testedBy: 'AGT-Wijaya' },
+];
+
+export function evaluateGasTestReading(reading: GasTestReading): GasTestEvaluation {
+  const lelSeverity: GasTestSeverity =
+    reading.lelPercent >= 10.0 ? 'DANGER' : reading.lelPercent > 0.0 ? 'CAUTION' : 'SAFE';
+  const o2Safe = reading.o2Percent >= 19.5 && reading.o2Percent <= 23.5;
+  const h2sSafe = reading.h2sPpm < 5;
+  const coSafe = reading.coPpm < 25;
+
+  const overallSeverity: GasTestSeverity =
+    lelSeverity === 'DANGER' || !o2Safe || !h2sSafe || !coSafe
+      ? 'DANGER'
+      : lelSeverity === 'CAUTION'
+      ? 'CAUTION'
+      : 'SAFE';
+
+  return {
+    lelSeverity,
+    o2Safe,
+    h2sSafe,
+    coSafe,
+    overallSeverity,
+    isAtmosphereSafe: overallSeverity === 'SAFE',
+  };
+}
+
+export interface GasTestingLogStats {
+  total: number;
+  safeCount: number;
+  cautionCount: number;
+  dangerCount: number;
+  lastTestedAt: string | null;
+}
+
+export function computeGasTestingStats(readings: GasTestReading[]): GasTestingLogStats {
+  let safeCount = 0;
+  let cautionCount = 0;
+  let dangerCount = 0;
+  let lastTestedAt: string | null = null;
+
+  for (const r of readings) {
+    const { overallSeverity } = evaluateGasTestReading(r);
+    if (overallSeverity === 'SAFE') safeCount += 1;
+    else if (overallSeverity === 'CAUTION') cautionCount += 1;
+    else dangerCount += 1;
+
+    if (!lastTestedAt || r.testedAt > lastTestedAt) lastTestedAt = r.testedAt;
+  }
+
+  return { total: readings.length, safeCount, cautionCount, dangerCount, lastTestedAt };
+}
 
 ```
 
@@ -43871,45 +44583,6 @@ export function getTankPhysicalMetrics(tankNo: string, serialNo: string): TankPh
 
 ---
 
-## File: src\data\Operation Manpower Roster.csv
-```text
-NIAS LNG TERMINAL — MANPOWER & SHIFT ROSTER,,,,,,,,,,,,,,,
-Baseline Date: 2026-09-01 (Current Today) | 3:1 Rotation Cycle Engine (3Mo On-Site / 30d Off-Duty) | Total Manning: 22 Personnel,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,
-,ON-SITE ACTIVE: 18 / 22 (82%),,,,OFF-DUTY LEAVE (AL): 4 / 22 (18%),,,,,ERT COMPLIANCE: 100% CLEARED [AUTHORIZED],,,,,
-,,,,,,,,,,,,,,,
-ID,Personnel Name,Position,Team,Department,Status,Today Shift,On-Site Days,,Target Cycle/Day,Cycle Start,Next Rotation (AL),Designated Reliever,Contact No,Radio CH,ERT Role
-BSG259529,Edi Hermawan,Site Manager,Management,MANAGEMENT,On-Site,D,2026-07-09,28,92,2026-08-08,2026-11-08,HQ Delegate,0812-3332-8894,CH-01 (CMD),Incident Commander
-BSG259524,Shadiq M. Shalih,OP Team Leader,Management ( Team A ),MANAGEMENT,Off-Site,Off,2026-08-13,0,91,2026-09-12,2026-12-12,Asman Sampeaman,+62 811-6502-3341,CH-01 (CMD),Incident Commander
-BSG259736,Yusuf,Field Operator,TEAM-A,Operation Team ,On-Site,D,2026-05-20,78,92,2026-06-19,2026-09-19,Muradi,+62 813-8822-1044,CH-02 (OPS),Gas Leak Response
-BSG259743,Erwin Supriatna,Field Operator,TEAM-A,Operation Team ,Off-Site,Off,2026-08-27,0,91,2026-09-26,2026-12-26,Ripal Fadiah,+62 812-4433-8890,CH-02 (OPS),First Aider
-BSG259833,Asman Sampeaman,OP Team Leader,TEAM-B,Operation Team ,On-Site,D,2026-06-08,59,92,2026-07-08,2026-10-08,Juli Surungan,+62 812-9900-1122,CH-02 (OPS),Incident Commander
-BSG258742,Muradi,Field Operator,TEAM-B,Operation Team ,On-Site,D,2026-06-08,59,92,2026-07-08,2026-10-08,Danang,+62 813-1122-3344,CH-02 (OPS),Gas Leak Response
-BSG259735,Ripal Fadiah,Field Operator,TEAM-B,Operation Team ,On-Site,D,2026-06-28,39,92,2026-07-28,2026-10-28,Uliyansyah,+62 812-3344-5566,CH-02 (OPS),First Aider
-BSG259530,Juli Surungan,OP Team Leader,TEAM-C,Operation Team ,On-Site,D,2026-07-09,28,92,2026-08-08,2026-11-08,Shadiq M. Shalih,+62 811-7788-9900,CH-02 (OPS),Incident Commander
-BSG259634,Danang,Field Operator,TEAM-C,Operation Team ,On-Site,D,2026-06-08,59,92,2026-07-08,2026-10-08,Yusuf,+62 813-9988-7766,CH-02 (OPS),Gas Leak Response
-BSG259532,Uliyansyah,Field Operator,TEAM-C,Operation Team ,On-Site,D,2026-07-13,24,92,2026-08-12,2026-11-12,Erwin Supriatna,+62 812-6655-4433,CH-02 (OPS),First Aider
-BSG259237,Indra Prabayugo,Mechanic Engineer,Maintenance,MAINTENANCE,On-Site,D,2026-06-28,39,92,2026-07-28,2026-10-28,Agunawan,+62 812-7766-5544,CH-03 (MAINT),First Aider
-BSG259420,Agunawan,Maintenance E&I,Maintenance,MAINTENANCE,On-Site,D,2026-05-25,73,92,2026-06-24,2026-09-24,Indra Prabayugo,+62 811-2233-4455,CH-03 (MAINT),Gas Leak Response
-BSG259641,Arsyan AN,HSE Officer,HSSE Team,HSSE,On-Site,D,2026-06-28,39,92,2026-07-28,2026-10-28,Chandra R.D,+62 812-1144-7788,CH-04 (HSSE),Fire Chief
-BSG259919,Chandra R.D,HSE Officer,HSSE Team,HSSE,On-Site,D,2026-04-21,107,92,2026-05-21,2026-08-21,Arsyan AN,+62 811-9988-1122,CH-04 (HSSE),Fire Chief
-BSG259245,Indra Parulian,Super Cargo,Cargo Operation,Cargo Logistic,On-Site,D,2026-06-15,52,92,2026-07-15,2026-10-15,Rafi Anggara,+62 812-1144-7788,CH-04 (HSSE),Fire Chief
-BSG259646,Rafi Anggara,Crane Operator,Cargo Operation,Cargo Logistic,On-Site,D,2026-06-11,56,92,2026-07-11,2026-10-11,Indra Parulian,+62 811-9988-1122,CH-04 (HSSE),Fire Chief
-BSG259444,Albert A. Gea,HR / GA Officer,HR / GA,HR_GA,On-Site,D,2026-06-04,63,92,2026-07-04,2026-10-04,Jefi R. Zega,+62 813-6655-2211,CH-05 (LOG),First Aider
-BSG199551,Jefi R. Zega,HR / GA Coordinator,HR / GA,HR_GA,On-Site,D,2026-07-07,30,92,2026-08-06,2026-11-06,Albert A. Gea,082165171882,CH-05 (LOG),First Aider
-,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,
-,,,,,,D,,,,,,,,,
-
-```
-
----
-
 ## File: src\data\pltmgEngineSpec.ts
 ```typescript
 /**
@@ -44056,11 +44729,504 @@ export function calcAutonomyBufferHours(
 
 ---
 
+## File: src\data\ptwCargoHandlingMapper.ts
+```typescript
+// src/data/ptwCargoHandlingMapper.ts
+// Pure mapper: Cargo Handling PTW form state -> PTWPermit register entry.
+// No React bindings (AGENTS.md Logic/Data Layer). Consumed by
+// CargoHandlingPermitForm on submit.
+
+import type { CargoHandlingPermitDetails, PTWPermit } from '../types/lng';
+import type { CargoHandlingIdentity } from '../components/manpower/cargoHandling/hooks/useCargoHandlingPermitForm';
+import { evaluateAgtGate } from './ptwCargoHandlingValidators';
+
+// Fixed simulation timestamp convention shared with PTWManagementView.handleCreatePermit
+// (this portal runs against a fixed 2026-09-01 scenario date, not the real clock).
+const SIM_TIMESTAMP = '2026-09-01 12:00';
+const SIM_VALID_FROM = '2026-09-01 13:00';
+const SIM_VALID_TO = '2026-09-01 18:00';
+
+export function mapCargoHandlingFormToPermit(
+  identity: CargoHandlingIdentity,
+  details: CargoHandlingPermitDetails,
+  requiredSopCodes: string[],
+  sequenceNumber: number
+): PTWPermit {
+  const agt = evaluateAgtGate(details.activityType, details.gasReadingPoints);
+  const worstLel = details.gasReadingPoints.reduce((max, p) => Math.max(max, p.lelPercent), 0);
+  const worstO2 = details.gasReadingPoints.reduce(
+    (min, p) => Math.min(min, p.o2Percent),
+    details.gasReadingPoints[0]?.o2Percent ?? 20.9
+  );
+
+  return {
+    id: `PTW-2026-0901-${String(sequenceNumber).padStart(2, '0')}`,
+    formNumber: requiredSopCodes[0],
+    type: 'CARGO_HANDLING',
+    title: identity.title,
+    location: identity.location,
+    status: 'DRAFT',
+    workLeaderId: '',
+    workLeaderName: identity.workLeaderName,
+    assignedWorkerIds: [],
+    assignedWorkerNames: [],
+    gasReadings: {
+      lelPercent: worstLel,
+      o2Percent: worstO2,
+      h2sPpm: 0,
+      coPpm: 0,
+      testedAt: details.lastGasTestAt || SIM_TIMESTAMP,
+      isSafeForWork: agt.isSafe,
+    },
+    safetyChecklist: {
+      fireWatchAssigned: details.fireWatchAssigned,
+      gasDetectorContinuous: true,
+      lotoApplied: details.allLotoLocksRemoved,
+      forcedVentilation: false,
+      ppeVerified: true,
+      barricadeSet: details.barricadeRadiusM > 0,
+    },
+    validFrom: SIM_VALID_FROM,
+    validTo: SIM_VALID_TO,
+    emergencyProtocol: 'Radio Channel 1 Emergency Channel Active',
+    createdAt: SIM_TIMESTAMP,
+    hazardDescription: `${details.activityType} cargo handling protocol active under SOP ${requiredSopCodes.join(', ')}.`,
+    cargoHandling: details,
+  };
+}
+
+```
+
+---
+
+## File: src\data\ptwCargoHandlingRules.ts
+```typescript
+// src/data/ptwCargoHandlingRules.ts
+// Cargo Handling (ISO Tank Unloading / Crane-Reachstacker Lifting Transfer) PTW
+// named constants. Source: safety-ptw-rules.md.
+// Cargo Handling permit data is carried as PTWPermit.cargoHandling (optional,
+// additive field, defined in ../types/lng) — existing PTWPermit/PTW_SOP_FORMS
+// fields are never modified here.
+
+import { CargoHandlingActivityType } from '../types/lng';
+import { PTW_SOP_FORMS, PTWSOPFormDef } from './ptwMasterData';
+
+// --- SOP code mapping (NP08-xx) ---
+export const CARGO_HANDLING_SOP = {
+  UNLOADING_SKID: 'NP08-04',
+  GAS_MONITORING: 'NP08-15',
+  LIFTING_ISO_TANK: 'NP08-02',
+  SHIP_TO_SHIP_TRANSFER: 'NP08-10',
+} as const;
+
+export const CARGO_HANDLING_SOP_BY_ACTIVITY: Record<CargoHandlingActivityType, string[]> = {
+  UNLOADING: [CARGO_HANDLING_SOP.UNLOADING_SKID, CARGO_HANDLING_SOP.GAS_MONITORING],
+  LIFTING: [CARGO_HANDLING_SOP.LIFTING_ISO_TANK, CARGO_HANDLING_SOP.SHIP_TO_SHIP_TRANSFER],
+  COMBINED: [
+    CARGO_HANDLING_SOP.UNLOADING_SKID,
+    CARGO_HANDLING_SOP.GAS_MONITORING,
+    CARGO_HANDLING_SOP.LIFTING_ISO_TANK,
+    CARGO_HANDLING_SOP.SHIP_TO_SHIP_TRANSFER,
+  ],
+};
+
+// --- Mandatory AGT measurement points (Unloading Skid) ---
+export const CARGO_HANDLING_AGT_MANDATORY_POINTS = ['T-201', 'T-202', 'T-203', 'T-204'] as const;
+
+// --- Critical High Risk escalation threshold ---
+export const CRITICAL_HIGH_RISK_WEIGHT_TON = 25;
+
+// --- Gas safety thresholds (Unloading) ---
+export const UNLOADING_LEL_MAX_PERCENT = 10;
+export const UNLOADING_O2_MIN_PERCENT = 19.5;
+export const UNLOADING_O2_MAX_PERCENT = 23.5;
+export const SCBA_REQUIRED_BELOW_O2_PERCENT = 19.5;
+export const ATMOSPHERE_SAFE_LEL_MAX_PERCENT = 0;
+export const ATMOSPHERE_SAFE_O2_TARGET_PERCENT = 20.9;
+export const ATMOSPHERE_SAFE_O2_TOLERANCE_PERCENT = 0.4;
+export const GAS_RETEST_INTERVAL_HOURS = 4;
+
+// --- Grounding & Bonding threshold ---
+export const GROUNDING_RESISTANCE_MAX_OHM = 5;
+
+// --- Barricade radius thresholds ---
+// Spec only defines a hard block on falling short of the minimum; the lifting
+// max is the SOP's documented upper reference band, not an additional block.
+export const BARRICADE_RADIUS_UNLOADING_MIN_M = 25;
+export const BARRICADE_RADIUS_LIFTING_MIN_M = 50;
+export const BARRICADE_RADIUS_LIFTING_MAX_M = 100;
+
+// --- Depressurization targets (ISO Tank / hose disconnection gate) ---
+export const DEPRESSURIZATION_T203_TAG_ID = 'T-203';
+export const DEPRESSURIZATION_TARGET_MPA_DEFAULT = 0.4;
+export const DEPRESSURIZATION_TARGET_MPA_T203 = 0.1;
+export const DEPRESSURIZATION_TARGET_MPA_HOSE = 0.0;
+
+// --- Per-activity-type SOP form info ---
+// PTW_SOP_FORMS[CARGO_HANDLING] only carries one representative formNumber
+// (see NOTE comment above that entry in ptwMasterData.ts). This assembles the
+// actual 1:N SOP set for a given activity from CARGO_HANDLING_SOP_BY_ACTIVITY,
+// so no UI surface displays the single placeholder value as if it were complete.
+export function getCargoHandlingSOPInfo(activityType: CargoHandlingActivityType): PTWSOPFormDef[] {
+  const base = PTW_SOP_FORMS.CARGO_HANDLING;
+  return CARGO_HANDLING_SOP_BY_ACTIVITY[activityType].map((formNumber) => ({
+    ...base,
+    formNumber,
+  }));
+}
+
+```
+
+---
+
+## File: src\data\ptwCargoHandlingTransitions.ts
+```typescript
+// src/data/ptwCargoHandlingTransitions.ts
+// DRAFT/PREPARED/APPROVED/ACTIVE/CLOSED transition wrappers for the Cargo
+// Handling PTW category. Split out of ptwCargoHandlingValidators.ts to keep
+// each file under the 250-line cap (AGENTS.md); wraps the same pure gates,
+// does not modify the existing DRAFT..CLOSED pipeline itself.
+
+import { CargoHandlingActivityType, CargoHandlingApprovalSignerRole } from '../types/lng';
+import { evaluateCompetencyGate, evaluateMandatorySafetyControls } from './ptwCargoHandlingValidators';
+
+// --- DRAFT -> PREPARED transition wrapper ---
+export function canPrepareCargoHandlingPermit(input: {
+  activityType: CargoHandlingActivityType;
+  craneOperatorSioClassIIOrAbove: boolean;
+  riggerCertificateHeld: boolean;
+}): { canTransition: boolean; blockReasons: string[] } {
+  const competency = evaluateCompetencyGate(input.activityType, input);
+  return { canTransition: competency.isEligible, blockReasons: competency.blockReasons };
+}
+
+// --- PREPARED -> APPROVED transition gate ---
+export function canApproveCargoHandlingPermit(input: {
+  isCriticalHighRisk: boolean;
+  siteManagerAvailable: boolean;
+  delegationMemoAttached: boolean;
+  esdvThreeStageIsolationConfirmed: boolean;
+}): { canTransition: boolean; blockReasons: string[]; requiredApproverRole: CargoHandlingApprovalSignerRole } {
+  const blockReasons: string[] = [];
+
+  const requiredApproverRole: CargoHandlingApprovalSignerRole =
+    input.isCriticalHighRisk && !input.siteManagerAvailable ? 'SR_OM_LEADER_ACTING' : 'SITE_MANAGER';
+
+  if (requiredApproverRole === 'SR_OM_LEADER_ACTING' && !input.delegationMemoAttached) {
+    blockReasons.push('Site Manager absent — Sr. O&M Leader acting approval requires delegation memo attachment');
+  }
+
+  if (input.isCriticalHighRisk && !input.esdvThreeStageIsolationConfirmed) {
+    blockReasons.push('Critical High Risk requires ESDV 3-stage full isolation confirmation');
+  }
+
+  return { canTransition: blockReasons.length === 0, blockReasons, requiredApproverRole };
+}
+
+// --- APPROVED -> ACTIVE transition wrapper ---
+export function canActivateCargoHandlingPermit(input: {
+  activityType: CargoHandlingActivityType;
+  fireWatchAssigned: boolean;
+  barricadeRadiusM: number;
+  ertStandbyReady: boolean;
+}): { canTransition: boolean; blockReasons: string[] } {
+  const safetyControls = evaluateMandatorySafetyControls(input.activityType, input);
+  return { canTransition: safetyControls.allSatisfied, blockReasons: safetyControls.missingItems };
+}
+
+// --- ACTIVE -> CLOSED transition gate ---
+export function canCloseCargoHandlingPermit(input: {
+  workLeaderSignedOff: boolean;
+  hseOfficerSignedOff: boolean;
+  siteManagerSignedOff: boolean;
+  allLotoLocksRemoved: boolean;
+  leakTestPassed: boolean;
+}): { canTransition: boolean; incompleteItems: string[] } {
+  const incompleteItems: string[] = [];
+
+  if (!input.workLeaderSignedOff) incompleteItems.push('Work Leader sign-off');
+  if (!input.hseOfficerSignedOff) incompleteItems.push('HSE Officer sign-off');
+  if (!input.siteManagerSignedOff) incompleteItems.push('Site Manager sign-off');
+  if (!input.allLotoLocksRemoved) incompleteItems.push('All LOTO locks removed');
+  if (!input.leakTestPassed) incompleteItems.push('Piping leak/tightness test passed');
+
+  return { canTransition: incompleteItems.length === 0, incompleteItems };
+}
+
+```
+
+---
+
+## File: src\data\ptwCargoHandlingValidators.ts
+```typescript
+// src/data/ptwCargoHandlingValidators.ts
+// Pure gatekeeping functions for the Cargo Handling PTW category.
+// Does not modify or call into existing validatePTWCompetency / validatePTWGasSafety
+// (ptwMasterData.ts) or the DRAFT/PREPARED/APPROVED/ACTIVE/CLOSED pipeline itself —
+// these are additive wrapper gates evaluated by the Cargo Handling UI only.
+// DRAFT..CLOSED transition wrappers built on top of these gates live in
+// ptwCargoHandlingTransitions.ts (kept separate to respect the 250-line cap).
+
+import {
+  CargoHandlingActivityType,
+  CargoHandlingGasPoint,
+} from '../types/lng';
+import {
+  CARGO_HANDLING_AGT_MANDATORY_POINTS,
+  CARGO_HANDLING_SOP_BY_ACTIVITY,
+  ATMOSPHERE_SAFE_LEL_MAX_PERCENT,
+  ATMOSPHERE_SAFE_O2_TARGET_PERCENT,
+  ATMOSPHERE_SAFE_O2_TOLERANCE_PERCENT,
+  BARRICADE_RADIUS_LIFTING_MIN_M,
+  BARRICADE_RADIUS_UNLOADING_MIN_M,
+  CRITICAL_HIGH_RISK_WEIGHT_TON,
+  DEPRESSURIZATION_T203_TAG_ID,
+  DEPRESSURIZATION_TARGET_MPA_DEFAULT,
+  DEPRESSURIZATION_TARGET_MPA_HOSE,
+  DEPRESSURIZATION_TARGET_MPA_T203,
+  GAS_RETEST_INTERVAL_HOURS,
+  GROUNDING_RESISTANCE_MAX_OHM,
+  SCBA_REQUIRED_BELOW_O2_PERCENT,
+  UNLOADING_LEL_MAX_PERCENT,
+  UNLOADING_O2_MAX_PERCENT,
+  UNLOADING_O2_MIN_PERCENT,
+} from './ptwCargoHandlingRules';
+
+// --- 1. PTW classification: activity type -> required SOP codes ---
+export function resolveCargoHandlingSopCodes(activityType: CargoHandlingActivityType): string[] {
+  return CARGO_HANDLING_SOP_BY_ACTIVITY[activityType];
+}
+
+// --- 2. Critical High Risk auto-escalation ---
+export function evaluateCriticalHighRiskEscalation(input: {
+  loadedWeightTon: number;
+  isActiveCryogenicFlow: boolean;
+  hoseDisconnectionInProgress: boolean;
+}): { isCriticalHighRisk: boolean; reasons: string[] } {
+  const reasons: string[] = [];
+
+  if (input.loadedWeightTon >= CRITICAL_HIGH_RISK_WEIGHT_TON) {
+    reasons.push(`Loaded Weight ${input.loadedWeightTon}t >= ${CRITICAL_HIGH_RISK_WEIGHT_TON}t threshold`);
+  }
+  if (input.isActiveCryogenicFlow && input.hoseDisconnectionInProgress) {
+    reasons.push('Hose/Piping disconnection requested while cryogenic flow is active');
+  }
+
+  return { isCriticalHighRisk: reasons.length > 0, reasons };
+}
+
+// --- 3. AGT gate (Unloading only, multi-point) ---
+export function evaluateAgtGate(
+  activityType: CargoHandlingActivityType,
+  gasReadingPoints: CargoHandlingGasPoint[]
+): {
+  isSafe: boolean;
+  blockReason: string | null;
+  scbaRequiredTagIds: string[];
+  isAtmosphereSafeCertifiable: boolean;
+} {
+  if (activityType === 'LIFTING') {
+    return { isSafe: true, blockReason: null, scbaRequiredTagIds: [], isAtmosphereSafeCertifiable: false };
+  }
+
+  const readingByTag = new Map(gasReadingPoints.map((p) => [p.tagId, p]));
+  const missingTags = CARGO_HANDLING_AGT_MANDATORY_POINTS.filter((tag) => !readingByTag.has(tag));
+  if (missingTags.length > 0) {
+    return {
+      isSafe: false,
+      blockReason: `Missing AGT reading for mandatory point(s): ${missingTags.join(', ')}`,
+      scbaRequiredTagIds: [],
+      isAtmosphereSafeCertifiable: false,
+    };
+  }
+
+  const scbaRequiredTagIds = gasReadingPoints
+    .filter((p) => p.o2Percent < SCBA_REQUIRED_BELOW_O2_PERCENT)
+    .map((p) => p.tagId);
+
+  for (const point of gasReadingPoints) {
+    if (point.lelPercent >= UNLOADING_LEL_MAX_PERCENT) {
+      return {
+        isSafe: false,
+        blockReason: `[STOP ACTION] LEL at ${point.tagId} is ${point.lelPercent}% (>= ${UNLOADING_LEL_MAX_PERCENT}% ceiling) — immediate work stoppage required`,
+        scbaRequiredTagIds,
+        isAtmosphereSafeCertifiable: false,
+      };
+    }
+    if (point.o2Percent < UNLOADING_O2_MIN_PERCENT || point.o2Percent > UNLOADING_O2_MAX_PERCENT) {
+      return {
+        isSafe: false,
+        blockReason: `[ENTRY BLOCKED] O2 at ${point.tagId} is ${point.o2Percent}% (safe band ${UNLOADING_O2_MIN_PERCENT}%~${UNLOADING_O2_MAX_PERCENT}%)`,
+        scbaRequiredTagIds,
+        isAtmosphereSafeCertifiable: false,
+      };
+    }
+  }
+
+  // Epsilon guards against IEEE754 rounding at the exact tolerance boundary
+  // (e.g. 21.3 - 20.9 evaluates to 0.40000000000000213 in JS, not 0.4).
+  const FLOAT_TOLERANCE_EPSILON = 1e-9;
+  const isAtmosphereSafeCertifiable = gasReadingPoints.every(
+    (p) =>
+      p.lelPercent === ATMOSPHERE_SAFE_LEL_MAX_PERCENT &&
+      Math.abs(p.o2Percent - ATMOSPHERE_SAFE_O2_TARGET_PERCENT) <= ATMOSPHERE_SAFE_O2_TOLERANCE_PERCENT + FLOAT_TOLERANCE_EPSILON
+  );
+
+  return { isSafe: true, blockReason: null, scbaRequiredTagIds, isAtmosphereSafeCertifiable };
+}
+
+export function isGasRetestDue(lastGasTestAt: string | undefined, nowIso: string): boolean {
+  if (!lastGasTestAt) return true;
+  const elapsedHours = (new Date(nowIso).getTime() - new Date(lastGasTestAt).getTime()) / (1000 * 60 * 60);
+  return elapsedHours >= GAS_RETEST_INTERVAL_HOURS;
+}
+
+// --- 4. Grounding & Bonding gate (Unloading only) ---
+export function evaluateGroundingGate(input: {
+  groundingResistanceOhm: number;
+  allHosesDisconnected: boolean;
+}): { canStartPressurizedTransfer: boolean; canCheckDegrounding: boolean; blockReason: string | null } {
+  const canStartPressurizedTransfer = input.groundingResistanceOhm < GROUNDING_RESISTANCE_MAX_OHM;
+  const canCheckDegrounding = input.allHosesDisconnected === true;
+
+  return {
+    canStartPressurizedTransfer,
+    canCheckDegrounding,
+    blockReason: canStartPressurizedTransfer
+      ? null
+      : `Grounding resistance ${input.groundingResistanceOhm}Ω >= ${GROUNDING_RESISTANCE_MAX_OHM}Ω ceiling`,
+  };
+}
+
+// --- Depressurization gate (ISO Tank / cryogenic hose disconnection) ---
+// Gates the "all hoses disconnected" checkbox itself: while this fails, the
+// disconnection-complete flag cannot be checked, which in turn keeps the
+// degrounding checkbox (evaluateGroundingGate) disabled — enforcing sequence.
+export function evaluateDepressurizationGate(input: {
+  depressurizationTagId: string;
+  currentPressureMPa: number;
+  isFlexibleHoseOrQccDisconnection: boolean;
+  icingPresent: boolean;
+}): { isDisconnectionApproved: boolean; targetPressureMPa: number; blockReason: string | null } {
+  if (input.isFlexibleHoseOrQccDisconnection) {
+    const isApproved = input.currentPressureMPa === DEPRESSURIZATION_TARGET_MPA_HOSE && !input.icingPresent;
+    return {
+      isDisconnectionApproved: isApproved,
+      targetPressureMPa: DEPRESSURIZATION_TARGET_MPA_HOSE,
+      blockReason: isApproved
+        ? null
+        : `Cryogenic hose/QCC disconnection requires ${DEPRESSURIZATION_TARGET_MPA_HOSE} MPa convergence and no piping icing (current ${input.currentPressureMPa} MPa, icing: ${input.icingPresent})`,
+    };
+  }
+
+  const targetPressureMPa =
+    input.depressurizationTagId === DEPRESSURIZATION_T203_TAG_ID
+      ? DEPRESSURIZATION_TARGET_MPA_T203
+      : DEPRESSURIZATION_TARGET_MPA_DEFAULT;
+  const isApproved = input.currentPressureMPa <= targetPressureMPa;
+
+  return {
+    isDisconnectionApproved: isApproved,
+    targetPressureMPa,
+    blockReason: isApproved
+      ? null
+      : `${input.depressurizationTagId} pressure ${input.currentPressureMPa} MPa exceeds ${targetPressureMPa} MPa disconnection target`,
+  };
+}
+
+// --- 5. Mandatory Safety Controls (Cargo Handling specific) ---
+export function validateBarricadeRadius(
+  activityType: CargoHandlingActivityType,
+  radiusM: number
+): { isValid: boolean; error: string | null } {
+  const minRadiusM = activityType === 'UNLOADING' ? BARRICADE_RADIUS_UNLOADING_MIN_M : BARRICADE_RADIUS_LIFTING_MIN_M;
+  if (radiusM < minRadiusM) {
+    return { isValid: false, error: `Barricade radius ${radiusM}m is below the ${minRadiusM}m minimum for ${activityType}` };
+  }
+  return { isValid: true, error: null };
+}
+
+export function evaluateMandatorySafetyControls(
+  activityType: CargoHandlingActivityType,
+  input: { fireWatchAssigned: boolean; barricadeRadiusM: number; ertStandbyReady: boolean }
+): { allSatisfied: boolean; missingItems: string[] } {
+  const missingItems: string[] = [];
+
+  if (!input.fireWatchAssigned) missingItems.push('Fire Watch Assigned (DCP/CO2 extinguisher on hand)');
+
+  const radiusCheck = validateBarricadeRadius(activityType, input.barricadeRadiusM);
+  if (!radiusCheck.isValid && radiusCheck.error) missingItems.push(radiusCheck.error);
+
+  if (!input.ertStandbyReady) missingItems.push('ERT Standby Ready (SCBA equipped)');
+
+  return { allSatisfied: missingItems.length === 0, missingItems };
+}
+
+// --- 6. Competency gate (Lifting / Combined activities only) ---
+export function evaluateCompetencyGate(
+  activityType: CargoHandlingActivityType,
+  input: { craneOperatorSioClassIIOrAbove: boolean; riggerCertificateHeld: boolean }
+): { isEligible: boolean; blockReasons: string[] } {
+  if (activityType === 'UNLOADING') {
+    return { isEligible: true, blockReasons: [] };
+  }
+
+  const blockReasons: string[] = [];
+  if (!input.craneOperatorSioClassIIOrAbove) blockReasons.push('Crane Operator missing SIO Class II or above certification');
+  if (!input.riggerCertificateHeld) blockReasons.push('Rigger missing Rigger Certificate');
+
+  return { isEligible: blockReasons.length === 0, blockReasons };
+}
+
+```
+
+---
+
+## File: src\data\ptwGasSafetyRules.ts
+```typescript
+// src/data/ptwGasSafetyRules.ts
+// Universal PTW gas-safety gate thresholds (SSHQE_MASTER_SPECIFICATION.md §4.3).
+// O2 band and H2S ceiling apply uniformly across every PTW type, independent of
+// PTW_SOP_FORMS[type].gasRestrictions (per-type LEL/H2S/CO values, not yet
+// fully wired into validatePTWGasSafety() — see PTW_AUDIT_REPORT_2026-09-08.md
+// §3 table row 7). CO and Hg gating remain out of scope for this phase.
+
+import { PTWPermit } from '../types/lng';
+
+export const O2_MIN_PERCENT = 19.5;
+export const O2_MAX_PERCENT = 23.5;
+export const H2S_MAX_PPM = 10; // strict: 10 ppm itself fails
+
+export function checkUniversalGasBands(
+  gasReadings: PTWPermit['gasReadings']
+): { isSafe: boolean; blockReason: string | null } {
+  if (gasReadings.o2Percent < O2_MIN_PERCENT || gasReadings.o2Percent > O2_MAX_PERCENT) {
+    return {
+      isSafe: false,
+      blockReason: `O2 concentration is ${gasReadings.o2Percent}% (Safe atmospheric band: ${O2_MIN_PERCENT}% ~ ${O2_MAX_PERCENT}%).`,
+    };
+  }
+
+  if (gasReadings.h2sPpm >= H2S_MAX_PPM) {
+    return {
+      isSafe: false,
+      blockReason: `H2S concentration is ${gasReadings.h2sPpm} ppm (must be strictly below ${H2S_MAX_PPM} ppm).`,
+    };
+  }
+
+  return { isSafe: true, blockReason: null };
+}
+
+```
+
+---
+
 ## File: src\data\ptwMasterData.ts
 ```typescript
 // src/data/ptwMasterData.ts
 import { PTWPermit, PTWType, PTWWorkflowStatus, StaffPersonnel } from '../types/lng';
 import { getStaffCompetencyStatus } from './manpowerMasterData';
+import { checkUniversalGasBands } from './ptwGasSafetyRules';
 
 export interface PTWSOPFormDef {
   type: PTWType;
@@ -44106,9 +45272,9 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
   },
   HOT_WORK: {
     type: 'HOT_WORK',
-    formNumber: 'NP07-11',
+    formNumber: 'NP07-14',
     title: 'Hot Work Permit (화기·용접·절단·열원 작업)',
-    shortTitle: 'Hot Work (NP07-11)',
+    shortTitle: 'Hot Work (NP07-14)',
     category: 'CRITICAL HIGH RISK',
     colorBg: 'bg-rose-100',
     colorText: 'text-rose-900',
@@ -44131,9 +45297,9 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
   },
   CONFINED_SPACE: {
     type: 'CONFINED_SPACE',
-    formNumber: 'NP07-12',
+    formNumber: 'NP07-11',
     title: 'Confined Space Entry Permit (밀폐공간·저류조 진입 작업)',
-    shortTitle: 'Confined Space (NP07-12)',
+    shortTitle: 'Confined Space (NP07-11)',
     category: 'CRITICAL HIGH RISK',
     colorBg: 'bg-amber-100',
     colorText: 'text-amber-900',
@@ -44156,9 +45322,9 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
   },
   ELECTRICAL: {
     type: 'ELECTRICAL',
-    formNumber: 'NP07-13',
+    formNumber: 'NP07-12',
     title: 'Electrical Isolation & Work Permit (전기·계장 차단 및 활선 작업)',
-    shortTitle: 'Electrical Isolation (NP07-13)',
+    shortTitle: 'Electrical Isolation (NP07-12)',
     category: 'ELECTRICAL / LOTO',
     colorBg: 'bg-purple-100',
     colorText: 'text-purple-900',
@@ -44181,9 +45347,9 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
   },
   EXCAVATION: {
     type: 'EXCAVATION',
-    formNumber: 'NP07-14',
+    formNumber: 'NP07-13',
     title: 'Ground Excavation & Trenching Permit (지중 굴착 및 매설물 탐사)',
-    shortTitle: 'Excavation (NP07-14)',
+    shortTitle: 'Excavation (NP07-13)',
     category: 'CIVIL / INFRASTRUCTURE',
     colorBg: 'bg-emerald-100',
     colorText: 'text-emerald-900',
@@ -44227,13 +45393,39 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
       'Night-time Inspection Coordination Completed',
     ],
   },
+  // NOTE: CARGO_HANDLING은 활동유형별 SOP 1:N 매핑이라 대표값만 등록됨. 실제 SOP 조회는 getCargoHandlingSOPInfo() 사용할 것
+  CARGO_HANDLING: {
+    type: 'CARGO_HANDLING',
+    formNumber: 'NP08-04',
+    title: 'Cargo Handling Permit (ISO Tank 하역 및 크레인/리치스태커 인양·이송)',
+    shortTitle: 'Cargo Handling (NP08)',
+    category: 'CARGO HANDLING',
+    colorBg: 'bg-cyan-100',
+    colorText: 'text-cyan-900',
+    borderColor: 'border-cyan-300',
+    description: 'LNG ISO Tank 하역(Unloading Skid) 및 크레인/리치스태커를 이용한 인양·이송(Lifting Transfer) 작업. 연동 SOP는 작업 유형에 따라 NP08-02/04/10/15 조합으로 결정됨 (src/data/ptwCargoHandlingValidators.ts 참조).',
+    mandatoryCerts: ['CERT-HSE-01'],
+    gasRestrictions: {
+      maxLelPercent: 10,
+      minO2Percent: 19.5,
+      maxO2Percent: 23.5,
+      maxH2sPpm: 10,
+      maxCoPpm: 25,
+    },
+    requiredChecklist: [
+      'Fire Watch Assigned (DCP/CO2 Extinguisher On Hand)',
+      'Safety Barricade Radius Set (25m Unloading / 50-100m Lifting)',
+      'ERT Standby Ready (SCBA Equipped)',
+    ],
+  },
 };
 
 export const INITIAL_PTW_PERMITS: PTWPermit[] = [
   {
     id: 'PTW-2026-0901-01',
-    formNumber: 'NP07-11',
+    formNumber: 'NP07-14',
     type: 'HOT_WORK',
+    equipmentTag: 'PRSS-CMP-01',
     title: 'PRSS-01 BOG Compressor Suction Line Flange Tie-in Welding',
     location: 'Vaporization Skid #1 (PRSS Area)',
     status: 'ACTIVE',
@@ -44267,8 +45459,9 @@ export const INITIAL_PTW_PERMITS: PTWPermit[] = [
   },
   {
     id: 'PTW-2026-0901-02',
-    formNumber: 'NP07-11',
+    formNumber: 'NP07-14',
     type: 'HOT_WORK',
+    equipmentTag: 'FL-201',
     title: 'Laydown-2 Flare Header Structural Support Bracket Re-welding',
     location: 'Laydown Area 2 & Flare Header Riser',
     status: 'ACTIVE',
@@ -44302,8 +45495,9 @@ export const INITIAL_PTW_PERMITS: PTWPermit[] = [
   },
   {
     id: 'PTW-2026-0901-03',
-    formNumber: 'NP07-12',
+    formNumber: 'NP07-11',
     type: 'CONFINED_SPACE',
+    equipmentTag: 'ORU-PIT-02',
     title: 'ORU Sump Pit #2 Internal Sediment Cleaning & Level Sensor Calibration',
     location: 'ORU Wastewater & Sump Area',
     status: 'APPROVED',
@@ -44337,8 +45531,9 @@ export const INITIAL_PTW_PERMITS: PTWPermit[] = [
   },
   {
     id: 'PTW-2026-0901-04',
-    formNumber: 'NP07-13',
+    formNumber: 'NP07-12',
     type: 'ELECTRICAL',
+    equipmentTag: 'MCC-01',
     title: 'MCC Substation 3.3kV High-Voltage Busbar Thermographic Scan & LOTO Isolation',
     location: 'Main Substation MCC-01',
     status: 'PREPARED',
@@ -44374,6 +45569,7 @@ export const INITIAL_PTW_PERMITS: PTWPermit[] = [
     id: 'PTW-2026-0901-05',
     formNumber: 'NP07-10',
     type: 'COLD_WORK',
+    equipmentTag: 'BAY-02-VLV',
     title: 'Bay 02 Cryogenic Liquid Globe Valve Packing Gland Torqueing & Leak Test',
     location: 'Loading Bay 02',
     status: 'ACTIVE',
@@ -44409,6 +45605,7 @@ export const INITIAL_PTW_PERMITS: PTWPermit[] = [
     id: 'PTW-2026-0901-06',
     formNumber: 'NP07-15',
     type: 'RADIOGRAPHY',
+    equipmentTag: 'JTY-HDR-01',
     title: 'Jetty Cryogenic Decanting Line Replacement Spool Seam Gamma NDT',
     location: 'Marine Jetty LNG Transfer Header',
     status: 'DRAFT',
@@ -44520,6 +45717,14 @@ export function validatePTWGasSafety(
     }
   }
 
+  // Universal O2 / H2S gate (SSHQE §4.3) — applies to every PTW type, not just
+  // Confined Space. Confined Space's O2 band above is checked first so its more
+  // specific message wins; this covers all other types plus H2S for every type.
+  const universalGas = checkUniversalGasBands(gasReadings);
+  if (!universalGas.isSafe) {
+    return universalGas;
+  }
+
   // General LEL threshold
   if (formDef.gasRestrictions.maxLelPercent !== undefined && gasReadings.lelPercent > formDef.gasRestrictions.maxLelPercent) {
     return {
@@ -44532,6 +45737,176 @@ export function validatePTWGasSafety(
     isSafe: true,
     blockReason: null,
   };
+}
+
+// --- Ticket card field applicability by PTWType ---
+// gasReadings/safetyChecklist are universal fields on PTWPermit (populated for
+// every type), so applicability here is NOT derived from the schema. It is
+// inferred from PTW_SOP_FORMS[type].requiredChecklist wording (the only
+// in-repo signal of which controls a given SOP form actually calls out) and
+// must be treated as provisional pending real-form verification.
+
+// TODO(ptw-form-verify): LEL/O2 표시 대상 — ELECTRICAL(NP07-13)/RADIOGRAPHY(NP07-15)는
+// PTW_SOP_FORMS에 gasRestrictions 수치가 정의되어 있어 스키마상 근거는 있으나,
+// 사용자 확인에 따라 실물 서식 검증 전까지 N/A로 표시. 실물 서식 확인 후 교체 필요.
+export function isGasMeasurementApplicable(type: PTWType): boolean {
+  return type !== 'ELECTRICAL' && type !== 'RADIOGRAPHY';
+}
+
+// TODO(ptw-form-verify): LOTO 표시 대상 — requiredChecklist에 "LOTO" 문구가 명시된
+// ELECTRICAL과, allLotoLocksRemoved 게이트를 이미 보유한 CARGO_HANDLING만 우선 반영.
+// 나머지 NP07 계열(COLD_WORK/HOT_WORK/CONFINED_SPACE/EXCAVATION/RADIOGRAPHY)은
+// 실물 서식에 LOTO 항목이 있는지 미확인 상태이므로 N/A.
+export function isLotoApplicable(type: PTWType): boolean {
+  return type === 'ELECTRICAL' || type === 'CARGO_HANDLING';
+}
+
+// TODO(ptw-form-verify): Fire Watch 표시 대상 — requiredChecklist에 "Fire Watch" 문구가
+// 명시된 HOT_WORK/CARGO_HANDLING만 우선 반영. 나머지 NP07 계열은 실물 서식 미확인으로 N/A.
+export function isFireWatchApplicable(type: PTWType): boolean {
+  return type === 'HOT_WORK' || type === 'CARGO_HANDLING';
+}
+
+```
+
+---
+
+## File: src\data\ptwWorkAreas.ts
+```typescript
+// src/data/ptwWorkAreas.ts
+// PPE Matrix hazard-zone classification list and Plant Work Location master.
+// Source: NIAS_NP-09 App 01 PPE Matrix Guidance.docx (PPE Matrix Table,
+// "Area / Area" column). English names quoted verbatim from the source; the
+// Indonesian half after "/" is intentionally dropped for this UI field.
+
+export const PTW_WORK_AREAS = [
+  'All Site Areas',
+  'ISO Tank Movement & Unloading Area',
+  'ISO Tank & Buffer Tank Storage Area',
+  'LNG Cryogenic Pump & Piping Area',
+  'Air Ambient Vaporizer & BOG Compressor Area',
+  'Pressure Safety Valve (PSV) Vent Stack Area',
+  'Control Valve & Instrumentation Area',
+  'Electrical System (MCC, Panels)',
+  'Fire & Gas System',
+  'DCS and ESD System (Control Room)',
+  'Non-Routine / High Risk Tasks',
+] as const;
+
+export type PTWWorkArea = (typeof PTW_WORK_AREAS)[number];
+
+// Simplified Plant Work Locations
+export const PLANT_WORK_LOCATIONS = [
+  'Vaporizer Area',
+  'BOG Compressor Area',
+  'LNG ISO Tank Storage Area',
+  'LNG ISO Tank Unloading Area',
+  'Gas Metering Area',
+  'Vent Stack Area',
+  'Electrical MCC & Substation',
+  'DCS / Control Room',
+  'Jetty Area',
+] as const;
+
+export type PlantWorkLocation = (typeof PLANT_WORK_LOCATIONS)[number];
+
+// Mapping from Plant Work Location to cascaded Safety & PPE Zones (NP-09 App 01)
+export const LOCATION_TO_PPE_ZONES: Record<PlantWorkLocation, PTWWorkArea[]> = {
+  'Vaporizer Area': ['Air Ambient Vaporizer & BOG Compressor Area', 'All Site Areas'],
+  'BOG Compressor Area': ['Air Ambient Vaporizer & BOG Compressor Area', 'All Site Areas'],
+  'LNG ISO Tank Storage Area': ['ISO Tank & Buffer Tank Storage Area', 'All Site Areas'],
+  'LNG ISO Tank Unloading Area': [
+    'ISO Tank Movement & Unloading Area',
+    'LNG Cryogenic Pump & Piping Area',
+    'All Site Areas',
+  ],
+  'Gas Metering Area': ['Control Valve & Instrumentation Area', 'All Site Areas'],
+  'Vent Stack Area': ['Pressure Safety Valve (PSV) Vent Stack Area', 'All Site Areas'],
+  'Electrical MCC & Substation': ['Electrical System (MCC, Panels)', 'All Site Areas'],
+  'DCS / Control Room': ['DCS and ESD System (Control Room)', 'All Site Areas'],
+  'Jetty Area': ['LNG Cryogenic Pump & Piping Area', 'All Site Areas'],
+};
+
+```
+
+---
+
+## File: src\data\safetyOverviewData.ts
+```typescript
+// src/data/safetyOverviewData.ts
+// Safety Overview (Safety & PTW module landing tab) aggregates.
+// KPI ratios reuse the same pure evaluators as GasTestingLogTab / ERTReadinessTab
+// so the tabs never disagree; the Plant Safety Zone Matrix and Actions Needed
+// list are purpose-built mock data for this dashboard (SOP-referenced, not
+// derived via fragile cross-tab location-string matching).
+
+import { INITIAL_PTW_PERMITS } from './ptwMasterData';
+import { MOCK_GAS_TEST_READINGS, computeGasTestingStats } from './gasTestingLogData';
+import {
+  MOCK_ERT_ASSIGNMENTS,
+  MOCK_SCBA_SETS,
+  MOCK_EXTINGUISHERS,
+  MOCK_EMERGENCY_STATIONS,
+  computeERTReadinessSummary,
+} from './ertReadinessData';
+
+export const HIGH_RISK_PTW_TYPES = ['HOT_WORK', 'CONFINED_SPACE'] as const;
+
+export type ZoneSafetyStatus = 'SAFE' | 'CAUTION' | 'ALERT';
+
+export interface PlantSafetyZone {
+  id: string;
+  name: string;
+  ongoingWorkCount: number;
+  status: ZoneSafetyStatus;
+  note: string;
+}
+
+export const MOCK_PLANT_SAFETY_ZONES: PlantSafetyZone[] = [
+  { id: 'VAPORIZATION_SKID', name: 'Vaporization Skid', ongoingWorkCount: 1, status: 'CAUTION', note: 'Hot Work active (NP07-11) — LEL 0.0% enforced' },
+  { id: 'LOADING_BAY', name: 'Loading Bay T-201~204', ongoingWorkCount: 2, status: 'CAUTION', note: 'SIMOPS: Cold Work + Cargo Handling concurrent' },
+  { id: 'PRSS_HEADER', name: 'PRSS Header', ongoingWorkCount: 1, status: 'SAFE', note: 'Continuous gas monitor nominal' },
+  { id: 'JETTY', name: 'Jetty', ongoingWorkCount: 1, status: 'CAUTION', note: 'Radiography permit in Draft — barricade pending' },
+];
+
+export type ActionUrgency = 'RETEST_DUE' | 'EXPIRY_IMMINENT';
+
+export interface SafetyActionItem {
+  id: string;
+  urgency: ActionUrgency;
+  permitId: string;
+  description: string;
+  dueAt: string;
+}
+
+export const MOCK_SAFETY_ACTIONS: SafetyActionItem[] = [
+  { id: 'ACT-01', urgency: 'RETEST_DUE', permitId: 'PTW-2026-0901-01', description: 'Vaporization Skid #1 (Hot Work) AGT 재계측 도래 (4시간 경과)', dueAt: '2026-09-01 12:00' },
+  { id: 'ACT-02', urgency: 'RETEST_DUE', permitId: 'PTW-2026-0901-05', description: 'Loading Bay 02 (Cold Work) AGT 재계측 도래 (4시간 경과)', dueAt: '2026-09-01 13:00' },
+  { id: 'ACT-03', urgency: 'EXPIRY_IMMINENT', permitId: 'PTW-2026-0901-03', description: 'ORU Confined Space 허가 유효기간 만료 임박 (30분 이내)', dueAt: '2026-09-01 16:30' },
+  { id: 'ACT-04', urgency: 'EXPIRY_IMMINENT', permitId: 'PTW-2026-0901-02', description: 'Laydown Area 2 Hot Work 허가 유효기간 만료 임박 (30분 이내)', dueAt: '2026-09-01 17:00' },
+];
+
+export interface SafetyOverviewKpis {
+  activeHighRiskCount: number;
+  agtSafeRatePercent: number;
+  simopsAlertCount: number;
+  ertDispatchReadyRatePercent: number;
+}
+
+export function computeSafetyOverviewKpis(): SafetyOverviewKpis {
+  const activeHighRiskCount = INITIAL_PTW_PERMITS.filter(
+    (p) => (HIGH_RISK_PTW_TYPES as readonly string[]).includes(p.type) && p.status === 'ACTIVE'
+  ).length;
+
+  const gasStats = computeGasTestingStats(MOCK_GAS_TEST_READINGS);
+  const agtSafeRatePercent = gasStats.total > 0 ? Math.round((gasStats.safeCount / gasStats.total) * 100) : 100;
+
+  const simopsAlertCount = MOCK_PLANT_SAFETY_ZONES.filter((z) => z.ongoingWorkCount >= 2).length;
+
+  const ertSummary = computeERTReadinessSummary(MOCK_ERT_ASSIGNMENTS, MOCK_SCBA_SETS, MOCK_EXTINGUISHERS, MOCK_EMERGENCY_STATIONS);
+  const ertDispatchReadyRatePercent = Math.round((ertSummary.ertAssignedCount / MOCK_ERT_ASSIGNMENTS.length) * 100);
+
+  return { activeHighRiskCount, agtSafeRatePercent, simopsAlertCount, ertDispatchReadyRatePercent };
 }
 
 ```
@@ -44550,17 +45925,29 @@ import { ArunSubTab } from '../components/HeaderNavigation';
 import { FleetTankItem, getTankPhysicalMetrics } from '../data/mockTankData';
 import { computeTab1ReactiveKPIs, sortTanksNaturally } from '../utils/scadaCalculations';
 
+// Loosely-shaped certificate/manifest record (COQ + settlement fields merged at runtime).
+interface ArunCertificateRecord {
+  tankNo: string;
+  [key: string]: unknown;
+}
+
 export function useArunLogistics(initialSubTab: ArunSubTab = 'OPERATIONS_YARD') {
   const portalData = usePortalData() || {};
   const fleetTanks: FleetTankItem[] = sortTanksNaturally(portalData.fleetTanks || []);
-  const batchTransitionTanks = portalData.batchTransitionTanks || (() => {});
-  const certificateRecords = (portalData as any).certificateRecords || portalData.settlementRecords || [];
+  const batchTransitionTanks = useMemo(
+    () => portalData.batchTransitionTanks || (() => {}),
+    [portalData.batchTransitionTanks]
+  );
+  const certificateRecords =
+    ((portalData as unknown as Record<string, unknown>).certificateRecords as ArunCertificateRecord[] | undefined) ||
+    (portalData.settlementRecords as unknown as ArunCertificateRecord[]) ||
+    [];
   // Active Batch Certified Records (Tab 2)
-  const [activeBatchRecords, setActiveBatchRecords] = useState<any[]>([]);
+  const [activeBatchRecords, setActiveBatchRecords] = useState<ArunCertificateRecord[]>([]);
   // Tab 3 Vessel Deck Loading Manifest Records (Tab 3)
-  const [tab3LoadingRecords, setTab3LoadingRecords] = useState<any[]>([]);
+  const [tab3LoadingRecords, setTab3LoadingRecords] = useState<ArunCertificateRecord[]>([]);
 
-  const addDeliveredMeasurement = useCallback((record: any, coq?: any) => {
+  const addDeliveredMeasurement = useCallback((record: ArunCertificateRecord, coq?: Record<string, unknown>) => {
     setActiveBatchRecords((prev) => {
       const existingIdx = prev.findIndex((r) => r.tankNo === record.tankNo);
       if (existingIdx >= 0) {
@@ -44824,7 +46211,7 @@ export function useArunLogistics(initialSubTab: ArunSubTab = 'OPERATIONS_YARD') 
 
   // Tab 2 -> Tab 3 Selective FIFO Pipeline Transfer & Tab 2 Ledger Cleanup
   const handleTransferTab2ToTab3 = useCallback(
-    (recordsToTransfer?: any[]) => {
+    (recordsToTransfer?: ArunCertificateRecord[]) => {
       const targets = Array.isArray(recordsToTransfer) && recordsToTransfer.length > 0
         ? recordsToTransfer
         : activeBatchRecords;
@@ -47813,6 +49200,7 @@ export type SubProcessKey =
   | 'MANPOWER_MONTHLY_GRID'
   | 'MANPOWER_TRAINING_MATRIX'
   | 'MANPOWER_PTW'
+  | 'SAFETY_OVERVIEW'
   | 'PTW_PERMITS'
   | 'SAFETY_GAS_TESTING'
   | 'SAFETY_ERT_READINESS'
@@ -48075,7 +49463,8 @@ export type PTWType =
   | 'CONFINED_SPACE'
   | 'ELECTRICAL'
   | 'EXCAVATION'
-  | 'RADIOGRAPHY';
+  | 'RADIOGRAPHY'
+  | 'CARGO_HANDLING';
 
 export type PTWWorkflowStatus =
   | 'DRAFT'
@@ -48084,12 +49473,37 @@ export type PTWWorkflowStatus =
   | 'ACTIVE'
   | 'CLOSED';
 
+// Single-point gas re-test history entry (Hot Work / Confined Space / Cold
+// Work / Electrical / Excavation / Radiography). Cargo Handling's multi-point
+// AGT flow (CargoHandlingGasPoint / isGasRetestDue()) is a separate mechanism
+// and does not use this type.
+export interface GasTestLogEntry {
+  id: string;
+  lelPercent: number;
+  o2Percent: number;
+  h2sPpm: number;
+  testedAt: string;
+  testerName: string;
+  testerId?: string;
+  note?: string;
+  isSafeForWork: boolean; // computed by validatePTWGasSafety() inside usePTWPermits — never caller-supplied
+}
+
+export type GasTestLogEntryInput = Omit<GasTestLogEntry, 'isSafeForWork'>;
+
 export interface PTWPermit {
   id: string;
   formNumber: string; // NP07-10 to NP07-15
   type: PTWType;
   title: string;
   location: string;
+  // PPE Matrix hazard-zone classification (NIAS_NP-09 App 01), distinct from
+  // `location` (specific plant tag/site string). See src/data/ptwWorkAreas.ts.
+  workArea?: string;
+  // SOP-designated responsible person for the permit (distinct from
+  // workLeaderName, which is the eligibility-gated field-crew lead). Optional;
+  // renders as N/A until backfilled on existing mock data.
+  responsiblePerson?: string;
   status: PTWWorkflowStatus;
   workLeaderId: string;
   workLeaderName: string;
@@ -48112,6 +49526,10 @@ export interface PTWPermit {
     forcedVentilation: boolean;
     ppeVerified: boolean;
     barricadeSet: boolean;
+    // Additional Safety Control, independent of PTWType category. Not a
+    // permit category — see NIAS_NP-09 App 01 PPE Matrix "Non-Routine / High
+    // Risk Tasks" fall-protection requirement.
+    workingAtHeight?: boolean;
   };
   validFrom: string;
   validTo: string;
@@ -48119,6 +49537,77 @@ export interface PTWPermit {
   createdAt: string;
   closedAt?: string;
   hazardDescription: string;
+  cargoHandling?: CargoHandlingPermitDetails;
+  // Ticket card TAG display. Not present on existing mock data (title/location
+  // strings embed tags inconsistently, e.g. "PRSS-01", "MCC-01" — not safely
+  // regex-extractable). Optional; renders as N/A until backfilled.
+  equipmentTag?: string;
+  // Single-point re-test history (Hot Work / Confined Space / etc). Not used
+  // by CARGO_HANDLING, which keeps its own gasReadingPoints history.
+  gasTestHistory?: GasTestLogEntry[];
+}
+
+// --- Cargo Handling (CARGO_HANDLING) extension types ---
+// ISO Tank Unloading / Crane-Reachstacker Lifting Transfer. Kept as a separate
+// optional block on PTWPermit rather than reusing gasReadings/safetyChecklist,
+// since Cargo Handling needs multi-point AGT (T-201..T-204) and gates the
+// other PTW categories don't have (grounding, depressurization, crane/rigger).
+
+export type CargoHandlingActivityType = 'UNLOADING' | 'LIFTING' | 'COMBINED';
+
+export type CargoHandlingApprovalSignerRole = 'SITE_MANAGER' | 'SR_OM_LEADER_ACTING';
+
+export interface CargoHandlingGasPoint {
+  tagId: string; // T-201..T-204 (Unloading Skid)
+  lelPercent: number;
+  o2Percent: number;
+  testedAt: string; // ISO timestamp
+}
+
+export interface CargoHandlingPermitDetails {
+  activityType: CargoHandlingActivityType;
+
+  // Critical High Risk escalation inputs
+  loadedWeightTon: number;
+  isActiveCryogenicFlow: boolean;
+  hoseDisconnectionInProgress: boolean;
+
+  // PREPARED -> APPROVED gate
+  siteManagerAvailable: boolean;
+  delegationMemoAttached: boolean;
+  esdvThreeStageIsolationConfirmed: boolean;
+  approverRole?: CargoHandlingApprovalSignerRole;
+
+  // AGT gate (Unloading only, multi-point)
+  gasReadingPoints: CargoHandlingGasPoint[];
+  lastGasTestAt?: string;
+  atmosphereSafeCertifiedByHseOfficer: boolean;
+
+  // Grounding & Bonding gate (Unloading only)
+  groundingResistanceOhm: number;
+  allHosesDisconnected: boolean;
+
+  // Depressurization gate (ISO Tank / cryogenic hose disconnection)
+  depressurizationTagId: string;
+  currentPressureMPa: number;
+  isFlexibleHoseOrQccDisconnection: boolean;
+  icingPresent: boolean;
+
+  // Mandatory Safety Controls (Cargo Handling specific)
+  fireWatchAssigned: boolean;
+  barricadeRadiusM: number;
+  ertStandbyReady: boolean;
+
+  // Competency gate (Lifting / Combined only)
+  craneOperatorSioClassIIOrAbove: boolean;
+  riggerCertificateHeld: boolean;
+
+  // ACTIVE -> CLOSED gate
+  workLeaderSignedOff: boolean;
+  hseOfficerSignedOff: boolean;
+  siteManagerSignedOff: boolean;
+  allLotoLocksRemoved: boolean;
+  leakTestPassed: boolean;
 }
 
 ```
@@ -51961,6 +53450,47 @@ export const calcMassTonFromVolume = (volM3: number): number => {
 export const calcPctFromMmH2O = (mm: number): number => {
   return parseFloat(((mm / TANK_FULL_SPAN_MMH2O) * 100).toFixed(1));
 };
+
+```
+
+---
+
+## File: tsconfig.json
+```json
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
 
 ```
 

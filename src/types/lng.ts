@@ -364,6 +364,13 @@ export interface PTWPermit {
   type: PTWType;
   title: string;
   location: string;
+  // PPE Matrix hazard-zone classification (NIAS_NP-09 App 01), distinct from
+  // `location` (specific plant tag/site string). See src/data/ptwWorkAreas.ts.
+  workArea?: string;
+  // SOP-designated responsible person for the permit (distinct from
+  // workLeaderName, which is the eligibility-gated field-crew lead). Optional;
+  // renders as N/A until backfilled on existing mock data.
+  responsiblePerson?: string;
   status: PTWWorkflowStatus;
   workLeaderId: string;
   workLeaderName: string;
@@ -386,6 +393,10 @@ export interface PTWPermit {
     forcedVentilation: boolean;
     ppeVerified: boolean;
     barricadeSet: boolean;
+    // Additional Safety Control, independent of PTWType category. Not a
+    // permit category — see NIAS_NP-09 App 01 PPE Matrix "Non-Routine / High
+    // Risk Tasks" fall-protection requirement.
+    workingAtHeight?: boolean;
   };
   validFrom: string;
   validTo: string;

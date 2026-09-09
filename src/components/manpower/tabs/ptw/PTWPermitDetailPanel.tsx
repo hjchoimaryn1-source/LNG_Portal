@@ -3,7 +3,8 @@
 
 import React, { useMemo } from 'react';
 import { GasTestLogEntryInput, PTWPermit, PTWWorkflowStatus, StaffPersonnel } from '../../../../types/lng';
-import { validatePTWGasSafety } from '../../../../data/ptwMasterData';
+import { PTW_SOP_FORMS, validatePTWGasSafety } from '../../../../data/ptwMasterData';
+import { getCargoHandlingSOPInfo } from '../../../../data/ptwCargoHandlingRules';
 import PTWWorkflowPipeline from './PTWWorkflowPipeline';
 import PTWGasSafetyGate from './PTWGasSafetyGate';
 import PTWCompetencyGate from './PTWCompetencyGate';
@@ -35,6 +36,17 @@ export default function PTWPermitDetailPanel({
     return validatePTWGasSafety(activePermit.type, activePermit.gasReadings);
   }, [activePermit]);
 
+  const sopFormBadge = useMemo(() => {
+    if (!activePermit) return '';
+    if (activePermit.type === 'CARGO_HANDLING') {
+      const activityType = activePermit.cargoHandling?.activityType ?? 'COMBINED';
+      return getCargoHandlingSOPInfo(activityType)
+        .map((f) => f.formNumber)
+        .join(' / ');
+    }
+    return PTW_SOP_FORMS[activePermit.type].formNumber;
+  }, [activePermit]);
+
   if (!activePermit) {
     return (
       <div className="lg:col-span-7">
@@ -54,7 +66,10 @@ export default function PTWPermitDetailPanel({
           <span className="font-bold text-xs tracking-wider text-center text-white font-mono flex-1">
             [{activePermit.type.replace(/_/g, ' ')} PERMIT] {activePermit.id}
           </span>
-          <div className="w-20 flex justify-end">
+          <div className="flex items-center gap-1.5 justify-end">
+            <span className="text-[11px] font-mono font-bold bg-amber-300 text-black px-2 py-0.5 border border-[#808080] rounded-none shrink-0">
+              SOP [{sopFormBadge}]
+            </span>
             <span className="text-[11px] font-mono font-bold bg-[#d4d0c8] text-black px-2 py-0.5 border border-[#808080] rounded-none shrink-0">
               STATUS: [{activePermit.status}]
             </span>
@@ -82,10 +97,28 @@ export default function PTWPermitDetailPanel({
                 <td className="py-1 px-2 text-slate-800">{activePermit.location}</td>
               </tr>
               <tr className="bg-[#ebe7df]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[WORK AREA]</td>
+                <td className="py-1 px-2 text-slate-800">{activePermit.workArea ?? 'N/A'}</td>
+              </tr>
+              <tr className="bg-[#f4f1ea]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[RESP. PERSON]</td>
+                <td className="py-1 px-2 text-slate-800">{activePermit.responsiblePerson ?? 'N/A'}</td>
+              </tr>
+              <tr className="bg-[#ebe7df]">
+                <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[HEIGHT WORK]</td>
+                <td className="py-1 px-2 text-slate-800">
+                  {activePermit.safetyChecklist.workingAtHeight === undefined
+                    ? 'N/A'
+                    : activePermit.safetyChecklist.workingAtHeight
+                      ? 'YES'
+                      : 'NA'}
+                </td>
+              </tr>
+              <tr className="bg-[#f4f1ea]">
                 <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[VALIDITY]</td>
                 <td className="py-1 px-2 text-slate-800">{activePermit.validFrom} ~ {activePermit.validTo}</td>
               </tr>
-              <tr className="bg-[#f4f1ea]">
+              <tr className="bg-[#ebe7df]">
                 <td className="w-28 text-center font-bold text-slate-900 py-1 px-2 border-r border-neutral-300">[HAZARD]</td>
                 <td className="py-1 px-2 text-slate-700">{activePermit.hazardDescription}</td>
               </tr>
