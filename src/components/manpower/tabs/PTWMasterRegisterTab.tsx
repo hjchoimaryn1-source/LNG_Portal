@@ -4,6 +4,7 @@
 import React, { useMemo, useState } from 'react';
 import { PTWWorkflowStatus, StaffPersonnel } from '../../../types/lng';
 import { usePTWPermitsContext } from '../../../context/PTWPermitsProvider';
+import { useCargoHandlingLifecycle } from '../cargoHandling/hooks/useCargoHandlingLifecycle';
 import CargoHandlingPermitForm from '../cargoHandling/CargoHandlingPermitForm';
 import NewPTWPermitModal from '../modals/NewPTWPermitModal';
 import PTWSummaryBar from './ptw/PTWSummaryBar';
@@ -18,7 +19,8 @@ export interface PTWMasterRegisterTabProps {
 }
 
 export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix }: PTWMasterRegisterTabProps) {
-  const { permits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, stats } = usePTWPermitsContext();
+  const { permits, setPermits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, stats } = usePTWPermitsContext();
+  const { transitionCargoHandlingStatus } = useCargoHandlingLifecycle(permits, setPermits);
 
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<PTWCategoryFilter>('ALL');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<PTWWorkflowStatus | 'ALL'>('ALL');
@@ -87,7 +89,14 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
           onUpdateGasReadings={updateGasReadings}
           onAddGasTestLogEntry={addGasTestLogEntry}
           onAddSignature={addSignature}
-          onTransitionStatus={(permitId, nextStatus) => transitionStatus(permitId, nextStatus, isERTMet)}
+          onTransitionStatus={(permitId, nextStatus) => {
+            const target = permits.find((p) => p.id === permitId);
+            if (target?.type === 'CARGO_HANDLING') {
+              transitionCargoHandlingStatus(permitId, nextStatus);
+            } else {
+              transitionStatus(permitId, nextStatus, isERTMet);
+            }
+          }}
         />
       </div>
 

@@ -177,5 +177,8 @@ export function usePTWPermits() {
     };
   }, [permits]);
 
-  return { permits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, stats };
+  // Exposed so useCargoHandlingLifecycle (NP08) can write into this exact same
+  // array — permits must have a single source of truth regardless of which
+  // transition function (NP07 transitionStatus vs NP08 lifecycle gates) moved it.
+  return { permits, setPermits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, stats };
 }

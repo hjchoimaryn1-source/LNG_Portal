@@ -46,7 +46,11 @@ export function useNewPTWPermitForm({
   // Read-only originator — represents the currently logged-in drafter.
   const originatorLabel = 'Choi Hong-joon (Engineering Dept)';
 
-  const [newPermitType, setNewPermitType] = useState<PTWType>('HOT_WORK');
+  // CARGO_HANDLING is excluded — that type has its own required `cargoHandling`
+  // detail block (PTWCargoHandlingPermit) and is only ever created through the
+  // dedicated CargoHandlingPermitForm modal, never through this generic Stage 1
+  // Draft form (see buildAndSubmitPermit below, which omits `cargoHandling`).
+  const [newPermitType, setNewPermitType] = useState<Exclude<PTWType, 'CARGO_HANDLING'>>('HOT_WORK');
   const [newPermitTitle, setNewPermitTitle] = useState<string>('');
   const [newPermitLocation, setNewPermitLocation] = useState<string>(PLANT_WORK_LOCATIONS[0]);
   const [newWorkArea, setNewWorkArea] = useState<string>(

@@ -71,14 +71,17 @@ export default function NewPTWPermitModal({
               <label className="block font-bold text-slate-800">Permit Category (SOP Standard Form)</label>
               <select
                 value={form.newPermitType}
-                onChange={(e) => form.setNewPermitType(e.target.value as PTWType)}
+                onChange={(e) => form.setNewPermitType(e.target.value as Exclude<PTWType, 'CARGO_HANDLING'>)}
                 className="w-full h-10 px-3.5 border border-slate-300 rounded-md font-medium bg-white cursor-pointer shadow-sm"
               >
-                {Object.entries(PTW_SOP_FORMS).map(([k, def]) => (
-                  <option key={k} value={k}>
-                    {def.formNumber}: {def.title.split(' (')[0]}
-                  </option>
-                ))}
+                {/* CARGO_HANDLING excluded — created only via the dedicated Cargo Handling modal. */}
+                {Object.entries(PTW_SOP_FORMS)
+                  .filter(([k]) => k !== 'CARGO_HANDLING')
+                  .map(([k, def]) => (
+                    <option key={k} value={k}>
+                      {def.formNumber}: {def.title.split(' (')[0]}
+                    </option>
+                  ))}
               </select>
             </div>
 

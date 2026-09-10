@@ -358,10 +358,9 @@ export interface GasTestLogEntry {
 
 export type GasTestLogEntryInput = Omit<GasTestLogEntry, 'isSafeForWork'>;
 
-export interface PTWPermit {
+interface PTWPermitBase {
   id: string;
   formNumber: string; // NP07-10 to NP07-15
-  type: PTWType;
   title: string;
   location: string;
   // PPE Matrix hazard-zone classification (NIAS_NP-09 App 01), distinct from
@@ -410,7 +409,6 @@ export interface PTWPermit {
   createdAt: string;
   closedAt?: string;
   hazardDescription: string;
-  cargoHandling?: CargoHandlingPermitDetails;
   // Ticket card TAG display. Not present on existing mock data (title/location
   // strings embed tags inconsistently, e.g. "PRSS-01", "MCC-01" — not safely
   // regex-extractable). Optional; renders as N/A until backfilled.
@@ -424,6 +422,24 @@ export interface PTWPermit {
   // (evaluateSignatureGate/hasSignedRole treat the first match as authoritative).
   signatures?: PTWSignatureEntry[];
 }
+
+// Discriminated on `type`: only CARGO_HANDLING carries `cargoHandling`, and it
+// is required there (not optional) so a `type === 'CARGO_HANDLING'` narrow
+// guarantees the NP08 detail block exists — no `cargoHandling!`/`?.` needed in
+// gate code that has already checked `type`. Unnarrowed access (e.g. iterating
+// PTWPermit[]) still resolves to `CargoHandlingPermitDetails | undefined` via
+// the union, so existing `permit.cargoHandling?.x` call sites are unaffected.
+export interface PTWStandardPermit extends PTWPermitBase {
+  type: Exclude<PTWType, 'CARGO_HANDLING'>;
+  cargoHandling?: never;
+}
+
+export interface PTWCargoHandlingPermit extends PTWPermitBase {
+  type: 'CARGO_HANDLING';
+  cargoHandling: CargoHandlingPermitDetails;
+}
+
+export type PTWPermit = PTWStandardPermit | PTWCargoHandlingPermit;
 
 // --- Electronic Signature / Approval Workflow (SSHQE §4.2) ---
 // 5-stage lifecycle -> 9 named signature slots across PART C (Approval),

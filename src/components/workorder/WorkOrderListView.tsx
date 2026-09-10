@@ -12,7 +12,8 @@ import React, { useState } from 'react';
 import { Sliders } from 'lucide-react';
 import { WOItem } from '../../types/lng';
 import { usePTWPermitsContext } from '../../context/PTWPermitsProvider';
-import { ALL_WORK_ORDERS } from '../../data/workOrderData';
+import { useCmmsAssets } from '../../context/CmmsAwarePortalProvider';
+import { buildMockWorkOrdersFromAssets } from '../cmms/mockWorkOrderGenerator';
 import { resolveLinkedPermit, WO_PERMIT_STATUS_BADGE } from '../../adapters/workOrderPtwAdapter';
 import WorkOrderDetailModal from './modals/WorkOrderDetailModal';
 
@@ -22,9 +23,11 @@ export interface WorkOrderListViewProps {
 
 export default function WorkOrderListView({ filter = 'ALL' }: WorkOrderListViewProps) {
   const { permits } = usePTWPermitsContext();
+  const { cmmsAssetRows } = useCmmsAssets();
   const [selectedWo, setSelectedWo] = useState<WOItem | null>(null);
 
-  const workOrders = filter === 'ALL' ? ALL_WORK_ORDERS : ALL_WORK_ORDERS.filter((w) => w.cat === filter);
+  const allWorkOrders = buildMockWorkOrdersFromAssets(cmmsAssetRows, permits);
+  const workOrders = filter === 'ALL' ? allWorkOrders : allWorkOrders.filter((w) => w.cat === filter);
 
   return (
     <div className="h-full flex flex-col min-h-0 gap-1.5 w-full win-panel p-2 overflow-hidden">

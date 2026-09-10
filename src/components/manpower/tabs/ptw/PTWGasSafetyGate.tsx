@@ -9,6 +9,15 @@ import { MissingAgtSignatureError, toGasTestRecordDraft } from '../../../../adap
 import type { GasTestRecordDraft } from '../../../../adapters/ptwFormAdapter';
 import GasRetestEntryModal from './GasRetestEntryModal';
 
+// ⚠⚠⚠ AUDIT-ONLY — /api/v1/cmms/gas-tests is NOT the safety gate ⚠⚠⚠
+// This endpoint persists GasTestRecordDraft into a server-process in-memory
+// array (see src/adapters/gasSafetyAdapter.ts / src/app/api/v1/cmms/gas-tests/
+// route.ts headers) — not a real permit_gas_tests SQL table, and it is lost on
+// server restart. It is written to and read from here purely for the CMMS
+// shadow-record history display below (`cmmsShadowRecords`). The PTW PASS/FAIL
+// gate decision (`isSafe`/`blockReason` props, computed by validatePTWGasSafety
+// in the parent) is the sole source of truth and never depends on this API's
+// data, response, or availability — see handleAddGasTestLogEntry below.
 const GAS_TESTS_API_URL = '/api/v1/cmms/gas-tests';
 
 export interface PTWGasSafetyGateProps {
@@ -94,12 +103,18 @@ export default function PTWGasSafetyGate({
       throw err;
     }
 
-    // Gate 판정(validatePTWGasSafety)은 client-side SSOT로 이미 반영되었으므로
-    // permit 상태는 API 응답을 기다리지 않고 즉시 갱신한다 (반응성 보장).
+    // Gate decision is finalized HERE, client-side, via validatePTWGasSafety
+    // (called inside toGasTestRecordDraft() above and again inside
+    // onAddGasTestLogEntry -> usePTWPermits.addGasTestLogEntry). This is the
+    // sole source of truth for PASS/FAIL — it does not wait for, and is not
+    // revised by, the API call below.
     onAddGasTestLogEntry(permitId, entryInput);
 
-    // 감사 기록 영속화 — POST /api/v1/cmms/gas-tests. 실패해도 게이트 판정에는
-    // 영향을 주지 않는다 (판정은 위에서 이미 client-side로 확정됨).
+    // AUDIT-ONLY persistence — POST /api/v1/cmms/gas-tests writes into a
+    // server-process in-memory array, not a real DB table (see header comment
+    // above). This call is fire-and-forget with respect to the gate: success,
+    // failure, or latency here must never change the PASS/FAIL result already
+    // applied above.
     try {
       const res = await fetch(GAS_TESTS_API_URL, {
         method: 'POST',
