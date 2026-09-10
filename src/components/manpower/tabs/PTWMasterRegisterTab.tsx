@@ -80,6 +80,7 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
 
         <PTWPermitDetailPanel
           activePermit={activePermit}
+          allPermits={permits}
           personnelList={personnelList}
           isERTMet={isERTMet}
           onNavigateToMatrix={onNavigateToMatrix}

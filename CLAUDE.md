@@ -18,13 +18,13 @@
 - 모든 설명, 요약, 주석 및 대화는 '한국어'로 진행합니다.
 
 ## 2. Safety & PTW Module Rules
-- SOP 코드 체계:
+- SOP 코드 체계 (SSHQE_MASTER_SPECIFICATION.md §4.1 기준):
   * NP07-10: Cold Work
-  * NP07-11: Hot Work (LEL 0.0% 강제, 산소 19.5~23.5% 필수)
-  * NP07-12: Confined Space
-  * NP07-13: Electrical / LOTO
-  * NP07-14: Excavation
-  * NP07-15: Radiography
+  * NP07-11: Confined Space Entry (Standby 인원 및 가스 측정 기록 연동 필수)
+  * NP07-12: Electrical (에너지 차단 및 LOTO 확인서 연동 필수)
+  * NP07-13: Excavation (토양 상태 및 shoring 체크 연동 필수)
+  * NP07-14: Hot Work (LEL 0.0% 강제, 산소 19.5~23.5% 필수, 소방 감시인 배치 연동 필수)
+  * NP07-15: Radiography (경계 구역 바리케이드 및 경고 표지 연동 필수)
 - 5단계 라이프사이클 파이프라인:
   DRAFT -> PREPARED -> APPROVED -> ACTIVE -> CLOSED
 - 게이트키핑 검증:

@@ -1,7 +1,7 @@
 // src/components/manpower/tabs/ptw/PTWPermitDetailPanel.tsx
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { GasTestLogEntryInput, PTWPermit, PTWSignatureRole, PTWWorkflowStatus, StaffPersonnel } from '../../../../types/lng';
 import { PTW_SOP_FORMS, validatePTWGasSafety } from '../../../../data/ptwMasterData';
 import { getCargoHandlingSOPInfo } from '../../../../data/ptwCargoHandlingRules';
@@ -12,9 +12,11 @@ import PTWSafetyChecklist from './PTWSafetyChecklist';
 import PTWSignatureStatusPanel from './PTWSignatureStatusPanel';
 import PTWStatusActions from './PTWStatusActions';
 import CargoHandlingDetailSection from '../../cargoHandling/CargoHandlingDetailSection';
+import PermitTicketPrintModal from './print/PermitTicketPrintModal';
 
 export interface PTWPermitDetailPanelProps {
   activePermit: PTWPermit | null;
+  allPermits: PTWPermit[];
   personnelList: StaffPersonnel[];
   isERTMet: boolean;
   onNavigateToMatrix?: (empId: string) => void;
@@ -26,6 +28,7 @@ export interface PTWPermitDetailPanelProps {
 
 export default function PTWPermitDetailPanel({
   activePermit,
+  allPermits,
   personnelList,
   isERTMet,
   onNavigateToMatrix,
@@ -34,6 +37,8 @@ export default function PTWPermitDetailPanel({
   onAddSignature,
   onTransitionStatus,
 }: PTWPermitDetailPanelProps) {
+  const [isPrintOpen, setIsPrintOpen] = useState(false);
+
   const currentGasSafety = useMemo(() => {
     if (!activePermit) return { isSafe: true, blockReason: null };
     return validatePTWGasSafety(activePermit.type, activePermit.gasReadings);
@@ -76,6 +81,12 @@ export default function PTWPermitDetailPanel({
             <span className="text-[11px] font-mono font-bold bg-[#d4d0c8] text-black px-2 py-0.5 border border-[#808080] rounded-none shrink-0">
               STATUS: [{activePermit.status}]
             </span>
+            <button
+              onClick={() => setIsPrintOpen(true)}
+              className="text-[11px] font-mono font-bold bg-[#d4d0c8] text-black px-2 py-0.5 border border-[#808080] rounded-none shrink-0 cursor-pointer hover:bg-[#dfdbd3]"
+            >
+              [PRINT / EXPORT PDF]
+            </button>
           </div>
         </div>
 
@@ -160,6 +171,10 @@ export default function PTWPermitDetailPanel({
           onTransitionStatus={onTransitionStatus}
         />
       </div>
+
+      {isPrintOpen && (
+        <PermitTicketPrintModal permit={activePermit} allPermits={allPermits} onClose={() => setIsPrintOpen(false)} />
+      )}
     </div>
   );
 }
