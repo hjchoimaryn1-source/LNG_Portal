@@ -23,7 +23,8 @@ import {
 
 export function useCargoHandlingLifecycle(
   permits: PTWPermit[],
-  setPermits: Dispatch<SetStateAction<PTWPermit[]>>
+  setPermits: Dispatch<SetStateAction<PTWPermit[]>>,
+  persistStatusChange: (permitId: string, status: PTWWorkflowStatus, closedAt: string | null) => void
 ) {
   const transitionCargoHandlingStatus = (permitId: string, nextStatus: PTWWorkflowStatus) => {
     const target = permits.find((p) => p.id === permitId);
@@ -67,16 +68,22 @@ export function useCargoHandlingLifecycle(
       }
     }
 
+    const closedAt = nextStatus === 'CLOSED' ? '2026-09-01 18:00' : target.closedAt ?? null;
+
     setPermits((prev) =>
       prev.map((p) => {
         if (p.id !== permitId) return p;
         return {
           ...p,
           status: nextStatus,
-          closedAt: nextStatus === 'CLOSED' ? '2026-09-01 18:00' : p.closedAt,
+          closedAt: closedAt ?? undefined,
         };
       })
     );
+
+    // Fire-and-forget audit persistence into the SAME ptw_permits row usePTWPermits
+    // writes to — see usePTWPermitSync.ts header (mirrors usePTWPermits.transitionStatus).
+    persistStatusChange(permitId, nextStatus, closedAt);
   };
 
   return { transitionCargoHandlingStatus };

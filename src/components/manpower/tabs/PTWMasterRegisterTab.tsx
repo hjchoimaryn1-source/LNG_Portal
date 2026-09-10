@@ -19,8 +19,8 @@ export interface PTWMasterRegisterTabProps {
 }
 
 export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix }: PTWMasterRegisterTabProps) {
-  const { permits, setPermits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, stats } = usePTWPermitsContext();
-  const { transitionCargoHandlingStatus } = useCargoHandlingLifecycle(permits, setPermits);
+  const { permits, setPermits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, persistStatusChange, stats } = usePTWPermitsContext();
+  const { transitionCargoHandlingStatus } = useCargoHandlingLifecycle(permits, setPermits, persistStatusChange);
 
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<PTWCategoryFilter>('ALL');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<PTWWorkflowStatus | 'ALL'>('ALL');

@@ -205,5 +205,17 @@ export function usePTWPermits() {
   // Exposed so useCargoHandlingLifecycle (NP08) can write into this exact same
   // array — permits must have a single source of truth regardless of which
   // transition function (NP07 transitionStatus vs NP08 lifecycle gates) moved it.
-  return { permits, setPermits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, stats };
+  // persistStatusChange is also exposed directly so the NP08 lifecycle hook can
+  // persist its own transitions to the same ptw_permits row (no type gate).
+  return {
+    permits,
+    setPermits,
+    addPermit,
+    updateGasReadings,
+    addGasTestLogEntry,
+    addSignature,
+    transitionStatus,
+    persistStatusChange: permitSync.persistStatusChange,
+    stats,
+  };
 }
