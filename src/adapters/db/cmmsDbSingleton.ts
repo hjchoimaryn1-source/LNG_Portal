@@ -55,6 +55,41 @@ const WORK_ORDERS_DDL = `
   CREATE INDEX IF NOT EXISTS idx_wo_next_due ON work_orders(next_due_date) WHERE next_due_date IS NOT NULL;
 `;
 
+// PTW permit lifecycle(status/closedAt/safetyChecklist) 스냅샷 — permit당 1행.
+// safetyChecklist는 PTWSafetyChecklist.tsx가 생성 시점 이후 토글 UI를 제공하지
+// 않으므로(읽기 전용 표시) JSON blob이 아닌 컬럼으로 시딩 시 1회 기록한다.
+const PTW_PERMITS_DDL = `
+  CREATE TABLE IF NOT EXISTS ptw_permits (
+      permit_id                TEXT PRIMARY KEY,
+      status                   TEXT NOT NULL CHECK (status IN ('DRAFT','PREPARED','APPROVED','ACTIVE','CLOSED')),
+      fire_watch_assigned      INTEGER NOT NULL DEFAULT 0,
+      gas_detector_continuous  INTEGER NOT NULL DEFAULT 0,
+      loto_applied             INTEGER NOT NULL DEFAULT 0,
+      forced_ventilation       INTEGER NOT NULL DEFAULT 0,
+      ppe_verified             INTEGER NOT NULL DEFAULT 0,
+      barricade_set            INTEGER NOT NULL DEFAULT 0,
+      working_at_height        INTEGER,
+      closed_at                TEXT,
+      updated_at               TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
+  );
+`;
+
+// 전자 서명 로그(SSHQE §4.2 PART C/D/E) — append-only, permit_gas_tests와 동일한
+// "이벤트 1건당 1행" 컨벤션. UNIQUE(permit_id, role)로 "역할당 1회 서명"을
+// usePTWPermits.addSignature()의 클라이언트 측 규칙과 동일하게 DB 레벨에서도 보장한다.
+const PTW_SIGNATURES_DDL = `
+  CREATE TABLE IF NOT EXISTS ptw_signatures (
+      signature_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+      permit_id     TEXT NOT NULL,
+      role          TEXT NOT NULL,
+      staff_id      TEXT NOT NULL,
+      staff_name    TEXT NOT NULL,
+      signed_at     TEXT NOT NULL,
+      UNIQUE(permit_id, role)
+  );
+  CREATE INDEX IF NOT EXISTS idx_ptwsig_permit ON ptw_signatures(permit_id);
+`;
+
 let cachedDb: SqlExecutor | undefined;
 
 /** CMMS API route 전용 SQLite 연결. 프로세스 수명 동안 하나만 생성된다. */
@@ -64,6 +99,8 @@ export function getCmmsDb(): SqlExecutor {
     const executor = createNodeSqliteExecutor(dbPath);
     executor.raw.exec(PERMIT_GAS_TESTS_DDL);
     executor.raw.exec(WORK_ORDERS_DDL);
+    executor.raw.exec(PTW_PERMITS_DDL);
+    executor.raw.exec(PTW_SIGNATURES_DDL);
     cachedDb = executor;
   }
   return cachedDb;

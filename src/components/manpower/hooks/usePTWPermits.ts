@@ -1,9 +1,11 @@
 // src/components/manpower/hooks/usePTWPermits.ts
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { GasTestLogEntry, GasTestLogEntryInput, PTWPermit, PTWSignatureRole, PTWWorkflowStatus } from '../../../types/lng';
 import { INITIAL_PTW_PERMITS, validatePTWGasSafety } from '../../../data/ptwMasterData';
 import { PTW_SIGNATURE_ROLE_LABELS } from '../../../data/ptwSignatureRoles';
 import { evaluateSignatureGate } from '../../../adapters/ptwSignatureGate';
+import { usePTWPermitSync } from './usePTWPermitSync';
+import { applyLifecycleToPermit } from '../../../utils/ptwPermitRecordMapper';
 
 /**
  * Shared PTW permit register state (Master Register 소유, 향후 Gas Testing Log /
@@ -11,6 +13,23 @@ import { evaluateSignatureGate } from '../../../adapters/ptwSignatureGate';
  */
 export function usePTWPermits() {
   const [permits, setPermits] = useState<PTWPermit[]>(INITIAL_PTW_PERMITS);
+
+  // SQLite ptw_permits/ptw_signatures 영속화(usePTWPermitSync.ts) — status/
+  // closedAt/signatures만 DB에서 병합한다. 게이트 판정(SSOT)은 여전히 아래
+  // client-side 로직이며, DB 쓰기는 fire-and-forget 감사/영속화 목적이다.
+  const permitSync = usePTWPermitSync(permits);
+
+  // 최초 시딩/로드가 끝난 직후 딱 한 번만 DB 상태를 permits에 병합한다 — 이후
+  // transitionStatus/addSignature가 만드는 로컬 갱신을 되돌아가 덮어쓰지 않기
+  // 위함(그 로직들은 이미 자신의 persist* 호출로 lifecycleByPermit/
+  // signaturesByPermit도 함께 갱신해 둔다).
+  useEffect(() => {
+    if (!permitSync.synced) return;
+    setPermits((prev) =>
+      prev.map((p) => applyLifecycleToPermit(p, permitSync.lifecycleByPermit.get(p.id), permitSync.signaturesByPermit.get(p.id)))
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [permitSync.synced]);
 
   const addPermit = (permit: PTWPermit) => {
     setPermits((prev) => [permit, ...prev]);
@@ -93,19 +112,23 @@ export function usePTWPermits() {
   // signed once per permit — re-signing an already-signed role is a no-op
   // (append-only log, see PTWSignatureEntry doc comment in types/lng.ts).
   const addSignature = (permitId: string, role: PTWSignatureRole, staffId: string, staffName: string) => {
+    const target = permits.find((p) => p.id === permitId);
+    if (!target || (target.signatures || []).some((s) => s.role === role)) return;
+
+    const newEntry = {
+      role,
+      staffId,
+      staffName,
+      signedAt: `2026-09-01 ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB`,
+    };
+
     setPermits((prev) =>
-      prev.map((p) => {
-        if (p.id !== permitId) return p;
-        if ((p.signatures || []).some((s) => s.role === role)) return p;
-        const newEntry = {
-          role,
-          staffId,
-          staffName,
-          signedAt: `2026-09-01 ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB`,
-        };
-        return { ...p, signatures: [...(p.signatures || []), newEntry] };
-      })
+      prev.map((p) => (p.id === permitId ? { ...p, signatures: [...(p.signatures || []), newEntry] } : p))
     );
+
+    // Fire-and-forget audit persistence — never re-validated, never blocks the
+    // local signature state above (see usePTWPermitSync.ts header).
+    permitSync.persistSignature(permitId, newEntry);
   };
 
   // Workflow State Transition (Draft -> Prepared -> Approved -> Active -> Closed)
@@ -143,16 +166,18 @@ export function usePTWPermits() {
       return;
     }
 
+    const closedAt = nextStatus === 'CLOSED' ? '2026-09-01 18:00' : target.closedAt ?? null;
+
     setPermits((prev) =>
       prev.map((p) => {
         if (p.id !== permitId) return p;
-        return {
-          ...p,
-          status: nextStatus,
-          closedAt: nextStatus === 'CLOSED' ? '2026-09-01 18:00' : p.closedAt,
-        };
+        return { ...p, status: nextStatus, closedAt: closedAt ?? undefined };
       })
     );
+
+    // Fire-and-forget audit persistence — never re-validated, never blocks the
+    // local status state above (see usePTWPermitSync.ts header).
+    permitSync.persistStatusChange(permitId, nextStatus, closedAt);
   };
 
   const stats = useMemo(() => {
