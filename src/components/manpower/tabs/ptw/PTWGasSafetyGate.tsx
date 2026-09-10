@@ -1,13 +1,15 @@
 // src/components/manpower/tabs/ptw/PTWGasSafetyGate.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { GasTestLogEntryInput, PTWPermit, StaffPersonnel } from '../../../../types/lng';
 import { PTW_SOP_FORMS, isGasMeasurementApplicable } from '../../../../data/ptwMasterData';
 import { O2_MIN_PERCENT, O2_MAX_PERCENT, H2S_MAX_PPM } from '../../../../data/ptwGasSafetyRules';
 import { MissingAgtSignatureError, toGasTestRecordDraft } from '../../../../adapters/ptwFormAdapter';
-import { recordGasTestDraft, getGasTestRecordsForPermit } from '../../../../adapters/gasSafetyAdapter';
+import type { GasTestRecordDraft } from '../../../../adapters/ptwFormAdapter';
 import GasRetestEntryModal from './GasRetestEntryModal';
+
+const GAS_TESTS_API_URL = '/api/v1/cmms/gas-tests';
 
 export interface PTWGasSafetyGateProps {
   activePermit: PTWPermit;
@@ -52,15 +54,30 @@ export default function PTWGasSafetyGate({
   const lelLimit = PTW_SOP_FORMS[activePermit.type].gasRestrictions.maxLelPercent;
   const canRetest = activePermit.status === 'ACTIVE' && applicable && !isCargoHandling;
   const history = [...(activePermit.gasTestHistory || [])].reverse();
-  const cmmsShadowRecords = getGasTestRecordsForPermit(activePermit.id);
+  const [cmmsShadowRecords, setCmmsShadowRecords] = useState<GasTestRecordDraft[]>([]);
+
+  const fetchShadowRecords = useCallback(async () => {
+    try {
+      const res = await fetch(`${GAS_TESTS_API_URL}?permitId=${encodeURIComponent(activePermit.id)}`);
+      const data = await res.json();
+      if (data.success) setCmmsShadowRecords(data.records);
+    } catch (err) {
+      console.error('[PTWGasSafetyGate] failed to fetch gas test audit records:', err);
+    }
+  }, [activePermit.id]);
+
+  useEffect(() => {
+    fetchShadowRecords();
+  }, [fetchShadowRecords]);
 
   // Legacy screen has no dedicated signature-capture UI, so the typed
   // TESTER NAME(+ID) from GasRetestEntryModal is treated as the AGT's legacy
   // e-signature for the ptwFormAdapter DTO. Validation/conversion runs
   // alongside the existing legacy write path, not in place of it.
-  const handleAddGasTestLogEntry = (permitId: string, entryInput: GasTestLogEntryInput) => {
+  const handleAddGasTestLogEntry = async (permitId: string, entryInput: GasTestLogEntryInput) => {
+    let draft: GasTestRecordDraft;
     try {
-      const draft = toGasTestRecordDraft(permitId, activePermit.type, {
+      draft = toGasTestRecordDraft(permitId, activePermit.type, {
         testType: 'RETEST',
         lelPercent: entryInput.lelPercent,
         o2Percent: entryInput.o2Percent,
@@ -69,10 +86,6 @@ export default function PTWGasSafetyGate({
         agtSignature: entryInput.testerId ? `${entryInput.testerName} (${entryInput.testerId})` : entryInput.testerName,
         testedAt: entryInput.testedAt,
       });
-      // In-memory CMMS shadow write — see src/adapters/gasSafetyAdapter.ts.
-      // Replace with a SqlExecutor-backed store once a real DB client exists;
-      // this call site does not need to change.
-      recordGasTestDraft(draft);
     } catch (err) {
       if (err instanceof MissingAgtSignatureError) {
         alert(err.message);
@@ -81,7 +94,23 @@ export default function PTWGasSafetyGate({
       throw err;
     }
 
+    // Gate 판정(validatePTWGasSafety)은 client-side SSOT로 이미 반영되었으므로
+    // permit 상태는 API 응답을 기다리지 않고 즉시 갱신한다 (반응성 보장).
     onAddGasTestLogEntry(permitId, entryInput);
+
+    // 감사 기록 영속화 — POST /api/v1/cmms/gas-tests. 실패해도 게이트 판정에는
+    // 영향을 주지 않는다 (판정은 위에서 이미 client-side로 확정됨).
+    try {
+      const res = await fetch(GAS_TESTS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draft),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await fetchShadowRecords();
+    } catch (err) {
+      console.error('[PTWGasSafetyGate] gas test audit record persistence failed:', err);
+    }
   };
 
   const metrics = [
