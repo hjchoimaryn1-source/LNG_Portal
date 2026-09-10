@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { CmmsAwarePortalProvider, usePortalData } from '../context/CmmsAwarePortalProvider';
 import { CmmsEquipmentRegistryView } from './CmmsEquipmentRegistryView';
 import { AdminCmmsResetButton } from './AdminCmmsResetButton';
+import { WorkOrderSchedulerView } from './WorkOrderSchedulerView';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { SubProcessKey } from '../types/lng';
 import { COMPANY_CONFIG, CMMS_MODULES } from '../config/siteConfig';
@@ -504,6 +505,7 @@ function LNGPortalInner({
   const [equipmentFilter, setEquipmentFilter] = useState<string>('ALL');
   const [showCmmsRegistry, setShowCmmsRegistry] = useState(false);
   const [workOrderFilter, setWorkOrderFilter] = useState<string>('ALL');
+  const [showWoSchedulerPreview, setShowWoSchedulerPreview] = useState(false);
   const [calibrationFilter, setCalibrationFilter] = useState<string>('ALL');
 
   const { isLoading } = usePortalData();
@@ -1065,8 +1067,29 @@ function LNGPortalInner({
               {/* ========================================================= */}
               {/* MODULE 3: MAINTENANCE & WORK ORDERS                       */}
               {/* ========================================================= */}
-              {(activeKey === 'WORK_ORDER_MAINTENANCE' || activeKey === 'WORK_ORDER_DIRECTORY' || activeKey === 'PM_SCHEDULES') && (
+              {(activeKey === 'WORK_ORDER_MAINTENANCE' || activeKey === 'PM_SCHEDULES') && (
                 <WorkOrderView filter={activeKey === 'PM_SCHEDULES' ? 'PMS' : workOrderFilter} />
+              )}
+              {activeKey === 'WORK_ORDER_DIRECTORY' && (
+                <>
+                  <div className="flex gap-2 px-4 pt-3 border-b border-slate-200 bg-white">
+                    <button
+                      onClick={() => setShowWoSchedulerPreview(false)}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-t border-b-2 ${!showWoSchedulerPreview ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                    >
+                      Work Orders (기존)
+                    </button>
+                    <button
+                      onClick={() => setShowWoSchedulerPreview(true)}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-t border-b-2 ${showWoSchedulerPreview ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                    >
+                      PM Scheduler [SCAFFOLD PREVIEW]
+                    </button>
+                  </div>
+                  {showWoSchedulerPreview ? <WorkOrderSchedulerView /> : (
+                    <WorkOrderView filter={workOrderFilter} />
+                  )}
+                </>
               )}
               {activeKey === 'MAINTENANCE_MRO_HUB' && (
                 <MaintenanceHubView />

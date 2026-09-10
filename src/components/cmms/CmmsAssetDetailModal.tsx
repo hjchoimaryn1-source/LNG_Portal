@@ -1,63 +1,35 @@
 // src/components/cmms/CmmsAssetDetailModal.tsx
 //
 // PURPOSE
-//   자산 상세 팝업 모달. CmmsAssetRow 타입의 단일 자산을 받아 모든 필드를
-//   다크 인더스트리얼 테마로 출력한다. Grid View / Tree View 양쪽에서 공용 사용.
-//
-// RULES
-//   - 250줄 이하 유지 (현재 약 130줄)
-//   - CmmsAssetRow 타입 직접 의존 — any 금지
+//   자산 상세 팝업 모달. WIN_TAB_INACTIVE와 통일된 Win98 베벨 스타일.
+//   Grid View / Tree View 양쪽에서 공용 사용.
 
 'use client';
 
 import React, { useEffect } from 'react';
-import { X, Tag, Cpu, MapPin, AlertTriangle, Activity, Hash } from 'lucide-react';
 import { type CmmsAssetRow } from '../../context/CmmsAwarePortalProvider';
+import {
+  BEVEL_BUTTON,
+  BEVEL_ICON_BUTTON,
+  RAISED_PANEL,
+  SUNKEN_PANEL,
+  TITLE_BAR,
+  CRITICALITY_LABEL,
+  CRITICALITY_BADGE,
+  STATUS_BADGE,
+  STATUS_LABEL_KO,
+} from './scadaStyles';
 
-// ---------------------------------------------------------------------------
-// 스타일 헬퍼
-// ---------------------------------------------------------------------------
-
-const CRIT_STYLES: Record<CmmsAssetRow['criticality'], { badge: string; bar: string }> = {
-  CRITICAL: { badge: 'bg-red-950 text-red-400 border-red-800',   bar: 'bg-red-500' },
-  HIGH:     { badge: 'bg-orange-950 text-orange-400 border-orange-800', bar: 'bg-orange-400' },
-  MEDIUM:   { badge: 'bg-amber-950 text-amber-400 border-amber-800',   bar: 'bg-amber-400' },
-  LOW:      { badge: 'bg-slate-800 text-slate-400 border-slate-700',    bar: 'bg-slate-500' },
-};
-
-const STATUS_STYLES: Record<CmmsAssetRow['status'], string> = {
-  OPERATIONAL:    'bg-emerald-950 text-emerald-400 border-emerald-800',
-  MAINTENANCE:    'bg-blue-950 text-blue-400 border-blue-800',
-  STANDBY:        'bg-slate-800 text-slate-400 border-slate-700',
-  OUT_OF_SERVICE: 'bg-red-950 text-red-400 border-red-800',
-};
-
-const STATUS_LABEL_KO: Record<CmmsAssetRow['status'], string> = {
-  OPERATIONAL:    '운영중',
-  MAINTENANCE:    '정비중',
-  STANDBY:        '대기',
-  OUT_OF_SERVICE: '가동중지',
-};
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-function FieldRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+function DataField({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
-    <div className="flex items-start gap-3 py-2.5 border-b border-slate-800/60 last:border-0">
-      <span className="mt-0.5 text-slate-500 flex-shrink-0">{icon}</span>
-      <div className="flex-1 min-w-0">
-        <span className="block text-[10px] uppercase tracking-widest text-slate-500 mb-0.5">{label}</span>
-        <span className="block text-sm text-slate-200 font-mono break-all">{value ?? <em className="text-slate-600 not-italic">—</em>}</span>
+    <div className="grid grid-cols-[130px_1fr] border-b border-slate-300 last:border-b-0">
+      <div className="bg-slate-100 px-2.5 py-1.5 text-[11px] font-semibold text-slate-500 border-r border-slate-300 uppercase tracking-wide">
+        {label}
       </div>
+      <div className={`px-2.5 py-1.5 text-[12px] text-slate-800 ${mono ? 'font-mono' : ''}`}>{value}</div>
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// CmmsAssetDetailModal
-// ---------------------------------------------------------------------------
 
 interface CmmsAssetDetailModalProps {
   asset: CmmsAssetRow | null;
@@ -65,92 +37,78 @@ interface CmmsAssetDetailModalProps {
 }
 
 export function CmmsAssetDetailModal({ asset, onClose }: CmmsAssetDetailModalProps) {
-  // ESC key to close
   useEffect(() => {
     if (!asset) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [asset, onClose]);
 
   if (!asset) return null;
 
-  const crit = CRIT_STYLES[asset.criticality];
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="relative bg-[#12161e] border border-cyan-500/30 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden text-slate-200 font-mono"
+        className={`${RAISED_PANEL} shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Accent bar */}
-        <div className={`h-1 w-full ${crit.bar}`} />
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-[#0d1117] border-b border-slate-800">
-          <div>
-            <p className="text-[10px] uppercase tracking-widest text-cyan-400 font-semibold mb-0.5">
-              Asset Specification — CMMS
-            </p>
-            <h2 className="text-base font-bold text-white leading-tight">{asset.assetName}</h2>
-          </div>
-          <button
-            id="cmms-asset-modal-close"
-            onClick={onClose}
-            aria-label="모달 닫기"
-            className="text-slate-500 hover:text-white hover:bg-slate-800 rounded p-1.5 transition-colors"
-          >
-            <X className="w-4 h-4" />
+        {/* 타이틀바 */}
+        <div className={`flex items-center justify-between ${TITLE_BAR}`}>
+          <span>ASSET DETAIL — {asset.equipmentTag}</span>
+          <button onClick={onClose} aria-label="모달 닫기" className={`${BEVEL_ICON_BUTTON} w-5 h-5`}>
+            ✕
           </button>
         </div>
 
-        {/* Body */}
-        <div className="px-6 py-4 max-h-[70vh] overflow-y-auto space-y-1">
-          <FieldRow icon={<Tag className="w-3.5 h-3.5" />}      label="Equipment Tag"  value={<span className="text-cyan-300 font-bold">{asset.equipmentTag}</span>} />
-          <FieldRow icon={<Hash className="w-3.5 h-3.5" />}     label="KKS Code"       value={<span className="text-amber-300">{asset.kksCode}</span>} />
-          <FieldRow icon={<Cpu className="w-3.5 h-3.5" />}      label="ISO Class"      value={asset.isoClass} />
-          <FieldRow icon={<Tag className="w-3.5 h-3.5" />}      label="Parent Tag"     value={asset.parentTag ?? <em className="text-slate-600 not-italic">Root (없음)</em>} />
-          <FieldRow icon={<MapPin className="w-3.5 h-3.5" />}   label="Location / Area" value={asset.locationArea} />
-          <FieldRow
-            icon={<AlertTriangle className="w-3.5 h-3.5" />}
-            label="Criticality"
-            value={
-              <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold border ${crit.badge}`}>
-                {asset.criticality}
-              </span>
-            }
-          />
-          <FieldRow
-            icon={<Activity className="w-3.5 h-3.5" />}
-            label="Status"
-            value={
-              <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold border ${STATUS_STYLES[asset.status]}`}>
-                {STATUS_LABEL_KO[asset.status]} ({asset.status})
-              </span>
-            }
-          />
-          {asset.manufacturer && (
-            <FieldRow icon={<Cpu className="w-3.5 h-3.5" />} label="Manufacturer" value={asset.manufacturer} />
-          )}
-          {asset.isMockData && (
-            <div className="mt-3 px-3 py-2 bg-amber-950/50 border border-amber-700/50 rounded text-amber-400 text-xs flex items-center gap-2">
-              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-              이 자산 레코드는 임시(Mock) 데이터입니다. 확정 데이터로 추후 교체됩니다.
+        <div className="p-3">
+          {/* 자산명 + 배지 */}
+          <div className={`${SUNKEN_PANEL} px-3 py-2 mb-3`}>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono text-sm font-bold text-slate-900">{asset.equipmentTag}</span>
+              {asset.isMockData && (
+                <span className="px-1.5 py-0.5 text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-600">
+                  MOCK DATA
+                </span>
+              )}
             </div>
-          )}
-        </div>
+            <div className="text-[12px] text-slate-600 mt-0.5">{asset.assetName}</div>
+          </div>
 
-        {/* Footer */}
-        <div className="px-6 py-3 bg-[#0d1117] border-t border-slate-800 flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold px-5 py-1.5 rounded text-xs transition-colors"
-          >
-            확인 (ESC)
-          </button>
+          {/* 배지 요약 */}
+          <div className="flex gap-2 mb-3">
+            <span className={`px-2 py-1 text-[11px] font-bold border ${CRITICALITY_BADGE[asset.criticality]}`}>
+              {CRITICALITY_LABEL[asset.criticality]}
+            </span>
+            <span className={`px-2 py-1 text-[11px] font-bold border ${STATUS_BADGE[asset.status]}`}>
+              {STATUS_LABEL_KO[asset.status]} ({asset.status})
+            </span>
+          </div>
+
+          {/* 데이터 필드 */}
+          <div className={SUNKEN_PANEL}>
+            <DataField label="KKS CODE" value={asset.kksCode} mono />
+            <DataField label="ISO 14224" value={asset.isoClass} />
+            <DataField label="LOCATION" value={asset.locationArea} />
+            <DataField label="MANUFACTURER" value={asset.manufacturer ?? '— NOT CONFIRMED —'} />
+            <DataField
+              label="PARENT TAG"
+              value={asset.parentTag ?? '— TOP LEVEL / NO HIERARCHY —'}
+              mono={!!asset.parentTag}
+            />
+          </div>
+
+          {/* 확장 예정 섹션 */}
+          <div className="mt-3 px-2.5 py-2 bg-slate-100 border border-slate-300 text-[10px] text-slate-500 font-mono">
+            ⚠ MAINTENANCE HISTORY / PM SCHEDULE / SIMOPS — TO BE LINKED VIA e-PTW MODULE
+          </div>
+
+          <div className="flex justify-end mt-3">
+            <button onClick={onClose} className={BEVEL_BUTTON}>
+              확인 (ESC)
+            </button>
+          </div>
         </div>
       </div>
     </div>

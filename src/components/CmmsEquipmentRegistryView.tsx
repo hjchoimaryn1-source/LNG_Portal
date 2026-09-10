@@ -9,56 +9,33 @@
 //   함수가 로컬로 정의되어 있어(레거시 Equipment & Asset 탭), 이름 충돌을 피하기
 //   위해 컴포넌트명을 CmmsEquipmentRegistryView로 명명했다. 절대 EquipmentRegistryView로
 //   되돌리지 말 것.
+//
+//   스타일: WIN_TAB_INACTIVE와 통일된 Win98 베벨 스타일 (scadaStyles.ts 공용 토큰 사용).
 
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Search, AlertTriangle, Loader2, LayoutGrid, Network } from 'lucide-react';
 import { useCmmsAssets, type CmmsAssetRow } from '../context/CmmsAwarePortalProvider';
 import { AdminCmmsResetButton } from './AdminCmmsResetButton';
 import { CmmsAssetDetailModal } from './cmms/CmmsAssetDetailModal';
 import { CmmsAssetHierarchyTree } from './cmms/CmmsAssetHierarchyTree';
-
-// ----------------------------------------------------------------------------
-// 스타일 헬퍼
-// ----------------------------------------------------------------------------
-
-const CRITICALITY_STYLES: Record<CmmsAssetRow['criticality'], string> = {
-  CRITICAL: 'bg-red-100 text-red-800 border-red-300',
-  HIGH: 'bg-orange-100 text-orange-800 border-orange-300',
-  MEDIUM: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  LOW: 'bg-slate-100 text-slate-700 border-slate-300',
-};
-
-const STATUS_STYLES: Record<CmmsAssetRow['status'], string> = {
-  OPERATIONAL: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-  MAINTENANCE: 'bg-blue-100 text-blue-800 border-blue-300',
-  STANDBY: 'bg-slate-100 text-slate-700 border-slate-300',
-  OUT_OF_SERVICE: 'bg-red-100 text-red-800 border-red-300',
-};
-
-const STATUS_LABEL_KO: Record<CmmsAssetRow['status'], string> = {
-  OPERATIONAL: '운영중',
-  MAINTENANCE: '정비중',
-  STANDBY: '대기',
-  OUT_OF_SERVICE: '가동중지',
-};
-
-function Badge({ className, children }: { className: string; children: React.ReactNode }) {
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${className}`}>
-      {children}
-    </span>
-  );
-}
-
-// ----------------------------------------------------------------------------
-// 메인 컴포넌트
-// ----------------------------------------------------------------------------
+import {
+  BEVEL_BUTTON,
+  BEVEL_BUTTON_PRESSED,
+  SUNKEN_PANEL,
+  SUNKEN_INPUT,
+  TITLE_BAR,
+  CRITICALITY_BADGE,
+  STATUS_BADGE,
+  STATUS_LABEL_KO,
+} from './cmms/scadaStyles';
 
 type CriticalityFilter = 'ALL' | CmmsAssetRow['criticality'];
 type StatusFilter = 'ALL' | CmmsAssetRow['status'];
 type ViewMode = 'grid' | 'tree';
+
+/** 정보 바(타이틀바 바로 아래, 튀어나온 느낌) — RAISED_PANEL의 위쪽 테두리 없는 변형 */
+const RAISED_PANEL_INLINE = 'bg-[#ece9e2] border-2 border-t-0 border-l-white border-r-[#505050] border-b-[#505050]';
 
 export function CmmsEquipmentRegistryView() {
   const { cmmsAssetRows, cmmsAssetsLoading, cmmsAssetsError, cmmsSnapshotGeneratedAt, hasMockData, reloadCmmsAssets } =
@@ -85,23 +62,19 @@ export function CmmsEquipmentRegistryView() {
 
   if (cmmsAssetsLoading) {
     return (
-      <div className="flex items-center justify-center h-64 text-slate-500">
-        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-        자산 데이터 로딩 중...
+      <div className="flex items-center justify-center h-64 text-slate-500 font-mono text-[12px]">
+        <div className="w-4 h-4 mr-2 border-2 border-slate-400 border-t-slate-700 rounded-full animate-spin" />
+        LOADING ASSET DATA...
       </div>
     );
   }
 
   if (cmmsAssetsError) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-red-600 gap-2">
-        <AlertTriangle className="w-8 h-8" />
-        <p className="font-medium">CMMS 자산 데이터를 불러오지 못했습니다.</p>
-        <p className="text-sm text-slate-500">{cmmsAssetsError}</p>
-        <button
-          onClick={() => reloadCmmsAssets()}
-          className="mt-2 px-3 py-1.5 text-sm bg-slate-800 text-white rounded hover:bg-slate-700"
-        >
+      <div className="flex flex-col items-center justify-center h-64 text-red-700 gap-2 font-mono">
+        <p className="font-bold text-[13px]">⚠ CMMS 자산 데이터를 불러오지 못했습니다.</p>
+        <p className="text-[11px] text-slate-500">{cmmsAssetsError}</p>
+        <button onClick={() => reloadCmmsAssets()} className={`${BEVEL_BUTTON} mt-2`}>
           다시 시도
         </button>
       </div>
@@ -109,158 +82,153 @@ export function CmmsEquipmentRegistryView() {
   }
 
   return (
-    <div className="p-4 md:p-6">
-      {/* 헤더 */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-3">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-800">Equipment Registry (CMMS)</h1>
-            <p className="text-sm text-slate-500">
-              총 {cmmsAssetRows.length}건
-              {cmmsSnapshotGeneratedAt && (
-                <span className="ml-2 text-slate-400">
-                  (스냅샷 생성: {new Date(cmmsSnapshotGeneratedAt).toLocaleString('ko-KR')})
-                </span>
-              )}
-            </p>
-          </div>
-          <AdminCmmsResetButton />
+    <div className="p-3">
+      {/* 헤더 타이틀바 */}
+      <div className={`flex items-center justify-between ${TITLE_BAR} mb-0`}>
+        <span>EQUIPMENT & ASSET REGISTRY — PLANT MASTER ASSET HIERARCHY (NIAS CMMS)</span>
+      </div>
+
+      {/* 정보 바 + 관리자 버튼 + 뷰 토글 */}
+      <div className={`${RAISED_PANEL_INLINE} flex flex-col md:flex-row md:items-center justify-between gap-2 px-3 py-2`}>
+        <div className="text-[11px] font-mono text-slate-600">
+          총 <span className="font-bold text-slate-900">{cmmsAssetRows.length}</span>건
+          {cmmsSnapshotGeneratedAt && (
+            <span className="ml-2 text-slate-400">
+              (스냅샷 생성: {new Date(cmmsSnapshotGeneratedAt).toLocaleString('ko-KR')})
+            </span>
+          )}
+          {hasMockData && <span className="ml-3 text-amber-700 font-bold">⚠ 일부 자산은 임시(Mock) 데이터입니다.</span>}
         </div>
         <div className="flex items-center gap-2">
-          {hasMockData && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-300 rounded text-amber-800 text-sm">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              <span>일부 자산은 건설 완료 전 임시(Mock) 데이터입니다.</span>
-            </div>
-          )}
-          {/* View mode toggle */}
-          <div className="flex rounded border border-slate-200 overflow-hidden" role="group" aria-label="View mode">
+          <AdminCmmsResetButton />
+          <div className="flex">
             <button
-              id="cmms-view-grid"
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
-                viewMode === 'grid'
-                  ? 'bg-slate-800 text-white'
-                  : 'bg-white text-slate-600 hover:bg-slate-50'
-              }`}
+              className={viewMode === 'grid' ? BEVEL_BUTTON_PRESSED : BEVEL_BUTTON}
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              Grid View
+              GRID VIEW
             </button>
             <button
-              id="cmms-view-tree"
               onClick={() => setViewMode('tree')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-l border-slate-200 transition-colors ${
-                viewMode === 'tree'
-                  ? 'bg-slate-800 text-white'
-                  : 'bg-white text-slate-600 hover:bg-slate-50'
-              }`}
+              className={`${viewMode === 'tree' ? BEVEL_BUTTON_PRESSED : BEVEL_BUTTON} ml-1`}
             >
-              <Network className="w-3.5 h-3.5" />
-              Hierarchy Tree
+              HIERARCHY TREE
             </button>
           </div>
         </div>
       </div>
 
-      {/* Tree view */}
+      <div className="h-2" />
+
       {viewMode === 'tree' ? (
         <CmmsAssetHierarchyTree assets={cmmsAssetRows} onSelectAsset={setSelectedAsset} />
       ) : (
         <>
-      {/* 검색/필터 바 */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            id="cmms-grid-search"
-            type="text"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            placeholder="태그, 이름, KKS 코드, 위치로 검색..."
-            className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-          />
-        </div>
-        <select
-          value={criticalityFilter}
-          onChange={(e) => setCriticalityFilter(e.target.value as CriticalityFilter)}
-          className="px-3 py-2 border border-slate-300 rounded text-sm bg-white"
-        >
-          <option value="ALL">전체 중요도</option>
-          <option value="CRITICAL">CRITICAL</option>
-          <option value="HIGH">HIGH</option>
-          <option value="MEDIUM">MEDIUM</option>
-          <option value="LOW">LOW</option>
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          className="px-3 py-2 border border-slate-300 rounded text-sm bg-white"
-        >
-          <option value="ALL">전체 상태</option>
-          <option value="OPERATIONAL">운영중</option>
-          <option value="MAINTENANCE">정비중</option>
-          <option value="STANDBY">대기</option>
-          <option value="OUT_OF_SERVICE">가동중지</option>
-        </select>
-      </div>
+          {/* 검색/필터 바 */}
+          <div className="flex flex-col sm:flex-row gap-2 mb-2">
+            <input
+              type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="태그, 이름, KKS 코드, 위치로 검색..."
+              className={`${SUNKEN_INPUT} flex-1`}
+            />
+            <select
+              value={criticalityFilter}
+              onChange={(e) => setCriticalityFilter(e.target.value as CriticalityFilter)}
+              className={SUNKEN_INPUT}
+            >
+              <option value="ALL">전체 중요도</option>
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="HIGH">HIGH</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="LOW">LOW</option>
+            </select>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+              className={SUNKEN_INPUT}
+            >
+              <option value="ALL">전체 상태</option>
+              <option value="OPERATIONAL">운영중</option>
+              <option value="MAINTENANCE">정비중</option>
+              <option value="STANDBY">대기</option>
+              <option value="OUT_OF_SERVICE">가동중지</option>
+            </select>
+          </div>
 
-      {/* 테이블 */}
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="text-left px-4 py-2.5 font-medium text-slate-600">Equipment Tag</th>
-                <th className="text-left px-4 py-2.5 font-medium text-slate-600">자산명</th>
-                <th className="text-left px-4 py-2.5 font-medium text-slate-600">KKS 코드</th>
-                <th className="text-left px-4 py-2.5 font-medium text-slate-600">위치</th>
-                <th className="text-left px-4 py-2.5 font-medium text-slate-600">중요도</th>
-                <th className="text-left px-4 py-2.5 font-medium text-slate-600">상태</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredRows.map((row) => (
-                <tr
-                  key={row.equipmentTag}
-                  className="hover:bg-slate-50 cursor-pointer"
-                  onClick={() => setSelectedAsset(row)}
-                >
-                  <td className="px-4 py-2.5 font-mono text-slate-800">
-                    {row.equipmentTag}
-                    {row.isMockData && (
-                      <span className="ml-2">
-                        <Badge className="bg-amber-100 text-amber-700 border-amber-300">MOCK</Badge>
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5 text-slate-700">{row.assetName}</td>
-                  <td className="px-4 py-2.5 font-mono text-slate-500">{row.kksCode}</td>
-                  <td className="px-4 py-2.5 text-slate-600">{row.locationArea}</td>
-                  <td className="px-4 py-2.5">
-                    <Badge className={CRITICALITY_STYLES[row.criticality]}>{row.criticality}</Badge>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <Badge className={STATUS_STYLES[row.status]}>{STATUS_LABEL_KO[row.status]}</Badge>
-                  </td>
-                </tr>
-              ))}
-              {filteredRows.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
-                    조건에 맞는 자산이 없습니다.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+          {/* 테이블 (SCADA 고밀도 스타일) */}
+          <div className={SUNKEN_PANEL}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-[12px] font-mono border-collapse">
+                <thead>
+                  <tr className="bg-slate-200 border-b-2 border-slate-400">
+                    <th className="text-left px-2 py-1.5 font-bold text-slate-700 border-r border-slate-300">
+                      EQUIPMENT TAG
+                    </th>
+                    <th className="text-left px-2 py-1.5 font-bold text-slate-700 border-r border-slate-300">
+                      자산명
+                    </th>
+                    <th className="text-left px-2 py-1.5 font-bold text-slate-700 border-r border-slate-300">
+                      KKS 코드
+                    </th>
+                    <th className="text-left px-2 py-1.5 font-bold text-slate-700 border-r border-slate-300">
+                      위치
+                    </th>
+                    <th className="text-left px-2 py-1.5 font-bold text-slate-700 border-r border-slate-300">
+                      중요도
+                    </th>
+                    <th className="text-left px-2 py-1.5 font-bold text-slate-700">상태</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRows.map((row, idx) => (
+                    <tr
+                      key={row.equipmentTag}
+                      onClick={() => setSelectedAsset(row)}
+                      className={`cursor-pointer hover:bg-blue-50 border-b border-slate-200 ${
+                        idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'
+                      }`}
+                    >
+                      <td className="px-2 py-1 font-bold text-slate-800 border-r border-slate-200">
+                        {row.equipmentTag}
+                        {row.isMockData && (
+                          <span className="ml-1.5 px-1 text-[9px] font-bold text-amber-800 bg-amber-100 border border-amber-600">
+                            MOCK
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-2 py-1 text-slate-700 border-r border-slate-200">{row.assetName}</td>
+                      <td className="px-2 py-1 text-slate-500 border-r border-slate-200">{row.kksCode}</td>
+                      <td className="px-2 py-1 text-slate-600 border-r border-slate-200">{row.locationArea}</td>
+                      <td className="px-2 py-1 border-r border-slate-200">
+                        <span className={`px-1.5 py-0.5 text-[10px] font-bold border ${CRITICALITY_BADGE[row.criticality]}`}>
+                          {row.criticality}
+                        </span>
+                      </td>
+                      <td className="px-2 py-1">
+                        <span className={`px-1.5 py-0.5 text-[10px] font-bold border ${STATUS_BADGE[row.status]}`}>
+                          {STATUS_LABEL_KO[row.status]}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredRows.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                        조건에 맞는 자산이 없습니다.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </>
       )}
 
-      {/* Asset detail modal — renders above both views */}
       <CmmsAssetDetailModal asset={selectedAsset} onClose={() => setSelectedAsset(null)} />
     </div>
   );
 }
+
