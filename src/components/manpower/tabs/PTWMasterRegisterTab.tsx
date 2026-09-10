@@ -94,6 +94,7 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
         onClose={() => setIsNewPermitModalOpen(false)}
         personnelList={personnelList}
         sequenceNumber={permits.length + 1}
+        activePermits={permits}
         onSubmitSuccess={(newPermit, cmmsMeta) => {
           addPermit(newPermit);
           setSelectedPermitId(newPermit.id);

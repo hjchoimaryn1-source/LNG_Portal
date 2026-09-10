@@ -25,6 +25,8 @@ export interface CmmsPermitMeta extends CmmsStageStatus {
 export interface UseCMMSPTWFormArgs {
   personnelList: StaffPersonnel[];
   sequenceNumber: number;
+  /** SIMOPS 공간 간섭 판정 대상 — 발급 시점의 활성 permit 목록 (usePTWPermits().permits). */
+  activePermits: PTWPermit[];
   /** 레거시 PTWPermit과 함께, 이번 생성 건의 CMMS stage/status/payloadHash를 받는다. */
   onSubmitSuccess: (newPermit: PTWPermit, cmmsMeta: CmmsPermitMeta) => void;
   onClose: () => void;
@@ -41,6 +43,7 @@ export function useCMMSPTWForm(args: UseCMMSPTWFormArgs) {
   const form = useNewPTWPermitForm({
     personnelList: args.personnelList,
     sequenceNumber: args.sequenceNumber,
+    activePermits: args.activePermits,
     onClose: args.onClose,
     onSubmitSuccess: (newPermit) => {
       // 생성 직후 permit.status는 항상 'DRAFT' (useNewPTWPermitForm 고정값) —

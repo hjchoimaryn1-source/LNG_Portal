@@ -9,12 +9,16 @@ import { PLANT_WORK_LOCATIONS } from '../../../data/ptwWorkAreas';
 import { CmmsPermitMeta, useCMMSPTWForm } from '../../../hooks/useCMMSPTWForm';
 import PRACChecklistSection from './ptw/PRACChecklistSection';
 import WorkforcePillPicker from './ptw/WorkforcePillPicker';
+import SimopsWarningModal from './ptw/SimopsWarningModal';
+import StageOneSummaryFlags from './ptw/StageOneSummaryFlags';
 
 export interface NewPTWPermitModalProps {
   isOpen: boolean;
   onClose: () => void;
   personnelList: StaffPersonnel[];
   sequenceNumber: number;
+  // SIMOPS 공간 간섭 판정 대상 — 발급 시점의 활성 permit 목록 (usePTWPermits().permits).
+  activePermits: PTWPermit[];
   // Phase 1 stage/status + payloadHash baseline (permit_lock_state) generated
   // alongside the legacy permit — see src/hooks/useCMMSPTWForm.ts.
   onSubmitSuccess: (newPermit: PTWPermit, cmmsMeta: CmmsPermitMeta) => void;
@@ -25,9 +29,10 @@ export default function NewPTWPermitModal({
   onClose,
   personnelList,
   sequenceNumber,
+  activePermits,
   onSubmitSuccess,
 }: NewPTWPermitModalProps) {
-  const form = useCMMSPTWForm({ personnelList, sequenceNumber, onSubmitSuccess, onClose });
+  const form = useCMMSPTWForm({ personnelList, sequenceNumber, activePermits, onSubmitSuccess, onClose });
 
   if (!isOpen) return null;
 
@@ -35,6 +40,7 @@ export default function NewPTWPermitModal({
   const isGasRequired = isGasMeasurementApplicable(form.newPermitType);
 
   return (
+    <>
     <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 animate-in fade-in duration-200">
       <div className="win-panel w-[90vw] max-w-6xl bg-white shadow-2xl border-2 border-blue-950 text-slate-900 rounded-xl overflow-hidden font-sans flex flex-col max-h-[90vh]">
         <div className="bg-blue-950 text-white px-6 py-4 flex justify-between items-center border-b border-blue-800 shrink-0">
@@ -78,8 +84,8 @@ export default function NewPTWPermitModal({
 
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-800">
-                Plant Work Location / Equipment Tag
-                <span className="text-xs font-normal text-slate-500 ml-1.5">(Specific equipment / Tag location)</span>
+                Plant Work Location
+                <span className="text-xs font-normal text-slate-500 ml-1.5">(Specific plant/site zone)</span>
               </label>
               <select
                 value={form.newPermitLocation}
@@ -95,7 +101,24 @@ export default function NewPTWPermitModal({
             </div>
           </div>
 
-          {/* 1b. Safety & PPE Zone (NP-09 App 01) */}
+          {/* 1b. Equipment / Asset Tag — SIMOPS conflict-matching key alongside PPE Zone */}
+          <div className="space-y-1.5">
+            <label className="block font-bold text-slate-800">
+              Equipment / Asset Tag
+              <span className="text-xs font-normal text-slate-500 ml-1.5">
+                (Optional — used for SIMOPS conflict matching, e.g. PRSS-CMP-01)
+              </span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. PRSS-CMP-01"
+              value={form.newEquipmentTag}
+              onChange={(e) => form.setNewEquipmentTag(e.target.value)}
+              className="w-full h-10 px-3.5 border border-slate-300 rounded-md font-medium bg-white shadow-sm"
+            />
+          </div>
+
+          {/* 1c. Safety & PPE Zone (NP-09 App 01) */}
           <div className="space-y-1.5">
             <label className="block font-bold text-slate-800">
               Safety & PPE Zone (NP-09)
@@ -173,25 +196,7 @@ export default function NewPTWPermitModal({
           </div>
 
           {/* 4. Stage-1 Derived Summary Flags */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
-            <div className="flex items-center justify-between p-3 bg-white rounded-md border border-slate-200">
-              <span className="font-semibold text-slate-700">High-Risk Activity:</span>
-              <span className={`px-2.5 py-1 text-xs font-bold rounded ${
-                isHighRisk ? 'bg-rose-100 text-rose-800 border border-rose-300' : 'bg-slate-100 text-slate-700 border border-slate-300'
-              }`}>
-                {isHighRisk ? 'YES (High Risk)' : 'NO (Standard Risk)'}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-white rounded-md border border-slate-200">
-              <span className="font-semibold text-slate-700">Gas Test Required:</span>
-              <span className={`px-2.5 py-1 text-xs font-bold rounded ${
-                isGasRequired ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-slate-100 text-slate-600 border border-slate-300'
-              }`}>
-                {isGasRequired ? 'YES' : 'N/A'}
-              </span>
-            </div>
-          </div>
+          <StageOneSummaryFlags isHighRisk={isHighRisk} isGasRequired={isGasRequired} />
 
           {/* 5. PRAC Checklist Section (NIAS NP-09 §NP09-01) */}
           <PRACChecklistSection />
@@ -228,5 +233,14 @@ export default function NewPTWPermitModal({
         </div>
       </div>
     </div>
+    {form.simopsGate && (
+      <SimopsWarningModal
+        result={form.simopsGate}
+        onAcknowledge={form.onSimopsAcknowledge}
+        onCancel={form.onSimopsCancel}
+        onConfirmOverride={form.onSimopsConfirmOverride}
+      />
+    )}
+    </>
   );
 }
