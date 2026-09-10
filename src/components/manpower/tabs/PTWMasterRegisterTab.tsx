@@ -3,7 +3,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { PTWWorkflowStatus, StaffPersonnel } from '../../../types/lng';
-import { usePTWPermits } from '../hooks/usePTWPermits';
+import { usePTWPermitsContext } from '../../../context/PTWPermitsProvider';
 import CargoHandlingPermitForm from '../cargoHandling/CargoHandlingPermitForm';
 import NewPTWPermitModal from '../modals/NewPTWPermitModal';
 import PTWSummaryBar from './ptw/PTWSummaryBar';
@@ -18,7 +18,7 @@ export interface PTWMasterRegisterTabProps {
 }
 
 export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix }: PTWMasterRegisterTabProps) {
-  const { permits, addPermit, updateGasReadings, addGasTestLogEntry, transitionStatus, stats } = usePTWPermits();
+  const { permits, addPermit, updateGasReadings, addGasTestLogEntry, transitionStatus, stats } = usePTWPermitsContext();
 
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<PTWCategoryFilter>('ALL');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<PTWWorkflowStatus | 'ALL'>('ALL');

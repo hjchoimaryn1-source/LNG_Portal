@@ -476,3 +476,28 @@ export interface CargoHandlingPermitDetails {
   allLotoLocksRemoved: boolean;
   leakTestPassed: boolean;
 }
+
+// --- Work Order (CMMS Work Order & Maintenance) types ---
+
+export type WorkOrderCategory = 'PMS' | 'OVERHAUL' | 'MRO';
+
+export type WorkOrderStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'PARTS_PENDING' | 'COMPLETED';
+
+export type WorkOrderPriority = 'Low' | 'Medium' | 'High' | 'Critical';
+
+export interface WOItem {
+  wo: string; // e.g. "WO-2026-0841"
+  cat: WorkOrderCategory;
+  tag: string; // target equipment tag
+  type: string; // work type label (e.g. "Preventive (PMS)")
+  desc: string;
+  priority: WorkOrderPriority;
+  due: string;
+  tech: string;
+  status: WorkOrderStatus;
+  // Legacy string ref to a PTWPermit.id, same convention as
+  // ptwFormAdapter.ts's permitRefNo — not a DB foreign key (no `permits`
+  // table yet, see src/db/schema/cmms_schema.sql). Undefined when the work
+  // does not require an e-PTW.
+  permitRefNo?: string;
+}

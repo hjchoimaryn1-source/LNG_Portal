@@ -3,9 +3,11 @@
 
 import React, { useState } from 'react';
 import { CmmsAwarePortalProvider, usePortalData } from '../context/CmmsAwarePortalProvider';
+import { PTWPermitsProvider } from '../context/PTWPermitsProvider';
 import { CmmsEquipmentRegistryView } from './CmmsEquipmentRegistryView';
 import { AdminCmmsResetButton } from './AdminCmmsResetButton';
 import { WorkOrderSchedulerView } from './WorkOrderSchedulerView';
+import WorkOrderListView from './workorder/WorkOrderListView';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { SubProcessKey } from '../types/lng';
 import { COMPANY_CONFIG, CMMS_MODULES } from '../config/siteConfig';
@@ -349,58 +351,6 @@ function EquipmentRegistryView({ filter = 'ALL' }: { filter?: string }) {
                 <td className="p-1.5 border-r border-slate-300 font-bold text-slate-800">{a.crit}</td>
                 <td className="p-1.5 border-r border-slate-300">{a.lastMaint}</td>
                 <td className="p-1.5 text-center font-bold text-emerald-800 bg-emerald-50">{a.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function WorkOrderView({ filter = 'ALL' }: { filter?: string }) {
-  const allWorkOrders = [
-    { wo: 'WO-2026-0841', cat: 'PMS', tag: 'AAV-104', type: 'Preventive (PMS)', desc: 'Vaporizer 30-Day Defrost & Thermal Cycle Inspection', priority: 'Medium', due: '2026-08-30', tech: 'H. Siregar', status: 'IN_PROGRESS' },
-    { wo: 'WO-2026-0839', cat: 'OVERHAUL', tag: 'GEN-02', type: 'Routine (500h)', desc: 'MAN 7L 51/60 DF Lube Oil Sampling & Filter Replacement', priority: 'High', due: '2026-09-02', tech: 'A. Fauzi', status: 'SCHEDULED' },
-    { wo: 'WO-2026-0835', cat: 'PMS', tag: 'PRSS-01', type: 'Calibration', desc: 'PRSS Dual Redundant Pilot Regulator Trim Inspection', priority: 'High', due: '2026-08-28', tech: 'B. Pratama', status: 'COMPLETED' },
-    { wo: 'WO-2026-0828', cat: 'MRO', tag: 'IT-5088', type: 'Corrective (MRO)', desc: 'Laydown 2 ISO Tank Secondary Relief Valve Gasket Replace', priority: 'Critical', due: '2026-08-26', tech: 'M. Yusuf', status: 'PARTS_PENDING' },
-  ];
-
-  const workOrders = filter === 'ALL' ? allWorkOrders : allWorkOrders.filter((w) => w.cat === filter);
-
-  return (
-    <div className="h-full flex flex-col min-h-0 gap-1.5 w-full win-panel p-2 overflow-hidden">
-      <div className="win-titlebar px-2 py-1">
-        <span className="text-xs font-bold text-white flex items-center gap-1.5">
-          <Sliders className="w-3.5 h-3.5" />
-          Work Order & Maintenance - Planned Maintenance System (PMS Ledger)
-        </span>
-      </div>
-      <div className="flex-1 min-h-0 overflow-y-auto win-sunken">
-        <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
-          <thead>
-            <tr className="bg-slate-200 border-b border-slate-400">
-              <th className="p-1.5 border-r border-slate-300">WO Number</th>
-              <th className="p-1.5 border-r border-slate-300">Target Asset</th>
-              <th className="p-1.5 border-r border-slate-300">Work Type</th>
-              <th className="p-1.5 border-r border-slate-300">Task Scope</th>
-              <th className="p-1.5 border-r border-slate-300">Priority</th>
-              <th className="p-1.5 border-r border-slate-300">Due Date</th>
-              <th className="p-1.5 border-r border-slate-300">Engineer</th>
-              <th className="p-1.5 text-center">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {workOrders.map((w, i) => (
-              <tr key={i} className={i % 2 === 0 ? 'bg-white hover:bg-slate-100' : 'bg-slate-50 hover:bg-slate-100'}>
-                <td className="p-1.5 font-bold border-r border-slate-300 text-blue-950">{w.wo}</td>
-                <td className="p-1.5 font-bold border-r border-slate-300">{w.tag}</td>
-                <td className="p-1.5 border-r border-slate-300">{w.type}</td>
-                <td className="p-1.5 border-r border-slate-300">{w.desc}</td>
-                <td className="p-1.5 border-r border-slate-300 font-bold text-slate-800">{w.priority}</td>
-                <td className="p-1.5 border-r border-slate-300">{w.due}</td>
-                <td className="p-1.5 border-r border-slate-300">{w.tech}</td>
-                <td className="p-1.5 text-center font-bold text-blue-900 bg-blue-50">{w.status}</td>
               </tr>
             ))}
           </tbody>
@@ -1068,7 +1018,7 @@ function LNGPortalInner({
               {/* MODULE 3: MAINTENANCE & WORK ORDERS                       */}
               {/* ========================================================= */}
               {(activeKey === 'WORK_ORDER_MAINTENANCE' || activeKey === 'PM_SCHEDULES') && (
-                <WorkOrderView filter={activeKey === 'PM_SCHEDULES' ? 'PMS' : workOrderFilter} />
+                <WorkOrderListView filter={activeKey === 'PM_SCHEDULES' ? 'PMS' : workOrderFilter} />
               )}
               {activeKey === 'WORK_ORDER_DIRECTORY' && (
                 <>
@@ -1087,7 +1037,7 @@ function LNGPortalInner({
                     </button>
                   </div>
                   {showWoSchedulerPreview ? <WorkOrderSchedulerView /> : (
-                    <WorkOrderView filter={workOrderFilter} />
+                    <WorkOrderListView filter={workOrderFilter} />
                   )}
                 </>
               )}
@@ -1181,14 +1131,16 @@ export default function LNGPortalApp() {
       {activeSector !== null ? (
         /* Module Entry: Only when operator clicks one of the 5 sector cards, mount provider and load module */
         <CmmsAwarePortalProvider>
-          <LNGPortalInner
-            initialKey={activeSector}
-            onReturnToLauncher={() => setActiveSector(null)}
-            onLogout={() => {
-              setActiveSector(null);
-              setIsAuthenticated(false);
-            }}
-          />
+          <PTWPermitsProvider>
+            <LNGPortalInner
+              initialKey={activeSector}
+              onReturnToLauncher={() => setActiveSector(null)}
+              onLogout={() => {
+                setActiveSector(null);
+                setIsAuthenticated(false);
+              }}
+            />
+          </PTWPermitsProvider>
         </CmmsAwarePortalProvider>
       ) : (
         /* Unified Background: Full-screen plant background image with dark overlay */
