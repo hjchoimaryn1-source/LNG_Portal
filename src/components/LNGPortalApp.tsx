@@ -2,7 +2,9 @@
 "use client";
 
 import React, { useState } from 'react';
-import { PortalDataProvider, usePortalData } from '../context/PortalDataContext';
+import { CmmsAwarePortalProvider, usePortalData } from '../context/CmmsAwarePortalProvider';
+import { CmmsEquipmentRegistryView } from './CmmsEquipmentRegistryView';
+import { AdminCmmsResetButton } from './AdminCmmsResetButton';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { SubProcessKey } from '../types/lng';
 import { COMPANY_CONFIG, CMMS_MODULES } from '../config/siteConfig';
@@ -500,6 +502,7 @@ function LNGPortalInner({
 
   // Sub-tab states for CMMS Modules
   const [equipmentFilter, setEquipmentFilter] = useState<string>('ALL');
+  const [showCmmsRegistry, setShowCmmsRegistry] = useState(false);
   const [workOrderFilter, setWorkOrderFilter] = useState<string>('ALL');
   const [calibrationFilter, setCalibrationFilter] = useState<string>('ALL');
 
@@ -1030,7 +1033,27 @@ function LNGPortalInner({
               {/* MODULE 2: EQUIPMENT & ASSET                               */}
               {/* ========================================================= */}
               {activeKey === 'EQUIPMENT_ASSET_REGISTRY' && (
-                <EquipmentRegistryView filter={equipmentFilter} />
+                <>
+                  <div className="flex gap-2 px-4 pt-3 border-b border-slate-200 bg-white">
+                    <button
+                      onClick={() => setShowCmmsRegistry(false)}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-t border-b-2 ${!showCmmsRegistry ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                    >
+                      All Assets Directory
+                    </button>
+                    <button
+                      onClick={() => setShowCmmsRegistry(true)}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-t border-b-2 ${showCmmsRegistry ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                    >
+                      CMMS Assets (127)
+                    </button>
+                  </div>
+                  {showCmmsRegistry ? (
+                    <CmmsEquipmentRegistryView />
+                  ) : (
+                    <EquipmentRegistryView filter={equipmentFilter} />
+                  )}
+                </>
               )}
               {activeKey === 'GLOBAL_FLEET_HUB' && (
                 <GlobalFleetHubView />
@@ -1134,7 +1157,7 @@ export default function LNGPortalApp() {
     <ThemeProvider>
       {activeSector !== null ? (
         /* Module Entry: Only when operator clicks one of the 5 sector cards, mount provider and load module */
-        <PortalDataProvider>
+        <CmmsAwarePortalProvider>
           <LNGPortalInner
             initialKey={activeSector}
             onReturnToLauncher={() => setActiveSector(null)}
@@ -1143,7 +1166,7 @@ export default function LNGPortalApp() {
               setIsAuthenticated(false);
             }}
           />
-        </PortalDataProvider>
+        </CmmsAwarePortalProvider>
       ) : (
         /* Unified Background: Full-screen plant background image with dark overlay */
         <div
