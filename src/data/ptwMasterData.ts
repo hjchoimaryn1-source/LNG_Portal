@@ -37,7 +37,7 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
     description: '비열원 일반 기계 분해, 배관 볼팅, 밸브 패킹 교체 및 극저온 이외 비화기성 정비 작업.',
     mandatoryCerts: ['CERT-HSE-01'],
     gasRestrictions: {
-      maxLelPercent: 10,
+      maxLelPercent: 5,
       minO2Percent: 19.5,
       maxO2Percent: 23.5,
       maxH2sPpm: 10,
@@ -60,7 +60,7 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
       maxLelPercent: 0, // MUST BE 0.0% LEL FOR ACTIVE ISSUANCE
       minO2Percent: 19.5,
       maxO2Percent: 23.5,
-      maxH2sPpm: 5,
+      maxH2sPpm: 10,
       maxCoPpm: 25,
     },
     requiredChecklist: [
@@ -82,10 +82,10 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
     description: 'ORU 집수정, 섬프 피트, LNG 저장조 내부 등 통풍 불충분 및 질식·유독가스 위험 공간 진입.',
     mandatoryCerts: ['CERT-PTW-03', 'CERT-EMR-04'],
     gasRestrictions: {
-      maxLelPercent: 0,
+      maxLelPercent: 5,
       minO2Percent: 19.5, // STRICT SAFE BAND 19.5% ~ 23.5%
       maxO2Percent: 23.5,
-      maxH2sPpm: 5,
+      maxH2sPpm: 10,
       maxCoPpm: 25,
     },
     requiredChecklist: [
