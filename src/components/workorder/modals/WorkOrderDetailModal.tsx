@@ -34,9 +34,10 @@ interface WorkOrderDetailModalProps {
   wo: WOItem | null;
   permits: PTWPermit[];
   onClose: () => void;
+  onMarkCompleted?: (wo: WOItem) => void;
 }
 
-export default function WorkOrderDetailModal({ wo, permits, onClose }: WorkOrderDetailModalProps) {
+export default function WorkOrderDetailModal({ wo, permits, onClose, onMarkCompleted }: WorkOrderDetailModalProps) {
   useEffect(() => {
     if (!wo) return;
     const handler = (e: KeyboardEvent) => {
@@ -126,7 +127,18 @@ export default function WorkOrderDetailModal({ wo, permits, onClose }: WorkOrder
             </div>
           </div>
 
-          <div className="flex justify-end mt-3">
+          <div className="flex justify-end gap-2 mt-3">
+            {onMarkCompleted && wo.status !== 'COMPLETED' && (
+              <button
+                onClick={() => {
+                  onMarkCompleted(wo);
+                  onClose();
+                }}
+                className={BEVEL_BUTTON}
+              >
+                작업 완료 처리
+              </button>
+            )}
             <button onClick={onClose} className={BEVEL_BUTTON}>
               확인 (ESC)
             </button>

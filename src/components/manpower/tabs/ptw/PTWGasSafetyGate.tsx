@@ -10,14 +10,15 @@ import type { GasTestRecordDraft } from '../../../../adapters/ptwFormAdapter';
 import GasRetestEntryModal from './GasRetestEntryModal';
 
 // ⚠⚠⚠ AUDIT-ONLY — /api/v1/cmms/gas-tests is NOT the safety gate ⚠⚠⚠
-// This endpoint persists GasTestRecordDraft into a server-process in-memory
-// array (see src/adapters/gasSafetyAdapter.ts / src/app/api/v1/cmms/gas-tests/
-// route.ts headers) — not a real permit_gas_tests SQL table, and it is lost on
-// server restart. It is written to and read from here purely for the CMMS
-// shadow-record history display below (`cmmsShadowRecords`). The PTW PASS/FAIL
-// gate decision (`isSafe`/`blockReason` props, computed by validatePTWGasSafety
-// in the parent) is the sole source of truth and never depends on this API's
-// data, response, or availability — see handleAddGasTestLogEntry below.
+// This endpoint persists GasTestRecordDraft into the real SQLite
+// permit_gas_tests table (see src/adapters/gasSafetyAdapter.ts /
+// src/adapters/db/gasTestDao.ts / src/app/api/v1/cmms/gas-tests/route.ts
+// headers) and survives server restarts. It is written to and read from here
+// purely for the CMMS record history display below (`cmmsShadowRecords`). The
+// PTW PASS/FAIL gate decision (`isSafe`/`blockReason` props, computed by
+// validatePTWGasSafety in the parent) is the sole source of truth and never
+// depends on this API's data, response, or availability — see
+// handleAddGasTestLogEntry below.
 const GAS_TESTS_API_URL = '/api/v1/cmms/gas-tests';
 
 export interface PTWGasSafetyGateProps {

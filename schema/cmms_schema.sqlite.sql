@@ -193,6 +193,56 @@ CREATE TABLE permit_lock_state (
     updated_at                    TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
+-- ----------------------------------------------------------------------------
+-- 3. AGT 가스 측정 기록 (CMMS_Architecture.md §2.4 SSOT를 SQLite로 이식)
+--    permit_id는 Postgres 원본의 BIGINT FK(permits.permit_id) 대신 레거시
+--    PTWPermit.id 문자열(permit_ref_no)을 그대로 쓴다 — permits 정규 테이블은
+--    아직 Phase 3 범위라 이 런타임 스키마에 존재하지 않으므로 FK 제약을 두지
+--    않는다(permit_lock_state와 동일한 타협).
+-- ----------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS permit_gas_tests;
+CREATE TABLE permit_gas_tests (
+    gas_test_id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    permit_id       TEXT NOT NULL,             -- 레거시 PTWPermit.id (예: "PTW-2026-0901-01"), FK 없음
+    test_type       TEXT NOT NULL CHECK (test_type IN ('INITIAL', 'RETEST', 'CONTINUOUS')),
+    lel_percent     REAL NOT NULL,
+    o2_percent      REAL NOT NULL,
+    h2s_ppm         REAL NOT NULL,
+    co_ppm          REAL NOT NULL DEFAULT 0.0,
+    result_status   TEXT NOT NULL CHECK (result_status IN ('PASS', 'FAIL')),
+    block_reason    TEXT,
+    tested_by_agt   TEXT NOT NULL,
+    agt_signature   TEXT NOT NULL,
+    tested_at       TEXT NOT NULL
+);
+CREATE INDEX idx_gastest_permit_time ON permit_gas_tests(permit_id, tested_at DESC);
+
+-- ----------------------------------------------------------------------------
+-- 4. Work Order / PM 스케줄러 (CMMS_Architecture.md §4.4 축약형)
+--    원본 설계는 work_orders(PM/CM/CBM 공용)와 pm_schedules(재사용 가능한
+--    주기 정의)를 분리하지만, 이 런타임 스키마는 PM 주기(pm_cycle_days)를
+--    work_orders 행에 직접 두는 단일 테이블로 축약한다. status는 아직
+--    미구현인 원본의 확장 상태 머신 대신, 실제 프론트엔드(types/lng.ts
+--    WorkOrderStatus)가 쓰는 값 그대로 맞춘다.
+-- ----------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS work_orders;
+CREATE TABLE work_orders (
+    work_order_id       TEXT PRIMARY KEY,          -- 예: "WO-2026-0001"
+    asset_tag           TEXT NOT NULL,
+    title                TEXT NOT NULL,
+    pm_cycle_days         INTEGER,                  -- NULL 허용: PM 주기가 없는 1회성/CM 성격 WO
+    last_performed_at       TEXT,                   -- ISO8601, NULL 허용(수행 이력 없음)
+    next_due_date              TEXT,                -- YYYY-MM-DD, pmScheduleCalculator 산출값
+    status                       TEXT NOT NULL DEFAULT 'SCHEDULED'
+        CHECK (status IN ('SCHEDULED','IN_PROGRESS','PARTS_PENDING','COMPLETED')),
+    created_at                     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+    CONSTRAINT fk_wo_asset FOREIGN KEY (asset_tag) REFERENCES assets(equipment_tag) ON DELETE RESTRICT
+);
+CREATE INDEX idx_wo_asset_status ON work_orders(asset_tag, status);
+CREATE INDEX idx_wo_next_due ON work_orders(next_due_date) WHERE next_due_date IS NOT NULL;
+
 -- ============================================================================
 -- 시딩 예시 (수동 검증용, 운영 배치에는 미포함)
 -- ============================================================================

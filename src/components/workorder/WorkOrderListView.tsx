@@ -13,7 +13,7 @@ import { Sliders } from 'lucide-react';
 import { WOItem } from '../../types/lng';
 import { usePTWPermitsContext } from '../../context/PTWPermitsProvider';
 import { useCmmsAssets } from '../../context/CmmsAwarePortalProvider';
-import { buildMockWorkOrdersFromAssets } from '../cmms/mockWorkOrderGenerator';
+import { useWorkOrders } from './hooks/useWorkOrders';
 import { resolveLinkedPermit, WO_PERMIT_STATUS_BADGE } from '../../adapters/workOrderPtwAdapter';
 import WorkOrderDetailModal from './modals/WorkOrderDetailModal';
 
@@ -26,7 +26,7 @@ export default function WorkOrderListView({ filter = 'ALL' }: WorkOrderListViewP
   const { cmmsAssetRows } = useCmmsAssets();
   const [selectedWo, setSelectedWo] = useState<WOItem | null>(null);
 
-  const allWorkOrders = buildMockWorkOrdersFromAssets(cmmsAssetRows, permits);
+  const { workOrders: allWorkOrders, markCompleted } = useWorkOrders(cmmsAssetRows, permits);
   const workOrders = filter === 'ALL' ? allWorkOrders : allWorkOrders.filter((w) => w.cat === filter);
 
   return (
@@ -89,7 +89,12 @@ export default function WorkOrderListView({ filter = 'ALL' }: WorkOrderListViewP
         </table>
       </div>
 
-      <WorkOrderDetailModal wo={selectedWo} permits={permits} onClose={() => setSelectedWo(null)} />
+      <WorkOrderDetailModal
+        wo={selectedWo}
+        permits={permits}
+        onClose={() => setSelectedWo(null)}
+        onMarkCompleted={(wo) => markCompleted(wo.wo, new Date().toISOString())}
+      />
     </div>
   );
 }

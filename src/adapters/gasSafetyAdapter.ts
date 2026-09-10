@@ -1,12 +1,11 @@
 // src/adapters/gasSafetyAdapter.ts
 //
 // PURPOSE
-//   phase1/src/adapters/gasSafetyAdapter.ts(SqlExecutor 기반 permit_gas_tests
-//   INSERT 어댑터)는 2026-09-10 리팩터링 커밋에서 phase1/ 전체와 함께
-//   삭제되었고, 이 프로젝트에는 실행 중인 SQL DB 레이어가 없다
-//   (src/adapters/db/sqlExecutor.ts 참고 — 인터페이스 + 테스트용 fake만 존재).
-//   이 파일은 그 삭제된 어댑터를 "그대로" 복원하지 않고, 실제로 동작 가능한
-//   인메모리 스냅샷 저장소로 재작성한다.
+//   PTW 가스 재측정 기록(GasTestRecordDraft)의 저장/조회 전담 어댑터.
+//   2026-09-10 이전에는 서버 프로세스 인메모리 배열이었으나(서버 재시작 시
+//   소멸), 이번 작업부터 src/adapters/db/gasTestDao.ts를 통해 실제 SQLite
+//   permit_gas_tests 테이블에 영속화한다(src/adapters/db/cmmsDbSingleton.ts —
+//   node:sqlite 기반, src/adapters/db/sqlExecutor.ts 인터페이스 재사용).
 //
 // NON-GOALS / 중복 방지
 //   - 레거시 입력(GasRetestEntryModal의 LEL/O2/H2S)을 GasTestRecordDraft로
@@ -15,26 +14,25 @@
 //     다시 구현하지 않고, draft를 "저장/조회"하는 책임만 진다.
 //   - GasTestingLogTab.tsx(Zone AGT 레지스터, SOP NP08-15)와는 무관한
 //     별도 도메인이다 — 이 어댑터는 PTW permit(permitRefNo) 단위 이력만 다룬다.
+//   - PTW PASS/FAIL 게이트 판정의 SSOT는 여전히 client-side validatePTWGasSafety다.
+//     이 어댑터는 이미 계산된 resultStatus/blockReason을 그대로 저장할 뿐,
+//     재검증하지 않는다(src/app/api/v1/cmms/gas-tests/route.ts 헤더 참고).
 
+import { getCmmsDb } from './db/cmmsDbSingleton';
+import { insertGasTestRecord, selectGasTestRecordsByPermit, selectAllGasTestRecords } from './db/gasTestDao';
 import type { GasTestRecordDraft } from './ptwFormAdapter';
-
-// 페이지 새로고침 시 초기화되는 모듈 스코프 인메모리 스냅샷.
-// usePTWPermits()의 permits 배열과 동일한 수명 주기(인메모리, 비영속)를 가지며,
-// 실제 CMMS SQL 레이어가 연결되면 이 저장소를 SqlExecutor 기반 구현으로
-// 교체하면 된다(이 파일을 소비하는 쪽의 시그니처는 바뀌지 않는다).
-const gasTestRecordStore: GasTestRecordDraft[] = [];
 
 /** GasRetestEntryModal 제출 → ptwFormAdapter.toGasTestRecordDraft() 변환 직후 호출되는 쓰기 진입점. */
 export function recordGasTestDraft(draft: GasTestRecordDraft): void {
-  gasTestRecordStore.push(draft);
+  insertGasTestRecord(getCmmsDb(), draft);
 }
 
-/** 특정 permit(permitRefNo)에 기록된 CMMS shadow 레코드만 조회 (최신순). */
+/** 특정 permit(permitRefNo)에 기록된 CMMS 레코드만 조회 (최신순). */
 export function getGasTestRecordsForPermit(permitRefNo: string): GasTestRecordDraft[] {
-  return gasTestRecordStore.filter((r) => r.permitRefNo === permitRefNo).reverse();
+  return selectGasTestRecordsByPermit(getCmmsDb(), permitRefNo);
 }
 
-/** 전체 CMMS shadow 레코드 조회 — 향후 dual-read 정합성 검증/마이그레이션용. */
+/** 전체 CMMS 레코드 조회 — 향후 dual-read 정합성 검증/마이그레이션용. */
 export function getAllGasTestRecords(): GasTestRecordDraft[] {
-  return [...gasTestRecordStore];
+  return selectAllGasTestRecords(getCmmsDb());
 }
