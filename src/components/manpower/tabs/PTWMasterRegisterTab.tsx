@@ -18,7 +18,7 @@ export interface PTWMasterRegisterTabProps {
 }
 
 export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix }: PTWMasterRegisterTabProps) {
-  const { permits, addPermit, updateGasReadings, addGasTestLogEntry, transitionStatus, stats } = usePTWPermitsContext();
+  const { permits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, stats } = usePTWPermitsContext();
 
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<PTWCategoryFilter>('ALL');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<PTWWorkflowStatus | 'ALL'>('ALL');
@@ -85,6 +85,7 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
           onNavigateToMatrix={onNavigateToMatrix}
           onUpdateGasReadings={updateGasReadings}
           onAddGasTestLogEntry={addGasTestLogEntry}
+          onAddSignature={addSignature}
           onTransitionStatus={(permitId, nextStatus) => transitionStatus(permitId, nextStatus, isERTMet)}
         />
       </div>

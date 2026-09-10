@@ -3,6 +3,8 @@
 
 import React from 'react';
 import { PTWPermit } from '../../../../types/lng';
+import { PTW_SIGNATURE_ROLE_LABELS } from '../../../../data/ptwSignatureRoles';
+import { evaluateSignatureGate } from '../../../../adapters/ptwSignatureGate';
 
 export interface PTWStatusActionsProps {
   activePermit: PTWPermit;
@@ -12,9 +14,18 @@ export interface PTWStatusActionsProps {
   onTransitionStatus: (permitId: string, nextStatus: PTWPermit['status']) => void;
 }
 
+function missingSignaturesTitle(activePermit: PTWPermit, targetStatus: PTWPermit['status']): string | null {
+  const gate = evaluateSignatureGate(activePermit, targetStatus);
+  if (gate.allowed) return null;
+  return `Missing signatures:\n - ${gate.missingRoles.map((r) => PTW_SIGNATURE_ROLE_LABELS[r]).join('\n - ')}`;
+}
+
 export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, gasBlockReason, onTransitionStatus }: PTWStatusActionsProps) {
   const isHighRisk = activePermit.type === 'HOT_WORK' || activePermit.type === 'CONFINED_SPACE';
-  const activationBlocked = !isGasSafe || (isHighRisk && !isERTMet);
+  const approveMissingSigTitle = missingSignaturesTitle(activePermit, 'APPROVED');
+  const closeMissingSigTitle = missingSignaturesTitle(activePermit, 'CLOSED');
+  const activateMissingSigTitle = missingSignaturesTitle(activePermit, 'ACTIVE');
+  const activationBlocked = !isGasSafe || (isHighRisk && !isERTMet) || !!activateMissingSigTitle;
 
   return (
     <div className="border border-neutral-300 bg-white rounded-none overflow-hidden font-mono space-y-2">
@@ -40,8 +51,14 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
           {/* Step 2: Prepared -> Approved */}
           {activePermit.status === 'PREPARED' && (
             <button
+              disabled={!!approveMissingSigTitle}
               onClick={() => onTransitionStatus(activePermit.id, 'APPROVED')}
-              className="px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none border border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+              className={`px-3 py-1 text-xs font-bold rounded-none border ${
+                approveMissingSigTitle
+                  ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-300'
+                  : 'text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]'
+              }`}
+              title={approveMissingSigTitle || 'Approve and issue permit'}
             >
               <span>[2. HSE / SM APPROVE]</span>
             </button>
@@ -57,7 +74,7 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
                   ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-300'
                   : 'text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]'
               }`}
-              title={!isGasSafe ? gasBlockReason || 'Gas reading unsafe' : 'Issue permit and begin work'}
+              title={!isGasSafe ? gasBlockReason || 'Gas reading unsafe' : activateMissingSigTitle || 'Issue permit and begin work'}
             >
               <span>[3. AUTHORIZE ACTIVE WORK]</span>
             </button>
@@ -66,8 +83,14 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
           {/* Step 4: Active -> Closed */}
           {activePermit.status === 'ACTIVE' && (
             <button
+              disabled={!!closeMissingSigTitle}
               onClick={() => onTransitionStatus(activePermit.id, 'CLOSED')}
-              className="px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none border border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+              className={`px-3 py-1 text-xs font-bold rounded-none border ${
+                closeMissingSigTitle
+                  ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-300'
+                  : 'text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]'
+              }`}
+              title={closeMissingSigTitle || 'Return and close permit'}
             >
               <span>[4. CLOSE PERMIT (COMPLETE)]</span>
             </button>

@@ -1,7 +1,9 @@
 // src/components/manpower/hooks/usePTWPermits.ts
 import { useMemo, useState } from 'react';
-import { GasTestLogEntry, GasTestLogEntryInput, PTWPermit, PTWWorkflowStatus } from '../../../types/lng';
+import { GasTestLogEntry, GasTestLogEntryInput, PTWPermit, PTWSignatureRole, PTWWorkflowStatus } from '../../../types/lng';
 import { INITIAL_PTW_PERMITS, validatePTWGasSafety } from '../../../data/ptwMasterData';
+import { PTW_SIGNATURE_ROLE_LABELS } from '../../../data/ptwSignatureRoles';
+import { evaluateSignatureGate } from '../../../adapters/ptwSignatureGate';
 
 /**
  * Shared PTW permit register state (Master Register 소유, 향후 Gas Testing Log /
@@ -87,10 +89,37 @@ export function usePTWPermits() {
     );
   };
 
+  // Electronic signature capture (SSHQE §4.2 PART C/D/E). A role may only be
+  // signed once per permit — re-signing an already-signed role is a no-op
+  // (append-only log, see PTWSignatureEntry doc comment in types/lng.ts).
+  const addSignature = (permitId: string, role: PTWSignatureRole, staffId: string, staffName: string) => {
+    setPermits((prev) =>
+      prev.map((p) => {
+        if (p.id !== permitId) return p;
+        if ((p.signatures || []).some((s) => s.role === role)) return p;
+        const newEntry = {
+          role,
+          staffId,
+          staffName,
+          signedAt: `2026-09-01 ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB`,
+        };
+        return { ...p, signatures: [...(p.signatures || []), newEntry] };
+      })
+    );
+  };
+
   // Workflow State Transition (Draft -> Prepared -> Approved -> Active -> Closed)
   const transitionStatus = (permitId: string, nextStatus: PTWWorkflowStatus, isERTMet: boolean) => {
     const target = permits.find((p) => p.id === permitId);
     if (!target) return;
+
+    // Gate 0: SSHQE §4.2 electronic signature completeness (PART C/D/E)
+    const signatureGate = evaluateSignatureGate(target, nextStatus);
+    if (!signatureGate.allowed) {
+      const missingLabels = signatureGate.missingRoles.map((r) => PTW_SIGNATURE_ROLE_LABELS[r]).join('\n - ');
+      alert(`⚠️ [MISSING REQUIRED SIGNATURES]\nCannot transition to ${nextStatus} — outstanding signatures:\n - ${missingLabels}`);
+      return;
+    }
 
     // Gate 1: Confined Space O2 band check for Approval / Activation
     if (target.type === 'CONFINED_SPACE' && (nextStatus === 'APPROVED' || nextStatus === 'ACTIVE')) {
@@ -148,5 +177,5 @@ export function usePTWPermits() {
     };
   }, [permits]);
 
-  return { permits, addPermit, updateGasReadings, addGasTestLogEntry, transitionStatus, stats };
+  return { permits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, stats };
 }

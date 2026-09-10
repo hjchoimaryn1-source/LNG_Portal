@@ -2,13 +2,14 @@
 "use client";
 
 import React, { useMemo } from 'react';
-import { GasTestLogEntryInput, PTWPermit, PTWWorkflowStatus, StaffPersonnel } from '../../../../types/lng';
+import { GasTestLogEntryInput, PTWPermit, PTWSignatureRole, PTWWorkflowStatus, StaffPersonnel } from '../../../../types/lng';
 import { PTW_SOP_FORMS, validatePTWGasSafety } from '../../../../data/ptwMasterData';
 import { getCargoHandlingSOPInfo } from '../../../../data/ptwCargoHandlingRules';
 import PTWWorkflowPipeline from './PTWWorkflowPipeline';
 import PTWGasSafetyGate from './PTWGasSafetyGate';
 import PTWCompetencyGate from './PTWCompetencyGate';
 import PTWSafetyChecklist from './PTWSafetyChecklist';
+import PTWSignatureStatusPanel from './PTWSignatureStatusPanel';
 import PTWStatusActions from './PTWStatusActions';
 import CargoHandlingDetailSection from '../../cargoHandling/CargoHandlingDetailSection';
 
@@ -19,6 +20,7 @@ export interface PTWPermitDetailPanelProps {
   onNavigateToMatrix?: (empId: string) => void;
   onUpdateGasReadings: (permitId: string, lel: number, o2: number) => void;
   onAddGasTestLogEntry: (permitId: string, entryInput: GasTestLogEntryInput) => void;
+  onAddSignature: (permitId: string, role: PTWSignatureRole, staffId: string, staffName: string) => void;
   onTransitionStatus: (permitId: string, nextStatus: PTWWorkflowStatus) => void;
 }
 
@@ -29,6 +31,7 @@ export default function PTWPermitDetailPanel({
   onNavigateToMatrix,
   onUpdateGasReadings,
   onAddGasTestLogEntry,
+  onAddSignature,
   onTransitionStatus,
 }: PTWPermitDetailPanelProps) {
   const currentGasSafety = useMemo(() => {
@@ -142,6 +145,12 @@ export default function PTWPermitDetailPanel({
         </div>
 
         {activePermit.cargoHandling && <CargoHandlingDetailSection cargoHandling={activePermit.cargoHandling} />}
+
+        <PTWSignatureStatusPanel
+          activePermit={activePermit}
+          personnelList={personnelList}
+          onAddSignature={onAddSignature}
+        />
 
         <PTWStatusActions
           activePermit={activePermit}

@@ -412,6 +412,34 @@ export interface PTWPermit {
   // Single-point re-test history (Hot Work / Confined Space / etc). Not used
   // by CARGO_HANDLING, which keeps its own gasReadingPoints history.
   gasTestHistory?: GasTestLogEntry[];
+  // Electronic signature log (SSHQE §4.2 PART C/D/E). Append-only, same
+  // convention as gasTestHistory — never mutated/removed, only pushed to by
+  // usePTWPermits.addSignature(). A role may appear at most once per permit
+  // (evaluateSignatureGate/hasSignedRole treat the first match as authoritative).
+  signatures?: PTWSignatureEntry[];
+}
+
+// --- Electronic Signature / Approval Workflow (SSHQE §4.2) ---
+// 5-stage lifecycle -> 9 named signature slots across PART C (Approval),
+// PART D (Issue & Activation) and PART E (Return & Close-out). PART A/B
+// (Description/Preparation) require no signature, only documentation —
+// see PTW_TRANSITION_REQUIRED_ROLES in data/ptwSignatureRoles.ts.
+export type PTWSignatureRole =
+  | 'AUTHORIZER_APPROVE' // PART C — Permit Authorizer
+  | 'RESPONSIBLE_PERSON_APPROVE' // PART C — Responsible Person
+  | 'ISSUER_ACTIVATE' // PART D — Permit Issuer
+  | 'WORK_LEADER_ACCEPT' // PART D — Work Leader
+  | 'SITE_CHECKER_ACTIVATE' // PART D — Site Checker / FSO
+  | 'WORK_LEADER_RETURN' // PART E — Work Leader
+  | 'SITE_CHECKER_VERIFY' // PART E — Site Checker / FSO
+  | 'ISSUER_ACCEPT_RETURN' // PART E — Permit Issuer
+  | 'AUTHORIZER_CLOSE'; // PART E — Permit Authorizer
+
+export interface PTWSignatureEntry {
+  role: PTWSignatureRole;
+  staffId: string;
+  staffName: string;
+  signedAt: string;
 }
 
 // --- Cargo Handling (CARGO_HANDLING) extension types ---
