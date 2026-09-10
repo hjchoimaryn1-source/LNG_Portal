@@ -111,11 +111,11 @@ export default function PTWGasSafetyGate({
     // revised by, the API call below.
     onAddGasTestLogEntry(permitId, entryInput);
 
-    // AUDIT-ONLY persistence — POST /api/v1/cmms/gas-tests writes into a
-    // server-process in-memory array, not a real DB table (see header comment
-    // above). This call is fire-and-forget with respect to the gate: success,
-    // failure, or latency here must never change the PASS/FAIL result already
-    // applied above.
+    // AUDIT-ONLY persistence — POST /api/v1/cmms/gas-tests writes into the
+    // real SQLite permit_gas_tests table (see header comment above). This
+    // call is fire-and-forget with respect to the gate: success, failure, or
+    // latency here must never change the PASS/FAIL result already applied
+    // above.
     try {
       const res = await fetch(GAS_TESTS_API_URL, {
         method: 'POST',
