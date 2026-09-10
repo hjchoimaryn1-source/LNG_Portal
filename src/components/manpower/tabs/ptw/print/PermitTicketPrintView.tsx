@@ -145,6 +145,8 @@ export default function PermitTicketPrintView({ permit, simopsRisk }: PermitTick
               <th className="text-left px-2 py-1 border-r border-black">LEL %</th>
               <th className="text-left px-2 py-1 border-r border-black">O2 %</th>
               <th className="text-left px-2 py-1 border-r border-black">H2S ppm</th>
+              <th className="text-left px-2 py-1 border-r border-black">CO ppm</th>
+              <th className="text-left px-2 py-1 border-r border-black">HG ppm</th>
               <th className="text-left px-2 py-1 border-r border-black">TESTER</th>
               <th className="text-left px-2 py-1">RESULT</th>
             </tr>
@@ -155,6 +157,8 @@ export default function PermitTicketPrintView({ permit, simopsRisk }: PermitTick
               <td className="px-2 py-1 border-r border-black">{permit.gasReadings.lelPercent}</td>
               <td className="px-2 py-1 border-r border-black">{permit.gasReadings.o2Percent}</td>
               <td className="px-2 py-1 border-r border-black">{permit.gasReadings.h2sPpm}</td>
+              <td className="px-2 py-1 border-r border-black">{permit.gasReadings.coPpm}</td>
+              <td className="px-2 py-1 border-r border-black">{permit.gasReadings.hgPpm ?? 'N/A'}</td>
               <td className="px-2 py-1 border-r border-black">—</td>
               <td className="px-2 py-1 font-bold">{permit.gasReadings.isSafeForWork ? 'SAFE' : 'UNSAFE'}</td>
             </tr>
@@ -164,6 +168,8 @@ export default function PermitTicketPrintView({ permit, simopsRisk }: PermitTick
                 <td className="px-2 py-1 border-r border-black">{entry.lelPercent}</td>
                 <td className="px-2 py-1 border-r border-black">{entry.o2Percent}</td>
                 <td className="px-2 py-1 border-r border-black">{entry.h2sPpm}</td>
+                <td className="px-2 py-1 border-r border-black">—</td>
+                <td className="px-2 py-1 border-r border-black">—</td>
                 <td className="px-2 py-1 border-r border-black">{entry.testerName}{entry.testerId ? ` (${entry.testerId})` : ''}</td>
                 <td className="px-2 py-1 font-bold">{entry.isSafeForWork ? 'SAFE' : 'UNSAFE'}</td>
               </tr>

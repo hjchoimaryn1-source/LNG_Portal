@@ -124,7 +124,7 @@ export function usePTWPermits() {
     // Gate 1: Confined Space O2 band check for Approval / Activation
     if (target.type === 'CONFINED_SPACE' && (nextStatus === 'APPROVED' || nextStatus === 'ACTIVE')) {
       if (target.gasReadings.o2Percent < 19.5 || target.gasReadings.o2Percent > 23.5) {
-        alert(`⚠️ [CONFINED SPACE ENTRY BLOCKED]\nO2 concentration is ${target.gasReadings.o2Percent}%.\nSOP NP07-12 mandates safe atmospheric oxygen band of 19.5% ~ 23.5%.`);
+        alert(`⚠️ [CONFINED SPACE ENTRY BLOCKED]\nO2 concentration is ${target.gasReadings.o2Percent}%.\nSOP NP07-11 mandates safe atmospheric oxygen band of 19.5% ~ 23.5%.`);
         return;
       }
     }
@@ -132,7 +132,7 @@ export function usePTWPermits() {
     // Gate 2: Hot Work LEL 0.0% check for Activation
     if (target.type === 'HOT_WORK' && nextStatus === 'ACTIVE') {
       if (target.gasReadings.lelPercent > 0) {
-        alert(`⚠️ [HOT WORK ACTIVATION BLOCKED]\nHydrocarbon gas reading is ${target.gasReadings.lelPercent}% LEL.\nSOP NP07-11 strictly requires 0.0% LEL in cryogenic gas zones.`);
+        alert(`⚠️ [HOT WORK ACTIVATION BLOCKED]\nHydrocarbon gas reading is ${target.gasReadings.lelPercent}% LEL.\nSOP NP07-14 strictly requires 0.0% LEL in cryogenic gas zones.`);
         return;
       }
     }

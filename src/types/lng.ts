@@ -383,6 +383,12 @@ export interface PTWPermit {
     o2Percent: number;
     h2sPpm: number;
     coPpm: number;
+    // Mercury vapor (Hg), required as an input field per SSHQE §4.3 (PART D
+    // activation gate lists LEL/O2/H2S/CO/HG together) but SSHQE publishes no
+    // numeric ceiling for it ("가스상 노출 수치 제한 요건 준수" only) — captured
+    // for audit/print record, NOT wired into validatePTWGasSafety() until a
+    // numeric threshold is confirmed. Optional; renders as N/A until backfilled.
+    hgPpm?: number;
     testedAt: string;
     isSafeForWork: boolean;
   };

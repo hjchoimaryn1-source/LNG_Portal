@@ -28,7 +28,7 @@ export interface PlantSafetyZone {
 }
 
 export const MOCK_PLANT_SAFETY_ZONES: PlantSafetyZone[] = [
-  { id: 'VAPORIZATION_SKID', name: 'Vaporization Skid', ongoingWorkCount: 1, status: 'CAUTION', note: 'Hot Work active (NP07-11) — LEL 0.0% enforced' },
+  { id: 'VAPORIZATION_SKID', name: 'Vaporization Skid', ongoingWorkCount: 1, status: 'CAUTION', note: 'Hot Work active (NP07-14) — LEL 0.0% enforced' },
   { id: 'LOADING_BAY', name: 'Loading Bay T-201~204', ongoingWorkCount: 2, status: 'CAUTION', note: 'SIMOPS: Cold Work + Cargo Handling concurrent' },
   { id: 'PRSS_HEADER', name: 'PRSS Header', ongoingWorkCount: 1, status: 'SAFE', note: 'Continuous gas monitor nominal' },
   { id: 'JETTY', name: 'Jetty', ongoingWorkCount: 1, status: 'CAUTION', note: 'Radiography permit in Draft — barricade pending' },
