@@ -6,6 +6,7 @@ import { GasTestLogEntryInput, PTWPermit, StaffPersonnel } from '../../../../typ
 import { PTW_SOP_FORMS, isGasMeasurementApplicable } from '../../../../data/ptwMasterData';
 import { O2_MIN_PERCENT, O2_MAX_PERCENT, H2S_MAX_PPM } from '../../../../data/ptwGasSafetyRules';
 import { MissingAgtSignatureError, toGasTestRecordDraft } from '../../../../adapters/ptwFormAdapter';
+import { recordGasTestDraft, getGasTestRecordsForPermit } from '../../../../adapters/gasSafetyAdapter';
 import GasRetestEntryModal from './GasRetestEntryModal';
 
 export interface PTWGasSafetyGateProps {
@@ -51,6 +52,7 @@ export default function PTWGasSafetyGate({
   const lelLimit = PTW_SOP_FORMS[activePermit.type].gasRestrictions.maxLelPercent;
   const canRetest = activePermit.status === 'ACTIVE' && applicable && !isCargoHandling;
   const history = [...(activePermit.gasTestHistory || [])].reverse();
+  const cmmsShadowRecords = getGasTestRecordsForPermit(activePermit.id);
 
   // Legacy screen has no dedicated signature-capture UI, so the typed
   // TESTER NAME(+ID) from GasRetestEntryModal is treated as the AGT's legacy
@@ -67,9 +69,10 @@ export default function PTWGasSafetyGate({
         agtSignature: entryInput.testerId ? `${entryInput.testerName} (${entryInput.testerId})` : entryInput.testerName,
         testedAt: entryInput.testedAt,
       });
-      // TODO(cmms-permit-gas-tests): persist draft to permit_gas_tests once
-      // src/db has a real client (see src/db/schema/cmms_schema.sql).
-      console.info(`[CMMS] gas_test_record draft for ${permitId}:`, draft);
+      // In-memory CMMS shadow write — see src/adapters/gasSafetyAdapter.ts.
+      // Replace with a SqlExecutor-backed store once a real DB client exists;
+      // this call site does not need to change.
+      recordGasTestDraft(draft);
     } catch (err) {
       if (err instanceof MissingAgtSignatureError) {
         alert(err.message);
@@ -144,6 +147,9 @@ export default function PTWGasSafetyGate({
                     </div>
                   ))
                 )}
+                <div className="px-2 py-1 bg-neutral-100 text-neutral-500 text-[9px] border-t border-neutral-200">
+                  CMMS shadow records: {cmmsShadowRecords.length}
+                </div>
               </div>
             </>
           )}

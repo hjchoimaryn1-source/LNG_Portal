@@ -2,6 +2,13 @@
 // Gas Testing Log (AGT) mock records & safety evaluation — SOP NP08-15
 // Measurement zones: Unloading Skid (T-201~204), Ambient Air Vaporizer (VAP-101~106),
 // PRSS Header, BOG Compressor Skid. Cycle: every 4h during unloading (00/04/08/12/16/20:00).
+//
+// DOMAIN NOTE: this is the periodic Zone AGT register (zone/tagId/cycleTime),
+// independent of any single PTW permit. It is NOT the same domain as
+// PTWPermit.gasReadings/gasTestHistory (permit-scoped single-point re-tests) or
+// src/adapters/gasSafetyAdapter.ts's GasTestRecordDraft (permitRefNo-keyed CMMS
+// shadow records) — do not merge these three; GasTestReading here has no
+// permitRefNo and is never produced by ptwFormAdapter.ts/gasSafetyAdapter.ts.
 
 export type GasTestZone = 'UNLOADING_SKID' | 'AMBIENT_VAPORIZER' | 'PRSS_HEADER' | 'BOG_COMPRESSOR';
 
