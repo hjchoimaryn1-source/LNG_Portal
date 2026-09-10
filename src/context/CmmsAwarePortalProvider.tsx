@@ -14,13 +14,11 @@
 //   새 컴포넌트만 이 파일의 useCmmsAssets()를 추가로 호출하면 된다.
 //
 // 데이터 소스
-//   src/batch/exportCmmsAssetSnapshot.ts가 생성하는 정적 JSON
-//   (기본 경로: /data/cmms_asset_snapshot.json, public/ 하위이므로 Next.js가
-//   루트 경로로 그대로 서빙한다)을 클라이언트에서 fetch()로 읽는다.
-//   이 스냅샷은 배치 파이프라인(runBootstrapPipeline.ts 등)이 갱신하며,
-//   실제 백엔드 API 없이도 정적 파일 교체만으로 데이터를 최신화할 수 있다 —
-//   나중에 진짜 API로 바꾸더라도 이 파일의 fetchCmmsAssetSnapshot()
-//   구현부만 교체하면 되고, useCmmsAssets()를 쓰는 하위 컴포넌트는 무수정이다.
+//   src/app/api/v1/cmms/assets/route.ts (SQLite assets 테이블 실시간 조회).
+//   응답 스키마는 과거 정적 배치 산출물(exportCmmsAssetSnapshot.ts의
+//   CmmsAssetSnapshotFile)과 동일하게 유지되므로 이 파일의 파싱 로직은
+//   무수정이다 — fetchCmmsAssetSnapshot()의 URL만 API 엔드포인트로
+//   바뀌었다. useCmmsAssets()를 쓰는 하위 컴포넌트도 무수정.
 
 'use client';
 
@@ -68,7 +66,7 @@ export interface CmmsDataContextType {
 
 const CmmsDataContext = createContext<CmmsDataContextType | undefined>(undefined);
 
-const DEFAULT_SNAPSHOT_URL = '/data/cmms_asset_snapshot.json';
+const DEFAULT_SNAPSHOT_URL = '/api/v1/cmms/assets';
 
 /**
  * 정적 JSON 스냅샷을 fetch한다. 실패해도 예외를 던지지 않고 빈 배열 +
