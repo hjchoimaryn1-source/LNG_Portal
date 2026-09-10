@@ -8,6 +8,7 @@ import { CmmsEquipmentRegistryView } from './CmmsEquipmentRegistryView';
 import { AdminCmmsResetButton } from './AdminCmmsResetButton';
 import { WorkOrderSchedulerView } from './WorkOrderSchedulerView';
 import WorkOrderListView from './workorder/WorkOrderListView';
+import MroInventoryView from './inventory/MroInventoryView';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { SubProcessKey } from '../types/lng';
 import { COMPANY_CONFIG, CMMS_MODULES } from '../config/siteConfig';
@@ -263,6 +264,12 @@ const SUBPROCESS_TITLES: Record<
   MAINTENANCE_MRO_HUB: {
     location: 'LNG-Process',
     process: 'Maintenance & Depot',
+    icon: <Wrench className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  MRO_PARTS_INVENTORY: {
+    location: 'LNG-Process',
+    process: 'MRO Depot > Parts Inventory & Stock Ledger',
     icon: <Wrench className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
@@ -551,6 +558,7 @@ function LNGPortalInner({
       : activeKey === 'WORK_ORDER_DIRECTORY' ||
         activeKey === 'WORK_ORDER_MAINTENANCE' ||
         activeKey === 'PM_SCHEDULES' ||
+        activeKey === 'MRO_PARTS_INVENTORY' ||
         (activeKey === 'MAINTENANCE_MRO_HUB' && activeMenu !== 'lng-process')
       ? 'MOD_3_WORK_ORDER'
       : activeKey === 'EQUIPMENT_ASSET_REGISTRY' ||
@@ -830,6 +838,13 @@ function LNGPortalInner({
                 >
                   <span>MRO Depot</span>
                 </button>
+
+                <button
+                  onClick={() => handleSelectSubProcess('MRO_PARTS_INVENTORY')}
+                  className={activeKey === 'MRO_PARTS_INVENTORY' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+                >
+                  <span>Parts Inventory</span>
+                </button>
               </>
             )}
 
@@ -1043,6 +1058,9 @@ function LNGPortalInner({
               )}
               {activeKey === 'MAINTENANCE_MRO_HUB' && (
                 <MaintenanceHubView />
+              )}
+              {activeKey === 'MRO_PARTS_INVENTORY' && (
+                <MroInventoryView />
               )}
 
               {/* ========================================================= */}

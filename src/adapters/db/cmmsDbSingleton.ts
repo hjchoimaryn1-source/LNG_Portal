@@ -90,6 +90,40 @@ const PTW_SIGNATURES_DDL = `
   CREATE INDEX IF NOT EXISTS idx_ptwsig_permit ON ptw_signatures(permit_id);
 `;
 
+// MRO Depot 부품 재고 마스터 — current_stock_qty는 mro_stock_transactions
+// 적재분을 반영해 어댑터(mroInventoryDbAdapter.ts)가 트랜잭션 단위로 갱신하는
+// 비정규화 컬럼이다(매 조회마다 SUM 재계산하지 않기 위함, work_orders.next_due_date와 동일한 설계).
+const MRO_PARTS_DDL = `
+  CREATE TABLE IF NOT EXISTS mro_parts (
+      part_no             TEXT PRIMARY KEY,
+      part_name           TEXT NOT NULL,
+      uom                 TEXT NOT NULL,
+      storage_location    TEXT,
+      min_stock_qty       REAL NOT NULL DEFAULT 0,
+      current_stock_qty   REAL NOT NULL DEFAULT 0,
+      unit_cost           REAL,
+      updated_at          TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
+  );
+`;
+
+// 입출고/조정 이력 — append-only. resulting_stock_qty는 기록 시점의 재고
+// 스냅샷(감사 추적용)이며, mro_parts.current_stock_qty(SSOT)는 별도로 갱신된다.
+const MRO_STOCK_TRANSACTIONS_DDL = `
+  CREATE TABLE IF NOT EXISTS mro_stock_transactions (
+      transaction_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+      part_no             TEXT NOT NULL,
+      tx_type             TEXT NOT NULL CHECK (tx_type IN ('RECEIPT','ISSUE','ADJUSTMENT','RETURN')),
+      quantity_delta      REAL NOT NULL,
+      resulting_stock_qty REAL NOT NULL,
+      work_order_id       TEXT,
+      reason              TEXT,
+      performed_by        TEXT NOT NULL,
+      performed_at        TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+      CONSTRAINT fk_stocktx_part FOREIGN KEY (part_no) REFERENCES mro_parts(part_no) ON DELETE RESTRICT
+  );
+  CREATE INDEX IF NOT EXISTS idx_stocktx_part_time ON mro_stock_transactions(part_no, performed_at DESC);
+`;
+
 let cachedDb: SqlExecutor | undefined;
 
 /** CMMS API route 전용 SQLite 연결. 프로세스 수명 동안 하나만 생성된다. */
@@ -101,6 +135,8 @@ export function getCmmsDb(): SqlExecutor {
     executor.raw.exec(WORK_ORDERS_DDL);
     executor.raw.exec(PTW_PERMITS_DDL);
     executor.raw.exec(PTW_SIGNATURES_DDL);
+    executor.raw.exec(MRO_PARTS_DDL);
+    executor.raw.exec(MRO_STOCK_TRANSACTIONS_DDL);
     cachedDb = executor;
   }
   return cachedDb;

@@ -55,6 +55,7 @@ export type SubProcessKey =
   | 'GLOBAL_FLEET_HUB'
   // Maintenance & System
   | 'MAINTENANCE_MRO_HUB'
+  | 'MRO_PARTS_INVENTORY'
   | 'DATA_INGESTION_HUB'
   // CMMS Enterprise Modules
   | 'EQUIPMENT_ASSET_REGISTRY'
