@@ -476,6 +476,116 @@ export interface RBACSessionGuard {
 
 ---
 
+### 3.3.4 role_permissions Seed 데이터 및 Row-Level 제약 한계
+
+role_permissions 테이블은 모듈 단위 최상위 접근 게이트(module-level gate)만 담당한다. 아래 역할은
+boolean 컬럼만으로 표현 불가능한 row-level 제약을 가지므로, 애플리케이션 쿼리 레벨에서 별도 필터링이
+반드시 병행되어야 한다:
+- SITE_MANAGER / ACTING_SITE_MANAGER: can_update=TRUE이나 실제로는 본인이 작성한 건(row)에 한함
+  (e.g. `WHERE requester_id = :userId` 이중 검증 필요).
+- WORK_LEADER_TECH: can_read=TRUE(WORK_ORDER_DIRECTORY)이나 실제로는 본인에게 할당된 WO(row)에
+  한함 (e.g. `WHERE assigned_to = :userId` 이중 검증 필요).
+
+Seed 데이터는 7개 역할(RoleCode) × 11개 모듈(ModuleCode) = 77행 전체를 명시적으로 정의하며,
+신규 모듈 추가 시 반드시 7개 역할 전체에 대한 행을 동시에 추가해야 한다
+(UNIQUE(role_code, module_code) 제약 준수).
+
+이 매핑은 원본 벤치마킹 자료의 "모듈군" 단위 설명(예: "안전/PTW 모듈", "현장/운영 모듈")을
+개별 module_code로 풀어낸 해석적 매핑이며, 축자적 추출(verbatim extraction)이 아니다.
+프로덕션 반영 전 프로젝트 오너의 별도 검토를 권장한다.
+
+---
+
+### 3.5 세션/인증 및 로그인 정책 (user_accounts 스키마)
+
+**⚠ 출처 구분 표기**: 아래 세션/인증 수치는 NotebookLM 소스 문서에 **명시적으로 기록되어 있지 않다**
+(CMMS_Missing_Items_Source_Extraction.md §1 확인). 소스에서 확인된 사실은 (a) 이메일/비밀번호 기반
+로그인, (b) 서버 측 사용자 식별 후 세션 토큰 발급, (c) 비활성 계정 거부(Inactive-account Refusal)
+정책의 존재뿐이다. 아래 구체적 수치(타임아웃 시간, MFA 대상, 잠금 조건, 오프라인 재인증 방식)는
+**소스 사실이 아니라 ISA-62443 / OWASP ASVS 표준 관행에 기반한 프로젝트 설계 기본값(Engineering
+Default)**이며, 추후 실제 운영 정책 확정 시 수정될 수 있는 잠정안임을 명시한다.
+
+**3.5.1 세션 관리 정책 (설계 기본값)**
+| 항목 | 값 | 근거 |
+|---|---|---|
+| 세션 타임아웃 | 30분 무조작(Inactivity) 시 자동 로그아웃 | OWASP ASVS 3.3 (설계 기본값, 소스 미기재) |
+| MFA/2FA | HQ_SUPERVISOR_AUDITOR·SITE_MANAGER·ACTING_SITE_MANAGER 필수, 그 외 역할은 OTP/PIN 선택 | ISA-62443 권한 등급별 인증 강도 원칙 (설계 기본값, 소스 미기재) |
+| 계정 잠금 | 비밀번호 5회 연속 오류 시 15분 임시 잠금 (Failed Attempt Counter) | OWASP ASVS 2.2 (설계 기본값, 소스 미기재) |
+| 오프라인 재인증 | 방폭 태블릿 로컬 암호화 토큰 + 4자리 PIN 로컬 검증 | ATEX Zone 오프라인 운용 특성 반영 (설계 기본값, 소스 미기재) |
+
+**3.5.2 `user_accounts` DDL (신규 설계 — 소스 미기재, §5.4/§5.1 기존 user_id 참조와의 정합성 위해 신규 제안)**
+```sql
+CREATE TABLE user_accounts (
+    user_id              VARCHAR(64) PRIMARY KEY,
+    email                VARCHAR(255) NOT NULL UNIQUE,
+    password_hash        TEXT NOT NULL,
+    role_code             VARCHAR(32) NOT NULL,
+    home_location         VARCHAR(10) NOT NULL CHECK (home_location IN ('HQ', 'SITE')),
+    mfa_enabled           BOOLEAN NOT NULL DEFAULT FALSE,
+    failed_attempt_count  INT NOT NULL DEFAULT 0,
+    locked_until          TIMESTAMP WITH TIME ZONE,
+    is_active             BOOLEAN NOT NULL DEFAULT TRUE,
+    last_login_at         TIMESTAMP WITH TIME ZONE,
+    created_at            TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_role_code CHECK (role_code IN (
+        'SYSTEM_ADMIN','SITE_MANAGER','ACTING_SITE_MANAGER','OPERATION_TEAM_LEADER',
+        'HSSE_OFFICER','WORK_LEADER_TECH','HQ_SUPERVISOR_AUDITOR'
+    ))
+);
+
+CREATE TABLE user_sessions (
+    session_id            VARCHAR(128) PRIMARY KEY,
+    user_id                VARCHAR(64) NOT NULL,
+    issued_at              TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expires_at              TIMESTAMP WITH TIME ZONE NOT NULL,
+    device_device_id        VARCHAR(100),
+    is_offline_reauth       BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT fk_session_user FOREIGN KEY (user_id) REFERENCES user_accounts(user_id) ON DELETE CASCADE
+);
+```
+
+본 테이블은 실무 정책 확정 전까지 **잠정 설계**이며, 현재 프론트엔드 `LoginGateway.tsx`의
+`DEV NO-AUTH BYPASS ACTIVE` 상태를 이 스키마로 교체하는 마이그레이션은 별도 승인 후 착수한다.
+
+---
+
+### 3.6 ISA-101 / SCADA 기반 UI 색상 체계 (scadaStyles.ts 명세)
+
+**3.6.1 확인된 기존 팔레트 (소스 확인됨 — `NIAS_Portal_Full_Context.md`, `LoginGateway.tsx`)**
+| 용도 | 값 |
+|---|---|
+| Time-Critical 경고 / Red Warning | `#EF4444` (Flashing Border) |
+| Industrial Classic Gray (프레임) | `#c0c7d0` |
+| 타이틀 바 그라데이션 | `linear-gradient(90deg, #002244, #0052a3)` |
+| Monitor Box / Sunken Panel | `#d8dee9` |
+| Status Badge (Blue) | `#0284c7` |
+| Highlight Text (Blue) | `#0369a1` |
+| Bevel Button | `#d1d7e0` (Hover `#dbe1ea` / Active `#c3cad4`) |
+| Ready Indicator (Green) | `#047857` |
+
+**3.6.2 방폭 태블릿 가독성 기준 (소스 확인됨)**
+- 디스플레이 8.0인치 이상, 고휘도(Sunlight-readable)
+- Glove-touch / Wet-touch 지원
+- 기본 해상도 1920×1065, 반응형 레이아웃
+- 다크 모드 제공
+
+**3.6.3 ISA-101 알람 4단계 색상 — ⚠ 설계 기본값 (소스 미기재, 3개 색상은 프로젝트 신규 도입)**
+소스에서는 Red(`#EF4444`)만 확인되었고, 나머지 3단계는 ISA-101 표준 관행에 따른 설계 기본값이다.
+
+| Priority | 의미 | 색상 |
+|---|---|---|
+| 1 (Critical) | 즉시 대응 — LOTO 위반, AGT FAIL, SIMOPS RED | `#EF4444` (소스 확인, 기존 유지) |
+| 2 (High) | 긴급 대응 — ALARP No 에스컬레이션, 4hr 가스 타임아웃 | `#F97316` (설계 기본값) |
+| 3 (Medium) | 주의 — PM 지연, ROP 미달 발주 | `#EAB308` (설계 기본값) |
+| 4 (Low) | 정보성 — 일반 알림 | `#3B82F6` (설계 기본값) |
+
+> **⚠ 설계 충돌 주의**: Priority 4용으로 제안된 `#3B82F6`은 기존 확인된 Status Badge `#0284c7` /
+> Highlight `#0369a1`과 같은 계열의 파란색이라 시각적으로 구분이 약할 수 있다. `scadaStyles.ts` 실제
+> 반영 시 Priority 4를 기존 Status Badge 색상과 동일 톤으로 통합할지, 별도 색상으로 분리할지는
+> **구현 전 추가 확인이 필요**하다 — 이번 라운드에서는 문서에만 반영하고 실제 파일 수정은 보류한다.
+
+---
+
 ## 제4장: 정비(Work Order) 관리 및 MRO 공급망 아키텍처
 
 ### 4.1 정비 유형 체계 및 PM 스케줄러 엔진

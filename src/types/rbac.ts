@@ -22,3 +22,37 @@ export interface RBACSessionGuard {
   sessionExpiresAt: string;
   delegatedFromPersonId?: string | null;
 }
+
+export type RoleCode =
+  | 'SYSTEM_ADMIN'
+  | 'SITE_MANAGER'
+  | 'ACTING_SITE_MANAGER'
+  | 'OPERATION_TEAM_LEADER'
+  | 'HSSE_OFFICER'
+  | 'WORK_LEADER_TECH'
+  | 'HQ_SUPERVISOR_AUDITOR';
+
+export type ModuleCode =
+  | 'HQ_OVERVIEW'
+  | 'LNG_PROCESS_OVERVIEW'
+  | 'EQUIPMENT_ASSET_REGISTRY'
+  | 'WORK_ORDER_DIRECTORY'
+  | 'MAINTENANCE_MRO_HUB'
+  | 'MANPOWER_DAILY_SHIFT'
+  | 'MANPOWER_ROTATION_TRACKER'
+  | 'PTW_PERMITS'
+  | 'SAFETY_GAS_TESTING'
+  | 'SAFETY_ERT_READINESS'
+  | 'SAFETY_OVERVIEW';
+
+export interface RolePermission {
+  rolePermissionId: number;
+  roleCode: RoleCode;
+  moduleCode: ModuleCode;
+  canRead: boolean;
+  canCreate: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canApprove: boolean;
+  isReadOnlyForced: boolean;
+}

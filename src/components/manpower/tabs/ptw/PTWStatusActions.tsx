@@ -5,6 +5,8 @@ import React from 'react';
 import { PTWPermit } from '../../../../types/lng';
 import { PTW_SIGNATURE_ROLE_LABELS } from '../../../../data/ptwSignatureRoles';
 import { evaluateSignatureGate } from '../../../../adapters/ptwSignatureGate';
+import { validatePtwSelfApproval } from '../../../../lib/rbac/ptwSelfApproval';
+import { getCurrentApproverId } from '../../../../lib/rbac/devAuthIdentity';
 
 export interface PTWStatusActionsProps {
   activePermit: PTWPermit;
@@ -26,6 +28,15 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
   const closeMissingSigTitle = missingSignaturesTitle(activePermit, 'CLOSED');
   const activateMissingSigTitle = missingSignaturesTitle(activePermit, 'ACTIVE');
   const activationBlocked = !isGasSafe || (isHighRisk && !isERTMet) || !!activateMissingSigTitle;
+
+  const handleApprove = () => {
+    const selfApprovalCheck = validatePtwSelfApproval(activePermit, getCurrentApproverId());
+    if (!selfApprovalCheck.allowed) {
+      alert(`⚠️ [APPROVAL BLOCKED]\n${selfApprovalCheck.reason}`);
+      return;
+    }
+    onTransitionStatus(activePermit.id, 'APPROVED');
+  };
 
   return (
     <div className="border border-neutral-300 bg-white rounded-none overflow-hidden font-mono space-y-2">
@@ -52,7 +63,7 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
           {activePermit.status === 'PREPARED' && (
             <button
               disabled={!!approveMissingSigTitle}
-              onClick={() => onTransitionStatus(activePermit.id, 'APPROVED')}
+              onClick={handleApprove}
               className={`px-3 py-1 text-xs font-bold rounded-none border ${
                 approveMissingSigTitle
                   ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-300'
