@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { buildMockMroParts } from '../../../data/mockMroInventoryGenerator';
 import type { MroPartRecord, StockAdjustmentInput, StockTxType } from '../../../adapters/db/mroInventoryDao';
+import type { PurchaseRequisitionRecord } from '../../../adapters/db/purchaseRequisitionDao';
 
 const PARTS_API = '/api/v1/cmms/mro-inventory';
 const ADJUSTMENTS_API = '/api/v1/cmms/mro-inventory/adjustments';
@@ -66,7 +67,7 @@ export function useMroInventory() {
       quantity: number;
       reason?: string;
       performedBy: string;
-    }): Promise<{ success: boolean; error?: string }> => {
+    }): Promise<{ success: boolean; error?: string; generatedPr?: PurchaseRequisitionRecord | null }> => {
       const payload: StockAdjustmentInput = {
         partNo: input.partNo,
         txType: input.txType,
@@ -79,10 +80,15 @@ export function useMroInventory() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const json = (await res.json()) as { success: boolean; part?: MroPartRecord; error?: string };
+      const json = (await res.json()) as {
+        success: boolean;
+        part?: MroPartRecord;
+        error?: string;
+        generatedPr?: PurchaseRequisitionRecord | null;
+      };
       if (res.ok && json.success && json.part) {
         setParts((prev) => prev.map((p) => (p.partNo === json.part!.partNo ? json.part! : p)));
-        return { success: true };
+        return { success: true, generatedPr: json.generatedPr ?? null };
       }
       return { success: false, error: json.error ?? 'Adjustment failed' };
     },

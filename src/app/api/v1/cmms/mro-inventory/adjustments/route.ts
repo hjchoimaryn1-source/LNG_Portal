@@ -11,7 +11,7 @@ import type { StockAdjustmentInput, StockTxType } from '../../../../../../adapte
 
 export const runtime = 'nodejs';
 
-const VALID_TX_TYPES: StockTxType[] = ['RECEIPT', 'ISSUE', 'ADJUSTMENT', 'RETURN'];
+const VALID_TX_TYPES: StockTxType[] = ['RECEIPT', 'ISSUE', 'ADJUSTMENT', 'RETURN', 'SCRAP'];
 
 function isValidAdjustmentInput(body: unknown): body is StockAdjustmentInput {
   if (!body || typeof body !== 'object') return false;
@@ -50,5 +50,5 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ success: true, part: result.part, transaction: result.transaction });
+  return NextResponse.json({ success: true, part: result.part, transaction: result.transaction, generatedPr: result.generatedPr });
 }

@@ -16,6 +16,7 @@ const TX_TYPE_LABEL_KO: Record<StockTxType, string> = {
   ISSUE: '출고 (ISSUE)',
   ADJUSTMENT: '재고 조정 (ADJUSTMENT)',
   RETURN: '반납 (RETURN)',
+  SCRAP: '폐기 (SCRAP)',
 };
 
 interface StockAdjustmentModalProps {

@@ -10,12 +10,18 @@
 import React, { useMemo, useState } from 'react';
 import { Boxes } from 'lucide-react';
 import { useMroInventory } from './hooks/useMroInventory';
+import { usePurchaseRequisitions } from './hooks/usePurchaseRequisitions';
 import StockAdjustmentModal from './modals/StockAdjustmentModal';
 import { BEVEL_BUTTON, SUNKEN_INPUT } from '../cmms/scadaStyles';
 import type { MroPartRecord } from '../../adapters/db/mroInventoryDao';
 
 export default function MroInventoryView() {
   const { parts, loading, error, adjustStock } = useMroInventory();
+  const { requisitions, refresh: refreshRequisitions } = usePurchaseRequisitions();
+  const openPrPartNos = useMemo(
+    () => new Set(requisitions.filter((r) => r.status === 'OPEN').map((r) => r.partNo)),
+    [requisitions]
+  );
   const [search, setSearch] = useState('');
   const [selectedPart, setSelectedPart] = useState<MroPartRecord | null>(null);
 
@@ -53,13 +59,14 @@ export default function MroInventoryView() {
               <th className="p-1.5 border-r border-slate-300">Location</th>
               <th className="p-1.5 border-r border-slate-300 text-right">Current Stock</th>
               <th className="p-1.5 border-r border-slate-300 text-right">Min Stock</th>
+              <th className="p-1.5 border-r border-slate-300 text-center">PR Status</th>
               <th className="p-1.5 text-center">Action</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={7} className="p-3 text-center text-slate-400">
+                <td colSpan={8} className="p-3 text-center text-slate-400">
                   로딩 중...
                 </td>
               </tr>
@@ -80,6 +87,15 @@ export default function MroInventoryView() {
                       {p.currentStockQty}
                     </td>
                     <td className="p-1.5 border-r border-slate-300 text-right text-slate-500">{p.minStockQty}</td>
+                    <td className="p-1.5 border-r border-slate-300 text-center">
+                      {openPrPartNos.has(p.partNo) ? (
+                        <span className="text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-400 px-1.5 py-0.5">
+                          PR OPEN
+                        </span>
+                      ) : (
+                        <span className="text-slate-300">—</span>
+                      )}
+                    </td>
                     <td className="p-1.5 text-center">
                       <button onClick={() => setSelectedPart(p)} className={`${BEVEL_BUTTON} !text-[10px] !py-0.5`}>
                         Adjust Stock
@@ -95,7 +111,11 @@ export default function MroInventoryView() {
       <StockAdjustmentModal
         part={selectedPart}
         onClose={() => setSelectedPart(null)}
-        onSubmit={(input) => adjustStock({ partNo: selectedPart!.partNo, ...input })}
+        onSubmit={async (input) => {
+          const result = await adjustStock({ partNo: selectedPart!.partNo, ...input });
+          if (result.success) refreshRequisitions();
+          return result;
+        }}
       />
     </div>
   );

@@ -124,6 +124,24 @@ const MRO_STOCK_TRANSACTIONS_DDL = `
   CREATE INDEX IF NOT EXISTS idx_stocktx_part_time ON mro_stock_transactions(part_no, performed_at DESC);
 `;
 
+// 저재고 자동 구매요청(PR) — mro_parts.current_stock_qty가 min_stock_qty
+// 미만이 될 때 mroInventoryDbAdapter.adjustStock()이 자동으로 1건 발행한다.
+// 부품당 OPEN 상태 PR은 항상 최대 1건만 존재하도록 어댑터 레벨에서 보장한다
+// (재고가 계속 저재고인 동안 중복 발행 방지).
+const MRO_PURCHASE_REQUISITIONS_DDL = `
+  CREATE TABLE IF NOT EXISTS mro_purchase_requisitions (
+      pr_id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      part_no         TEXT NOT NULL,
+      suggested_qty   REAL NOT NULL,
+      status          TEXT NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN','ORDERED','RECEIVED','CANCELLED')),
+      trigger_reason  TEXT NOT NULL,
+      created_at      TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+      resolved_at     TEXT,
+      CONSTRAINT fk_pr_part FOREIGN KEY (part_no) REFERENCES mro_parts(part_no) ON DELETE RESTRICT
+  );
+  CREATE INDEX IF NOT EXISTS idx_pr_part_status ON mro_purchase_requisitions(part_no, status);
+`;
+
 let cachedDb: SqlExecutor | undefined;
 
 /** CMMS API route 전용 SQLite 연결. 프로세스 수명 동안 하나만 생성된다. */
@@ -137,6 +155,7 @@ export function getCmmsDb(): SqlExecutor {
     executor.raw.exec(PTW_SIGNATURES_DDL);
     executor.raw.exec(MRO_PARTS_DDL);
     executor.raw.exec(MRO_STOCK_TRANSACTIONS_DDL);
+    executor.raw.exec(MRO_PURCHASE_REQUISITIONS_DDL);
     cachedDb = executor;
   }
   return cachedDb;

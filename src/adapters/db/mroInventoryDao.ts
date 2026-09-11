@@ -11,7 +11,7 @@
 
 import type { SqlExecutor } from './sqlExecutor';
 
-export type StockTxType = 'RECEIPT' | 'ISSUE' | 'ADJUSTMENT' | 'RETURN';
+export type StockTxType = 'RECEIPT' | 'ISSUE' | 'ADJUSTMENT' | 'RETURN' | 'SCRAP';
 
 export interface MroPartRecord {
   partNo: string;
@@ -167,6 +167,8 @@ export function selectAllTransactions(db: SqlExecutor): StockTransactionRecord[]
  * 재고 조정의 유일한 쓰기 경로. RECEIPT/RETURN은 양수, ISSUE는 음수로 재고를
  * 이동시키며, ADJUSTMENT는 입력된 quantity의 부호를 그대로 델타로 사용한다.
  * 조정 후 재고가 음수가 되면 거부한다 (호출부는 반환값 undefined로 판단).
+ * SCRAP(폐기)은 ISSUE와 마찬가지로 항상 음수 델타 — 작업지시 소모(ISSUE)와
+ * 구분되는 별도 사유의 재고 감소를 기록하기 위한 타입이다.
  */
 export function adjustPartStock(db: SqlExecutor, input: StockAdjustmentInput): {
   part: MroPartRecord;
@@ -175,7 +177,7 @@ export function adjustPartStock(db: SqlExecutor, input: StockAdjustmentInput): {
   const existing = db.get<MroPartRow>(SELECT_PART_BY_NO_SQL, { partNo: input.partNo });
   if (!existing) return undefined;
 
-  const quantityDelta = input.txType === 'ISSUE' ? -Math.abs(input.quantity) : input.quantity;
+  const quantityDelta = (input.txType === 'ISSUE' || input.txType === 'SCRAP') ? -Math.abs(input.quantity) : input.quantity;
   const resultingStockQty = existing.current_stock_qty + quantityDelta;
   if (resultingStockQty < 0) return undefined;
 
