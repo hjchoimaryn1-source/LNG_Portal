@@ -6,18 +6,7 @@ import { usePortalData } from '../../context/PortalDataContext';
 import { useTheme } from '../../context/ThemeContext';
 import { DailyMasterRecord, DefectCategory, FleetTankItem } from '../../types/lng';
 import SettlementAuditView from '../SettlementAuditView';
-import { NiasActiveBayWorkspace } from './nias/NiasActiveBayWorkspace';
-import NiasTankMassBalanceTab from './nias/NiasTankMassBalanceTab';
-import NiasTankOverviewTab from './nias/tabs/NiasTankOverviewTab';
-import NiasLaydownLogTab from './nias/tabs/NiasLaydownLogTab';
-import NiasLaydownHeelTab from './nias/tabs/NiasLaydownHeelTab';
-import NiasLd2BackhaulTab from './nias/tabs/NiasLd2BackhaulTab';
-import NiasProcessPIDDiagram from './nias/NiasProcessPIDDiagram';
 import NiasOperationalOverviewTab from './nias/NiasOperationalOverviewTab';
-import NiasGasQualityTab from './nias/NiasGasQualityTab';
-import NiasGasQualityLedgerTab from './nias/NiasGasQualityLedgerTab';
-import NiasPowerThermalTab from './nias/NiasPowerThermalTab';
-import NiasCustodySettlementTab from './nias/NiasCustodySettlementTab';
 import { useNiasBackhaulInspection } from './nias/hooks/useNiasBackhaulInspection';
 import { useNiasLd2VentModal } from './nias/hooks/useNiasLd2VentModal';
 import { useNiasCalendar } from './nias/hooks/useNiasCalendar';
@@ -29,6 +18,8 @@ import { useNiasInspectionForm } from '../../hooks/useNiasInspectionForm';
 import NiasDomainHeaderPanel from './nias/panels/NiasDomainHeaderPanel';
 import NiasSubTabsNavPanel from './nias/panels/NiasSubTabsNavPanel';
 import NiasModalsPanel from './nias/panels/NiasModalsPanel';
+import NiasDomainContentRouter from './nias/panels/NiasDomainContentRouter';
+import { buildMasterInspectionList } from './nias/utils/buildMasterInspectionList';
 import { INSPECTION_DATES } from './nias/constants/niasInspectionDates';
 import { NIAS_EVENT_STREAM_SEED, NiasEventStreamEntry } from './nias/constants/niasEventStreamSeed';
 import { NIAS_RACK_TAG_BY_BAY_INDEX } from './nias/constants/niasRackTags';
@@ -696,92 +687,21 @@ export default function NiasTerminalView({
 
   // Computed Master Inspection List for Grid matching 14-Column Master DB schema
   const masterInspectionList: DailyMasterRecord[] = useMemo(() => {
-    let records = dailyMasterRecords.filter((r) => r.id ? !deletedRecordIds.has(r.id) : true);
-
-    // Date Mode Filter
-    if (dateQueryMode === 'DAILY') {
-      if (selectedDate) {
-        records = records.filter((r) => r.reportDate === selectedDate);
-      }
-    } else if (dateQueryMode === 'PERIOD_RANGE') {
-      if (startDate && endDate) {
-        records = records.filter((r) => (r.reportDate || '') >= startDate && (r.reportDate || '') <= endDate);
-      } else if (startDate) {
-        records = records.filter((r) => (r.reportDate || '') >= startDate);
-      } else if (endDate) {
-        records = records.filter((r) => (r.reportDate || '') <= endDate);
-      }
-    }
-    // When dateQueryMode === 'ALL_DATA', no date filtering is applied
-
-    if (records.length === 0 && dateQueryMode === 'DAILY') {
-      records = fleetTanks
-        .filter((t) => !t.isUnderMaintenance)
-        .map((t, idx) => {
-          const loss = getTankLossData(t.tankNo);
-          const delta = Math.max(0, (t.pressBeforeMPa || 0.80) - (t.pressAfterMPa || 0.73));
-          return {
-            id: `DM-${selectedDate}-${t.tankNo}-${idx}`,
-            reportDate: selectedDate,
-            serialNo: t.serialNo,
-            tankNo: t.tankNo,
-            shipment: loss.shipment || 'N1',
-            position: t.position || 'Laydown 1',
-            level: t.level || 51,
-            levelM3: t.levelM3 || 23.0,
-            levelMmH2O: t.levelMmH2O || 465,
-            battery: t.battery || 72,
-            pressureMPa: t.pressureMPa || 0.76,
-            tempC: t.tempC || -126.7,
-            depress: t.depress || (t.pressureMPa < 0.74 ? 'Depressurized' : 'None'),
-            pressBeforeMPa: t.pressBeforeMPa || 0.80,
-            pressAfterMPa: t.pressAfterMPa || 0.73,
-            remarks: t.remarks || 'Normal inspection',
-            lossesKg: loss.lossKg || Math.round(delta * 5500),
-            lossesPercent: loss.lossPct || (delta > 0 ? parseFloat(((delta * 5500 / 18500) * 100).toFixed(2)) : 0),
-          };
-        });
-    }
-
-    // Batch filter (Normalized: N1 == N-1 == n1 == n-1)
-    if (batchFilter !== 'ALL') {
-      const targetBatch = normalizeBatch(batchFilter);
-      records = records.filter((r) => normalizeBatch(r.shipment) === targetBatch);
-    }
-
-    // Zone filter
-    if (zoneFilter !== 'ALL') {
-      records = records.filter((r) => {
-        const t = tankInventory.find((tank) => tank.id === r.tankNo);
-        const pos = (r.position || '').toLowerCase();
-        if (zoneFilter === 'LAYDOWN_1') {
-          return t ? t.currentZone === 'LAYDOWN_1' : pos.includes('1') || pos.includes('ld-1') || pos.includes('yard 1');
-        }
-        if (zoneFilter === 'LAYDOWN_2') {
-          return t ? t.currentZone === 'LAYDOWN_2' : pos.includes('2') || pos.includes('ld-2') || pos.includes('yard 2');
-        }
-        if (zoneFilter === 'SKID') {
-          return t ? t.currentZone.startsWith('BAY') : pos.includes('bay') || pos.includes('skid') || pos.includes('rack');
-        }
-        return true;
-      });
-    }
-
-    // Search query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      records = records.filter(
-        (r) =>
-          r.tankNo.toLowerCase().includes(q) ||
-          r.serialNo.toLowerCase().includes(q) ||
-          r.shipment.toLowerCase().includes(q) ||
-          r.position.toLowerCase().includes(q) ||
-          r.remarks.toLowerCase().includes(q) ||
-          r.reportDate.toLowerCase().includes(q)
-      );
-    }
-
-    return records;
+    return buildMasterInspectionList({
+      dailyMasterRecords,
+      deletedRecordIds,
+      dateQueryMode,
+      selectedDate,
+      startDate,
+      endDate,
+      batchFilter,
+      zoneFilter,
+      searchQuery,
+      fleetTanks,
+      tankInventory,
+      getTankLossData,
+      normalizeBatch,
+    });
   }, [dailyMasterRecords, selectedDate, startDate, endDate, dateQueryMode, batchFilter, zoneFilter, searchQuery, fleetTanks, tankInventory, deletedRecordIds]);
 
   // Open inspection workstation for a tank across any sub-tab
@@ -891,161 +811,85 @@ export default function NiasTerminalView({
         disputeCount={disputeCount}
       />
 
-      {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 1: 🌐 PURE 3-COLUMN VISUAL YARD MAP (DRAG & DROP)  */}
-      {/* ==================================================================== */}
-      {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'TANK_OVERVIEW' && (
-        <NiasTankOverviewTab
-          zoneStats={zoneStats}
-          activeBays={activeBays}
-          tankInventory={tankInventory}
-          fleetTanks={fleetTanks}
-          draggingTankNo={draggingTankNo}
-          dragOverTarget={dragOverTarget}
-          handleDragStart={handleDragStart}
-          handleDragEnd={handleDragEnd}
-          handleDragOver={handleDragOver}
-          handleDragLeave={handleDragLeave}
-          handleDrop={handleDrop}
-          setSelectedDetailTank={setSelectedDetailTank}
-          getRackTag={getRackTag}
-        />
-      )}
-
-      {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 2: 📥 DAILY INSPECTION & BOG LOG (WORKSHEET)      */}
-      {/* ==================================================================== */}
-      {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'LAYDOWN_1_2_LOG' && (
-        <NiasLaydownLogTab
-          tankInventory={tankInventory}
-          dailyMasterRecords={dailyMasterRecords}
-          deletedRecordIds={deletedRecordIds}
-          dateQueryMode={dateQueryMode}
-          setDateQueryMode={setDateQueryMode}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          startDate={startDate}
-          setStartDate={setStartDate}
-          endDate={endDate}
-          setEndDate={setEndDate}
-          batchFilter={batchFilter}
-          setBatchFilter={setBatchFilter}
-          availableBatches={availableBatches}
-          normalizeBatch={normalizeBatch}
-          zoneFilter={zoneFilter}
-          setZoneFilter={setZoneFilter}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          setToastMessage={setToastMessage}
-          calcVolumeFromMmH2O={calcVolumeFromMmH2O}
-          calcMassTonFromVolume={calcMassTonFromVolume}
-          isQuickEntryOpen={isQuickEntryOpen}
-          setIsQuickEntryOpen={setIsQuickEntryOpen}
-          handleSaveQuickEntry={handleSaveQuickEntry}
-          wsReportDate={wsReportDate}
-          setWsReportDate={setWsReportDate}
-          wsTankNo={wsTankNo}
-          handleSelectTankForQuickEntry={handleSelectTankForQuickEntry}
-          wsShipment={wsShipment}
-          wsSelectedZone={wsSelectedZone}
-          wsPressureMPa={wsPressureMPa}
-          setWsPressureMPa={setWsPressureMPa}
-          wsLevelMmH2O={wsLevelMmH2O}
-          handleMmH2OChange={handleMmH2OChange}
-          wsLevelM3={wsLevelM3}
-          wsSmtPress={wsSmtPress}
-          setWsSmtPress={setWsSmtPress}
-          wsSmtLevel={wsSmtLevel}
-          setWsSmtLevel={setWsSmtLevel}
-          wsSmtTemp={wsSmtTemp}
-          setWsSmtTemp={setWsSmtTemp}
-          wsSmtBattery={wsSmtBattery}
-          setWsSmtBattery={setWsSmtBattery}
-          wsPressBefore={wsPressBefore}
-          setWsPressBefore={setWsPressBefore}
-          wsPressAfter={wsPressAfter}
-          setWsPressAfter={setWsPressAfter}
-          setWsBogVentedKg={setWsBogVentedKg}
-          handleOpenTankTrendModal={handleOpenTankTrendModal}
-          handleEditRow={handleEditRow}
-          setRecordToDelete={setRecordToDelete}
-        />
-      )}
-
-      {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 3: 🏷️ ACTIVE BAY MOUNTED TANKS                    */}
-      {/* ==================================================================== */}
-      {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'ACTIVE_BAY_TANKS' && (
-        <NiasActiveBayWorkspace
-          tankInventory={tankInventory}
-          setTankInventory={setTankInventory}
-          setMountModalBayId={setMountModalBayId}
-          zoneStats={zoneStats}
-        />
-      )}
-
-      {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 4: ORU ( LD - 2 ) - DUAL PANEL STAGING & BACKHAUL */}
-      {/* ==================================================================== */}
-      {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'LAYDOWN_3_HEEL' && (
-        <NiasLd2BackhaulTab
-          zoneStats={zoneStats}
-          selectedBackhaulTanks={selectedBackhaulTanks}
-          setSelectedBackhaulTanks={setSelectedBackhaulTanks}
-          handleAuthorizeBackhaul={handleAuthorizeBackhaul}
-          handleExportShippingReport={handleExportShippingReport}
-          handleOpenLd2VentModal={handleOpenLd2VentModal}
-          draggingTankNo={draggingTankNo}
-          setDraggingTankNo={setDraggingTankNo}
-          dragOverTarget={dragOverTarget}
-          setDragOverTarget={setDragOverTarget}
-          setToastMessage={setToastMessage}
-        />
-      )}
-
-      {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 5: ISO TANK MASS BALANCE & DEPRESSURIZATION LOG   */}
-      {/* ==================================================================== */}
-      {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'TANK_MASS_BALANCE' && (
-        <NiasTankMassBalanceTab />
-      )}
-
-      {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 1: 1. PROCESS TELEMETRY                            */}
-      {/* ==================================================================== */}
-      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_PROCESS_TELEMETRY' && (
-        <div className="animate-in fade-in duration-200">
-          <NiasProcessPIDDiagram />
-        </div>
-      )}
-
-      {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 2: ✍️ GAS METERING (ENTRY)                        */}
-      {/* ==================================================================== */}
-      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GC_GAS_QUALITY' && (
-        <NiasGasQualityTab />
-      )}
-
-      {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 3: 📊 GAS METERING (LEDGER)                       */}
-      {/* ==================================================================== */}
-      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_METERING_LEDGER' && (
-        <NiasGasQualityLedgerTab />
-      )}
-
-      {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 3: ⚡ PLTMG POWER & THERMAL OUTPUT                 */}
-      {/* ==================================================================== */}
-      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'PLTMG_POWER_OUTPUT' && (
-        <NiasPowerThermalTab />
-      )}
-
-      {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 4: ⚖️ CUSTODY HEAT SETTLEMENT                    */}
-      {/* ==================================================================== */}
-      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' && (
-        <NiasCustodySettlementTab />
-      )}
+      {/* Domain 1 (ISO_TANK_MGMT) & Domain 2 (REGAS_SYSTEM) sub-tab content router */}
+      <NiasDomainContentRouter
+        activeDomain={activeDomain}
+        tankSubTab={tankSubTab}
+        regasSubTab={regasSubTab}
+        zoneStats={zoneStats}
+        activeBays={activeBays}
+        tankInventory={tankInventory}
+        fleetTanks={fleetTanks}
+        draggingTankNo={draggingTankNo}
+        dragOverTarget={dragOverTarget}
+        handleDragStart={handleDragStart}
+        handleDragEnd={handleDragEnd}
+        handleDragOver={handleDragOver}
+        handleDragLeave={handleDragLeave}
+        handleDrop={handleDrop}
+        setSelectedDetailTank={setSelectedDetailTank}
+        getRackTag={getRackTag}
+        dailyMasterRecords={dailyMasterRecords}
+        deletedRecordIds={deletedRecordIds}
+        dateQueryMode={dateQueryMode}
+        setDateQueryMode={setDateQueryMode}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        startDate={startDate}
+        setStartDate={setStartDate}
+        endDate={endDate}
+        setEndDate={setEndDate}
+        batchFilter={batchFilter}
+        setBatchFilter={setBatchFilter}
+        availableBatches={availableBatches}
+        normalizeBatch={normalizeBatch}
+        zoneFilter={zoneFilter}
+        setZoneFilter={setZoneFilter}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        setToastMessage={setToastMessage}
+        calcVolumeFromMmH2O={calcVolumeFromMmH2O}
+        calcMassTonFromVolume={calcMassTonFromVolume}
+        isQuickEntryOpen={isQuickEntryOpen}
+        setIsQuickEntryOpen={setIsQuickEntryOpen}
+        handleSaveQuickEntry={handleSaveQuickEntry}
+        wsReportDate={wsReportDate}
+        setWsReportDate={setWsReportDate}
+        wsTankNo={wsTankNo}
+        handleSelectTankForQuickEntry={handleSelectTankForQuickEntry}
+        wsShipment={wsShipment}
+        wsSelectedZone={wsSelectedZone}
+        wsPressureMPa={wsPressureMPa}
+        setWsPressureMPa={setWsPressureMPa}
+        wsLevelMmH2O={wsLevelMmH2O}
+        handleMmH2OChange={handleMmH2OChange}
+        wsLevelM3={wsLevelM3}
+        wsSmtPress={wsSmtPress}
+        setWsSmtPress={setWsSmtPress}
+        wsSmtLevel={wsSmtLevel}
+        setWsSmtLevel={setWsSmtLevel}
+        wsSmtTemp={wsSmtTemp}
+        setWsSmtTemp={setWsSmtTemp}
+        wsSmtBattery={wsSmtBattery}
+        setWsSmtBattery={setWsSmtBattery}
+        wsPressBefore={wsPressBefore}
+        setWsPressBefore={setWsPressBefore}
+        wsPressAfter={wsPressAfter}
+        setWsPressAfter={setWsPressAfter}
+        setWsBogVentedKg={setWsBogVentedKg}
+        handleOpenTankTrendModal={handleOpenTankTrendModal}
+        handleEditRow={handleEditRow}
+        setRecordToDelete={setRecordToDelete}
+        setTankInventory={setTankInventory}
+        setMountModalBayId={setMountModalBayId}
+        selectedBackhaulTanks={selectedBackhaulTanks}
+        setSelectedBackhaulTanks={setSelectedBackhaulTanks}
+        handleAuthorizeBackhaul={handleAuthorizeBackhaul}
+        handleExportShippingReport={handleExportShippingReport}
+        handleOpenLd2VentModal={handleOpenLd2VentModal}
+        setDraggingTankNo={setDraggingTankNo}
+        setDragOverTarget={setDragOverTarget}
+      />
 
       {/* Always-mounted modal / drawer wiring (Quick Mount, Bay Mount, MRO, LD-2 BOG Vent, Pre-Backhaul, Relocation, Tank Detail, Delete Confirm, Tank Trend) */}
       <NiasModalsPanel
