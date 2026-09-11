@@ -49,6 +49,12 @@ const SELECT_ALL_SQL = `
   ORDER BY tested_at DESC, gas_test_id DESC
 `;
 
+const SELECT_RECENT_SQL = `
+  SELECT * FROM permit_gas_tests
+  WHERE tested_at >= STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now', @windowClause)
+  ORDER BY tested_at DESC, gas_test_id DESC
+`;
+
 function rowToDraft(row: GasTestRow): GasTestRecordDraft {
   return {
     permitRefNo: row.permit_id,
@@ -91,4 +97,10 @@ export function selectGasTestRecordsByPermit(db: SqlExecutor, permitRefNo: strin
 /** 전체 기록을 최신순으로 조회한다 (dual-read 정합성 검증/마이그레이션용). */
 export function selectAllGasTestRecords(db: SqlExecutor): GasTestRecordDraft[] {
   return db.all<GasTestRow>(SELECT_ALL_SQL).map(rowToDraft);
+}
+
+/** 최근 windowHours 시간 내 기록(PASS/FAIL 모두)을 최신순으로 조회한다. */
+export function selectRecentGasTestRecords(db: SqlExecutor, windowHours: number): GasTestRecordDraft[] {
+  const rows = db.all<GasTestRow>(SELECT_RECENT_SQL, { windowClause: `-${windowHours} hours` });
+  return rows.map(rowToDraft);
 }

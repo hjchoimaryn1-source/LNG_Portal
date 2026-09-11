@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { OverviewSummary } from '../../../adapters/overviewSummaryAdapter';
 
 const OVERVIEW_SUMMARY_API = '/api/v1/cmms/overview/summary';
+const AUTO_REFRESH_INTERVAL_MS = 10_000;
 
 interface OverviewSummaryApiResponse {
   success: boolean;
@@ -38,6 +39,12 @@ export function useOverviewSummary() {
 
   useEffect(() => {
     refresh();
+  }, [refresh]);
+
+  // AGT 가스 측정치(permit_gas_tests) 실시간성 확보 — 10초 간격 폴링.
+  useEffect(() => {
+    const intervalId = setInterval(refresh, AUTO_REFRESH_INTERVAL_MS);
+    return () => clearInterval(intervalId);
   }, [refresh]);
 
   return { summary, loading, error, refresh };

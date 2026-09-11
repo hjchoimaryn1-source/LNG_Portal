@@ -13,6 +13,7 @@ interface WorkOrderRoutesProps {
   workOrderFilter: string;
   showWoSchedulerPreview: boolean;
   setShowWoSchedulerPreview: (value: boolean) => void;
+  focusRecordId?: string | null;
 }
 
 export default function WorkOrderRoutes({
@@ -20,6 +21,7 @@ export default function WorkOrderRoutes({
   workOrderFilter,
   showWoSchedulerPreview,
   setShowWoSchedulerPreview,
+  focusRecordId,
 }: WorkOrderRoutesProps) {
   return (
     <>
@@ -27,7 +29,10 @@ export default function WorkOrderRoutes({
       {/* MODULE 3: MAINTENANCE & WORK ORDERS                       */}
       {/* ========================================================= */}
       {(activeKey === 'WORK_ORDER_MAINTENANCE' || activeKey === 'PM_SCHEDULES') && (
-        <WorkOrderListView filter={activeKey === 'PM_SCHEDULES' ? 'PMS' : workOrderFilter} />
+        <WorkOrderListView
+          filter={activeKey === 'PM_SCHEDULES' ? 'PMS' : workOrderFilter}
+          focusId={focusRecordId ?? undefined}
+        />
       )}
       {activeKey === 'WORK_ORDER_DIRECTORY' && (
         <>
@@ -46,7 +51,7 @@ export default function WorkOrderRoutes({
             </button>
           </div>
           {showWoSchedulerPreview ? <WorkOrderSchedulerView /> : (
-            <WorkOrderListView filter={workOrderFilter} />
+            <WorkOrderListView filter={workOrderFilter} focusId={focusRecordId ?? undefined} />
           )}
         </>
       )}

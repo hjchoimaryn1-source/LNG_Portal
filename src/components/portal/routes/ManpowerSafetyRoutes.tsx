@@ -11,8 +11,9 @@ import { ManpowerTabKey, NORMALIZE_MANPOWER_TAB } from '../utils/manpowerTabCons
 interface ManpowerSafetyRoutesProps {
   activeKey: SubProcessKey;
   activeSubTab: string;
-  handleSelectSubProcess: (key: SubProcessKey) => void;
+  handleSelectSubProcess: (key: SubProcessKey, focusId?: string) => void;
   handleManpowerSubTab: (tab: ManpowerTabKey) => void;
+  focusRecordId?: string | null;
 }
 
 export default function ManpowerSafetyRoutes({
@@ -20,6 +21,7 @@ export default function ManpowerSafetyRoutes({
   activeSubTab,
   handleSelectSubProcess,
   handleManpowerSubTab,
+  focusRecordId,
 }: ManpowerSafetyRoutesProps) {
   return (
     <>
@@ -83,6 +85,7 @@ export default function ManpowerSafetyRoutes({
           }}
           onNavigateToMatrix={() => handleSelectSubProcess('MANPOWER_TRAINING_MATRIX')}
           onNavigateToDailyShift={() => handleSelectSubProcess('MANPOWER_DAILY_SHIFT')}
+          focusId={focusRecordId ?? undefined}
         />
       )}
     </>

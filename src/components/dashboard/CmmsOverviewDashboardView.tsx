@@ -20,7 +20,7 @@ import { BEVEL_BUTTON } from '../cmms/scadaStyles';
 import type { SubProcessKey } from '../../types/lng';
 
 interface CmmsOverviewDashboardViewProps {
-  onNavigate?: (key: SubProcessKey) => void;
+  onNavigate?: (key: SubProcessKey, focusId?: string) => void;
 }
 
 export default function CmmsOverviewDashboardView({ onNavigate }: CmmsOverviewDashboardViewProps) {

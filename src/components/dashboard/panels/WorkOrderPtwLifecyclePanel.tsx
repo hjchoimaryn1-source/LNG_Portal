@@ -15,7 +15,7 @@ interface WorkOrderPtwLifecyclePanelProps {
   workOrders: WorkOrderRecord[];
   permits: PTWPermitLifecycleDraft[];
   loading: boolean;
-  onNavigate?: (key: SubProcessKey) => void;
+  onNavigate?: (key: SubProcessKey, focusId?: string) => void;
 }
 
 export default function WorkOrderPtwLifecyclePanel({ workOrders, permits, loading, onNavigate }: WorkOrderPtwLifecyclePanelProps) {
@@ -46,7 +46,7 @@ export default function WorkOrderPtwLifecyclePanel({ workOrders, permits, loadin
               workOrders.map((wo, i) => (
                 <tr
                   key={wo.workOrderId}
-                  onClick={onNavigate && (() => onNavigate('WORK_ORDER_DIRECTORY'))}
+                  onClick={onNavigate && (() => onNavigate('WORK_ORDER_DIRECTORY', wo.workOrderId))}
                   className={`border-b border-slate-200 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${onNavigate ? 'cursor-pointer hover:bg-blue-50' : ''}`}
                 >
                   <td className="p-1 font-bold border-r border-slate-300 text-blue-950">{wo.workOrderId}</td>
@@ -75,7 +75,7 @@ export default function WorkOrderPtwLifecyclePanel({ workOrders, permits, loadin
               permits.map((permit, i) => (
                 <tr
                   key={permit.permitId}
-                  onClick={onNavigate && (() => onNavigate('PTW_PERMITS'))}
+                  onClick={onNavigate && (() => onNavigate('PTW_PERMITS', permit.permitId))}
                   className={`border-b border-slate-200 ${i % 2 === 0 ? 'bg-white' : 'bg-emerald-50'} ${onNavigate ? 'cursor-pointer hover:bg-emerald-100' : ''}`}
                 >
                   <td className="p-1 font-bold border-r border-slate-300 text-blue-950">{permit.permitId}</td>

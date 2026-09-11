@@ -30,6 +30,7 @@ export default function LNGPortalInner({
     activeKey,
     isMobileSidebarOpen,
     setIsMobileSidebarOpen,
+    focusRecordId,
     equipmentFilter,
     setEquipmentFilter,
     showCmmsRegistry,
@@ -95,6 +96,7 @@ export default function LNGPortalInner({
             <PortalRouteView
               activeKey={activeKey}
               activeSubTab={activeSubTab}
+              focusRecordId={focusRecordId}
               handleSelectSubProcess={handleSelectSubProcess}
               handleManpowerSubTab={handleManpowerSubTab}
               equipmentFilter={equipmentFilter}

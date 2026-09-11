@@ -1,7 +1,7 @@
 // src/components/manpower/tabs/PTWMasterRegisterTab.tsx
 "use client";
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { PTWWorkflowStatus, StaffPersonnel } from '../../../types/lng';
 import { usePTWPermitsContext } from '../../../context/PTWPermitsProvider';
 import { useCargoHandlingLifecycle } from '../cargoHandling/hooks/useCargoHandlingLifecycle';
@@ -16,9 +16,10 @@ export interface PTWMasterRegisterTabProps {
   personnelList: StaffPersonnel[];
   isERTMet: boolean;
   onNavigateToMatrix?: (empId: string) => void;
+  focusId?: string;
 }
 
-export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix }: PTWMasterRegisterTabProps) {
+export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix, focusId }: PTWMasterRegisterTabProps) {
   const { permits, setPermits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, persistStatusChange, stats } = usePTWPermitsContext();
   const { transitionCargoHandlingStatus } = useCargoHandlingLifecycle(permits, setPermits, persistStatusChange);
 
@@ -29,6 +30,15 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
 
   const [isNewPermitModalOpen, setIsNewPermitModalOpen] = useState<boolean>(false);
   const [isCargoHandlingModalOpen, setIsCargoHandlingModalOpen] = useState<boolean>(false);
+
+  // Overview 대시보드 패널(PendingApprovalsPanel 등)에서 focusId로 딥링크한 경우,
+  // 해당 permit을 자동 선택해 list 하이라이트 + detail panel을 함께 띄운다.
+  useEffect(() => {
+    if (!focusId) return;
+    if (permits.some((p) => p.id === focusId)) {
+      setSelectedPermitId(focusId);
+    }
+  }, [focusId, permits]);
 
   const activePermit = useMemo(
     () => permits.find((p) => p.id === selectedPermitId) || permits[0] || null,

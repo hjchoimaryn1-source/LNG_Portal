@@ -14,7 +14,7 @@ import type { SubProcessKey } from '../../../types/lng';
 interface PendingApprovalsPanelProps {
   items: PendingApprovalItem[];
   loading: boolean;
-  onNavigate?: (key: SubProcessKey) => void;
+  onNavigate?: (key: SubProcessKey, focusId?: string) => void;
 }
 
 export default function PendingApprovalsPanel({ items, loading, onNavigate }: PendingApprovalsPanelProps) {
@@ -50,7 +50,7 @@ export default function PendingApprovalsPanel({ items, loading, onNavigate }: Pe
               items.map((item, i) => (
                 <tr
                   key={item.permitId}
-                  onClick={onNavigate && (() => onNavigate('PTW_PERMITS'))}
+                  onClick={onNavigate && (() => onNavigate('PTW_PERMITS', item.permitId))}
                   className={`border-b border-slate-200 ${i % 2 === 0 ? 'bg-white' : 'bg-amber-50'} ${onNavigate ? 'cursor-pointer hover:bg-amber-100' : ''}`}
                 >
                   <td className="p-1.5 font-bold border-r border-slate-300 text-blue-950">{item.permitId}</td>

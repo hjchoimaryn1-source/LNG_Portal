@@ -8,7 +8,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sliders } from 'lucide-react';
 import { WOItem } from '../../types/lng';
 import { usePTWPermitsContext } from '../../context/PTWPermitsProvider';
@@ -19,15 +19,24 @@ import WorkOrderDetailModal from './modals/WorkOrderDetailModal';
 
 export interface WorkOrderListViewProps {
   filter?: string;
+  focusId?: string;
 }
 
-export default function WorkOrderListView({ filter = 'ALL' }: WorkOrderListViewProps) {
+export default function WorkOrderListView({ filter = 'ALL', focusId }: WorkOrderListViewProps) {
   const { permits } = usePTWPermitsContext();
   const { cmmsAssetRows } = useCmmsAssets();
   const [selectedWo, setSelectedWo] = useState<WOItem | null>(null);
 
   const { workOrders: allWorkOrders, markCompleted } = useWorkOrders(cmmsAssetRows, permits);
   const workOrders = filter === 'ALL' ? allWorkOrders : allWorkOrders.filter((w) => w.cat === filter);
+
+  // Overview 대시보드 패널(WorkOrderPtwLifecyclePanel 등)에서 focusId로 딥링크한
+  // 경우, 해당 WO의 상세 모달을 자동으로 연다.
+  useEffect(() => {
+    if (!focusId) return;
+    const match = allWorkOrders.find((w) => w.wo === focusId);
+    if (match) setSelectedWo(match);
+  }, [focusId, allWorkOrders]);
 
   return (
     <div className="h-full flex flex-col min-h-0 gap-1.5 w-full win-panel p-2 overflow-hidden">

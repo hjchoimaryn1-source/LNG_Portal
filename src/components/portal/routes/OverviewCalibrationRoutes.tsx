@@ -9,7 +9,7 @@ import { CalibrationComplianceView } from '../CalibrationComplianceView';
 interface OverviewCalibrationRoutesProps {
   activeKey: SubProcessKey;
   calibrationFilter: string;
-  handleSelectSubProcess: (key: SubProcessKey) => void;
+  handleSelectSubProcess: (key: SubProcessKey, focusId?: string) => void;
 }
 
 export default function OverviewCalibrationRoutes({ activeKey, calibrationFilter, handleSelectSubProcess }: OverviewCalibrationRoutesProps) {

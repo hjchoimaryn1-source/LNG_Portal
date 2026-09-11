@@ -13,7 +13,8 @@ import OverviewCalibrationRoutes from './OverviewCalibrationRoutes';
 interface PortalRouteViewProps {
   activeKey: SubProcessKey;
   activeSubTab: string;
-  handleSelectSubProcess: (key: SubProcessKey) => void;
+  focusRecordId?: string | null;
+  handleSelectSubProcess: (key: SubProcessKey, focusId?: string) => void;
   handleManpowerSubTab: (tab: ManpowerTabKey) => void;
   equipmentFilter: string;
   showCmmsRegistry: boolean;
@@ -27,6 +28,7 @@ interface PortalRouteViewProps {
 export default function PortalRouteView({
   activeKey,
   activeSubTab,
+  focusRecordId,
   handleSelectSubProcess,
   handleManpowerSubTab,
   equipmentFilter,
@@ -55,12 +57,14 @@ export default function PortalRouteView({
         workOrderFilter={workOrderFilter}
         showWoSchedulerPreview={showWoSchedulerPreview}
         setShowWoSchedulerPreview={setShowWoSchedulerPreview}
+        focusRecordId={focusRecordId}
       />
       <ManpowerSafetyRoutes
         activeKey={activeKey}
         activeSubTab={activeSubTab}
         handleSelectSubProcess={handleSelectSubProcess}
         handleManpowerSubTab={handleManpowerSubTab}
+        focusRecordId={focusRecordId}
       />
       <OverviewCalibrationRoutes
         activeKey={activeKey}

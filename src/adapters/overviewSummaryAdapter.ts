@@ -27,7 +27,7 @@ import { selectAllAssets } from './db/assetDao';
 import { selectAllWorkOrders, type WorkOrderRecord } from './db/workOrderDao';
 import { selectAllPermitLifecycle, type PTWPermitLifecycleDraft } from './db/ptwPermitDao';
 import { selectAllSignaturesByPermit } from './db/ptwSignatureDao';
-import { selectAllGasTestRecords } from './db/gasTestDao';
+import { selectRecentGasTestRecords } from './db/gasTestDao';
 import { selectAllParts, type MroPartRecord } from './db/mroInventoryDao';
 import type { GasTestRecordDraft } from './ptwFormAdapter';
 import { PTW_TRANSITION_REQUIRED_ROLES } from '../data/ptwSignatureRoles';
@@ -105,11 +105,10 @@ function computePendingApprovals(db: SqlExecutor): PendingApprovalItem[] {
   return items.slice(0, PANEL_ROW_LIMIT);
 }
 
+/** 최근 GAS_ALERT_WINDOW_HOURS 내 전체 기록(PASS/FAIL 모두) — 패널의 "Last 24H"/
+ *  "Critical Non-Conformances Only" 토글이 클라이언트에서 걸러 쓴다. */
 function computeRecentGasAlerts(db: SqlExecutor): GasTestRecordDraft[] {
-  const cutoffMs = Date.now() - GAS_ALERT_WINDOW_HOURS * 60 * 60 * 1000;
-  return selectAllGasTestRecords(db)
-    .filter((r) => r.resultStatus === 'FAIL' && Date.parse(r.testedAt) >= cutoffMs)
-    .slice(0, PANEL_ROW_LIMIT);
+  return selectRecentGasTestRecords(db, GAS_ALERT_WINDOW_HOURS).slice(0, PANEL_ROW_LIMIT);
 }
 
 /** Overview 대시보드 요약 카드 + 4개 패널용 스냅샷을 조립한다. */

@@ -17,6 +17,7 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
   const [activeSubTab, setActiveSubTab] = useState<string>(initNav.subTab);
   const [activeKey, setActiveKey] = useState<SubProcessKey>(initialKey);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+  const [focusRecordId, setFocusRecordId] = useState<string | null>(null);
 
   // Sub-tab states for CMMS Modules
   const [equipmentFilter, setEquipmentFilter] = useState<string>('ALL');
@@ -43,11 +44,12 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
     );
   })();
 
-  const handleSelectSubProcess = (key: SubProcessKey) => {
+  const handleSelectSubProcess = (key: SubProcessKey, focusId?: string) => {
     if (key === 'SECTOR_LAUNCHER' && onReturnToLauncher) {
       onReturnToLauncher();
       return;
     }
+    setFocusRecordId(focusId ?? null);
     setActiveKey(key);
     if (key === 'SECTOR_LAUNCHER') {
       setActiveMenu('sector-launcher');
@@ -162,6 +164,7 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
     activeKey,
     isMobileSidebarOpen,
     setIsMobileSidebarOpen,
+    focusRecordId,
     equipmentFilter,
     setEquipmentFilter,
     showCmmsRegistry,
