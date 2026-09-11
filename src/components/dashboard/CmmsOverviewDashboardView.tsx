@@ -17,8 +17,13 @@ import GasSafetyAlertLogPanel from './panels/GasSafetyAlertLogPanel';
 import WorkOrderPtwLifecyclePanel from './panels/WorkOrderPtwLifecyclePanel';
 import MroLowStockPanel from './panels/MroLowStockPanel';
 import { BEVEL_BUTTON } from '../cmms/scadaStyles';
+import type { SubProcessKey } from '../../types/lng';
 
-export default function CmmsOverviewDashboardView() {
+interface CmmsOverviewDashboardViewProps {
+  onNavigate?: (key: SubProcessKey) => void;
+}
+
+export default function CmmsOverviewDashboardView({ onNavigate }: CmmsOverviewDashboardViewProps) {
   const { summary, loading, error, refresh } = useOverviewSummary();
 
   return (
@@ -46,11 +51,11 @@ export default function CmmsOverviewDashboardView() {
       ) : (
         <>
           <div className="shrink-0">
-            <OverviewKpiCards summary={summary} />
+            <OverviewKpiCards summary={summary} onNavigate={onNavigate} />
           </div>
 
           <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-2">
-            <PendingApprovalsPanel items={summary.pendingApprovals} loading={loading} />
+            <PendingApprovalsPanel items={summary.pendingApprovals} loading={loading} onNavigate={onNavigate} />
             <GasSafetyAlertLogPanel
               alerts={summary.recentGasAlerts}
               loading={loading}
@@ -60,6 +65,7 @@ export default function CmmsOverviewDashboardView() {
               workOrders={summary.activeWorkOrders}
               permits={summary.activePermits}
               loading={loading}
+              onNavigate={onNavigate}
             />
             <MroLowStockPanel parts={summary.lowStockParts} loading={loading} />
           </div>

@@ -8,6 +8,7 @@
 import React from 'react';
 import { Boxes, Wrench, ShieldAlert, Flame, ClipboardCheck, Package } from 'lucide-react';
 import type { OverviewSummary } from '../../adapters/overviewSummaryAdapter';
+import type { SubProcessKey } from '../../types/lng';
 
 interface KpiCardProps {
   label: string;
@@ -15,6 +16,7 @@ interface KpiCardProps {
   subLabel: string;
   icon: React.ReactNode;
   tone: 'neutral' | 'warn' | 'danger' | 'ok';
+  onClick?: () => void;
 }
 
 const TONE_CLASSES: Record<KpiCardProps['tone'], string> = {
@@ -24,9 +26,12 @@ const TONE_CLASSES: Record<KpiCardProps['tone'], string> = {
   danger: 'text-red-700',
 };
 
-function KpiCard({ label, value, subLabel, icon, tone }: KpiCardProps) {
+function KpiCard({ label, value, subLabel, icon, tone, onClick }: KpiCardProps) {
   return (
-    <div className="win-panel flex-1 min-w-[150px] px-2.5 py-2 flex flex-col gap-0.5">
+    <div
+      onClick={onClick}
+      className={`win-panel flex-1 min-w-[150px] px-2.5 py-2 flex flex-col gap-0.5 ${onClick ? 'cursor-pointer hover:brightness-95' : ''}`}
+    >
       <div className="flex items-center gap-1.5 text-slate-600">
         {icon}
         <span className="text-[10px] font-bold uppercase tracking-wide">{label}</span>
@@ -39,9 +44,10 @@ function KpiCard({ label, value, subLabel, icon, tone }: KpiCardProps) {
 
 interface OverviewKpiCardsProps {
   summary: OverviewSummary;
+  onNavigate?: (key: SubProcessKey) => void;
 }
 
-export default function OverviewKpiCards({ summary }: OverviewKpiCardsProps) {
+export default function OverviewKpiCards({ summary, onNavigate }: OverviewKpiCardsProps) {
   const activeWoCount = summary.workOrders.SCHEDULED + summary.workOrders.IN_PROGRESS + summary.workOrders.PARTS_PENDING;
 
   return (
@@ -52,6 +58,7 @@ export default function OverviewKpiCards({ summary }: OverviewKpiCardsProps) {
         subLabel={`정비중 ${summary.assets.maintenance} / 전체 ${summary.assets.total}`}
         icon={<Boxes className="w-3.5 h-3.5" />}
         tone="neutral"
+        onClick={onNavigate && (() => onNavigate('EQUIPMENT_ASSET_REGISTRY'))}
       />
       <KpiCard
         label="Work Orders Active / Overdue"
@@ -59,6 +66,7 @@ export default function OverviewKpiCards({ summary }: OverviewKpiCardsProps) {
         subLabel={`OVERDUE ${summary.workOrders.OVERDUE}건`}
         icon={<Wrench className="w-3.5 h-3.5" />}
         tone={summary.workOrders.OVERDUE > 0 ? 'danger' : 'neutral'}
+        onClick={onNavigate && (() => onNavigate('WORK_ORDER_DIRECTORY'))}
       />
       <KpiCard
         label="PTW Active Permits"
@@ -66,6 +74,7 @@ export default function OverviewKpiCards({ summary }: OverviewKpiCardsProps) {
         subLabel={`승인대기 ${summary.ptwPermits.APPROVED} / 준비 ${summary.ptwPermits.PREPARED}`}
         icon={<ClipboardCheck className="w-3.5 h-3.5" />}
         tone="neutral"
+        onClick={onNavigate && (() => onNavigate('PTW_PERMITS'))}
       />
       <KpiCard
         label="Pending Approval Signatures"
@@ -73,6 +82,7 @@ export default function OverviewKpiCards({ summary }: OverviewKpiCardsProps) {
         subLabel="PTW 서명 대기 건수"
         icon={<ShieldAlert className="w-3.5 h-3.5" />}
         tone={summary.pendingApprovals.length > 0 ? 'warn' : 'ok'}
+        onClick={onNavigate && (() => onNavigate('PTW_PERMITS'))}
       />
       <KpiCard
         label={`Gas Safety Alerts (${summary.gasTestAlerts.windowHours}H)`}
@@ -87,6 +97,7 @@ export default function OverviewKpiCards({ summary }: OverviewKpiCardsProps) {
         subLabel="최소 재고 이하 부품"
         icon={<Package className="w-3.5 h-3.5" />}
         tone={summary.mroLowStock.count > 0 ? 'warn' : 'ok'}
+        onClick={onNavigate && (() => onNavigate('MRO_PARTS_INVENTORY'))}
       />
     </div>
   );

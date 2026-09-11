@@ -9,13 +9,15 @@ import React from 'react';
 import { ShieldAlert } from 'lucide-react';
 import type { PendingApprovalItem } from '../../../adapters/overviewSummaryAdapter';
 import { PTW_SIGNATURE_ROLE_LABELS } from '../../../data/ptwSignatureRoles';
+import type { SubProcessKey } from '../../../types/lng';
 
 interface PendingApprovalsPanelProps {
   items: PendingApprovalItem[];
   loading: boolean;
+  onNavigate?: (key: SubProcessKey) => void;
 }
 
-export default function PendingApprovalsPanel({ items, loading }: PendingApprovalsPanelProps) {
+export default function PendingApprovalsPanel({ items, loading, onNavigate }: PendingApprovalsPanelProps) {
   return (
     <div className="win-panel flex flex-col min-h-0 h-full">
       <div className="win-titlebar px-2 py-1 flex items-center gap-1.5">
@@ -46,7 +48,11 @@ export default function PendingApprovalsPanel({ items, loading }: PendingApprova
             )}
             {!loading &&
               items.map((item, i) => (
-                <tr key={item.permitId} className={`border-b border-slate-200 ${i % 2 === 0 ? 'bg-white' : 'bg-amber-50'}`}>
+                <tr
+                  key={item.permitId}
+                  onClick={onNavigate && (() => onNavigate('PTW_PERMITS'))}
+                  className={`border-b border-slate-200 ${i % 2 === 0 ? 'bg-white' : 'bg-amber-50'} ${onNavigate ? 'cursor-pointer hover:bg-amber-100' : ''}`}
+                >
                   <td className="p-1.5 font-bold border-r border-slate-300 text-blue-950">{item.permitId}</td>
                   <td className="p-1.5 border-r border-slate-300">{item.currentStatus}</td>
                   <td className="p-1.5 border-r border-slate-300 font-bold text-amber-800">{item.targetStatus}</td>

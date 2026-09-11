@@ -62,7 +62,11 @@ export default function PortalRouteView({
         handleSelectSubProcess={handleSelectSubProcess}
         handleManpowerSubTab={handleManpowerSubTab}
       />
-      <OverviewCalibrationRoutes activeKey={activeKey} calibrationFilter={calibrationFilter} />
+      <OverviewCalibrationRoutes
+        activeKey={activeKey}
+        calibrationFilter={calibrationFilter}
+        handleSelectSubProcess={handleSelectSubProcess}
+      />
     </div>
   );
 }

@@ -9,16 +9,17 @@ import { CalibrationComplianceView } from '../CalibrationComplianceView';
 interface OverviewCalibrationRoutesProps {
   activeKey: SubProcessKey;
   calibrationFilter: string;
+  handleSelectSubProcess: (key: SubProcessKey) => void;
 }
 
-export default function OverviewCalibrationRoutes({ activeKey, calibrationFilter }: OverviewCalibrationRoutesProps) {
+export default function OverviewCalibrationRoutes({ activeKey, calibrationFilter, handleSelectSubProcess }: OverviewCalibrationRoutesProps) {
   return (
     <>
       {/* ========================================================= */}
       {/* MODULE 6: CMMS OVERVIEW DASHBOARD                         */}
       {/* ========================================================= */}
       {activeKey === 'CMMS_OVERVIEW_DASHBOARD' && (
-        <CmmsOverviewDashboardView />
+        <CmmsOverviewDashboardView onNavigate={handleSelectSubProcess} />
       )}
 
       {/* ========================================================= */}
