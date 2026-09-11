@@ -23,5 +23,8 @@ export function getInitialNav(key: SubProcessKey): { menu: string; subTab: strin
   if (key === 'CMMS_OVERVIEW_DASHBOARD') {
     return { menu: 'CMMS_OVERVIEW_DASHBOARD', subTab: key };
   }
+  if (key === 'HQ_OVERVIEW_DASHBOARD') {
+    return { menu: 'HQ_OVERVIEW_DASHBOARD', subTab: key };
+  }
   return { menu: 'lng-process', subTab: key };
 }

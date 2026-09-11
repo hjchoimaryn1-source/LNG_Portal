@@ -1,4 +1,4 @@
-import type { RBACSessionGuard } from '../../types/rbac';
+import type { RBACSessionGuard, RoleCode } from '../../types/rbac';
 
 export function resolveEffectivePermission(
   homeLocation: 'HQ' | 'SITE',
@@ -60,5 +60,20 @@ export async function validateApprovalGuardrails(
     }
   }
 
+  return { allowed: true };
+}
+
+// C.4 Auditor Mode hard override — must be called before rolePermissionService's
+// getEffectivePermission() is trusted for any mutation. HQ_SUPERVISOR_AUDITOR is
+// blocked on all four mutation actions unconditionally, regardless of what a
+// role_permissions seed row says (a seed row can be re-authored to grant
+// can_update/can_create etc.; this check does not consult that data at all).
+export function blockIfAuditorMode(
+  roleCode: RoleCode,
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE'
+): { allowed: boolean; reason?: string } {
+  if (roleCode === 'HQ_SUPERVISOR_AUDITOR') {
+    return { allowed: false, reason: 'AUDITOR_MODE_MUTATION_BLOCKED' };
+  }
   return { allowed: true };
 }

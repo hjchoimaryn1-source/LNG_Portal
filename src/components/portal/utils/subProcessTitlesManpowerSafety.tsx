@@ -94,4 +94,10 @@ export const SUBPROCESS_TITLES_MANPOWER_SAFETY: Record<string, SubProcessTitleEn
     icon: <LayoutDashboard className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
+  HQ_OVERVIEW_DASHBOARD: {
+    location: 'Jakarta HQ Overview',
+    process: 'HQ Command Center — Fleet & Settlement',
+    icon: <LayoutDashboard className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
 };

@@ -75,7 +75,9 @@ export type SubProcessKey =
   | 'SAFETY_SOP_REFERENCE'
   | 'CALIBRATION_COMPLIANCE'
   // CMMS-wide Overview Dashboard (cross-module KPI landing)
-  | 'CMMS_OVERVIEW_DASHBOARD';
+  | 'CMMS_OVERVIEW_DASHBOARD'
+  // Jakarta HQ Overview Dashboard (Sector 7 — CMMS_Architecture.md §3.1.1)
+  | 'HQ_OVERVIEW_DASHBOARD';
 
 export interface OffloadHeelMetrics {
   offloadDate: string;
