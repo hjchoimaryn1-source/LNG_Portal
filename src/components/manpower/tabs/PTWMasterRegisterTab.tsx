@@ -16,10 +16,11 @@ export interface PTWMasterRegisterTabProps {
   personnelList: StaffPersonnel[];
   isERTMet: boolean;
   onNavigateToMatrix?: (empId: string) => void;
+  onNavigateToSopReference?: () => void;
   focusId?: string;
 }
 
-export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix, focusId }: PTWMasterRegisterTabProps) {
+export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix, onNavigateToSopReference, focusId }: PTWMasterRegisterTabProps) {
   const { permits, setPermits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, persistStatusChange, stats } = usePTWPermitsContext();
   const { transitionCargoHandlingStatus } = useCargoHandlingLifecycle(permits, setPermits, persistStatusChange);
 
@@ -116,6 +117,7 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
         personnelList={personnelList}
         sequenceNumber={permits.length + 1}
         activePermits={permits}
+        onOpenSopReference={onNavigateToSopReference}
         onSubmitSuccess={(newPermit, cmmsMeta) => {
           addPermit(newPermit);
           setSelectedPermitId(newPermit.id);
@@ -129,6 +131,7 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
         isOpen={isCargoHandlingModalOpen}
         onClose={() => setIsCargoHandlingModalOpen(false)}
         sequenceNumber={permits.length + 1}
+        onOpenSopReference={onNavigateToSopReference}
         onSubmitSuccess={(newPermit) => {
           addPermit(newPermit);
           setSelectedPermitId(newPermit.id);

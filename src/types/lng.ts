@@ -72,6 +72,7 @@ export type SubProcessKey =
   | 'PTW_PERMITS'
   | 'SAFETY_GAS_TESTING'
   | 'SAFETY_ERT_READINESS'
+  | 'SAFETY_SOP_REFERENCE'
   | 'CALIBRATION_COMPLIANCE'
   // CMMS-wide Overview Dashboard (cross-module KPI landing)
   | 'CMMS_OVERVIEW_DASHBOARD';

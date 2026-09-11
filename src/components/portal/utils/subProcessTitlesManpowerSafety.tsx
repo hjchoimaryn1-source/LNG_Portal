@@ -64,6 +64,12 @@ export const SUBPROCESS_TITLES_MANPOWER_SAFETY: Record<string, SubProcessTitleEn
     icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
+  SAFETY_SOP_REFERENCE: {
+    location: 'Safety & PTW',
+    process: 'SOP Reference',
+    icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
   WORK_ORDER_DIRECTORY: {
     location: 'Maintenance & Work Orders',
     process: 'Work Order Directory',

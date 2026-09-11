@@ -11,6 +11,18 @@ import PRACChecklistSection from './ptw/PRACChecklistSection';
 import WorkforcePillPicker from './ptw/WorkforcePillPicker';
 import SimopsWarningModal from './ptw/SimopsWarningModal';
 import StageOneSummaryFlags from './ptw/StageOneSummaryFlags';
+import { SopQuickLinkBar } from '../../sop';
+import { SopQuickLinkContext } from '../../sop/constants/sopQuickLinkMap';
+
+// form.newPermitType (Exclude<PTWType, 'CARGO_HANDLING'>) -> SopQuickLinkContext 1:1 매핑.
+const PTW_TYPE_TO_SOP_CONTEXT: Record<Exclude<PTWType, 'CARGO_HANDLING'>, SopQuickLinkContext> = {
+  COLD_WORK: 'PTW_COLD_WORK',
+  HOT_WORK: 'PTW_HOT_WORK',
+  CONFINED_SPACE: 'PTW_CONFINED_SPACE',
+  ELECTRICAL: 'PTW_ELECTRICAL',
+  EXCAVATION: 'PTW_EXCAVATION',
+  RADIOGRAPHY: 'PTW_RADIOGRAPHY',
+};
 
 export interface NewPTWPermitModalProps {
   isOpen: boolean;
@@ -22,6 +34,7 @@ export interface NewPTWPermitModalProps {
   // Phase 1 stage/status + payloadHash baseline (permit_lock_state) generated
   // alongside the legacy permit — see src/hooks/useCMMSPTWForm.ts.
   onSubmitSuccess: (newPermit: PTWPermit, cmmsMeta: CmmsPermitMeta) => void;
+  onOpenSopReference?: () => void;
 }
 
 export default function NewPTWPermitModal({
@@ -31,6 +44,7 @@ export default function NewPTWPermitModal({
   sequenceNumber,
   activePermits,
   onSubmitSuccess,
+  onOpenSopReference,
 }: NewPTWPermitModalProps) {
   const form = useCMMSPTWForm({ personnelList, sequenceNumber, activePermits, onSubmitSuccess, onClose });
 
@@ -62,6 +76,13 @@ export default function NewPTWPermitModal({
           >
             ✕
           </button>
+        </div>
+
+        <div className="bg-[#d4d0c8] px-6 py-1 border-b border-slate-400 shrink-0">
+          <SopQuickLinkBar
+            context={PTW_TYPE_TO_SOP_CONTEXT[form.newPermitType]}
+            onSelect={() => onOpenSopReference?.()}
+          />
         </div>
 
         <div className="p-6 sm:p-8 space-y-5 text-sm overflow-y-auto flex-1">

@@ -8,12 +8,14 @@ import { CARGO_HANDLING_AGT_MANDATORY_POINTS } from '../../../data/ptwCargoHandl
 import { mapCargoHandlingFormToPermit } from '../../../data/ptwCargoHandlingMapper';
 import { useCargoHandlingPermitForm } from './hooks/useCargoHandlingPermitForm';
 import StatusGateChecklist from './StatusGateChecklist';
+import { SopQuickLinkBar } from '../../sop';
 
 export interface CargoHandlingPermitFormProps {
   isOpen: boolean;
   onClose: () => void;
   sequenceNumber: number;
   onSubmitSuccess: (newPermit: PTWPermit) => void;
+  onOpenSopReference?: () => void;
 }
 
 const ACTIVITY_LABELS: Record<CargoHandlingActivityType, string> = {
@@ -22,7 +24,7 @@ const ACTIVITY_LABELS: Record<CargoHandlingActivityType, string> = {
   COMBINED: '하역 + 인양 연속 조업 (Combined)',
 };
 
-export default function CargoHandlingPermitForm({ isOpen, onClose, sequenceNumber, onSubmitSuccess }: CargoHandlingPermitFormProps) {
+export default function CargoHandlingPermitForm({ isOpen, onClose, sequenceNumber, onSubmitSuccess, onOpenSopReference }: CargoHandlingPermitFormProps) {
   const { details, identity, update, updateIdentity, updateGasPoint, setActivityType, gates } = useCargoHandlingPermitForm();
 
   if (!isOpen) return null;
@@ -51,6 +53,11 @@ export default function CargoHandlingPermitForm({ isOpen, onClose, sequenceNumbe
           <button onClick={onClose} className="win-btn px-1.5 py-0.5 text-black font-black bg-[#d4d0c8] border border-gray-600 hover:bg-slate-300">
             <X className="w-3 h-3" />
           </button>
+        </div>
+
+        <div className="bg-[#d4d0c8] px-3 py-1 border-b border-[#808080]">
+          {isUnloading && <SopQuickLinkBar context="PTW_CARGO_HANDLING_UNLOADING" onSelect={() => onOpenSopReference?.()} />}
+          {isLifting && <SopQuickLinkBar context="PTW_CARGO_HANDLING_LIFTING" onSelect={() => onOpenSopReference?.()} />}
         </div>
 
         <div className="p-3 grid grid-cols-2 gap-3 bg-[#d4d0c8]">

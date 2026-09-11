@@ -17,7 +17,7 @@ export function getInitialNav(key: SubProcessKey): { menu: string; subTab: strin
   if (key.startsWith('MANPOWER')) {
     return { menu: key, subTab: key };
   }
-  if (key === 'SAFETY_OVERVIEW' || key === 'PTW_PERMITS' || key === 'SAFETY_GAS_TESTING' || key === 'SAFETY_ERT_READINESS') {
+  if (key === 'SAFETY_OVERVIEW' || key === 'PTW_PERMITS' || key === 'SAFETY_GAS_TESTING' || key === 'SAFETY_ERT_READINESS' || key === 'SAFETY_SOP_REFERENCE') {
     return { menu: 'ptw-permits', subTab: key };
   }
   if (key === 'CMMS_OVERVIEW_DASHBOARD') {

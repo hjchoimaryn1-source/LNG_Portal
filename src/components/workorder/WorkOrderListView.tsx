@@ -16,13 +16,15 @@ import { useCmmsAssets } from '../../context/CmmsAwarePortalProvider';
 import { useWorkOrders } from './hooks/useWorkOrders';
 import { resolveLinkedPermit, WO_PERMIT_STATUS_BADGE } from '../../adapters/workOrderPtwAdapter';
 import WorkOrderDetailModal from './modals/WorkOrderDetailModal';
+import { SopQuickLinkBar } from '../sop';
 
 export interface WorkOrderListViewProps {
   filter?: string;
   focusId?: string;
+  onOpenSopReference?: () => void;
 }
 
-export default function WorkOrderListView({ filter = 'ALL', focusId }: WorkOrderListViewProps) {
+export default function WorkOrderListView({ filter = 'ALL', focusId, onOpenSopReference }: WorkOrderListViewProps) {
   const { permits } = usePTWPermitsContext();
   const { cmmsAssetRows } = useCmmsAssets();
   const [selectedWo, setSelectedWo] = useState<WOItem | null>(null);
@@ -45,6 +47,9 @@ export default function WorkOrderListView({ filter = 'ALL', focusId }: WorkOrder
           <Sliders className="w-3.5 h-3.5" />
           Work Order & Maintenance - Planned Maintenance System (PMS Ledger)
         </span>
+      </div>
+      <div className="bg-slate-100 px-2 py-1 border-b border-slate-300">
+        <SopQuickLinkBar context="WORK_ORDER_MAINTENANCE" onSelect={() => onOpenSopReference?.()} />
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto win-sunken">
         <table className="w-full text-left border-collapse font-mono text-[11px] win-grid">
