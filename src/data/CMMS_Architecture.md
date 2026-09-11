@@ -368,6 +368,18 @@ export interface PermitMaster {
 1. **HQ Overview Dashboard (본사/총괄 전용)**: 전체 공정 가동률, MRO 자원 보급, Overhaul 진행률, POB 현황, MTBF/MTTR 거시 지표 수집 및 실시간 관제.
 2. **Site Approval Hub (현장 최종 승인권자 - Site Manager Pak Edi 전용)**: e-PTW Stage 3 최종 발급, 긴급 WO 결재, Shift Override 대행 결재 등 타임 크리티컬 1-Click 승인 센터.
 
+#### 3.1.1 HQ Overview Dashboard 컴포넌트 구조 및 Sector 6 라우팅 (이력 및 현황)
+
+| 항목 | 내용 |
+|---|---|
+| 개념 정의 위치 | §3.1 HQ Overview Dashboard (본사/총괄 전용) |
+| 과거 구현 파일 | `src/components/JakartaHQDashboard.tsx` |
+| 현재 상태 | **삭제됨** — 커밋 `73c096c` (`chore: remove confirmed dead code files`)에서 미사용(orphan) 컴포넌트로 확인되어 저장소에서 제거 |
+| 삭제 전 라우팅 연결 | 없음 — 삭제 이전에도 앱 내 어떤 진입점에서도 import되지 않았음 |
+| Sector 6 진입점 | **미확정** — 신규 Sector 버튼으로 재도입할지, 기존 Sector에 흡수할지 결정되지 않음. 재구현 시 별도 승인 절차를 거쳐 본 문서에 반영 예정 |
+
+> **Gap Note**: HQ Overview Dashboard는 §3.1에 개념상 정의되어 있으나, 실제 구현체(`JakartaHQDashboard.tsx`)는 dead code 정리 과정에서 이미 제거되었습니다. 따라서 "라우팅 미연결" 상태가 아니라 "구현체 없음" 상태이며, Sector 6 라우팅 여부는 재구현 결정과 함께 별도로 논의되어야 합니다.
+
 ---
 
 ### 3.2 Dynamic Cascade Select 기반 Plant Location 및 NP-09 PPE Zone 자동 필터링
@@ -431,6 +443,35 @@ CREATE TABLE approval_delegations (
 
 CREATE INDEX idx_app_docs_type_status ON approval_documents(document_type, overall_status);
 CREATE INDEX idx_app_hist_app_id ON approval_line_histories(approval_id);
+```
+
+---
+
+### 3.3.3 RBAC Session Guard (Auditor Mode) 타입 명세 (`types/rbac.ts`)
+
+> 본 절은 타입 명세만 정의하며, 권한 판정 로직(`resolveEffectivePermission`, `validateApprovalGuardrails`)과 Sector 6 진입점 연동은 별도 승인 후 구현 예정입니다 (§3.1.1 참조).
+
+```typescript
+export type RBACRole =
+  | 'ORIGINATOR'
+  | 'HSSE_OFFICER'
+  | 'SITE_MANAGER'
+  | 'DELEGATED_APPROVER'
+  | 'AUDITOR';
+
+export type SessionAccessMode = 'INTERACTIVE' | 'READ_ONLY_AUDIT';
+
+export interface RBACSessionGuard {
+  sessionId: string;
+  personId: string;
+  role: RBACRole;
+  accessMode: SessionAccessMode;
+  isAuditorMode: boolean;
+  grantedScopes: string[];
+  sessionIssuedAt: string;
+  sessionExpiresAt: string;
+  delegatedFromPersonId?: string | null;
+}
 ```
 
 ---
