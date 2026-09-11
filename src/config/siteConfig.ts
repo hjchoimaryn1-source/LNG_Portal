@@ -52,4 +52,11 @@ export const CMMS_MODULES: CMMSModule[] = [
     description: "PTW 6-Form Master, AGT Gas Testing Log & ERT Readiness",
     defaultKey: "SAFETY_OVERVIEW",
   },
+  {
+    id: "MOD_6_OVERVIEW",
+    name: "CMMS Overview Dashboard",
+    code: "OVERVIEW",
+    description: "Command Center KPI Summary, Pending Approvals, Gas Safety Alerts & MRO Low-Stock",
+    defaultKey: "CMMS_OVERVIEW_DASHBOARD",
+  },
 ];

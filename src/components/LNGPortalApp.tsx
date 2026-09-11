@@ -25,6 +25,7 @@ import ManpowerRosterView from './manpower/ManpowerRosterView';
 import PTWManagementView from './manpower/PTWManagementView';
 import LoginGateway from './auth/LoginGateway';
 import SectorLauncherHub from './launcher/SectorLauncherHub';
+import CmmsOverviewDashboardView from './dashboard/CmmsOverviewDashboardView';
 import { INITIAL_MANPOWER_MASTER_RECORDS } from '../data/manpowerMasterData';
 import {
   Monitor,
@@ -41,6 +42,7 @@ import {
   ShieldCheck,
   Shield,
   Users,
+  LayoutDashboard,
 } from 'lucide-react';
 
 type ManpowerTabKey = 'OVERVIEW' | 'DAILY_SHIFT_BOARD' | 'MONTHLY_GRID' | 'ROTATION_TRACKER' | 'TRAINING_MATRIX';
@@ -157,6 +159,12 @@ const SUBPROCESS_TITLES: Record<
     location: 'Sector Hub',
     process: 'SCADA Sector Launcher',
     icon: <Globe className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  CMMS_OVERVIEW_DASHBOARD: {
+    location: 'CMMS Overview Dashboard',
+    process: 'Command Center Overview',
+    icon: <LayoutDashboard className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   LNG_PROCESS_OVERVIEW: {
@@ -436,6 +444,9 @@ function getInitialNav(key: SubProcessKey): { menu: string; subTab: string } {
   if (key === 'SAFETY_OVERVIEW' || key === 'PTW_PERMITS' || key === 'SAFETY_GAS_TESTING' || key === 'SAFETY_ERT_READINESS') {
     return { menu: 'ptw-permits', subTab: key };
   }
+  if (key === 'CMMS_OVERVIEW_DASHBOARD') {
+    return { menu: 'CMMS_OVERVIEW_DASHBOARD', subTab: key };
+  }
   return { menu: 'lng-process', subTab: key };
 }
 
@@ -547,6 +558,8 @@ function LNGPortalInner({
   const currentModuleId =
     activeKey === 'SECTOR_LAUNCHER'
       ? 'MOD_0_LAUNCHER'
+      : activeKey === 'CMMS_OVERVIEW_DASHBOARD'
+      ? 'MOD_6_OVERVIEW'
       : activeKey === 'SAFETY_OVERVIEW' ||
         activeKey === 'PTW_PERMITS' ||
         activeKey === 'MANPOWER_PTW' ||
@@ -586,6 +599,9 @@ function LNGPortalInner({
         break;
       case 'MOD_5_SAFETY_PTW':
         handleSelectSubProcess('SAFETY_OVERVIEW');
+        break;
+      case 'MOD_6_OVERVIEW':
+        handleSelectSubProcess('CMMS_OVERVIEW_DASHBOARD');
         break;
       default:
         handleSelectSubProcess('SECTOR_LAUNCHER');
@@ -700,6 +716,13 @@ function LNGPortalInner({
                 <span className="font-bold text-slate-900">SECTOR LAUNCHER HUB</span>
                 <span className="text-slate-400">|</span>
                 <span>Select any of the 5 operational sectors below</span>
+              </div>
+            )}
+            {currentModuleId === 'MOD_6_OVERVIEW' && (
+              <div className="flex items-center gap-2 text-xs font-mono text-slate-700 py-0.5">
+                <span className="font-bold text-slate-900">CMMS OVERVIEW DASHBOARD</span>
+                <span className="text-slate-400">|</span>
+                <span>Command Center KPI Summary & Live Alert Panels</span>
               </div>
             )}
             {/* Sub-Tabs for LNG-Process */}
@@ -1124,6 +1147,13 @@ function LNGPortalInner({
                   onNavigateToMatrix={() => handleSelectSubProcess('MANPOWER_TRAINING_MATRIX')}
                   onNavigateToDailyShift={() => handleSelectSubProcess('MANPOWER_DAILY_SHIFT')}
                 />
+              )}
+
+              {/* ========================================================= */}
+              {/* MODULE 6: CMMS OVERVIEW DASHBOARD                         */}
+              {/* ========================================================= */}
+              {activeKey === 'CMMS_OVERVIEW_DASHBOARD' && (
+                <CmmsOverviewDashboardView />
               )}
 
               {/* ========================================================= */}
