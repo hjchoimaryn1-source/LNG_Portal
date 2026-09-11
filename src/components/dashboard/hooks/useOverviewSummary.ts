@@ -22,18 +22,23 @@ export function useOverviewSummary() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // silent=true: 10초 백그라운드 폴링 전용 — loading/error 토글을 건너뛰어
+  // 데이터 미변경 시 패널이 "로딩 중..."으로 깜빡이는 현상을 방지한다.
+  const refresh = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const res = await fetch(OVERVIEW_SUMMARY_API, { cache: 'no-store' });
       const json = (await res.json()) as OverviewSummaryApiResponse;
       if (!res.ok || !json.success) throw new Error('overview/summary GET failed');
-      setSummary(json.summary);
+      // 내용이 동일하면 이전 참조를 그대로 반환해 불필요한 리렌더를 막는다.
+      setSummary((prev) => (prev && JSON.stringify(prev) === JSON.stringify(json.summary) ? prev : json.summary));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      if (!silent) setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -43,7 +48,7 @@ export function useOverviewSummary() {
 
   // AGT 가스 측정치(permit_gas_tests) 실시간성 확보 — 10초 간격 폴링.
   useEffect(() => {
-    const intervalId = setInterval(refresh, AUTO_REFRESH_INTERVAL_MS);
+    const intervalId = setInterval(() => refresh(true), AUTO_REFRESH_INTERVAL_MS);
     return () => clearInterval(intervalId);
   }, [refresh]);
 

@@ -33,7 +33,7 @@ export default function CmmsOverviewDashboardView({ onNavigate }: CmmsOverviewDa
           <LayoutDashboard className="w-3.5 h-3.5" />
           Command Center — CMMS Overview Dashboard
         </span>
-        <button onClick={refresh} className={`${BEVEL_BUTTON} !text-[10px] !py-0.5`}>
+        <button onClick={() => refresh()} className={`${BEVEL_BUTTON} !text-[10px] !py-0.5`}>
           Refresh
         </button>
       </div>
