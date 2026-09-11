@@ -243,6 +243,46 @@ CREATE TABLE work_orders (
 CREATE INDEX idx_wo_asset_status ON work_orders(asset_tag, status);
 CREATE INDEX idx_wo_next_due ON work_orders(next_due_date) WHERE next_due_date IS NOT NULL;
 
+-- ----------------------------------------------------------------------------
+-- 5. user_accounts / user_sessions (CMMS_Architecture.md §3.5.2 Postgres 원본을
+--    SQLite 방언으로 이식). Phase 1 Quick-Login(클릭-투-로그인, LoginGateway.tsx)
+--    대응을 위해 password_hash만 NOT NULL에서 nullable로 완화한다 — 그 외 컬럼/
+--    제약은 §3.5.2 설계를 그대로 따른다.
+--    DEV-ONLY: 비밀번호 검증 로직은 이번 단계에서 구현하지 않는다. 프로덕션 반영
+--    전 password_hash를 다시 NOT NULL로 되돌리고 실제 해시 검증을 추가해야 한다.
+-- ----------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS user_sessions;
+DROP TABLE IF EXISTS user_accounts;
+CREATE TABLE user_accounts (
+    user_id               TEXT PRIMARY KEY,
+    email                 TEXT NOT NULL UNIQUE,
+    password_hash         TEXT,                    -- DEV-ONLY: nullable, see comment above
+    role_code             TEXT NOT NULL
+        CHECK (role_code IN (
+            'SYSTEM_ADMIN','SITE_MANAGER','ACTING_SITE_MANAGER','OPERATION_TEAM_LEADER',
+            'HSSE_OFFICER','WORK_LEADER_TECH','HQ_SUPERVISOR_AUDITOR'
+        )),
+    home_location         TEXT NOT NULL CHECK (home_location IN ('HQ', 'SITE')),
+    mfa_enabled           INTEGER NOT NULL DEFAULT 0,
+    failed_attempt_count  INTEGER NOT NULL DEFAULT 0,
+    locked_until          TEXT,
+    is_active             INTEGER NOT NULL DEFAULT 1,
+    last_login_at         TEXT,
+    created_at            TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE TABLE user_sessions (
+    session_id            TEXT PRIMARY KEY,
+    user_id               TEXT NOT NULL,
+    issued_at             TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+    expires_at            TEXT NOT NULL,
+    device_device_id      TEXT,
+    is_offline_reauth     INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT fk_session_user FOREIGN KEY (user_id) REFERENCES user_accounts(user_id) ON DELETE CASCADE
+);
+CREATE INDEX idx_sessions_user ON user_sessions(user_id);
+
 -- ============================================================================
 -- 시딩 예시 (수동 검증용, 운영 배치에는 미포함)
 -- ============================================================================

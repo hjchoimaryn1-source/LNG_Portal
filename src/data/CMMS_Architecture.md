@@ -547,6 +547,34 @@ CREATE TABLE user_sessions (
 본 테이블은 실무 정책 확정 전까지 **잠정 설계**이며, 현재 프론트엔드 `LoginGateway.tsx`의
 `DEV NO-AUTH BYPASS ACTIVE` 상태를 이 스키마로 교체하는 마이그레이션은 별도 승인 후 착수한다.
 
+**3.5.4 Phase 1 Quick-Login 시더 및 세션 연동 (2026-09-11 반영)**
+
+`src/db/schema/cmms_schema.sql` / `schema/cmms_schema.sqlite.sql`에 §3.5.2 DDL을
+SQLite 방언으로 이식하고, `password_hash`만 `NOT NULL`에서 nullable로 완화했다(그 외
+컬럼/제약은 §3.5.2와 동일). `src/db/seeds/002_user_accounts.sql`(및 런타임에서 실제로
+쓰이는 TS 미러 `src/lib/rbac/userAccountsSeed.ts` — §3.5.3 `role_permissions`이
+`rolePermissionService.ts`로 미러링되는 것과 동일한 이유: 프로젝트에 SQLite 런타임
+드라이버가 없어 이 SQL은 문서로만 반영된 상태)에 아래 3행을 시딩했다:
+
+| user_id | 이름 | role_code | home_location | 근거 |
+|---|---|---|---|---|
+| `BSG259529` | Edi Hermawan | `SITE_MANAGER` | `SITE` | Operation Manpower Roster.csv 7행 실사 확인 |
+| `BSG259524` | Shadiq M. Shalih | `OPERATION_TEAM_LEADER` | `SITE` | Operation Manpower Roster.csv 8행 실사 확인 |
+| `DEV-HQ-001` | Choi Hong-joon | `SYSTEM_ADMIN` | `HQ` | **로스터 CSV(22개 인력 행)에 매칭 행 없음** — 현장 인력이 아닌 개발자 계정으로 판단, BSG 포맷 대신 명시적 DEV ID 부여 |
+
+⚠ `email` 컬럼은 로스터 CSV에 이메일 데이터가 없어 `<user_id>@dev.nias-lng.local`
+형태의 **DEV-ONLY placeholder**를 사용했다 — 실제 이메일이 아니며 프로덕션 전 교체 필요.
+
+`LoginGateway.tsx`는 이 3행을 Quick-Login 카드로 노출하고, 클릭 시
+`password_hash` 검증 없이 `src/lib/rbac/activeSessionStore.ts`(신규, DEV-ONLY
+in-memory 세션 브리지)에 `{ userId, roleCode, homeLocation }`을 직접 기록한다.
+`OverviewCalibrationRoutes.tsx`의 `HQ_DASHBOARD_SESSION_STUB`(Sector 6 HQ Overview
+Dashboard 배선, 이전 세션에서 추가)을 이 실제 세션으로 교체해
+`resolveEffectivePermission`/`blockIfAuditorMode`가 하드코딩된 스텁이 아닌 선택된
+계정의 실제 role/location을 받는다.
+
+// DEV-ONLY: password verification intentionally skipped per Phase 1 simplification — see CMMS_Architecture.md §3.5
+
 ---
 
 ### 3.6 ISA-101 / SCADA 기반 UI 색상 체계 (scadaStyles.ts 명세)

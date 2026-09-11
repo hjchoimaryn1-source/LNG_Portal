@@ -7,6 +7,7 @@ import CmmsOverviewDashboardView from '../../dashboard/CmmsOverviewDashboardView
 import JakartaHQDashboard from '../../dashboard/JakartaHQDashboard';
 import { CalibrationComplianceView } from '../CalibrationComplianceView';
 import { resolveEffectivePermission } from '../../../lib/rbac/guardrails';
+import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
 import type { RoleCode } from '../../../types/rbac';
 
 interface OverviewCalibrationRoutesProps {
@@ -15,22 +16,25 @@ interface OverviewCalibrationRoutesProps {
   handleSelectSubProcess: (key: SubProcessKey, focusId?: string) => void;
 }
 
-// TODO: replace with real user_accounts session once auth backend exists.
-// HQ_OVERVIEW_DASHBOARD is an HQ-home view over Site-sourced data (fleetTanks/
-// settlementRecords), so this is exactly the HQ->SITE cross-context case
-// resolveEffectivePermission (guardrails.ts) is built for.
-const HQ_DASHBOARD_SESSION_STUB = {
+// Quick-Login(LoginGateway.tsx) 카드를 아직 거치지 않은 상태(activeSessionStore가
+// null)에서 이 라우트가 렌더될 경우를 대비한 최후 방어 기본값 — 실제 세션은
+// activeSessionStore.setActiveSession()이 기록한 값을 useActiveSession()으로 구독한다.
+const FALLBACK_SESSION = {
   homeLocation: 'HQ' as const,
   userId: 'DEV_HQ_USER',
   roleCode: 'HQ_SUPERVISOR_AUDITOR' as RoleCode,
 };
 
 export default function OverviewCalibrationRoutes({ activeKey, calibrationFilter, handleSelectSubProcess }: OverviewCalibrationRoutesProps) {
+  // HQ_OVERVIEW_DASHBOARD is an HQ-home view over Site-sourced data (fleetTanks/
+  // settlementRecords), so this is exactly the HQ->SITE cross-context case
+  // resolveEffectivePermission (guardrails.ts) is built for.
+  const activeSession = useActiveSession() ?? FALLBACK_SESSION;
   const { readOnly: hqReadOnly } = resolveEffectivePermission(
-    HQ_DASHBOARD_SESSION_STUB.homeLocation,
+    activeSession.homeLocation,
     'SITE',
     null,
-    HQ_DASHBOARD_SESSION_STUB.userId
+    activeSession.userId
   );
 
   return (
@@ -48,7 +52,7 @@ export default function OverviewCalibrationRoutes({ activeKey, calibrationFilter
       {activeKey === 'HQ_OVERVIEW_DASHBOARD' && (
         <JakartaHQDashboard
           readOnly={hqReadOnly}
-          roleCode={HQ_DASHBOARD_SESSION_STUB.roleCode}
+          roleCode={activeSession.roleCode}
           onNavigate={handleSelectSubProcess}
         />
       )}
