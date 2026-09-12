@@ -651,12 +651,12 @@ Dashboard 배선, 이전 세션에서 추가)을 이 실제 세션으로 교체�
 | 1 (Critical) | 즉시 대응 — LOTO 위반, AGT FAIL, SIMOPS RED | `#EF4444` (소스 확인, 기존 유지) |
 | 2 (High) | 긴급 대응 — ALARP No 에스컬레이션, 4hr 가스 타임아웃 | `#F97316` (설계 기본값) |
 | 3 (Medium) | 주의 — PM 지연, ROP 미달 발주 | `#EAB308` (설계 기본값) |
-| 4 (Low) | 정보성 — 일반 알림 | `#3B82F6` (설계 기본값) |
+| 4 (Low) | 정보성 — 일반 알림 | `#0284c7` (해결됨 — 기존 Status Badge Blue 재사용) |
 
-> **⚠ 설계 충돌 주의**: Priority 4용으로 제안된 `#3B82F6`은 기존 확인된 Status Badge `#0284c7` /
-> Highlight `#0369a1`과 같은 계열의 파란색이라 시각적으로 구분이 약할 수 있다. `scadaStyles.ts` 실제
-> 반영 시 Priority 4를 기존 Status Badge 색상과 동일 톤으로 통합할지, 별도 색상으로 분리할지는
-> **구현 전 추가 확인이 필요**하다 — 이번 라운드에서는 문서에만 반영하고 실제 파일 수정은 보류한다.
+> **✅ 설계 충돌 해소**: Priority 4는 신규 색상 `#3B82F6`을 도입하는 대신 기존 확인된 Status Badge
+> `#0284c7`을 그대로 재사용하기로 확정했다 (Highlight `#0369a1`과는 별개로, 의도적으로 Status Badge와
+> 동일 톤으로 통합). `scadaStyles.ts`의 `ALARM_COLORS.PRIORITY_4_LOW`에 `#0284c7`로 반영 완료.
+> (과거 충돌 이력: 최초 제안 `#3B82F6`은 기존 파란 계열과 시각적으로 구분이 약해 이번에 위와 같이 해소함.)
 
 ---
 
