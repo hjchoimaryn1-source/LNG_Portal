@@ -18,7 +18,7 @@ export interface PTWMasterRegisterTabProps {
   personnelList: StaffPersonnel[];
   isERTMet: boolean;
   onNavigateToMatrix?: (empId: string) => void;
-  onNavigateToSopReference?: () => void;
+  onNavigateToSopReference?: (target?: string) => void;
   focusId?: string;
 }
 

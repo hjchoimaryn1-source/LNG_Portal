@@ -17,12 +17,13 @@ import { useWorkOrders } from './hooks/useWorkOrders';
 import { resolveLinkedPermit, WO_PERMIT_STATUS_BADGE } from '../../adapters/workOrderPtwAdapter';
 import WorkOrderDetailModal from './modals/WorkOrderDetailModal';
 import { SopQuickLinkBar } from '../sop';
+import { encodeSopQuickLinkTarget } from '../sop/utils/sopQuickLinkTarget';
 import GuardrailBlockedBanner from '../shared/GuardrailBlockedBanner';
 
 export interface WorkOrderListViewProps {
   filter?: string;
   focusId?: string;
-  onOpenSopReference?: () => void;
+  onOpenSopReference?: (target?: string) => void;
 }
 
 export default function WorkOrderListView({ filter = 'ALL', focusId, onOpenSopReference }: WorkOrderListViewProps) {
@@ -50,7 +51,10 @@ export default function WorkOrderListView({ filter = 'ALL', focusId, onOpenSopRe
         </span>
       </div>
       <div className="bg-slate-100 px-2 py-1 border-b border-slate-300">
-        <SopQuickLinkBar context="WORK_ORDER_MAINTENANCE" onSelect={() => onOpenSopReference?.()} />
+        <SopQuickLinkBar
+          context="WORK_ORDER_MAINTENANCE"
+          onSelect={(link) => onOpenSopReference?.(encodeSopQuickLinkTarget(link))}
+        />
       </div>
       <GuardrailBlockedBanner message={blockedMessage} />
       <div className="flex-1 min-h-0 overflow-y-auto win-sunken">

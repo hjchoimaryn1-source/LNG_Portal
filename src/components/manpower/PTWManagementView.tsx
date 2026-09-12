@@ -23,7 +23,7 @@ interface PTWManagementViewProps {
   };
   onNavigateToMatrix?: (empId: string) => void;
   onNavigateToDailyShift?: () => void;
-  onNavigateToSopReference?: () => void;
+  onNavigateToSopReference?: (target?: string) => void;
   focusId?: string;
 }
 

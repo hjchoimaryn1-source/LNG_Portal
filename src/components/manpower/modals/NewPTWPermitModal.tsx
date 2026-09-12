@@ -14,6 +14,7 @@ import StageOneSummaryFlags from './ptw/StageOneSummaryFlags';
 import { SopQuickLinkBar } from '../../sop';
 import GuardrailBlockedBanner from '../../shared/GuardrailBlockedBanner';
 import { SopQuickLinkContext } from '../../sop/constants/sopQuickLinkMap';
+import { encodeSopQuickLinkTarget } from '../../sop/utils/sopQuickLinkTarget';
 
 // form.newPermitType (Exclude<PTWType, 'CARGO_HANDLING'>) -> SopQuickLinkContext 1:1 매핑.
 const PTW_TYPE_TO_SOP_CONTEXT: Record<Exclude<PTWType, 'CARGO_HANDLING'>, SopQuickLinkContext> = {
@@ -35,7 +36,7 @@ export interface NewPTWPermitModalProps {
   // Phase 1 stage/status + payloadHash baseline (permit_lock_state) generated
   // alongside the legacy permit — see src/hooks/useCMMSPTWForm.ts.
   onSubmitSuccess: (newPermit: PTWPermit, cmmsMeta: CmmsPermitMeta) => void;
-  onOpenSopReference?: () => void;
+  onOpenSopReference?: (target?: string) => void;
 }
 
 export default function NewPTWPermitModal({
@@ -82,7 +83,7 @@ export default function NewPTWPermitModal({
         <div className="bg-[#d4d0c8] px-6 py-1 border-b border-slate-400 shrink-0">
           <SopQuickLinkBar
             context={PTW_TYPE_TO_SOP_CONTEXT[form.newPermitType]}
-            onSelect={() => onOpenSopReference?.()}
+            onSelect={(link) => onOpenSopReference?.(encodeSopQuickLinkTarget(link))}
           />
         </div>
 
