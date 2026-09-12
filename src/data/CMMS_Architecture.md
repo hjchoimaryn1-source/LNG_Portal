@@ -496,6 +496,52 @@ Seed 데이터는 7개 역할(RoleCode) × 11개 모듈(ModuleCode) = 77행 전�
 
 ---
 
+### 3.4 Fatigue Block 가드레일 — daily_shift_assignments 스키마
+
+**⚠ 출처 구분 표기**: 아래 피로도 규칙 수치(연속 14일 근무 제한, 24시간 내 최소 10시간 휴식)는
+CMMS_Architecture.md의 기존 소스 문서에 명시된 값이 아니다. 해사노동협약(MLC)/STCW 계열 휴식시간
+관행에 기반한 설계 기본값이며, 실제 인도네시아 현지 노동법 및 회사 내규 확인 후 조정이 필요한
+잠정안이다.
+
+daily_shift_assignments는 기존 `StaffPersonnel.todayShift`(당일 상태 스냅샷)와 별개로, 날짜별
+근무 이력을 축적하는 신규 테이블이다. 3:1 로테이션 마스터 데이터(90일 온사이트/30일 휴가 주기)와는
+독립적인 레이어로, 로테이션 내 개별 날짜의 Day/Night 배정 및 실근무시간을 기록한다.
+
+**PART A 재검증 결과 반영**: `shift_type` 값은 원안의 `'DAY'/'NIGHT'`가 아니라 `StaffPersonnel.todayShift`
+(`ShiftCode`, `src/types/lng.ts:271`)의 실제 근무 시프트 어휘인 `'D'/'N'`으로 맞춘다 (아래 DDL에 반영).
+또한 실제 DB 드라이버가 없어(§3.5.4와 동일 사유), 런타임에서는 `src/db/seeds/003_daily_shift_assignments_test.sql`의
+TS 미러인 `src/lib/rbac/dailyShiftAssignmentsSeed.ts`를 `checkFatigueBlock`이 직접 조회한다.
+
+```sql
+CREATE TABLE daily_shift_assignments (
+    assignment_id        BIGSERIAL PRIMARY KEY,
+    user_id               VARCHAR(64) NOT NULL,          -- FK to user_accounts.user_id
+    shift_date            DATE NOT NULL,
+    shift_type            VARCHAR(10) NOT NULL CHECK (shift_type IN ('D', 'N')),  -- StaffPersonnel.todayShift(ShiftCode) 근무 시프트 어휘와 정합
+    hours_worked          NUMERIC(4,1) NOT NULL,
+    rest_hours_prior_24h  NUMERIC(4,1),                  -- rest hours in the 24h window before this shift started
+    consecutive_days      INT NOT NULL DEFAULT 1,        -- running count of consecutive worked days as of this row
+    created_at            TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_shift_user FOREIGN KEY (user_id) REFERENCES user_accounts(user_id) ON DELETE CASCADE,
+    CONSTRAINT uq_user_shift_date UNIQUE (user_id, shift_date, shift_type)
+);
+CREATE INDEX idx_shift_user_date ON daily_shift_assignments(user_id, shift_date);
+```
+
+**Phase 3 (MOD_1~5 가드레일 UI 확산) 반영 노트**: `checkFatigueBlock`은 공용 어댑터
+`src/adapters/guardrailUiAdapter.ts`(`evaluateMutationGuardrails`)를 통해 `blockIfAuditorMode`와
+함께 다음 진입점에 연동되었다 — MOD_1 PTW(`PTWStatusActions.tsx` APPROVE, `useNewPTWPermitForm.ts`
+CREATE), MOD_2 Cargo Handling(`useCargoHandlingLifecycle.ts`, APPROVED 전이 시), MOD_3
+Maintenance/PMS(`useWorkOrders.ts` markCompleted — auditor만, fatigueCheck 없음: `WOItem.tech`가
+표시용 이름일 뿐 실제 userId가 아니므로), MOD_4 "Gas Sales & Metering"은 코드베이스에 해당 모듈이
+없어 Custody/Settlement 계열(`SettlementAuditView.tsx`, `NiasCustodySettlementTab.tsx`, 기존
+`HqSettlementDisputePanel.tsx`)로 매핑 — auditor만, fatigueCheck 없음, MOD_5 Inventory
+(`useMroInventory.ts` adjustStock — auditor만, fatigueCheck 없음: `performedBy`가 자유 입력 텍스트라
+userId로 신뢰 불가). 기존 `FatigueLimitModal.tsx`(ManpowerRosterView 전용, 7일 연속 야간 하드락)는
+이 14일/10h/중복 규칙과 무관한 별개 개념으로 의도적으로 그대로 두었다.
+
+---
+
 ### 3.5 세션/인증 및 로그인 정책 (user_accounts 스키마)
 
 **⚠ 출처 구분 표기**: 아래 세션/인증 수치는 NotebookLM 소스 문서에 **명시적으로 기록되어 있지 않다**

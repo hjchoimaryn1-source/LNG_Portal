@@ -11,11 +11,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileWarning, ShieldAlert } from 'lucide-react';
+import { FileWarning } from 'lucide-react';
 import type { SettlementLedgerEntry, SubProcessKey } from '../../../types/lng';
 import type { RoleCode } from '../../../types/rbac';
 import { blockIfAuditorMode } from '../../../lib/rbac/guardrails';
 import { BEVEL_BUTTON, SUNKEN_PANEL, TITLE_BAR, CRITICALITY_BADGE } from '../../cmms/scadaStyles';
+import GuardrailBlockedBanner from '../../shared/GuardrailBlockedBanner';
 
 interface HqSettlementDisputePanelProps {
   disputeRecords: SettlementLedgerEntry[];
@@ -58,11 +59,7 @@ export default function HqSettlementDisputePanel({
         </button>
       </div>
 
-      {blockedMessage && (
-        <div className="px-2 py-1 text-[11px] text-red-700 font-mono bg-red-50 border-b border-red-700 flex items-center gap-1">
-          <ShieldAlert className="w-3 h-3" /> {blockedMessage}
-        </div>
-      )}
+      <GuardrailBlockedBanner message={blockedMessage} />
 
       <div className="flex-1 overflow-y-auto p-2 text-[11px] font-mono">
         {disputeRecords.length === 0 ? (

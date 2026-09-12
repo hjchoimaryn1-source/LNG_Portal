@@ -9,6 +9,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { buildMockMroParts } from '../../../data/mockMroInventoryGenerator';
 import type { MroPartRecord, StockAdjustmentInput, StockTxType } from '../../../adapters/db/mroInventoryDao';
 import type { PurchaseRequisitionRecord } from '../../../adapters/db/purchaseRequisitionDao';
+import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { evaluateMutationGuardrails } from '../../../adapters/guardrailUiAdapter';
 
 const PARTS_API = '/api/v1/cmms/mro-inventory';
 const ADJUSTMENTS_API = '/api/v1/cmms/mro-inventory/adjustments';
@@ -22,6 +24,7 @@ export function useMroInventory() {
   const [parts, setParts] = useState<MroPartRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const activeSession = useActiveSession();
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +71,18 @@ export function useMroInventory() {
       reason?: string;
       performedBy: string;
     }): Promise<{ success: boolean; error?: string; generatedPr?: PurchaseRequisitionRecord | null }> => {
+      // Phase 3 MOD_5: Auditor Mode hard block. No fatigueCheck — `performedBy` is
+      // freeform text (StockAdjustmentModal.tsx: "사번 또는 이름"), not a validated
+      // userId matching daily_shift_assignments.userId, so it can't be looked up
+      // reliably (see CMMS_Architecture.md §3.4 Phase 3 notes). Fail-open if no
+      // active session exists yet (pre-existing DEV bypass).
+      if (activeSession) {
+        const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'UPDATE' });
+        if (!guard.allowed) {
+          return { success: false, error: guard.reason };
+        }
+      }
+
       const payload: StockAdjustmentInput = {
         partNo: input.partNo,
         txType: input.txType,
@@ -92,7 +107,7 @@ export function useMroInventory() {
       }
       return { success: false, error: json.error ?? 'Adjustment failed' };
     },
-    []
+    [activeSession]
   );
 
   return { parts, loading, error, adjustStock };

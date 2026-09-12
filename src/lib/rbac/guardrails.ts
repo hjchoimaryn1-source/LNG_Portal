@@ -1,4 +1,5 @@
 import type { RBACSessionGuard, RoleCode } from '../../types/rbac';
+import { checkFatigueBlock } from './fatigueGuardrail';
 
 export function resolveEffectivePermission(
   homeLocation: 'HQ' | 'SITE',
@@ -30,17 +31,18 @@ export async function validateApprovalGuardrails(
   }
 
   // C.2 Fatigue / Duplicate Shift block
-  // PART A re-verification (this session) confirmed: no `daily_shift_assignments` table
-  // exists anywhere in src/ or the SQL schema files (src/db/schema/cmms_schema.sql,
-  // schema/cmms_schema.sqlite.sql). `StaffPersonnel.todayShift` (src/types/lng.ts:316)
-  // exists only as a frontend TypeScript field populated from generated mock data
-  // (src/data/manpowerMasterData.ts) — it has no backing column/table in either real SQL
-  // schema file, so there is nothing for the `db` client here to query. Querying a
-  // nonexistent `staff_personnel`/shift table would mean fabricating schema, which is
-  // explicitly out of scope. Left as a no-op pending a real daily_shift_assignments
-  // (or equivalent) table.
-  // TODO(fatigue-block): no shift-assignment schema found — see PART A findings, needs
-  // real table before this check can be enforced.
+  // daily_shift_assignments now exists (CMMS_Architecture.md §3.4). approval_documents
+  // has no per-shift date field, so this evaluates fatigue as of "today" (the date the
+  // approval action is taken) against requester_id (the person whose work is being
+  // approved) — same requester-as-subject convention as ptwSelfApproval.ts's use of
+  // workLeaderId.
+  if (approvalDoc?.requester_id) {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const fatigueResult = checkFatigueBlock(approvalDoc.requester_id, todayStr);
+    if (fatigueResult.blocked) {
+      return { allowed: false, reason: fatigueResult.reason };
+    }
+  }
 
   // C.3 Unqualified delegate block
   // NOTE: `approval_delegations` (CMMS_Architecture.md §3.3) has no `delegate_role`

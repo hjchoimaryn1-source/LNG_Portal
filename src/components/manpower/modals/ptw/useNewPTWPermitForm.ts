@@ -13,6 +13,8 @@ import {
   PTWWorkArea,
 } from '../../../../data/ptwWorkAreas';
 import { evaluateSimopsDryRun, SimopsCheckResult } from '../../../../hooks/useSIMOPSCheck';
+import { useActiveSession } from '../../../../lib/rbac/activeSessionStore';
+import { evaluateMutationGuardrails } from '../../../../adapters/guardrailUiAdapter';
 
 export interface UseNewPTWPermitFormArgs {
   personnelList: StaffPersonnel[];
@@ -45,6 +47,7 @@ export function useNewPTWPermitForm({
 }: UseNewPTWPermitFormArgs) {
   // Read-only originator — represents the currently logged-in drafter.
   const originatorLabel = 'Choi Hong-joon (Engineering Dept)';
+  const activeSession = useActiveSession();
 
   // CARGO_HANDLING is excluded — that type has its own required `cargoHandling`
   // detail block (PTWCargoHandlingPermit) and is only ever created through the
@@ -142,6 +145,20 @@ export function useNewPTWPermitForm({
   };
 
   const handleCreatePermit = () => {
+    // Phase 3 MOD_1: Auditor Mode hard block. No fatigueCheck here — a Work Leader's
+    // fatigue is not yet decided at draft-creation time (newWorkLeaderId is still
+    // editable below); it belongs on the APPROVE transition (PTWStatusActions.tsx).
+    // Fail-open if no active session exists yet — matches this file's pre-existing
+    // DEV-ONLY bypass (originatorLabel above), same known-gap convention as
+    // checkFatigueBlock's no-data default.
+    if (activeSession) {
+      const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'CREATE' });
+      if (!guard.allowed) {
+        alert(`⚠️ [PERMIT CREATION BLOCKED]\n${guard.reason}`);
+        return;
+      }
+    }
+
     if (!newPermitTitle.trim()) {
       alert('Please enter a permit work description / title.');
       return;

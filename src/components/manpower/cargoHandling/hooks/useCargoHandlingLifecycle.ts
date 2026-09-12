@@ -20,15 +20,39 @@ import {
   canActivateCargoHandlingPermit,
   canCloseCargoHandlingPermit,
 } from '../../../../data/ptwCargoHandlingTransitions';
+import { useActiveSession } from '../../../../lib/rbac/activeSessionStore';
+import { evaluateMutationGuardrails } from '../../../../adapters/guardrailUiAdapter';
 
 export function useCargoHandlingLifecycle(
   permits: PTWPermit[],
   setPermits: Dispatch<SetStateAction<PTWPermit[]>>,
   persistStatusChange: (permitId: string, status: PTWWorkflowStatus, closedAt: string | null) => void
 ) {
+  const activeSession = useActiveSession();
+
   const transitionCargoHandlingStatus = (permitId: string, nextStatus: PTWWorkflowStatus) => {
     const target = permits.find((p) => p.id === permitId);
     if (!target || target.type !== 'CARGO_HANDLING') return;
+
+    // Phase 3 MOD_2: Auditor Mode hard block on every transition (an auditor must
+    // never advance any workflow), plus fatigue guardrail specifically on the
+    // APPROVED transition (target.workLeaderId is who is being authorized to lead
+    // the work) — same convention as MOD_1's PTWStatusActions.handleApprove.
+    // Fail-open if no active session exists yet (pre-existing DEV bypass).
+    if (activeSession) {
+      const guard = evaluateMutationGuardrails({
+        roleCode: activeSession.roleCode,
+        action: nextStatus === 'APPROVED' ? 'APPROVE' : 'UPDATE',
+        fatigueCheck:
+          nextStatus === 'APPROVED'
+            ? { userId: target.workLeaderId, targetDate: new Date().toISOString().slice(0, 10) }
+            : undefined,
+      });
+      if (!guard.allowed) {
+        alert(`⚠️ [CARGO HANDLING TRANSITION BLOCKED]\n${guard.reason}`);
+        return;
+      }
+    }
 
     // Gate 0: SSHQE §4.2 electronic signature completeness — same rule as
     // usePTWPermits.transitionStatus, type-agnostic.

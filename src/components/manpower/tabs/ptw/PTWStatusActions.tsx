@@ -7,6 +7,8 @@ import { PTW_SIGNATURE_ROLE_LABELS } from '../../../../data/ptwSignatureRoles';
 import { evaluateSignatureGate } from '../../../../adapters/ptwSignatureGate';
 import { validatePtwSelfApproval } from '../../../../lib/rbac/ptwSelfApproval';
 import { getCurrentApproverId } from '../../../../lib/rbac/devAuthIdentity';
+import { useActiveSession } from '../../../../lib/rbac/activeSessionStore';
+import { evaluateMutationGuardrails } from '../../../../adapters/guardrailUiAdapter';
 
 export interface PTWStatusActionsProps {
   activePermit: PTWPermit;
@@ -28,12 +30,31 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
   const closeMissingSigTitle = missingSignaturesTitle(activePermit, 'CLOSED');
   const activateMissingSigTitle = missingSignaturesTitle(activePermit, 'ACTIVE');
   const activationBlocked = !isGasSafe || (isHighRisk && !isERTMet) || !!activateMissingSigTitle;
+  const activeSession = useActiveSession();
 
   const handleApprove = () => {
     const selfApprovalCheck = validatePtwSelfApproval(activePermit, getCurrentApproverId());
     if (!selfApprovalCheck.allowed) {
       alert(`⚠️ [APPROVAL BLOCKED]\n${selfApprovalCheck.reason}`);
       return;
+    }
+    // Phase 3 MOD_1: Auditor Mode + fatigue guardrail, checked against the Work
+    // Leader (activePermit.workLeaderId) — same requester-as-subject convention as
+    // validatePtwSelfApproval above. Fail-open if no active session exists yet
+    // (pre-existing DEV bypass — see getCurrentApproverId()).
+    if (activeSession) {
+      const guard = evaluateMutationGuardrails({
+        roleCode: activeSession.roleCode,
+        action: 'APPROVE',
+        fatigueCheck: {
+          userId: activePermit.workLeaderId,
+          targetDate: new Date().toISOString().slice(0, 10),
+        },
+      });
+      if (!guard.allowed) {
+        alert(`⚠️ [APPROVAL BLOCKED]\n${guard.reason}`);
+        return;
+      }
     }
     onTransitionStatus(activePermit.id, 'APPROVED');
   };
