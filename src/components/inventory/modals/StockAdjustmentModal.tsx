@@ -10,6 +10,7 @@
 import React, { useEffect, useState } from 'react';
 import type { MroPartRecord, StockTxType } from '../../../adapters/db/mroInventoryDao';
 import { BEVEL_BUTTON, BEVEL_ICON_BUTTON, RAISED_PANEL, SUNKEN_INPUT, TITLE_BAR } from '../../cmms/scadaStyles';
+import GuardrailBlockedBanner from '../../shared/GuardrailBlockedBanner';
 
 const TX_TYPE_LABEL_KO: Record<StockTxType, string> = {
   RECEIPT: '입고 (RECEIPT)',
@@ -78,6 +79,8 @@ export default function StockAdjustmentModal({ part, onClose, onSubmit }: StockA
           </button>
         </div>
 
+        <GuardrailBlockedBanner message={formError} />
+
         <div className="p-3 space-y-2.5">
           <div className="text-[12px] text-slate-700">
             <span className="font-semibold">{part.partName}</span>{' '}
@@ -125,8 +128,6 @@ export default function StockAdjustmentModal({ part, onClose, onSubmit }: StockA
             사유 (선택)
             <input type="text" value={reason} onChange={(e) => setReason(e.target.value)} className={`${SUNKEN_INPUT} w-full mt-0.5`} placeholder="예: WO-2031 정비 소요" />
           </label>
-
-          {formError && <div className="text-[11px] text-red-700 font-semibold">⚠ {formError}</div>}
 
           <div className="flex justify-end gap-2 pt-1">
             <button onClick={onClose} className={BEVEL_BUTTON}>

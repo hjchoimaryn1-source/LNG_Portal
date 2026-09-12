@@ -53,6 +53,21 @@ const UPDATE_STATUS_SQL = `
   WHERE permit_id = @permitId
 `;
 
+const UPDATE_LIFECYCLE_SQL = `
+  UPDATE ptw_permits SET
+    status = @status,
+    fire_watch_assigned = @fireWatchAssigned,
+    gas_detector_continuous = @gasDetectorContinuous,
+    loto_applied = @lotoApplied,
+    forced_ventilation = @forcedVentilation,
+    ppe_verified = @ppeVerified,
+    barricade_set = @barricadeSet,
+    working_at_height = @workingAtHeight,
+    closed_at = @closedAt,
+    updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+  WHERE permit_id = @permitId
+`;
+
 const SELECT_BY_ID_SQL = `SELECT * FROM ptw_permits WHERE permit_id = @permitId`;
 const SELECT_ALL_SQL = `SELECT * FROM ptw_permits`;
 
@@ -97,6 +112,33 @@ export function updatePermitStatus(db: SqlExecutor, permitId: string, status: PT
   if (!existing) return undefined;
   db.run(UPDATE_STATUS_SQL, { permitId, status, closedAt });
   return rowToDraft({ ...existing, status, closed_at: closedAt });
+}
+
+/**
+ * status 외 안전 체크리스트 필드(LOTO/가스감지 등)까지 포함한 전체 필드 갱신.
+ * updatePermitStatus()와 달리 §5.5 동기화 충돌 처리(3-way auto-merge, 안전
+ * 필수 필드 반영)에서 쓰인다 — 기존 updatePermitStatus 호출부는 그대로 둔다.
+ */
+export function updatePermitLifecycle(
+  db: SqlExecutor,
+  permitId: string,
+  draft: Omit<PTWPermitLifecycleDraft, 'permitId'>
+): PTWPermitLifecycleDraft | undefined {
+  const existing = db.get<PTWPermitRow>(SELECT_BY_ID_SQL, { permitId });
+  if (!existing) return undefined;
+  db.run(UPDATE_LIFECYCLE_SQL, {
+    permitId,
+    status: draft.status,
+    fireWatchAssigned: draft.fireWatchAssigned ? 1 : 0,
+    gasDetectorContinuous: draft.gasDetectorContinuous ? 1 : 0,
+    lotoApplied: draft.lotoApplied ? 1 : 0,
+    forcedVentilation: draft.forcedVentilation ? 1 : 0,
+    ppeVerified: draft.ppeVerified ? 1 : 0,
+    barricadeSet: draft.barricadeSet ? 1 : 0,
+    workingAtHeight: draft.workingAtHeight === null ? null : draft.workingAtHeight ? 1 : 0,
+    closedAt: draft.closedAt,
+  });
+  return { permitId, ...draft };
 }
 
 export function selectPermitLifecycle(db: SqlExecutor, permitId: string): PTWPermitLifecycleDraft | undefined {

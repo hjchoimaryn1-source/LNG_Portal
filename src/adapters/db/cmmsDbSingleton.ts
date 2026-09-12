@@ -142,6 +142,35 @@ const MRO_PURCHASE_REQUISITIONS_DDL = `
   CREATE INDEX IF NOT EXISTS idx_pr_part_status ON mro_purchase_requisitions(part_no, status);
 `;
 
+// permit_lock_state / permit_sync_conflicts (CMMS_Architecture.md §5.5 낙관적 잠금 +
+// 동기화 충돌 로그) — schema/cmms_schema.sqlite.sql / src/db/schema/cmms_schema.sql과
+// 동일 정의를 기존 DB에 무중단 보강하기 위한 사본. 두 스키마 파일을 고치면 이 DDL도
+// 같이 갱신해야 한다.
+const PERMIT_LOCK_STATE_DDL = `
+  CREATE TABLE IF NOT EXISTS permit_lock_state (
+      permit_ref_no  TEXT PRIMARY KEY,
+      stage_code     TEXT NOT NULL,
+      status         TEXT NOT NULL,
+      payload_hash   TEXT NOT NULL,
+      updated_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
+  );
+`;
+
+const PERMIT_SYNC_CONFLICTS_DDL = `
+  CREATE TABLE IF NOT EXISTS permit_sync_conflicts (
+      conflict_id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      permit_ref_no              TEXT NOT NULL,
+      server_payload_hash        TEXT NOT NULL,
+      client_base_payload_hash   TEXT NOT NULL,
+      conflict_payload           TEXT NOT NULL,
+      status                     TEXT NOT NULL DEFAULT 'REQUIRES_SITE_MANAGER_REVIEW'
+          CHECK (status IN ('REQUIRES_SITE_MANAGER_REVIEW', 'RESOLVED')),
+      created_at                 TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+      resolved_at                TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_permit_sync_conflicts_open ON permit_sync_conflicts(status, created_at DESC);
+`;
+
 let cachedDb: SqlExecutor | undefined;
 
 /** CMMS API route 전용 SQLite 연결. 프로세스 수명 동안 하나만 생성된다. */
@@ -156,6 +185,8 @@ export function getCmmsDb(): SqlExecutor {
     executor.raw.exec(MRO_PARTS_DDL);
     executor.raw.exec(MRO_STOCK_TRANSACTIONS_DDL);
     executor.raw.exec(MRO_PURCHASE_REQUISITIONS_DDL);
+    executor.raw.exec(PERMIT_LOCK_STATE_DDL);
+    executor.raw.exec(PERMIT_SYNC_CONFLICTS_DDL);
     cachedDb = executor;
   }
   return cachedDb;

@@ -31,6 +31,8 @@ import {
   Droplets,
   Flame,
 } from 'lucide-react';
+import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { evaluateMutationGuardrails } from '../../../adapters/guardrailUiAdapter';
 import {
   AreaChart,
   Area,
@@ -108,6 +110,7 @@ function generateMonthlyTrendData(baseFlowMscf: number = 950): MonthlySettlement
 }
 
 export default function NiasCustodySettlementTab() {
+  const activeSession = useActiveSession();
   const { settlementRecords, fleetTanks, exportAllLogsToExcel } = usePortalData();
 
   // Selected Month State
@@ -197,6 +200,19 @@ export default function NiasCustodySettlementTab() {
   }, [fleetTanks]);
 
   const handleSaveReport = () => {
+    // Phase 3 MOD_4 (Custody/Settlement). Auditor Mode hard block only — this
+    // action is local-toast-only (no PortalDataContext mutation, see below), but
+    // still gated for UX consistency so Auditor Mode never shows a false "saved"
+    // confirmation. No fatigueCheck (no work-leader/technician userId here).
+    // Fail-open if no active session exists yet (pre-existing DEV bypass).
+    if (activeSession) {
+      const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'UPDATE' });
+      if (!guard.allowed) {
+        setToastMessage(`⚠️ [SAVE BLOCKED] ${guard.reason}`);
+        setTimeout(() => setToastMessage(null), 3500);
+        return;
+      }
+    }
     const timestamp = new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
     setToastMessage(`✓ Monthly Custody Settlement Report for ${selectedMonth} saved successfully (${timestamp} WIB)!`);
     setTimeout(() => setToastMessage(null), 3500);

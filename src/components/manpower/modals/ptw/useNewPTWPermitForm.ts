@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { PTWPermit, PTWType, StaffPersonnel } from '../../../../types/lng';
 import { PTW_SOP_FORMS, validatePTWWorkerEligibility } from '../../../../data/ptwMasterData';
 import { getCargoHandlingSOPInfo } from '../../../../data/ptwCargoHandlingRules';
+import { buildDraftPtwPermit } from './buildDraftPtwPermit';
 import {
   PLANT_WORK_LOCATIONS,
   PlantWorkLocation,
@@ -13,6 +14,8 @@ import {
   PTWWorkArea,
 } from '../../../../data/ptwWorkAreas';
 import { evaluateSimopsDryRun, SimopsCheckResult } from '../../../../hooks/useSIMOPSCheck';
+import { useActiveSession } from '../../../../lib/rbac/activeSessionStore';
+import { evaluateMutationGuardrails } from '../../../../adapters/guardrailUiAdapter';
 
 export interface UseNewPTWPermitFormArgs {
   personnelList: StaffPersonnel[];
@@ -45,6 +48,7 @@ export function useNewPTWPermitForm({
 }: UseNewPTWPermitFormArgs) {
   // Read-only originator — represents the currently logged-in drafter.
   const originatorLabel = 'Choi Hong-joon (Engineering Dept)';
+  const activeSession = useActiveSession();
 
   // CARGO_HANDLING is excluded — that type has its own required `cargoHandling`
   // detail block (PTWCargoHandlingPermit) and is only ever created through the
@@ -65,6 +69,9 @@ export function useNewPTWPermitForm({
   // HARD_BLOCK/SOFT_ESCALATE 판정 시 SimopsWarningModal을 띄우기 위한 게이트 상태.
   // null이면 게이트 없음(제출 진행 중이거나 대기 중이 아님).
   const [simopsGate, setSimopsGate] = useState<SimopsCheckResult | null>(null);
+  // Phase 3 MOD_1 UI 표준화: Auditor Mode 등 가드레일 차단 사유를 GuardrailBlockedBanner로
+  // 표시하기 위한 상태. NewPTWPermitModal.tsx가 이 값을 그대로 배너에 전달한다.
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 
   const toggleAssignedWorker = (id: string) => {
     setAssignedWorkerIds((prev) =>
@@ -91,48 +98,17 @@ export function useNewPTWPermitForm({
     const workers = personnelList.filter((s) => assignedWorkerIds.includes(s.id));
     if (!leader) return; // handleCreatePermit에서 이미 검증됨 — 방어적 가드
 
-    const formDef = PTW_SOP_FORMS[newPermitType];
-    const newId = `PTW-2026-0901-${String(sequenceNumber).padStart(2, '0')}`;
-
-    const newPermit: PTWPermit = {
-      id: newId,
-      formNumber: formDef.formNumber,
+    const newPermit = buildDraftPtwPermit({
+      sequenceNumber,
       type: newPermitType,
       title: newPermitTitle,
       location: newPermitLocation,
       workArea: newWorkArea,
-      equipmentTag: newEquipmentTag.trim() || undefined,
-      responsiblePerson: leader.name,
-      status: 'DRAFT',
-      workLeaderId: leader.id,
-      workLeaderName: leader.name,
-      assignedWorkerIds: workers.map((w) => w.id),
-      assignedWorkerNames: workers.map((w) => w.name),
-      agtStaffId: 'EMP-013',
-      approverStaffId: 'EMP-001',
-      gasReadings: {
-        lelPercent: 0.0,
-        o2Percent: 20.9,
-        h2sPpm: 0.0,
-        coPpm: 0.0,
-        testedAt: 'Pending AGT Live Gas Test (Stage 4)',
-        isSafeForWork: false,
-      },
-      safetyChecklist: {
-        fireWatchAssigned: newPermitType === 'HOT_WORK',
-        gasDetectorContinuous: true,
-        lotoApplied: newPermitType === 'ELECTRICAL',
-        forcedVentilation: newPermitType === 'CONFINED_SPACE',
-        ppeVerified: true,
-        barricadeSet: true,
-        workingAtHeight: newWorkingAtHeight,
-      },
-      validFrom: '2026-09-01 13:00',
-      validTo: '2026-09-01 18:00',
-      emergencyProtocol: 'Radio Channel 1 Emergency Channel Active',
-      createdAt: '2026-09-01 12:00',
-      hazardDescription: `${formDef.category} protocol active under SOP ${formDef.formNumber}.`,
-    };
+      equipmentTag: newEquipmentTag,
+      workingAtHeight: newWorkingAtHeight,
+      leader,
+      workers,
+    });
 
     onSubmitSuccess(newPermit);
     setNewPermitTitle('');
@@ -142,6 +118,21 @@ export function useNewPTWPermitForm({
   };
 
   const handleCreatePermit = () => {
+    setBlockedMessage(null);
+    // Phase 3 MOD_1: Auditor Mode hard block. No fatigueCheck here — a Work Leader's
+    // fatigue is not yet decided at draft-creation time (newWorkLeaderId is still
+    // editable below); it belongs on the APPROVE transition (PTWStatusActions.tsx).
+    // Fail-open if no active session exists yet — matches this file's pre-existing
+    // DEV-ONLY bypass (originatorLabel above), same known-gap convention as
+    // checkFatigueBlock's no-data default.
+    if (activeSession) {
+      const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'CREATE' });
+      if (!guard.allowed) {
+        setBlockedMessage(guard.reason ?? 'PERMIT CREATION BLOCKED');
+        return;
+      }
+    }
+
     if (!newPermitTitle.trim()) {
       alert('Please enter a permit work description / title.');
       return;
@@ -234,6 +225,7 @@ export function useNewPTWPermitForm({
     onSimopsCancel,
     onSimopsConfirmOverride,
     handleCreatePermit,
+    blockedMessage,
     headerFormLabel: resolveHeaderFormLabel(newPermitType),
   };
 }

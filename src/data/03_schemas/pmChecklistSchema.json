@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nias-lng-portal/schemas/pmChecklistSchema.json",
+  "title": "PM Checklist Input",
+  "description": "Standardized input contract for a preventive-maintenance checklist item. Field names mirror the runtime work_orders table (src/db/schema/cmms_schema.sql), which folds pm_schedules' cycle definition into pm_cycle_days rather than a separate table. Reference-only for next-phase RBAC/PM runtime wiring — does not replace existing WOItem types (src/types/lng.ts) or DAOs (src/adapters/db/workOrderDao.ts).",
+  "type": "object",
+  "required": ["work_order_id", "asset_tag", "title", "status"],
+  "properties": {
+    "work_order_id": { "type": "string", "description": "e.g. \"WO-2026-0001\"" },
+    "asset_tag": { "type": "string", "description": "FK -> assets.equipment_tag" },
+    "title": { "type": "string" },
+    "pm_cycle_days": { "type": ["integer", "null"], "description": "NULL for one-off/CM work orders" },
+    "last_performed_at": { "type": ["string", "null"], "format": "date-time" },
+    "next_due_date": { "type": ["string", "null"], "format": "date" },
+    "status": {
+      "type": "string",
+      "enum": ["SCHEDULED", "IN_PROGRESS", "PARTS_PENDING", "COMPLETED"]
+    },
+    "checklistItems": {
+      "type": "array",
+      "description": "Itemized PM checklist entries for this work order",
+      "items": {
+        "type": "object",
+        "required": ["itemId", "description"],
+        "properties": {
+          "itemId": { "type": "string" },
+          "description": { "type": "string" },
+          "passFailCriteria": { "type": "string" },
+          "isChecked": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

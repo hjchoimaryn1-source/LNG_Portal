@@ -14,6 +14,7 @@ interface WorkOrderRoutesProps {
   showWoSchedulerPreview: boolean;
   setShowWoSchedulerPreview: (value: boolean) => void;
   focusRecordId?: string | null;
+  onNavigateToSopReference?: () => void;
 }
 
 export default function WorkOrderRoutes({
@@ -22,6 +23,7 @@ export default function WorkOrderRoutes({
   showWoSchedulerPreview,
   setShowWoSchedulerPreview,
   focusRecordId,
+  onNavigateToSopReference,
 }: WorkOrderRoutesProps) {
   return (
     <>
@@ -32,6 +34,7 @@ export default function WorkOrderRoutes({
         <WorkOrderListView
           filter={activeKey === 'PM_SCHEDULES' ? 'PMS' : workOrderFilter}
           focusId={focusRecordId ?? undefined}
+          onOpenSopReference={onNavigateToSopReference}
         />
       )}
       {activeKey === 'WORK_ORDER_DIRECTORY' && (
@@ -51,7 +54,7 @@ export default function WorkOrderRoutes({
             </button>
           </div>
           {showWoSchedulerPreview ? <WorkOrderSchedulerView /> : (
-            <WorkOrderListView filter={workOrderFilter} focusId={focusRecordId ?? undefined} />
+            <WorkOrderListView filter={workOrderFilter} focusId={focusRecordId ?? undefined} onOpenSopReference={onNavigateToSopReference} />
           )}
         </>
       )}

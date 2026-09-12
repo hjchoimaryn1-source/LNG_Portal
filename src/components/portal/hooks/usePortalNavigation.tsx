@@ -109,6 +109,8 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
       ? 'MOD_0_LAUNCHER'
       : activeKey === 'CMMS_OVERVIEW_DASHBOARD'
       ? 'MOD_6_OVERVIEW'
+      : activeKey === 'HQ_OVERVIEW_DASHBOARD'
+      ? 'MOD_7_HQ_OVERVIEW'
       : activeKey === 'SAFETY_OVERVIEW' ||
         activeKey === 'PTW_PERMITS' ||
         activeKey === 'MANPOWER_PTW' ||
@@ -151,6 +153,9 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
         break;
       case 'MOD_6_OVERVIEW':
         handleSelectSubProcess('CMMS_OVERVIEW_DASHBOARD');
+        break;
+      case 'MOD_7_HQ_OVERVIEW':
+        handleSelectSubProcess('HQ_OVERVIEW_DASHBOARD');
         break;
       default:
         handleSelectSubProcess('SECTOR_LAUNCHER');

@@ -64,6 +64,12 @@ export const SUBPROCESS_TITLES_MANPOWER_SAFETY: Record<string, SubProcessTitleEn
     icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
+  SAFETY_SOP_REFERENCE: {
+    location: 'Safety & PTW',
+    process: 'SOP Reference',
+    icon: <Shield className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
   WORK_ORDER_DIRECTORY: {
     location: 'Maintenance & Work Orders',
     process: 'Work Order Directory',
@@ -85,6 +91,12 @@ export const SUBPROCESS_TITLES_MANPOWER_SAFETY: Record<string, SubProcessTitleEn
   CMMS_OVERVIEW_DASHBOARD: {
     location: 'CMMS Overview Dashboard',
     process: 'Command Center Overview',
+    icon: <LayoutDashboard className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  HQ_OVERVIEW_DASHBOARD: {
+    location: 'Jakarta HQ Overview',
+    process: 'HQ Command Center — Fleet & Settlement',
     icon: <LayoutDashboard className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },

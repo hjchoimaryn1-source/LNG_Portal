@@ -77,3 +77,14 @@ export const STATUS_LABEL_KO: Record<CmmsAssetRow['status'], string> = {
   STANDBY: '대기',
   OUT_OF_SERVICE: '가동중지',
 };
+
+/**
+ * ISA-101 알람 4단계 색상 (CMMS_Architecture.md §3.6.3)
+ * PRIORITY_4_LOW: §3.6.3 설계 충돌 해소 — 신규 #3B82F6 대신 기존 Status Badge Blue(#0284c7) 재사용.
+ */
+export const ALARM_COLORS = {
+  PRIORITY_1_CRITICAL: '#EF4444',
+  PRIORITY_2_HIGH: '#F97316',
+  PRIORITY_3_MEDIUM: '#EAB308',
+  PRIORITY_4_LOW: '#0284c7',
+} as const;

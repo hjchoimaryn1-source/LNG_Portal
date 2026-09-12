@@ -7,14 +7,22 @@
 //
 // WO-PTW LINKING
 //   permitRefNo is populated only when a permit in `activePermits` has an
-//   equipmentTag matching the asset's equipmentTag (see resolveLinkedPermit in
-//   src/adapters/workOrderPtwAdapter.ts, which matches on permitRefNo === permit.id,
-//   not on tag). Most generated entries are expected to resolve to NO_PERMIT today,
-//   since INITIAL_PTW_PERMITS (src/data/ptwMasterData.ts) is separate mock data with
-//   its own equipment tags — this is expected, not a bug.
+//   equipmentTag matching the asset's equipmentTag AND is currently in force
+//   (status APPROVED/ACTIVE — see LINKABLE_PERMIT_STATUSES below; see also
+//   resolveLinkedPermit in src/adapters/workOrderPtwAdapter.ts, which matches on
+//   permitRefNo === permit.id, not on tag). A DRAFT/PREPARED permit is not yet
+//   issued and a CLOSED one is no longer in effect, so neither should make a WO
+//   display as if a live PTW were backing it. Most generated entries are still
+//   expected to resolve to NO_PERMIT today, since INITIAL_PTW_PERMITS
+//   (src/data/ptwMasterData.ts) is separate mock data with its own equipment
+//   tags — this is expected, not a bug.
 
 import type { CmmsAssetRow } from '../../context/CmmsAwarePortalProvider';
-import type { PTWPermit, WOItem, WorkOrderCategory, WorkOrderPriority, WorkOrderStatus } from '../../types/lng';
+import type { PTWPermit, PTWWorkflowStatus, WOItem, WorkOrderCategory, WorkOrderPriority, WorkOrderStatus } from '../../types/lng';
+
+/** WO에 "유효한 PTW가 걸려있다"고 표시할 수 있는 permit 상태 — 발효 전(DRAFT/PREPARED)이거나
+ *  종료된(CLOSED) permit은 링크 대상에서 제외한다. */
+const LINKABLE_PERMIT_STATUSES: readonly PTWWorkflowStatus[] = ['APPROVED', 'ACTIVE'];
 
 const MAX_GENERATED_WORK_ORDERS = 25;
 
@@ -70,7 +78,9 @@ export function buildMockWorkOrdersFromAssets(assets: CmmsAssetRow[], activePerm
     .slice(0, MAX_GENERATED_WORK_ORDERS);
 
   return prioritized.map((asset, i) => {
-    const matchedPermit = activePermits.find((p) => p.equipmentTag === asset.equipmentTag);
+    const matchedPermit = activePermits.find(
+      (p) => p.equipmentTag === asset.equipmentTag && LINKABLE_PERMIT_STATUSES.includes(p.status)
+    );
 
     return {
       wo: `WO-2026-${String(i + 1).padStart(4, '0')}`,

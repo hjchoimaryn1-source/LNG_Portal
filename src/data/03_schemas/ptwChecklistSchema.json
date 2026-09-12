@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nias-lng-portal/schemas/ptwChecklistSchema.json",
+  "title": "PTW Checklist Input",
+  "description": "Standardized input contract for a PTW permit's mandatory safety-checklist entry. Field names mirror PTWPermit.safetyChecklist and PTWPermit.gasReadings in src/types/lng.ts, plus SOPChecklistItem in src/types/sop.ts. Reference-only for next-phase RBAC/PTW runtime wiring — does not replace or alter existing TypeScript validators (src/data/ptwGasSafetyRules.ts, src/data/ptwCargoHandlingValidators.ts).",
+  "type": "object",
+  "required": ["permitId", "formNumber", "safetyChecklist", "gasReadings"],
+  "properties": {
+    "permitId": { "type": "string", "description": "PTWPermit.id" },
+    "formNumber": { "type": "string", "description": "NP07-10..NP07-15 (PTWPermit.formNumber)" },
+    "workArea": { "type": "string", "description": "PTWPermit.workArea (PPE Matrix hazard-zone, see ptwWorkAreas.ts)" },
+    "safetyChecklist": {
+      "type": "object",
+      "description": "Mirrors PTWPermit.safetyChecklist",
+      "required": ["fireWatchAssigned", "gasDetectorContinuous", "lotoApplied", "forcedVentilation", "ppeVerified", "barricadeSet"],
+      "properties": {
+        "fireWatchAssigned": { "type": "boolean" },
+        "gasDetectorContinuous": { "type": "boolean" },
+        "lotoApplied": { "type": "boolean" },
+        "forcedVentilation": { "type": "boolean" },
+        "ppeVerified": { "type": "boolean" },
+        "barricadeSet": { "type": "boolean" },
+        "workingAtHeight": { "type": "boolean", "description": "Optional; Non-Routine/High Risk fall-protection control" }
+      }
+    },
+    "gasReadings": {
+      "type": "object",
+      "description": "Mirrors PTWPermit.gasReadings",
+      "required": ["lelPercent", "o2Percent", "h2sPpm", "coPpm", "testedAt", "isSafeForWork"],
+      "properties": {
+        "lelPercent": { "type": "number", "minimum": 0 },
+        "o2Percent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "h2sPpm": { "type": "number", "minimum": 0 },
+        "coPpm": { "type": "number", "minimum": 0 },
+        "hgPpm": { "type": "number", "minimum": 0, "description": "Optional; no numeric SSHQE ceiling confirmed yet" },
+        "testedAt": { "type": "string", "format": "date-time" },
+        "isSafeForWork": { "type": "boolean" }
+      }
+    },
+    "checklistItems": {
+      "type": "array",
+      "description": "Optional itemized entries, mirrors SOPChecklistItem",
+      "items": {
+        "type": "object",
+        "required": ["itemId", "description"],
+        "properties": {
+          "itemId": { "type": "string" },
+          "description": { "type": "string" },
+          "passFailCriteria": { "type": "string" },
+          "isChecked": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
