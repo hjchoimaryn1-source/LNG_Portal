@@ -1,7 +1,7 @@
 // src/components/manpower/modals/ptw/PRACChecklistSection.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
 
 export interface PRACItem {
@@ -57,8 +57,16 @@ const DEFAULT_PRAC_ITEMS: PRACItem[] = [
   },
 ];
 
-export default function PRACChecklistSection() {
+export interface PRACChecklistSectionProps {
+  /** Fires whenever the Stage-1 ALARP outcome changes (CMMS_Architecture.md §2.2). Optional — omit for unchanged standalone behavior. */
+  onAlarpStatusChange?: (hasNonAlarpRisk: boolean) => void;
+  /** Fires as the user types a Stage-2/3 JSA document reference. Optional. */
+  onJsaAttachmentChange?: (ref: string) => void;
+}
+
+export default function PRACChecklistSection({ onAlarpStatusChange, onJsaAttachmentChange }: PRACChecklistSectionProps = {}) {
   const [pracItems, setPracItems] = useState<PRACItem[]>(DEFAULT_PRAC_ITEMS);
+  const [jsaRef, setJsaRef] = useState('');
 
   const updateItem = (id: string, patch: Partial<PRACItem>) => {
     setPracItems((prev) =>
@@ -67,6 +75,13 @@ export default function PRACChecklistSection() {
   };
 
   const hasNonAlarpRisk = pracItems.some((item) => item.identified && !item.isAlarp);
+
+  useEffect(() => {
+    onAlarpStatusChange?.(hasNonAlarpRisk);
+    // onAlarpStatusChange is expected to be a stable callback (useCallback/inline
+    // setter) from the parent — only re-fire when the computed flag itself changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasNonAlarpRisk]);
 
   return (
     <div className="space-y-3 bg-slate-50 p-4 sm:p-5 rounded-lg border border-slate-200">
@@ -179,9 +194,22 @@ export default function PRACChecklistSection() {
       {hasNonAlarpRisk && (
         <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-300 rounded-md text-xs text-amber-900">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <div>
+          <div className="flex-1">
             <span className="font-bold">Further Risk Assessment Required: </span>
             One or more identified hazards have residual risk evaluated as NOT ALARP. In accordance with NIAS NP-09 §NP09-01, a formal Job Safety Analysis (JSA) or Stage-2 assessment must be completed prior to permit authorization.
+            <div className="mt-2">
+              <label className="block font-bold mb-1">JSA Document Reference (required before Stage 3 approval):</label>
+              <input
+                type="text"
+                value={jsaRef}
+                onChange={(e) => {
+                  setJsaRef(e.target.value);
+                  onJsaAttachmentChange?.(e.target.value);
+                }}
+                placeholder="e.g. JSA-2026-0912-01"
+                className="w-full text-xs px-2 py-1 border border-amber-400 rounded bg-white"
+              />
+            </div>
           </div>
         </div>
       )}

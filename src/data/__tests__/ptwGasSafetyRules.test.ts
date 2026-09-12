@@ -100,4 +100,21 @@ describe('validatePTWGasSafety', () => {
     expect(result.isSafe).toBe(false);
     expect(result.blockReason).toMatch(/O2/);
   });
+
+  // Phase 7 Stage 1, Discrepancy 1: CARGO_HANDLING previously allowed
+  // maxLelPercent: 10, exceeding CMMS_Architecture.md §2.3's universal LEL
+  // ceiling (4.9% PASS / >=5.0% FAIL). Corrected to 4.9.
+  it('CARGO_HANDLING passes at LEL exactly 4.9% (§2.3 universal ceiling)', () => {
+    expect(validatePTWGasSafety('CARGO_HANDLING', buildGasReadings({ lelPercent: 4.9 })).isSafe).toBe(true);
+  });
+
+  it('CARGO_HANDLING fails at LEL 5.0% or above', () => {
+    const result = validatePTWGasSafety('CARGO_HANDLING', buildGasReadings({ lelPercent: 5.0 }));
+    expect(result.isSafe).toBe(false);
+    expect(result.blockReason).toMatch(/LEL/);
+  });
+
+  it('CARGO_HANDLING fails at LEL 9% (previously passed under the old 10% ceiling)', () => {
+    expect(validatePTWGasSafety('CARGO_HANDLING', buildGasReadings({ lelPercent: 9 })).isSafe).toBe(false);
+  });
 });

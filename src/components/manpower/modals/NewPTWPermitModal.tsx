@@ -191,7 +191,10 @@ export default function NewPTWPermitModal({
           <StageOneSummaryFlags isHighRisk={isHighRisk} isGasRequired={isGasRequired} />
 
           {/* 5. PRAC Checklist Section (NIAS NP-09 §NP09-01) */}
-          <PRACChecklistSection />
+          <PRACChecklistSection
+            onAlarpStatusChange={form.setHasNonAlarpRisk}
+            onJsaAttachmentChange={form.setJsaAttachmentRef}
+          />
 
           {/* 6. Additional Safety Controls */}
           <div className="bg-slate-50 p-4 sm:p-5 rounded-lg border border-slate-300">

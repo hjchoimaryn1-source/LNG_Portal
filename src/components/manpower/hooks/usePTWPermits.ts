@@ -166,6 +166,24 @@ export function usePTWPermits() {
       return;
     }
 
+    // Gate 4: Mandatory JSA attachment for non-ALARP Stage-1 outcomes before
+    // Stage-3 approval (CMMS_Architecture.md §2.2 — PREPARED->APPROVED here
+    // is the legacy equivalent of STAGE_2_HSSE_VERIFY->STAGE_3_APPROVAL).
+    if (nextStatus === 'APPROVED' && target.isAlarpYes === false && !target.jsaAttachmentRef) {
+      alert(`⚠️ [MANDATORY JSA GATE]\nResidual risk was evaluated as NOT ALARP at Stage 1.\nA Job Safety Analysis (JSA) document reference must be attached before Stage 3 approval (NIAS NP-09 §NP09-01).`);
+      return;
+    }
+
+    // Gate 5: AGT 4-hour timeout / shift-change auto-suspend (CMMS_Architecture.md
+    // §5.3) — derived on-demand server-side and synced via permitSync. A
+    // currently-suspended permit must be cleared (fresh gas PASS / shift
+    // handover re-confirmation) before it can advance to APPROVED or ACTIVE.
+    if ((nextStatus === 'APPROVED' || nextStatus === 'ACTIVE') && permitSync.suspendedByPermit.has(permitId)) {
+      const suspension = permitSync.suspendedByPermit.get(permitId)!;
+      alert(`⚠️ [PERMIT SUSPENDED]\nThis permit is currently suspended (${suspension.reason === 'AGT_GAS_TIMEOUT' ? 'AGT gas re-test overdue (>4h)' : 'shift-change boundary crossed'} at ${suspension.suspendedAt}).\nClear the suspension (fresh gas PASS / shift handover confirmation) before proceeding.`);
+      return;
+    }
+
     const closedAt = nextStatus === 'CLOSED' ? '2026-09-01 18:00' : target.closedAt ?? null;
 
     setPermits((prev) =>
@@ -216,6 +234,9 @@ export function usePTWPermits() {
     addSignature,
     transitionStatus,
     persistStatusChange: permitSync.persistStatusChange,
+    // §5.3 AGT timeout / shift-change suspension state (on-demand, server-derived)
+    // — PTWMasterRegisterTab threads this down to PermitRow for the badge.
+    suspendedByPermit: permitSync.suspendedByPermit,
     stats,
   };
 }

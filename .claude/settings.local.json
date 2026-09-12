@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(npx eslint *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(rtk tsc *)",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(npx vitest *)",
+      "Bash(rtk git *)",
+      "Bash(python3 -c ' *)",
+      "Bash(echo \"TSC_EXIT=$?\")"
     ]
   }
 }

@@ -66,6 +66,11 @@ export function useNewPTWPermitForm({
   // SIMOPS 매칭 키(workArea/equipmentTag 중 하나라도 겹치면 후보) — 기존 폼에
   // 전용 입력이 없었으므로 이번 배선에서 신규 추가. Optional 자유 입력(예: PRSS-CMP-01).
   const [newEquipmentTag, setNewEquipmentTag] = useState<string>('');
+  // Stage-1 PRAC ALARP outcome (CMMS_Architecture.md §2.2), surfaced by
+  // PRACChecklistSection's onAlarpStatusChange. hasNonAlarpRisk=true means at
+  // least one hazard failed ALARP — inverted to isAlarpYes at submit time.
+  const [hasNonAlarpRisk, setHasNonAlarpRisk] = useState<boolean>(false);
+  const [jsaAttachmentRef, setJsaAttachmentRef] = useState<string>('');
   // HARD_BLOCK/SOFT_ESCALATE 판정 시 SimopsWarningModal을 띄우기 위한 게이트 상태.
   // null이면 게이트 없음(제출 진행 중이거나 대기 중이 아님).
   const [simopsGate, setSimopsGate] = useState<SimopsCheckResult | null>(null);
@@ -108,11 +113,14 @@ export function useNewPTWPermitForm({
       workingAtHeight: newWorkingAtHeight,
       leader,
       workers,
+      isAlarpYes: !hasNonAlarpRisk,
+      jsaAttachmentRef,
     });
 
     onSubmitSuccess(newPermit);
     setNewPermitTitle('');
     setNewEquipmentTag('');
+    setJsaAttachmentRef('');
     setSimopsGate(null);
     onClose();
   };
@@ -220,6 +228,10 @@ export function useNewPTWPermitForm({
     setNewWorkingAtHeight,
     newEquipmentTag,
     setNewEquipmentTag,
+    hasNonAlarpRisk,
+    setHasNonAlarpRisk,
+    jsaAttachmentRef,
+    setJsaAttachmentRef,
     simopsGate,
     onSimopsAcknowledge,
     onSimopsCancel,

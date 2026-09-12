@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { PTWPermit, PTWSignatureEntry, PTWWorkflowStatus } from '../../../types/lng';
 import type { PTWPermitLifecycleDraft } from '../../../adapters/db/ptwPermitDao';
+import type { PermitSuspensionRow } from '../../../adapters/db/permitSuspensionDao';
 import { toPermitLifecycleSeed } from '../../../utils/ptwPermitRecordMapper';
 
 const PTW_PERMITS_API = '/api/v1/cmms/ptw-permits';
@@ -22,11 +23,15 @@ interface PermitsApiResponse {
   success: boolean;
   records: PTWPermitLifecycleDraft[];
   signaturesByPermit: Record<string, PTWSignatureEntry[]>;
+  suspensions?: PermitSuspensionRow[];
 }
 
 export function usePTWPermitSync(permits: PTWPermit[]) {
   const [lifecycleByPermit, setLifecycleByPermit] = useState<Map<string, PTWPermitLifecycleDraft>>(new Map());
   const [signaturesByPermit, setSignaturesByPermit] = useState<Map<string, PTWSignatureEntry[]>>(new Map());
+  // §5.3 AGT 4h timeout / shift-change 정지 상태 — 서버가 GET/POST 응답마다
+  // on-demand로 재평가한 결과를 그대로 반영한다(클라이언트는 타이머를 돌리지 않음).
+  const [suspendedByPermit, setSuspendedByPermit] = useState<Map<string, PermitSuspensionRow>>(new Map());
   const [synced, setSynced] = useState(false);
 
   useEffect(() => {
@@ -45,6 +50,9 @@ export function usePTWPermitSync(permits: PTWPermit[]) {
         if (cancelled) return;
         setLifecycleByPermit(new Map(json.records.map((r) => [r.permitId, r])));
         setSignaturesByPermit(new Map(Object.entries(json.signaturesByPermit)));
+        if (json.suspensions) {
+          setSuspendedByPermit(new Map(json.suspensions.map((s) => [s.permitRefNo, s])));
+        }
       } catch (err) {
         console.error('[usePTWPermitSync] permit lifecycle seed/load failed:', err);
       } finally {
@@ -100,5 +108,5 @@ export function usePTWPermitSync(permits: PTWPermit[]) {
     })();
   }, []);
 
-  return { synced, lifecycleByPermit, signaturesByPermit, persistStatusChange, persistSignature };
+  return { synced, lifecycleByPermit, signaturesByPermit, suspendedByPermit, persistStatusChange, persistSignature };
 }

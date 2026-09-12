@@ -19,7 +19,7 @@
 //     재검증하지 않는다(src/app/api/v1/cmms/gas-tests/route.ts 헤더 참고).
 
 import { getCmmsDb } from './db/cmmsDbSingleton';
-import { insertGasTestRecord, selectGasTestRecordsByPermit, selectAllGasTestRecords } from './db/gasTestDao';
+import { insertGasTestRecord, selectGasTestRecordsByPermit, selectAllGasTestRecords, selectLatestTestedAtByPermit } from './db/gasTestDao';
 import type { GasTestRecordDraft } from './ptwFormAdapter';
 
 /** GasRetestEntryModal 제출 → ptwFormAdapter.toGasTestRecordDraft() 변환 직후 호출되는 쓰기 진입점. */
@@ -35,4 +35,9 @@ export function getGasTestRecordsForPermit(permitRefNo: string): GasTestRecordDr
 /** 전체 CMMS 레코드 조회 — 향후 dual-read 정합성 검증/마이그레이션용. */
 export function getAllGasTestRecords(): GasTestRecordDraft[] {
   return selectAllGasTestRecords(getCmmsDb());
+}
+
+/** permit_ref_no -> 최근 tested_at 맵 — permitSuspensionAdapter.ts의 4시간 타임아웃 판정용. */
+export function getLatestTestedAtByPermit(): Map<string, string> {
+  return selectLatestTestedAtByPermit(getCmmsDb());
 }

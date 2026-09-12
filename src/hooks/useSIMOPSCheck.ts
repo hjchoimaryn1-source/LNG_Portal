@@ -32,20 +32,23 @@ export interface SimopsCheckResult {
 // HEAVY_LIFTING 및 미정의 카테고리(CONFINED_SPACE/ELECTRICAL/EXCAVATION/
 // RADIOGRAPHY)는 매트릭스에 없는 조합이며, SSOT와 동일하게 GREEN으로 기본
 // 처리된다(아래 `?? 'GREEN'`).
-const SIMOPS_CATEGORY_ALIAS: Partial<Record<PTWType, string>> = {
+// Exported (module-private previously) so simopsDbAdapter.ts can reuse the
+// exact same matrix/alias/candidate-status rules for its DB-backed evaluation
+// instead of duplicating them a third time (spec pseudocode is the second copy).
+export const SIMOPS_CATEGORY_ALIAS: Partial<Record<PTWType, string>> = {
   CARGO_HANDLING: 'CARGO_OPERATION',
 };
 
-const SIMOPS_INTERACTION_MATRIX: Record<string, Record<string, SimopsRiskLevel>> = {
+export const SIMOPS_INTERACTION_MATRIX: Record<string, Record<string, SimopsRiskLevel>> = {
   HOT_WORK: { CARGO_OPERATION: 'RED', HOT_WORK: 'AMBER', COLD_WORK: 'GREEN', HEAVY_LIFTING: 'RED' },
   CARGO_OPERATION: { HOT_WORK: 'RED', CARGO_OPERATION: 'AMBER', COLD_WORK: 'AMBER', HEAVY_LIFTING: 'RED' },
   HEAVY_LIFTING: { HOT_WORK: 'RED', CARGO_OPERATION: 'RED', COLD_WORK: 'AMBER', HEAVY_LIFTING: 'RED' },
 };
 
 // SSOT `whereIn('status', ['APPROVED_ISSUED', 'IN_PROGRESS'])`의 레거시 축 대응값.
-const ACTIVE_LEGACY_STATUSES: PTWWorkflowStatus[] = ['APPROVED', 'ACTIVE'];
+export const ACTIVE_LEGACY_STATUSES: PTWWorkflowStatus[] = ['APPROVED', 'ACTIVE'];
 
-function toMatrixCategory(type: PTWType): string {
+export function toMatrixCategory(type: PTWType): string {
   return SIMOPS_CATEGORY_ALIAS[type] ?? type;
 }
 

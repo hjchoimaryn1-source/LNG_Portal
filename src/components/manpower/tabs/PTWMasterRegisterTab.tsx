@@ -23,7 +23,7 @@ export interface PTWMasterRegisterTabProps {
 }
 
 export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix, onNavigateToSopReference, focusId }: PTWMasterRegisterTabProps) {
-  const { permits, setPermits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, persistStatusChange, stats } = usePTWPermitsContext();
+  const { permits, setPermits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, persistStatusChange, suspendedByPermit, stats } = usePTWPermitsContext();
   const { transitionCargoHandlingStatus, blockedMessage } = useCargoHandlingLifecycle(permits, setPermits, persistStatusChange);
   const { openConflicts: openSyncConflicts } = usePermitSyncConflicts();
 
@@ -99,6 +99,7 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
           selectedStatusFilter={selectedStatusFilter}
           onSearchQueryChange={setSearchQuery}
           onStatusFilterChange={setSelectedStatusFilter}
+          suspendedByPermit={suspendedByPermit}
           onSelectPermit={setSelectedPermitId}
         />
 

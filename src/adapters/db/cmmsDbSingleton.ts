@@ -156,6 +156,45 @@ const PERMIT_LOCK_STATE_DDL = `
   );
 `;
 
+// permit_suspension_state (CMMS_Architecture.md §5.3 AGT 4h timeout / shift-change
+// auto-suspend) — additive, on-demand derived table. Kept separate from
+// ptw_permits.status (whose CHECK constraint has no SUSPENDED value) so no
+// existing schema/constraint is touched; see src/adapters/permitSuspensionAdapter.ts.
+const PERMIT_SUSPENSION_STATE_DDL = `
+  CREATE TABLE IF NOT EXISTS permit_suspension_state (
+      permit_ref_no  TEXT PRIMARY KEY,
+      reason         TEXT NOT NULL CHECK (reason IN ('AGT_GAS_TIMEOUT', 'SHIFT_CHANGE')),
+      suspended_at   TEXT NOT NULL,
+      cleared_at     TEXT
+  );
+`;
+
+// permit_shift_ack (CMMS_Architecture.md §5.3 시프트 교대 자동 정지) — permit별
+// "마지막으로 시프트 인수인계를 확인한 시각"만 담는 독립 테이블. permit_suspension_state
+// (AGT_GAS_TIMEOUT/SHIFT_CHANGE 활성 정지 축)와 별도로 둔 이유: 그 테이블은
+// permit당 1행(reason/suspended_at/cleared_at)이라 두 사유를 같은 컬럼으로
+// 덮어쓰면 "마지막 시프트 확인 시각"과 "마지막 AGT 정지 해제 시각"이 서로
+// 뒤섞인다. 이 테이블은 그 문제를 피하려고 완전히 분리했다.
+const PERMIT_SHIFT_ACK_DDL = `
+  CREATE TABLE IF NOT EXISTS permit_shift_ack (
+      permit_ref_no    TEXT PRIMARY KEY,
+      acknowledged_at  TEXT NOT NULL
+  );
+`;
+
+// permit_metadata (CMMS_Architecture.md §5.2 SIMOPS) — permit type/work-area/
+// equipment-tag snapshot at creation time. ptw_permits has no such columns
+// today, so this additive table lets evaluateSimopsInterferenceDb() query
+// real persisted state instead of only a single browser's in-memory permits[].
+const PERMIT_METADATA_DDL = `
+  CREATE TABLE IF NOT EXISTS permit_metadata (
+      permit_ref_no  TEXT PRIMARY KEY,
+      ptw_type       TEXT NOT NULL,
+      work_area      TEXT NOT NULL,
+      equipment_tag  TEXT NOT NULL
+  );
+`;
+
 const PERMIT_SYNC_CONFLICTS_DDL = `
   CREATE TABLE IF NOT EXISTS permit_sync_conflicts (
       conflict_id                INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -187,6 +226,9 @@ export function getCmmsDb(): SqlExecutor {
     executor.raw.exec(MRO_PURCHASE_REQUISITIONS_DDL);
     executor.raw.exec(PERMIT_LOCK_STATE_DDL);
     executor.raw.exec(PERMIT_SYNC_CONFLICTS_DDL);
+    executor.raw.exec(PERMIT_SUSPENSION_STATE_DDL);
+    executor.raw.exec(PERMIT_SHIFT_ACK_DDL);
+    executor.raw.exec(PERMIT_METADATA_DDL);
     cachedDb = executor;
   }
   return cachedDb;

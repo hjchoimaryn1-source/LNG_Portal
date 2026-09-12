@@ -55,6 +55,20 @@ export function useCMMSPTWForm(args: UseCMMSPTWFormArgs) {
 
       setLastCmmsMeta(cmmsMeta);
       args.onSubmitSuccess(newPermit, cmmsMeta);
+
+      // Fire-and-forget audit persistence for §5.2 SIMOPS DB-backed candidate
+      // set — never re-validated, never blocks the local permit state above
+      // (same fire-and-forget convention as usePTWPermitSync.ts).
+      fetch('/api/v1/cmms/permit-metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          permitId: newPermit.id,
+          ptwType: newPermit.type,
+          workArea: newPermit.workArea ?? '',
+          equipmentTag: newPermit.equipmentTag ?? '',
+        }),
+      }).catch((err) => console.error('[useCMMSPTWForm] permit metadata seed failed:', err));
     },
   });
 

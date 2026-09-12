@@ -427,6 +427,13 @@ interface PTWPermitBase {
   // usePTWPermits.addSignature(). A role may appear at most once per permit
   // (evaluateSignatureGate/hasSignedRole treat the first match as authoritative).
   signatures?: PTWSignatureEntry[];
+  // PRAC Stage-1 ALARP outcome (CMMS_Architecture.md §2.2). false = at least
+  // one identified hazard's residual risk was NOT ALARP. Optional; undefined
+  // is treated as "no non-ALARP risk recorded" (permissive) until backfilled.
+  isAlarpYes?: boolean;
+  // Stage-2/3 mandatory JSA document reference, required by §2.2 before
+  // Stage-3 approval when isAlarpYes === false. null/absent = not attached yet.
+  jsaAttachmentRef?: string | null;
 }
 
 // Discriminated on `type`: only CARGO_HANDLING carries `cargoHandling`, and it

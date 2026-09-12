@@ -15,6 +15,7 @@ import {
   seedPermitLifecycleIfAbsent,
   applyPermitUpdateWithConflictCheck,
   getAllPermitLifecycleWithSignatures,
+  getActiveSuspensionsSnapshot,
   type PermitLifecycleLocalChanges,
 } from '../../../../../adapters/permitPersistenceAdapter';
 import type { PTWPermitLifecycleDraft } from '../../../../../adapters/db/ptwPermitDao';
@@ -77,10 +78,13 @@ function isValidStatusUpdate(body: unknown): body is StatusUpdateBody {
 
 export async function GET() {
   const { lifecycle, signaturesByPermit } = getAllPermitLifecycleWithSignatures();
+  // §5.3 정지 상태를 이 조회 시점 기준으로 재평가한다 — on-demand 엔진의 읽기 경로 진입점.
+  const suspensions = getActiveSuspensionsSnapshot();
   return NextResponse.json({
     success: true,
     records: lifecycle,
     signaturesByPermit: Object.fromEntries(signaturesByPermit),
+    suspensions,
   });
 }
 
@@ -99,10 +103,12 @@ export async function POST(request: NextRequest) {
 
   body.forEach(seedPermitLifecycleIfAbsent);
   const { lifecycle, signaturesByPermit } = getAllPermitLifecycleWithSignatures();
+  const suspensions = getActiveSuspensionsSnapshot();
   return NextResponse.json({
     success: true,
     records: lifecycle,
     signaturesByPermit: Object.fromEntries(signaturesByPermit),
+    suspensions,
   });
 }
 
