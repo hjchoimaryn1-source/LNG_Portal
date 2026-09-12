@@ -11,6 +11,7 @@ import { createSession, type AuthSession } from './sessionStore';
 import { resolveEffectiveRole } from './resolveEffectiveRole';
 import { isReauthRequired } from './shiftBoundaryMonitor';
 import { selectAllDelegationRecords } from './delegationAdapter';
+import { getDevStaffPin } from './devStaffPins';
 import type { EffectiveRole } from './rbacTypes';
 
 export {
@@ -32,16 +33,14 @@ export {
 
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12h — session lifetime unrelated to shift-boundary re-auth signal
 
-// DEV-ONLY bootstrap: LoginGateway.tsx's Quick-Login cards have no PIN-entry
-// UI yet (see Stage 0 §2 audit — click-to-login only). Every seed account is
-// auto-provisioned with this fixed PIN on first use so authenticate() has a
+// DEV-ONLY bootstrap: real PIN issuance doesn't exist yet (userAccountsSeed.ts
+// has no PIN policy — see devStaffPins.ts). Each seed account is
+// auto-provisioned with its fixed dev PIN on first use so authenticate() has a
 // real (non-mocked) credential check to run against in the meantime. Remove
-// once a real PIN-entry/provisioning flow exists (Phase 8 Stage 2).
-export const DEV_QUICK_LOGIN_PIN = '0000';
-
+// once a real PIN-entry/provisioning flow exists.
 export function ensureDevQuickLoginCredential(staffId: string, departmentId: string): void {
   if (getStaffDepartment(staffId) === undefined) {
-    upsertStaffCredential(staffId, DEV_QUICK_LOGIN_PIN, departmentId);
+    upsertStaffCredential(staffId, getDevStaffPin(staffId), departmentId);
   }
 }
 
