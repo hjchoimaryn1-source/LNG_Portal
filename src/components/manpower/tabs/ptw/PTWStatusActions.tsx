@@ -1,7 +1,7 @@
 // src/components/manpower/tabs/ptw/PTWStatusActions.tsx
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { PTWPermit } from '../../../../types/lng';
 import { PTW_SIGNATURE_ROLE_LABELS } from '../../../../data/ptwSignatureRoles';
 import { evaluateSignatureGate } from '../../../../adapters/ptwSignatureGate';
@@ -9,6 +9,7 @@ import { validatePtwSelfApproval } from '../../../../lib/rbac/ptwSelfApproval';
 import { getCurrentApproverId } from '../../../../lib/rbac/devAuthIdentity';
 import { useActiveSession } from '../../../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../../../adapters/guardrailUiAdapter';
+import GuardrailBlockedBanner from '../../../shared/GuardrailBlockedBanner';
 
 export interface PTWStatusActionsProps {
   activePermit: PTWPermit;
@@ -31,11 +32,15 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
   const activateMissingSigTitle = missingSignaturesTitle(activePermit, 'ACTIVE');
   const activationBlocked = !isGasSafe || (isHighRisk && !isERTMet) || !!activateMissingSigTitle;
   const activeSession = useActiveSession();
+  // Phase 3 MOD_1 UI 표준화: 자기승인/Auditor Mode/피로도 차단 사유를
+  // GuardrailBlockedBanner(MOD_4 HqSettlementDisputePanel과 동일 컴포넌트)로 표시.
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 
   const handleApprove = () => {
+    setBlockedMessage(null);
     const selfApprovalCheck = validatePtwSelfApproval(activePermit, getCurrentApproverId());
     if (!selfApprovalCheck.allowed) {
-      alert(`⚠️ [APPROVAL BLOCKED]\n${selfApprovalCheck.reason}`);
+      setBlockedMessage(selfApprovalCheck.reason ?? 'APPROVAL BLOCKED');
       return;
     }
     // Phase 3 MOD_1: Auditor Mode + fatigue guardrail, checked against the Work
@@ -52,7 +57,7 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
         },
       });
       if (!guard.allowed) {
-        alert(`⚠️ [APPROVAL BLOCKED]\n${guard.reason}`);
+        setBlockedMessage(guard.reason ?? 'APPROVAL BLOCKED');
         return;
       }
     }
@@ -64,6 +69,7 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
       <div className="bg-[#2A3B4C] text-white font-mono text-sm font-bold text-center py-1 px-2 border border-[#2A3B4C] rounded-none">
         WORKFLOW STATUS & TRANSITION CONTROLS
       </div>
+      <GuardrailBlockedBanner message={blockedMessage} />
       <div className="bg-[#ebe7df] border border-neutral-300 px-2 py-1.5 flex justify-between items-center flex-wrap gap-2 rounded-none">
         <div className="text-[11px] font-mono text-slate-600">
           PTW ID: <strong className="text-blue-950">{activePermit.id}</strong> | TYPE: <strong className="text-slate-900">{activePermit.type.replace(/_/g, ' ')}</strong>

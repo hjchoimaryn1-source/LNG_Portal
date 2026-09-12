@@ -15,14 +15,19 @@ import { DAILY_SHIFT_ASSIGNMENTS } from './dailyShiftAssignmentsSeed';
 export function checkFatigueBlock(
   userId: string,
   targetDate: string
-): { blocked: boolean; reason?: string } {
+): { blocked: boolean; reason?: string; warning?: string } {
   const rows = DAILY_SHIFT_ASSIGNMENTS.filter((r) => r.userId === userId).sort((a, b) =>
     a.shiftDate < b.shiftDate ? 1 : a.shiftDate > b.shiftDate ? -1 : 0
   );
 
   if (rows.length === 0) {
-    // Fail-open default — see KNOWN GAP note above.
-    return { blocked: false };
+    // Fail-open default — see KNOWN GAP note above. Surfaced explicitly (log +
+    // warning field) so the gap is visible instead of silently passing.
+    console.warn(
+      `[FATIGUE_GUARDRAIL] No shift history for userId=${userId} (targetDate=${targetDate}) — ` +
+        `treating as new onboarding, fail-open (not blocked).`
+    );
+    return { blocked: false, warning: 'FATIGUE_GUARDRAIL_NO_HISTORY_ONBOARDING' };
   }
 
   // Rule 1: consecutive worked days >= 14, using the most recent row at or before targetDate.

@@ -32,6 +32,9 @@ export function useWorkOrders(cmmsAssetRows: CmmsAssetRow[], permits: PTWPermit[
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const activeSession = useActiveSession();
+  // Phase 3 MOD_3 UI 표준화: Auditor Mode 차단 사유를 GuardrailBlockedBanner로
+  // 표시하기 위한 상태. WorkOrderListView.tsx가 이 값을 배너에 전달한다.
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 
   const decoratedItems = useMemo(
     () => buildMockWorkOrdersFromAssets(cmmsAssetRows, permits),
@@ -89,6 +92,7 @@ export function useWorkOrders(cmmsAssetRows: CmmsAssetRow[], permits: PTWPermit[
   );
 
   async function markCompleted(workOrderId: string, lastPerformedAt: string) {
+    setBlockedMessage(null);
     // Phase 3 MOD_3: Auditor Mode hard block. No fatigueCheck — WOItem.tech is a
     // display-only technician name, not a userId matching daily_shift_assignments
     // (see CMMS_Architecture.md §3.4); fabricating that mapping is out of scope.
@@ -96,7 +100,7 @@ export function useWorkOrders(cmmsAssetRows: CmmsAssetRow[], permits: PTWPermit[
     if (activeSession) {
       const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'UPDATE' });
       if (!guard.allowed) {
-        alert(`⚠️ [WORK ORDER UPDATE BLOCKED]\n${guard.reason}`);
+        setBlockedMessage(guard.reason ?? 'WORK ORDER UPDATE BLOCKED');
         return;
       }
     }
@@ -112,5 +116,5 @@ export function useWorkOrders(cmmsAssetRows: CmmsAssetRow[], permits: PTWPermit[
     }
   }
 
-  return { workOrders, loading, error, markCompleted };
+  return { workOrders, loading, error, markCompleted, blockedMessage };
 }

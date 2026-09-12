@@ -11,6 +11,7 @@ import PTWSummaryBar from './ptw/PTWSummaryBar';
 import PTWTypeFilterStrip, { PTWCategoryFilter } from './ptw/PTWTypeFilterStrip';
 import PTWPermitListPanel from './ptw/PTWPermitListPanel';
 import PTWPermitDetailPanel from './ptw/PTWPermitDetailPanel';
+import GuardrailBlockedBanner from '../../shared/GuardrailBlockedBanner';
 
 export interface PTWMasterRegisterTabProps {
   personnelList: StaffPersonnel[];
@@ -22,7 +23,7 @@ export interface PTWMasterRegisterTabProps {
 
 export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNavigateToMatrix, onNavigateToSopReference, focusId }: PTWMasterRegisterTabProps) {
   const { permits, setPermits, addPermit, updateGasReadings, addGasTestLogEntry, addSignature, transitionStatus, persistStatusChange, stats } = usePTWPermitsContext();
-  const { transitionCargoHandlingStatus } = useCargoHandlingLifecycle(permits, setPermits, persistStatusChange);
+  const { transitionCargoHandlingStatus, blockedMessage } = useCargoHandlingLifecycle(permits, setPermits, persistStatusChange);
 
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<PTWCategoryFilter>('ALL');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<PTWWorkflowStatus | 'ALL'>('ALL');
@@ -68,6 +69,7 @@ export default function PTWMasterRegisterTab({ personnelList, isERTMet, onNaviga
 
   return (
     <div className="space-y-3 font-sans">
+      <GuardrailBlockedBanner message={blockedMessage} />
       <div className="bg-[#d4d0c8] border border-t-white border-l-white border-b-neutral-500 border-r-neutral-500 shadow-sm p-2 space-y-2 rounded-none">
         <PTWSummaryBar
           totalPermits={stats.total}

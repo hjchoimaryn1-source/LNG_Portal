@@ -17,7 +17,7 @@ export interface GuardrailMutationContext {
 
 export function evaluateMutationGuardrails(
   ctx: GuardrailMutationContext
-): { allowed: boolean; reason?: string } {
+): { allowed: boolean; reason?: string; warning?: string } {
   const auditorGuard = blockIfAuditorMode(ctx.roleCode, ctx.action);
   if (!auditorGuard.allowed) {
     return auditorGuard;
@@ -27,6 +27,11 @@ export function evaluateMutationGuardrails(
     const fatigueGuard = checkFatigueBlock(ctx.fatigueCheck.userId, ctx.fatigueCheck.targetDate);
     if (fatigueGuard.blocked) {
       return { allowed: false, reason: fatigueGuard.reason };
+    }
+    // No shift history (new onboarding) — allowed (fail-open), but surfaced to
+    // the caller so the UI can show a non-blocking onboarding notice.
+    if (fatigueGuard.warning) {
+      return { allowed: true, warning: fatigueGuard.warning };
     }
   }
 

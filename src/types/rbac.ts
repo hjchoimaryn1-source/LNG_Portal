@@ -1,27 +1,9 @@
 // RBAC Session Guard 타입 명세 — CMMS_Architecture.md §3.3.3 참조
-// resolveEffectivePermission / validateApprovalGuardrails 및 Sector 6 라우팅 연동은
-// 별도 승인 전까지 구현하지 않음 (§3.1.1 Gap Note 참조).
-
-export type RBACRole =
-  | 'ORIGINATOR'
-  | 'HSSE_OFFICER'
-  | 'SITE_MANAGER'
-  | 'DELEGATED_APPROVER'
-  | 'AUDITOR';
-
-export type SessionAccessMode = 'INTERACTIVE' | 'READ_ONLY_AUDIT';
-
-export interface RBACSessionGuard {
-  sessionId: string;
-  personId: string;
-  role: RBACRole;
-  accessMode: SessionAccessMode;
-  isAuditorMode: boolean;
-  grantedScopes: string[];
-  sessionIssuedAt: string;
-  sessionExpiresAt: string;
-  delegatedFromPersonId?: string | null;
-}
+// resolveEffectivePermission(src/lib/rbac/guardrails.ts)은 Phase 1-3 감사에서
+// 구현 완료가 확인되었으며, OverviewCalibrationRoutes.tsx 등 실제 프로덕션
+// 라우팅 지점에서 HQ->SITE 크로스 컨텍스트 권한 판정에 사용 중이다.
+// validateApprovalGuardrails 역시 guardrails.ts에 구현되어 있다. Sector 6
+// 라우팅 연동만 별도 승인 전까지 미구현 (§3.1.1 Gap Note 참조).
 
 export type RoleCode =
   | 'SYSTEM_ADMIN'

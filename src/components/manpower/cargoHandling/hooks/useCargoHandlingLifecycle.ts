@@ -9,7 +9,7 @@
 //   must stay in the SAME array PTWMasterRegisterTab/usePTWPermits manage, only
 //   the transition function differs.
 
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { PTWPermit, PTWWorkflowStatus } from '../../../../types/lng';
 import { PTW_SIGNATURE_ROLE_LABELS } from '../../../../data/ptwSignatureRoles';
 import { evaluateSignatureGate } from '../../../../adapters/ptwSignatureGate';
@@ -29,11 +29,15 @@ export function useCargoHandlingLifecycle(
   persistStatusChange: (permitId: string, status: PTWWorkflowStatus, closedAt: string | null) => void
 ) {
   const activeSession = useActiveSession();
+  // Phase 3 MOD_2 UI 표준화: Auditor Mode/피로도 차단 사유를 GuardrailBlockedBanner로
+  // 표시하기 위한 상태. PTWMasterRegisterTab.tsx가 이 값을 배너에 전달한다.
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 
   const transitionCargoHandlingStatus = (permitId: string, nextStatus: PTWWorkflowStatus) => {
     const target = permits.find((p) => p.id === permitId);
     if (!target || target.type !== 'CARGO_HANDLING') return;
 
+    setBlockedMessage(null);
     // Phase 3 MOD_2: Auditor Mode hard block on every transition (an auditor must
     // never advance any workflow), plus fatigue guardrail specifically on the
     // APPROVED transition (target.workLeaderId is who is being authorized to lead
@@ -49,7 +53,7 @@ export function useCargoHandlingLifecycle(
             : undefined,
       });
       if (!guard.allowed) {
-        alert(`⚠️ [CARGO HANDLING TRANSITION BLOCKED]\n${guard.reason}`);
+        setBlockedMessage(guard.reason ?? 'CARGO HANDLING TRANSITION BLOCKED');
         return;
       }
     }
@@ -110,5 +114,5 @@ export function useCargoHandlingLifecycle(
     persistStatusChange(permitId, nextStatus, closedAt);
   };
 
-  return { transitionCargoHandlingStatus };
+  return { transitionCargoHandlingStatus, blockedMessage };
 }

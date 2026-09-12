@@ -1,4 +1,4 @@
-import type { RBACSessionGuard, RoleCode } from '../../types/rbac';
+import type { RoleCode } from '../../types/rbac';
 import { checkFatigueBlock } from './fatigueGuardrail';
 
 export function resolveEffectivePermission(
