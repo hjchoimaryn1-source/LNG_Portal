@@ -200,6 +200,26 @@ CREATE TABLE permit_lock_state (
 );
 
 -- ----------------------------------------------------------------------------
+-- 2b. 오프라인 우선 동기화 충돌 로그 (SSOT §5.5 processOfflineOptimisticSync 이식)
+--     문서의 permits.version(정수) 대신, 이 런타임 스키마에 이미 있는
+--     permit_lock_state.payload_hash를 낙관적 잠금 기준으로 쓴다.
+-- ----------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS permit_sync_conflicts;
+CREATE TABLE permit_sync_conflicts (
+    conflict_id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    permit_ref_no               TEXT NOT NULL,                -- 레거시 PTWPermit.id, permit_lock_state와 동일 키
+    server_payload_hash         TEXT NOT NULL,                -- 충돌 감지 시점의 permit_lock_state.payload_hash
+    client_base_payload_hash    TEXT NOT NULL,                -- 클라이언트가 마지막으로 읽었던 payload_hash
+    conflict_payload            TEXT NOT NULL,                -- JSON: { server, local }
+    status                      TEXT NOT NULL DEFAULT 'REQUIRES_SITE_MANAGER_REVIEW'
+                                 CHECK (status IN ('REQUIRES_SITE_MANAGER_REVIEW', 'RESOLVED')),
+    created_at                  TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+    resolved_at                 TEXT
+);
+CREATE INDEX idx_permit_sync_conflicts_open ON permit_sync_conflicts(status, created_at DESC);
+
+-- ----------------------------------------------------------------------------
 -- 3. AGT 가스 측정 기록 (CMMS_Architecture.md §2.4 SSOT를 SQLite로 이식)
 --    permit_id는 Postgres 원본의 BIGINT FK(permits.permit_id) 대신 레거시
 --    PTWPermit.id 문자열(permit_ref_no)을 그대로 쓴다 — permits 정규 테이블은

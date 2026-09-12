@@ -193,6 +193,22 @@ CREATE TABLE permit_lock_state (
     updated_at                    TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
+-- 오프라인 우선 동기화 충돌 로그 (SSOT §5.5 processOfflineOptimisticSync 이식)
+-- — src/db/schema/cmms_schema.sql과 동일 정의(2b절 참고).
+DROP TABLE IF EXISTS permit_sync_conflicts;
+CREATE TABLE permit_sync_conflicts (
+    conflict_id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    permit_ref_no               TEXT NOT NULL,
+    server_payload_hash         TEXT NOT NULL,
+    client_base_payload_hash    TEXT NOT NULL,
+    conflict_payload            TEXT NOT NULL,
+    status                      TEXT NOT NULL DEFAULT 'REQUIRES_SITE_MANAGER_REVIEW'
+                                 CHECK (status IN ('REQUIRES_SITE_MANAGER_REVIEW', 'RESOLVED')),
+    created_at                  TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+    resolved_at                 TEXT
+);
+CREATE INDEX idx_permit_sync_conflicts_open ON permit_sync_conflicts(status, created_at DESC);
+
 -- ----------------------------------------------------------------------------
 -- 3. AGT 가스 측정 기록 (CMMS_Architecture.md §2.4 SSOT를 SQLite로 이식)
 --    permit_id는 Postgres 원본의 BIGINT FK(permits.permit_id) 대신 레거시
