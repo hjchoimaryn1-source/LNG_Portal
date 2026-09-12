@@ -47,10 +47,21 @@ export default function LoginGateway({ onEnter, onLogin }: LoginGatewayProps) {
     }
   }, [now, lockoutUntil]);
 
-  const handleSelectAccount = (account: UserAccountSeedRow) => {
+  const handleSelectAccount = async (account: UserAccountSeedRow) => {
     if (isLockedOut) return;
 
-    // Quick-Login: password_hash 검증 없이 선택된 계정을 세션에 직접 기록한다.
+    // Quick-Login: DEV_QUICK_LOGIN_PIN(고정 개발용 PIN)으로 /api/v1/cmms/auth/login을
+    // 거쳐 실제 authenticate() 경로를 통과한다 — src/cmms-auth/index.ts 참조.
+    const res = await fetch('/api/v1/cmms/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: '0000', staffId: account.userId }),
+    });
+    if (!res.ok) {
+      setFailedAttempts((prev) => prev + 1);
+      return;
+    }
+
     setActiveSession({
       userId: account.userId,
       roleCode: account.roleCode,
