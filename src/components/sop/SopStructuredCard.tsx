@@ -2,6 +2,10 @@
 // UI Layer (1-Layer view): renders one SOPDocument's structuredSummary
 // (purpose, keyRequirements, approvalLine, safetyRules). Anchors with
 // level <= 2 are shown as jump links into the 2-Layer raw viewer.
+// relatedNpCodes (Phase9-StageD reconciliation: present in SOPDocument /
+// sopIndex.json for 7 of 12 NP docs, but was not surfaced by any component)
+// are rendered as cross-reference chips using the same onOpenRaw contract
+// as every other jump link in this card.
 
 import { SOPDocument } from '../../types/sop';
 import { IMPORTANCE_BADGE_CLASS, SOP_CATEGORY_LABELS } from './constants/sopDisplay';
@@ -62,6 +66,24 @@ export function SopStructuredCard({ doc, onOpenRaw }: SopStructuredCardProps) {
           <div className="text-[10px] font-bold text-slate-600 tracking-wider mb-0.5">APPROVAL LINE</div>
           <div className="text-slate-600">{doc.structuredSummary.approvalLine.join(' / ')}</div>
         </div>
+
+        {doc.relatedNpCodes.length > 0 && (
+          <div>
+            <div className="text-[10px] font-bold text-slate-600 tracking-wider mb-0.5">RELATED SOPs</div>
+            <div className="flex flex-wrap gap-1">
+              {doc.relatedNpCodes.map((relatedCode) => (
+                <button
+                  key={relatedCode}
+                  type="button"
+                  onClick={() => onOpenRaw(relatedCode)}
+                  className="text-[10px] font-mono font-bold bg-white text-slate-700 px-1.5 py-0.5 border border-neutral-400 rounded-none hover:bg-neutral-100"
+                >
+                  {relatedCode}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="pt-1 border-t border-neutral-200">
           <div className="text-[10px] font-bold text-slate-600 tracking-wider mb-1">RAW DOCUMENT</div>

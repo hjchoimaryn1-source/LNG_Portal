@@ -2187,6 +2187,11 @@
     },
     "anchors": [
       {
+        "anchorId": "np-04-title",
+        "headingText": "NP-04: Survey and Audit Procedures",
+        "level": 1
+      },
+      {
         "anchorId": "np-04-contents-and-approval",
         "headingText": "Contents and Approval",
         "level": 2
@@ -2215,6 +2220,11 @@
         "anchorId": "np-04-1-2-scope",
         "headingText": "2. Scope",
         "level": 2
+      },
+      {
+        "anchorId": "np-04-1-2-1-in-scope",
+        "headingText": "In Scope",
+        "level": 3
       },
       {
         "anchorId": "np-04-1-2-types-of-audits",
@@ -10523,6 +10533,11 @@
     },
     "anchors": [
       {
+        "anchorId": "np-07-title",
+        "headingText": "PT. LNG NIAS GASIFIKASI - SSHQE MANAGEMENT SYSTEM SOP DOCUMENT",
+        "level": 1
+      },
+      {
         "anchorId": "np-07-0-1-document-control-approval",
         "headingText": "Document Control & Approval",
         "level": 2
@@ -10706,6 +10721,11 @@
         "anchorId": "np-07-app-04-exchange-ppe-regulation",
         "headingText": "Appendix 04: Exchange PPE Regulation",
         "level": 2
+      },
+      {
+        "anchorId": "np-07-app-04-legal-framework",
+        "headingText": "Legal Framework",
+        "level": 3
       },
       {
         "anchorId": "np-07-forms-and-checklists-reference",
@@ -12717,6 +12737,11 @@
     },
     "anchors": [
       {
+        "anchorId": "np-09-title",
+        "headingText": "NIAS NP-09 Procedure for Risk Assessment and Safety Management",
+        "level": 1
+      },
+      {
         "anchorId": "np-09-i-content-and-approval",
         "headingText": "I. Content and Approval",
         "level": 2
@@ -12915,6 +12940,11 @@
         "anchorId": "np-09-2-2-1-step-1-hazard-identification",
         "headingText": "2.1 Step 1: Hazard Identification",
         "level": 4
+      },
+      {
+        "anchorId": "np-09-2-2-1-common-lng-hazards",
+        "headingText": "Common LNG Hazards",
+        "level": 5
       },
       {
         "anchorId": "np-09-2-2-2-step-2-risk-analysis-evaluation-the-risk-matrix",
