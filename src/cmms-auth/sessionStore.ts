@@ -21,12 +21,14 @@ const AUTH_SESSIONS_DDL = `
   );
 `;
 
-let tableEnsured = false;
+// Keyed by db instance — see staffCredentialsDb.ts's ensuredDbs for why a
+// bare boolean is wrong here (breaks on a second, distinct SqlExecutor).
+const ensuredDbs = new WeakSet<SqlExecutor>();
 
 function ensureAuthSessionsTable(db: SqlExecutor): void {
-  if (tableEnsured) return;
+  if (ensuredDbs.has(db)) return;
   db.run(AUTH_SESSIONS_DDL);
-  tableEnsured = true;
+  ensuredDbs.add(db);
 }
 
 export interface AuthSession {

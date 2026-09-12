@@ -19,12 +19,15 @@ const STAFF_CREDENTIALS_DDL = `
   );
 `;
 
-let tableEnsured = false;
+// Keyed by db instance (not a bare boolean) so a second, distinct SqlExecutor
+// (e.g. an in-memory test connection) still gets its own DDL applied instead
+// of silently inheriting "already ensured" from an unrelated connection.
+const ensuredDbs = new WeakSet<SqlExecutor>();
 
 function ensureStaffCredentialsTable(db: SqlExecutor): void {
-  if (tableEnsured) return;
+  if (ensuredDbs.has(db)) return;
   db.run(STAFF_CREDENTIALS_DDL);
-  tableEnsured = true;
+  ensuredDbs.add(db);
 }
 
 /** SHA-256 PIN hash — no plaintext PIN is ever persisted. */
