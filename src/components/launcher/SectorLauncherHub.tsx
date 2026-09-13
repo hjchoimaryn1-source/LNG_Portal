@@ -18,6 +18,7 @@ const SECTOR_BUTTONS: SectorButton[] = [
   { id: 'MOD_5', name: '[ Safety & PTW ]', targetKey: 'SAFETY_OVERVIEW' },
   { id: 'MOD_6', name: '[ CMMS Overview Dashboard ]', targetKey: 'CMMS_OVERVIEW_DASHBOARD' },
   { id: 'MOD_7', name: '[ Jakarta HQ Overview ]', targetKey: 'HQ_OVERVIEW_DASHBOARD' },
+  { id: 'MOD_8', name: '[ Trucking & Logistics (NP-03) ]', targetKey: 'TRUCKING_HUB' },
 ];
 
 interface SectorLauncherHubProps {
