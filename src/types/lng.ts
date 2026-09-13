@@ -77,7 +77,13 @@ export type SubProcessKey =
   // CMMS-wide Overview Dashboard (cross-module KPI landing)
   | 'CMMS_OVERVIEW_DASHBOARD'
   // Jakarta HQ Overview Dashboard (Sector 7 — CMMS_Architecture.md §3.1.1)
-  | 'HQ_OVERVIEW_DASHBOARD';
+  | 'HQ_OVERVIEW_DASHBOARD'
+  // Trucking & Logistics (NP-03) — Phase 11a Stage 2
+  | 'TRUCKING_HUB'
+  | 'TRUCKING_PRE_OP'
+  | 'TRUCKING_PERIODIC_INSPECTION'
+  | 'TRUCKING_TRAFFIC_MGMT'
+  | 'TRUCKING_POST_TRANSIT';
 
 export interface OffloadHeelMetrics {
   offloadDate: string;

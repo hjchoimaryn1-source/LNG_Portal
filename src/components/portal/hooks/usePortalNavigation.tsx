@@ -91,6 +91,9 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
     } else if (key === 'MANPOWER_TRAINING_MATRIX') {
       setActiveMenu('MANPOWER_TRAINING_MATRIX');
       setActiveSubTab('TRAINING_MATRIX');
+    } else if (key.startsWith('TRUCKING')) {
+      setActiveMenu('trucking');
+      setActiveSubTab(key);
     } else {
       setActiveMenu(key);
       setActiveSubTab(key);

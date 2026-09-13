@@ -26,5 +26,8 @@ export function getInitialNav(key: SubProcessKey): { menu: string; subTab: strin
   if (key === 'HQ_OVERVIEW_DASHBOARD') {
     return { menu: 'HQ_OVERVIEW_DASHBOARD', subTab: key };
   }
+  if (key.startsWith('TRUCKING')) {
+    return { menu: 'trucking', subTab: key };
+  }
   return { menu: 'lng-process', subTab: key };
 }
