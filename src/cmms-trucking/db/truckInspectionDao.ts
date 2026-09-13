@@ -51,6 +51,7 @@ const SELECT_HEADER_BY_ID_SQL = `SELECT * FROM truck_inspections WHERE inspectio
 const SELECT_ITEMS_BY_INSPECTION_SQL = `SELECT * FROM truck_inspection_items WHERE inspection_id = @inspectionId ORDER BY item_id ASC`;
 const SELECT_HEADERS_BY_VEHICLE_SQL = `SELECT * FROM truck_inspections WHERE vehicle_no = @vehicleNo ORDER BY inspection_date DESC`;
 const SELECT_HEADERS_BY_TYPE_SQL = `SELECT * FROM truck_inspections WHERE inspection_type = @inspectionType ORDER BY created_at DESC`;
+const SELECT_ALL_HEADERS_SQL = `SELECT * FROM truck_inspections ORDER BY created_at DESC`;
 const SELECT_LAST_INSERT_ID_SQL = `SELECT last_insert_rowid() AS id`;
 
 function headerRowToRecord(row: TruckInspectionRow): TruckInspectionHeader {
@@ -132,4 +133,8 @@ export function selectTruckInspectionsByType(
   inspectionType: TruckInspectionHeader['inspectionType']
 ): TruckInspectionHeader[] {
   return db.all<TruckInspectionRow>(SELECT_HEADERS_BY_TYPE_SQL, { inspectionType }).map(headerRowToRecord);
+}
+
+export function selectAllTruckInspections(db: SqlExecutor): TruckInspectionHeader[] {
+  return db.all<TruckInspectionRow>(SELECT_ALL_HEADERS_SQL).map(headerRowToRecord);
 }
