@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { WIN_TAB_ACTIVE, WIN_TAB_INACTIVE } from '../portal/utils/portalTabStyles';
+import { useTruckingData } from '../../context/TruckingDataContext';
 import { PreOperationChecklist } from '../../cmms-trucking/components/PreOperationChecklist';
 import { VehicleSecurityChecklist } from '../../cmms-trucking/components/VehicleSecurityChecklist';
 import { PreOpsTruckIsoTankChecklist } from '../../cmms-trucking/components/PreOpsTruckIsoTankChecklist';
@@ -30,11 +31,15 @@ interface TruckingModuleHubProps {
 
 export default function TruckingModuleHub({ onOpenSopReference }: TruckingModuleHubProps) {
   const [activeTab, setActiveTab] = useState<TruckingHubTab>('PRE_OP');
+  const { inspections, isLoading } = useTruckingData();
 
   return (
     <div className="flex-1 h-full flex flex-col min-h-0 w-full overflow-hidden">
       <div className="win-panel px-2 py-1.5 flex items-center justify-between shrink-0">
         <span className="text-xs font-mono font-bold text-slate-800 tracking-wide">NP-03 TRUCKING &amp; LOGISTICS</span>
+        <span className="text-[10px] font-mono text-slate-600">
+          {isLoading ? 'LOADING...' : `LOGGED: ${inspections.length}`}
+        </span>
       </div>
 
       <div className="flex gap-1 px-2 pt-2 shrink-0 flex-wrap">
