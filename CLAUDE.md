@@ -41,3 +41,8 @@
 - 코드베이스 검색 시 `.claude-map.json` 파일의 인덱스를 최우선으로 읽어 파일 구조와 모듈 연관성을 파악합니다.
 - 불필요한 전체 디렉터리 재귀 스캔(`ls -R`, 전체 `grep`)을 자제하고 최소한의 대상 파일만 컨텍스트에 포함합니다.
 - 주요 컴포넌트 추가나 파일 구조 수정 작업을 마친 후에는 작업을 종료하기 전 bash 명령어로 `npx claude-map build`를 자동 실행하여 인덱스를 최신화합니다.
+
+## 5. DB Schema Change Policy (ALTER-only)
+- 모든 SQLite 스키마 변경은 `ALTER TABLE ADD COLUMN` / `ALTER TABLE ... ADD/MODIFY` 계열만 허용한다.
+- `DROP TABLE`, `CREATE TABLE`(재생성 목적), `TRUNCATE` 계열 SQL은 전면 금지.
+- SQLite가 `ALTER COLUMN`/CHECK 제약 변경을 지원하지 않아 불가피하게 테이블 재생성(12-step rebuild: 신규 테이블 생성 → 데이터 복사 → 원본 DROP → RENAME)이 필요한 경우, 커밋 전 반드시 작업을 중단하고 HJ 확인을 받는다 (근거: Phase10-Stage2C `pm_schedules` 재생성 사례, `docs/phase10-stage4a-remediation-note.md`).
