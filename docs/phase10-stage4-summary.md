@@ -30,3 +30,5 @@ test: N/A (코드 변경 없음)
 24b32e4 Phase10-Stage4B: IMPA scope whitelist registered (ingestion deferred)
 ```
 (Sub-stage C: 커밋 없음 — 승인 대기)
+
+Sub-stage C: HJ 서면 승인 미확인으로 SKIPPED. pm_schedules 0 rows 유지.
