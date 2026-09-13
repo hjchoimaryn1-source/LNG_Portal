@@ -59,4 +59,11 @@ export const CMMS_MODULES: CMMSModule[] = [
     description: "Command Center KPI Summary, Pending Approvals, Gas Safety Alerts & MRO Low-Stock",
     defaultKey: "CMMS_OVERVIEW_DASHBOARD",
   },
+  {
+    id: "MOD_7_HQ_OVERVIEW",
+    name: "Jakarta HQ Overview",
+    code: "HQ",
+    description: "120 ISO Tank Fleet Status, Energy Reconciliation & Settlement Dispute Audit (Auditor Mode aware)",
+    defaultKey: "HQ_OVERVIEW_DASHBOARD",
+  },
 ];

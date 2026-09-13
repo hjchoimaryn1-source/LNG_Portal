@@ -7,6 +7,7 @@ import ManpowerRosterView from '../../manpower/ManpowerRosterView';
 import PTWManagementView from '../../manpower/PTWManagementView';
 import { INITIAL_MANPOWER_MASTER_RECORDS } from '../../../data/manpowerMasterData';
 import { ManpowerTabKey, NORMALIZE_MANPOWER_TAB } from '../utils/manpowerTabConstants';
+import { SopReferenceViewer } from '../../sop';
 
 interface ManpowerSafetyRoutesProps {
   activeKey: SubProcessKey;
@@ -85,9 +86,12 @@ export default function ManpowerSafetyRoutes({
           }}
           onNavigateToMatrix={() => handleSelectSubProcess('MANPOWER_TRAINING_MATRIX')}
           onNavigateToDailyShift={() => handleSelectSubProcess('MANPOWER_DAILY_SHIFT')}
+          onNavigateToSopReference={() => handleSelectSubProcess('SAFETY_SOP_REFERENCE')}
           focusId={focusRecordId ?? undefined}
         />
       )}
+
+      {activeKey === 'SAFETY_SOP_REFERENCE' && <SopReferenceViewer />}
     </>
   );
 }

@@ -368,6 +368,18 @@ export interface PermitMaster {
 1. **HQ Overview Dashboard (본사/총괄 전용)**: 전체 공정 가동률, MRO 자원 보급, Overhaul 진행률, POB 현황, MTBF/MTTR 거시 지표 수집 및 실시간 관제.
 2. **Site Approval Hub (현장 최종 승인권자 - Site Manager Pak Edi 전용)**: e-PTW Stage 3 최종 발급, 긴급 WO 결재, Shift Override 대행 결재 등 타임 크리티컬 1-Click 승인 센터.
 
+#### 3.1.1 HQ Overview Dashboard 컴포넌트 구조 및 Sector 6 라우팅 (이력 및 현황)
+
+| 항목 | 내용 |
+|---|---|
+| 개념 정의 위치 | §3.1 HQ Overview Dashboard (본사/총괄 전용) |
+| 과거 구현 파일 | `src/components/JakartaHQDashboard.tsx` |
+| 현재 상태 | **삭제됨** — 커밋 `73c096c` (`chore: remove confirmed dead code files`)에서 미사용(orphan) 컴포넌트로 확인되어 저장소에서 제거 |
+| 삭제 전 라우팅 연결 | 없음 — 삭제 이전에도 앱 내 어떤 진입점에서도 import되지 않았음 |
+| Sector 6 진입점 | **미확정** — 신규 Sector 버튼으로 재도입할지, 기존 Sector에 흡수할지 결정되지 않음. 재구현 시 별도 승인 절차를 거쳐 본 문서에 반영 예정 |
+
+> **Gap Note**: HQ Overview Dashboard는 §3.1에 개념상 정의되어 있으나, 실제 구현체(`JakartaHQDashboard.tsx`)는 dead code 정리 과정에서 이미 제거되었습니다. 따라서 "라우팅 미연결" 상태가 아니라 "구현체 없음" 상태이며, Sector 6 라우팅 여부는 재구현 결정과 함께 별도로 논의되어야 합니다.
+
 ---
 
 ### 3.2 Dynamic Cascade Select 기반 Plant Location 및 NP-09 PPE Zone 자동 필터링
@@ -432,6 +444,219 @@ CREATE TABLE approval_delegations (
 CREATE INDEX idx_app_docs_type_status ON approval_documents(document_type, overall_status);
 CREATE INDEX idx_app_hist_app_id ON approval_line_histories(approval_id);
 ```
+
+---
+
+### 3.3.3 RBAC Session Guard (Auditor Mode) 타입 명세 (`types/rbac.ts`)
+
+> 본 절은 타입 명세만 정의하며, 권한 판정 로직(`resolveEffectivePermission`, `validateApprovalGuardrails`)과 Sector 6 진입점 연동은 별도 승인 후 구현 예정입니다 (§3.1.1 참조).
+
+```typescript
+export type RBACRole =
+  | 'ORIGINATOR'
+  | 'HSSE_OFFICER'
+  | 'SITE_MANAGER'
+  | 'DELEGATED_APPROVER'
+  | 'AUDITOR';
+
+export type SessionAccessMode = 'INTERACTIVE' | 'READ_ONLY_AUDIT';
+
+export interface RBACSessionGuard {
+  sessionId: string;
+  personId: string;
+  role: RBACRole;
+  accessMode: SessionAccessMode;
+  isAuditorMode: boolean;
+  grantedScopes: string[];
+  sessionIssuedAt: string;
+  sessionExpiresAt: string;
+  delegatedFromPersonId?: string | null;
+}
+```
+
+---
+
+### 3.3.4 role_permissions Seed 데이터 및 Row-Level 제약 한계
+
+role_permissions 테이블은 모듈 단위 최상위 접근 게이트(module-level gate)만 담당한다. 아래 역할은
+boolean 컬럼만으로 표현 불가능한 row-level 제약을 가지므로, 애플리케이션 쿼리 레벨에서 별도 필터링이
+반드시 병행되어야 한다:
+- SITE_MANAGER / ACTING_SITE_MANAGER: can_update=TRUE이나 실제로는 본인이 작성한 건(row)에 한함
+  (e.g. `WHERE requester_id = :userId` 이중 검증 필요).
+- WORK_LEADER_TECH: can_read=TRUE(WORK_ORDER_DIRECTORY)이나 실제로는 본인에게 할당된 WO(row)에
+  한함 (e.g. `WHERE assigned_to = :userId` 이중 검증 필요).
+
+Seed 데이터는 7개 역할(RoleCode) × 11개 모듈(ModuleCode) = 77행 전체를 명시적으로 정의하며,
+신규 모듈 추가 시 반드시 7개 역할 전체에 대한 행을 동시에 추가해야 한다
+(UNIQUE(role_code, module_code) 제약 준수).
+
+이 매핑은 원본 벤치마킹 자료의 "모듈군" 단위 설명(예: "안전/PTW 모듈", "현장/운영 모듈")을
+개별 module_code로 풀어낸 해석적 매핑이며, 축자적 추출(verbatim extraction)이 아니다.
+프로덕션 반영 전 프로젝트 오너의 별도 검토를 권장한다.
+
+---
+
+### 3.4 Fatigue Block 가드레일 — daily_shift_assignments 스키마
+
+**⚠ 출처 구분 표기**: 아래 피로도 규칙 수치(연속 14일 근무 제한, 24시간 내 최소 10시간 휴식)는
+CMMS_Architecture.md의 기존 소스 문서에 명시된 값이 아니다. 해사노동협약(MLC)/STCW 계열 휴식시간
+관행에 기반한 설계 기본값이며, 실제 인도네시아 현지 노동법 및 회사 내규 확인 후 조정이 필요한
+잠정안이다.
+
+daily_shift_assignments는 기존 `StaffPersonnel.todayShift`(당일 상태 스냅샷)와 별개로, 날짜별
+근무 이력을 축적하는 신규 테이블이다. 3:1 로테이션 마스터 데이터(90일 온사이트/30일 휴가 주기)와는
+독립적인 레이어로, 로테이션 내 개별 날짜의 Day/Night 배정 및 실근무시간을 기록한다.
+
+**PART A 재검증 결과 반영**: `shift_type` 값은 원안의 `'DAY'/'NIGHT'`가 아니라 `StaffPersonnel.todayShift`
+(`ShiftCode`, `src/types/lng.ts:271`)의 실제 근무 시프트 어휘인 `'D'/'N'`으로 맞춘다 (아래 DDL에 반영).
+또한 실제 DB 드라이버가 없어(§3.5.4와 동일 사유), 런타임에서는 `src/db/seeds/003_daily_shift_assignments_test.sql`의
+TS 미러인 `src/lib/rbac/dailyShiftAssignmentsSeed.ts`를 `checkFatigueBlock`이 직접 조회한다.
+
+```sql
+CREATE TABLE daily_shift_assignments (
+    assignment_id        BIGSERIAL PRIMARY KEY,
+    user_id               VARCHAR(64) NOT NULL,          -- FK to user_accounts.user_id
+    shift_date            DATE NOT NULL,
+    shift_type            VARCHAR(10) NOT NULL CHECK (shift_type IN ('D', 'N')),  -- StaffPersonnel.todayShift(ShiftCode) 근무 시프트 어휘와 정합
+    hours_worked          NUMERIC(4,1) NOT NULL,
+    rest_hours_prior_24h  NUMERIC(4,1),                  -- rest hours in the 24h window before this shift started
+    consecutive_days      INT NOT NULL DEFAULT 1,        -- running count of consecutive worked days as of this row
+    created_at            TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_shift_user FOREIGN KEY (user_id) REFERENCES user_accounts(user_id) ON DELETE CASCADE,
+    CONSTRAINT uq_user_shift_date UNIQUE (user_id, shift_date, shift_type)
+);
+CREATE INDEX idx_shift_user_date ON daily_shift_assignments(user_id, shift_date);
+```
+
+**Phase 3 (MOD_1~5 가드레일 UI 확산) 반영 노트**: `checkFatigueBlock`은 공용 어댑터
+`src/adapters/guardrailUiAdapter.ts`(`evaluateMutationGuardrails`)를 통해 `blockIfAuditorMode`와
+함께 다음 진입점에 연동되었다 — MOD_1 PTW(`PTWStatusActions.tsx` APPROVE, `useNewPTWPermitForm.ts`
+CREATE), MOD_2 Cargo Handling(`useCargoHandlingLifecycle.ts`, APPROVED 전이 시), MOD_3
+Maintenance/PMS(`useWorkOrders.ts` markCompleted — auditor만, fatigueCheck 없음: `WOItem.tech`가
+표시용 이름일 뿐 실제 userId가 아니므로), MOD_4 "Gas Sales & Metering"은 코드베이스에 해당 모듈이
+없어 Custody/Settlement 계열(`SettlementAuditView.tsx`, `NiasCustodySettlementTab.tsx`, 기존
+`HqSettlementDisputePanel.tsx`)로 매핑 — auditor만, fatigueCheck 없음, MOD_5 Inventory
+(`useMroInventory.ts` adjustStock — auditor만, fatigueCheck 없음: `performedBy`가 자유 입력 텍스트라
+userId로 신뢰 불가). 기존 `FatigueLimitModal.tsx`(ManpowerRosterView 전용, 7일 연속 야간 하드락)는
+이 14일/10h/중복 규칙과 무관한 별개 개념으로 의도적으로 그대로 두었다.
+
+---
+
+### 3.5 세션/인증 및 로그인 정책 (user_accounts 스키마)
+
+**⚠ 출처 구분 표기**: 아래 세션/인증 수치는 NotebookLM 소스 문서에 **명시적으로 기록되어 있지 않다**
+(CMMS_Missing_Items_Source_Extraction.md §1 확인). 소스에서 확인된 사실은 (a) 이메일/비밀번호 기반
+로그인, (b) 서버 측 사용자 식별 후 세션 토큰 발급, (c) 비활성 계정 거부(Inactive-account Refusal)
+정책의 존재뿐이다. 아래 구체적 수치(타임아웃 시간, MFA 대상, 잠금 조건, 오프라인 재인증 방식)는
+**소스 사실이 아니라 ISA-62443 / OWASP ASVS 표준 관행에 기반한 프로젝트 설계 기본값(Engineering
+Default)**이며, 추후 실제 운영 정책 확정 시 수정될 수 있는 잠정안임을 명시한다.
+
+**3.5.1 세션 관리 정책 (설계 기본값)**
+| 항목 | 값 | 근거 |
+|---|---|---|
+| 세션 타임아웃 | 30분 무조작(Inactivity) 시 자동 로그아웃 | OWASP ASVS 3.3 (설계 기본값, 소스 미기재) |
+| MFA/2FA | HQ_SUPERVISOR_AUDITOR·SITE_MANAGER·ACTING_SITE_MANAGER 필수, 그 외 역할은 OTP/PIN 선택 | ISA-62443 권한 등급별 인증 강도 원칙 (설계 기본값, 소스 미기재) |
+| 계정 잠금 | 비밀번호 5회 연속 오류 시 15분 임시 잠금 (Failed Attempt Counter) | OWASP ASVS 2.2 (설계 기본값, 소스 미기재) |
+| 오프라인 재인증 | 방폭 태블릿 로컬 암호화 토큰 + 4자리 PIN 로컬 검증 | ATEX Zone 오프라인 운용 특성 반영 (설계 기본값, 소스 미기재) |
+
+**3.5.2 `user_accounts` DDL (신규 설계 — 소스 미기재, §5.4/§5.1 기존 user_id 참조와의 정합성 위해 신규 제안)**
+```sql
+CREATE TABLE user_accounts (
+    user_id              VARCHAR(64) PRIMARY KEY,
+    email                VARCHAR(255) NOT NULL UNIQUE,
+    password_hash        TEXT NOT NULL,
+    role_code             VARCHAR(32) NOT NULL,
+    home_location         VARCHAR(10) NOT NULL CHECK (home_location IN ('HQ', 'SITE')),
+    mfa_enabled           BOOLEAN NOT NULL DEFAULT FALSE,
+    failed_attempt_count  INT NOT NULL DEFAULT 0,
+    locked_until          TIMESTAMP WITH TIME ZONE,
+    is_active             BOOLEAN NOT NULL DEFAULT TRUE,
+    last_login_at         TIMESTAMP WITH TIME ZONE,
+    created_at            TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_role_code CHECK (role_code IN (
+        'SYSTEM_ADMIN','SITE_MANAGER','ACTING_SITE_MANAGER','OPERATION_TEAM_LEADER',
+        'HSSE_OFFICER','WORK_LEADER_TECH','HQ_SUPERVISOR_AUDITOR'
+    ))
+);
+
+CREATE TABLE user_sessions (
+    session_id            VARCHAR(128) PRIMARY KEY,
+    user_id                VARCHAR(64) NOT NULL,
+    issued_at              TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expires_at              TIMESTAMP WITH TIME ZONE NOT NULL,
+    device_device_id        VARCHAR(100),
+    is_offline_reauth       BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT fk_session_user FOREIGN KEY (user_id) REFERENCES user_accounts(user_id) ON DELETE CASCADE
+);
+```
+
+본 테이블은 실무 정책 확정 전까지 **잠정 설계**이며, 현재 프론트엔드 `LoginGateway.tsx`의
+`DEV NO-AUTH BYPASS ACTIVE` 상태를 이 스키마로 교체하는 마이그레이션은 별도 승인 후 착수한다.
+
+**3.5.4 Phase 1 Quick-Login 시더 및 세션 연동 (2026-09-11 반영)**
+
+`src/db/schema/cmms_schema.sql` / `schema/cmms_schema.sqlite.sql`에 §3.5.2 DDL을
+SQLite 방언으로 이식하고, `password_hash`만 `NOT NULL`에서 nullable로 완화했다(그 외
+컬럼/제약은 §3.5.2와 동일). `src/db/seeds/002_user_accounts.sql`(및 런타임에서 실제로
+쓰이는 TS 미러 `src/lib/rbac/userAccountsSeed.ts` — §3.5.3 `role_permissions`이
+`rolePermissionService.ts`로 미러링되는 것과 동일한 이유: 프로젝트에 SQLite 런타임
+드라이버가 없어 이 SQL은 문서로만 반영된 상태)에 아래 3행을 시딩했다:
+
+| user_id | 이름 | role_code | home_location | 근거 |
+|---|---|---|---|---|
+| `BSG259529` | Edi Hermawan | `SITE_MANAGER` | `SITE` | Operation Manpower Roster.csv 7행 실사 확인 |
+| `BSG259524` | Shadiq M. Shalih | `OPERATION_TEAM_LEADER` | `SITE` | Operation Manpower Roster.csv 8행 실사 확인 |
+| `DEV-HQ-001` | Choi Hong-joon | `SYSTEM_ADMIN` | `HQ` | **로스터 CSV(22개 인력 행)에 매칭 행 없음** — 현장 인력이 아닌 개발자 계정으로 판단, BSG 포맷 대신 명시적 DEV ID 부여 |
+
+⚠ `email` 컬럼은 로스터 CSV에 이메일 데이터가 없어 `<user_id>@dev.nias-lng.local`
+형태의 **DEV-ONLY placeholder**를 사용했다 — 실제 이메일이 아니며 프로덕션 전 교체 필요.
+
+`LoginGateway.tsx`는 이 3행을 Quick-Login 카드로 노출하고, 클릭 시
+`password_hash` 검증 없이 `src/lib/rbac/activeSessionStore.ts`(신규, DEV-ONLY
+in-memory 세션 브리지)에 `{ userId, roleCode, homeLocation }`을 직접 기록한다.
+`OverviewCalibrationRoutes.tsx`의 `HQ_DASHBOARD_SESSION_STUB`(Sector 6 HQ Overview
+Dashboard 배선, 이전 세션에서 추가)을 이 실제 세션으로 교체해
+`resolveEffectivePermission`/`blockIfAuditorMode`가 하드코딩된 스텁이 아닌 선택된
+계정의 실제 role/location을 받는다.
+
+// DEV-ONLY: password verification intentionally skipped per Phase 1 simplification — see CMMS_Architecture.md §3.5
+
+---
+
+### 3.6 ISA-101 / SCADA 기반 UI 색상 체계 (scadaStyles.ts 명세)
+
+**3.6.1 확인된 기존 팔레트 (소스 확인됨 — `NIAS_Portal_Full_Context.md`, `LoginGateway.tsx`)**
+| 용도 | 값 |
+|---|---|
+| Time-Critical 경고 / Red Warning | `#EF4444` (Flashing Border) |
+| Industrial Classic Gray (프레임) | `#c0c7d0` |
+| 타이틀 바 그라데이션 | `linear-gradient(90deg, #002244, #0052a3)` |
+| Monitor Box / Sunken Panel | `#d8dee9` |
+| Status Badge (Blue) | `#0284c7` |
+| Highlight Text (Blue) | `#0369a1` |
+| Bevel Button | `#d1d7e0` (Hover `#dbe1ea` / Active `#c3cad4`) |
+| Ready Indicator (Green) | `#047857` |
+
+**3.6.2 방폭 태블릿 가독성 기준 (소스 확인됨)**
+- 디스플레이 8.0인치 이상, 고휘도(Sunlight-readable)
+- Glove-touch / Wet-touch 지원
+- 기본 해상도 1920×1065, 반응형 레이아웃
+- 다크 모드 제공
+
+**3.6.3 ISA-101 알람 4단계 색상 — ⚠ 설계 기본값 (소스 미기재, 3개 색상은 프로젝트 신규 도입)**
+소스에서는 Red(`#EF4444`)만 확인되었고, 나머지 3단계는 ISA-101 표준 관행에 따른 설계 기본값이다.
+
+| Priority | 의미 | 색상 |
+|---|---|---|
+| 1 (Critical) | 즉시 대응 — LOTO 위반, AGT FAIL, SIMOPS RED | `#EF4444` (소스 확인, 기존 유지) |
+| 2 (High) | 긴급 대응 — ALARP No 에스컬레이션, 4hr 가스 타임아웃 | `#F97316` (설계 기본값) |
+| 3 (Medium) | 주의 — PM 지연, ROP 미달 발주 | `#EAB308` (설계 기본값) |
+| 4 (Low) | 정보성 — 일반 알림 | `#0284c7` (해결됨 — 기존 Status Badge Blue 재사용) |
+
+> **✅ 설계 충돌 해소**: Priority 4는 신규 색상 `#3B82F6`을 도입하는 대신 기존 확인된 Status Badge
+> `#0284c7`을 그대로 재사용하기로 확정했다 (Highlight `#0369a1`과는 별개로, 의도적으로 Status Badge와
+> 동일 톤으로 통합). `scadaStyles.ts`의 `ALARM_COLORS.PRIORITY_4_LOW`에 `#0284c7`로 반영 완료.
+> (과거 충돌 이력: 최초 제안 `#3B82F6`은 기존 파란 계열과 시각적으로 구분이 약해 이번에 위와 같이 해소함.)
 
 ---
 

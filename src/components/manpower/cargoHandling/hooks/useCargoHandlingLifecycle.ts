@@ -9,7 +9,7 @@
 //   must stay in the SAME array PTWMasterRegisterTab/usePTWPermits manage, only
 //   the transition function differs.
 
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { PTWPermit, PTWWorkflowStatus } from '../../../../types/lng';
 import { PTW_SIGNATURE_ROLE_LABELS } from '../../../../data/ptwSignatureRoles';
 import { evaluateSignatureGate } from '../../../../adapters/ptwSignatureGate';
@@ -20,15 +20,43 @@ import {
   canActivateCargoHandlingPermit,
   canCloseCargoHandlingPermit,
 } from '../../../../data/ptwCargoHandlingTransitions';
+import { useActiveSession } from '../../../../lib/rbac/activeSessionStore';
+import { evaluateMutationGuardrails } from '../../../../adapters/guardrailUiAdapter';
 
 export function useCargoHandlingLifecycle(
   permits: PTWPermit[],
   setPermits: Dispatch<SetStateAction<PTWPermit[]>>,
   persistStatusChange: (permitId: string, status: PTWWorkflowStatus, closedAt: string | null) => void
 ) {
+  const activeSession = useActiveSession();
+  // Phase 3 MOD_2 UI 표준화: Auditor Mode/피로도 차단 사유를 GuardrailBlockedBanner로
+  // 표시하기 위한 상태. PTWMasterRegisterTab.tsx가 이 값을 배너에 전달한다.
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
+
   const transitionCargoHandlingStatus = (permitId: string, nextStatus: PTWWorkflowStatus) => {
     const target = permits.find((p) => p.id === permitId);
     if (!target || target.type !== 'CARGO_HANDLING') return;
+
+    setBlockedMessage(null);
+    // Phase 3 MOD_2: Auditor Mode hard block on every transition (an auditor must
+    // never advance any workflow), plus fatigue guardrail specifically on the
+    // APPROVED transition (target.workLeaderId is who is being authorized to lead
+    // the work) — same convention as MOD_1's PTWStatusActions.handleApprove.
+    // Fail-open if no active session exists yet (pre-existing DEV bypass).
+    if (activeSession) {
+      const guard = evaluateMutationGuardrails({
+        roleCode: activeSession.roleCode,
+        action: nextStatus === 'APPROVED' ? 'APPROVE' : 'UPDATE',
+        fatigueCheck:
+          nextStatus === 'APPROVED'
+            ? { userId: target.workLeaderId, targetDate: new Date().toISOString().slice(0, 10) }
+            : undefined,
+      });
+      if (!guard.allowed) {
+        setBlockedMessage(guard.reason ?? 'CARGO HANDLING TRANSITION BLOCKED');
+        return;
+      }
+    }
 
     // Gate 0: SSHQE §4.2 electronic signature completeness — same rule as
     // usePTWPermits.transitionStatus, type-agnostic.
@@ -86,5 +114,5 @@ export function useCargoHandlingLifecycle(
     persistStatusChange(permitId, nextStatus, closedAt);
   };
 
-  return { transitionCargoHandlingStatus };
+  return { transitionCargoHandlingStatus, blockedMessage };
 }

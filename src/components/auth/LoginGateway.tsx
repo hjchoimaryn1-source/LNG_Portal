@@ -1,17 +1,62 @@
-﻿// src/components/auth/LoginGateway.tsx
+// src/components/auth/LoginGateway.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { USER_ACCOUNTS, type UserAccountSeedRow } from '../../lib/rbac/userAccountsSeed';
+import { setActiveSession } from '../../lib/rbac/activeSessionStore';
+import { LOGIN_GATEWAY_STYLES } from './loginGatewayStyles';
+import { LOGIN_GATEWAY_TASK_STYLES } from './loginGatewayTaskStyles';
+import { LOGIN_GATEWAY_ACCOUNT_CARD_STYLES } from './loginGatewayAccountCardStyles';
+import QuickLoginAccountCard from './QuickLoginAccountCard';
 
 interface LoginGatewayProps {
   onEnter?: () => void;
   onLogin?: () => void;
 }
 
+const MAX_FAILED_ATTEMPTS = 5;
+
+function formatCountdown(msRemaining: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(msRemaining / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
 export default function LoginGateway({ onEnter, onLogin }: LoginGatewayProps) {
   const [imgError, setImgError] = useState(false);
 
-  const handleLogin = () => {
+  // 계정 잠금 시뮬레이션 — 컴포넌트 상태로만 관리되며 새로고침 시 초기화됨.
+  // user_accounts.failed_attempt_count 백엔드 연동 전까지의 로컬 UI 목업(비기능).
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (lockoutUntil === null) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [lockoutUntil]);
+
+  const isLockedOut = lockoutUntil !== null && now < lockoutUntil;
+
+  useEffect(() => {
+    if (lockoutUntil !== null && now >= lockoutUntil) {
+      setLockoutUntil(null);
+      setFailedAttempts(0);
+    }
+  }, [now, lockoutUntil]);
+
+  const handleSelectAccount = (account: UserAccountSeedRow) => {
+    if (isLockedOut) return;
+
+    // Quick-Login: password_hash 검증 없이 선택된 계정을 세션에 직접 기록한다.
+    setActiveSession({
+      userId: account.userId,
+      roleCode: account.roleCode,
+      homeLocation: account.homeLocation,
+    });
+    setFailedAttempts(0);
     if (onLogin) {
       onLogin();
     } else if (onEnter) {
@@ -21,221 +66,9 @@ export default function LoginGateway({ onEnter, onLogin }: LoginGatewayProps) {
 
   return (
     <div className="gateway-root">
-      <style>{`
-        .gateway-root {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: transparent;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          width: 100%;
-          user-select: none;
-        }
-
-        /* 1. 윈도우 팝업 프레임 (Industrial Classic Gray) */
-        .gateway-root .window {
-          width: 520px;
-          max-width: 95vw;
-          background: #c0c7d0;
-          border: 2px solid #1a365d;
-          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 2px 4px rgba(0, 0, 0, 0.4);
-        }
-
-        /* 타이틀바 */
-        .gateway-root .title-bar {
-          background: linear-gradient(90deg, #002244, #0052a3);
-          color: #ffffff;
-          padding: 6px 10px;
-          font-size: 13px;
-          font-weight: bold;
-          letter-spacing: 0.5px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-bottom: 1px solid #001730;
-        }
-        .gateway-root .title-bar-controls {
-          display: flex;
-          align-items: center;
-        }
-        .gateway-root .title-bar-controls button {
-          width: 18px;
-          height: 18px;
-          border-top: 1px solid #ffffff;
-          border-left: 1px solid #ffffff;
-          border-bottom: 1px solid #475569;
-          border-right: 1px solid #475569;
-          background: #d4d8de;
-          font-size: 10px;
-          line-height: 12px;
-          cursor: pointer;
-          margin-left: 3px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: bold;
-          color: #1e293b;
-        }
-        .gateway-root .title-bar-controls button:active {
-          border-top: 1px solid #475569;
-          border-left: 1px solid #475569;
-          border-bottom: 1px solid #ffffff;
-          border-right: 1px solid #ffffff;
-          background: #c2c7ce;
-        }
-
-        /* 본문 영역 */
-        .gateway-root .window-body {
-          padding: 20px 24px 22px 24px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-
-        /* 2. Header Block: 독립된 Raised-Bevel 패널 */
-        .gateway-root .header-panel {
-          width: 100%;
-          box-sizing: border-box;
-          padding: 12px 14px;
-          background: rgba(226, 232, 240, 0.5);
-          border-top: 2px solid #ffffff;
-          border-left: 2px solid #ffffff;
-          border-bottom: 2px solid #475569;
-          border-right: 2px solid #475569;
-          margin-bottom: 18px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-        }
-        .gateway-root .logo-area {
-          margin-bottom: 8px;
-          display: flex;
-          justify-content: center;
-        }
-        .gateway-root .logo-placeholder {
-          width: 48px;
-          height: 48px;
-          background: #0077b6;
-          border-radius: 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: bold;
-          font-size: 11px;
-          border-top: 1px solid #ffffff;
-          border-left: 1px solid #ffffff;
-          border-bottom: 1px solid #003e4d;
-          border-right: 1px solid #003e4d;
-        }
-        .gateway-root .company-title {
-          font-size: 17px;
-          font-weight: 800;
-          color: #0f172a;
-          letter-spacing: 0.8px;
-          text-align: center;
-        }
-
-        /* 3. Monitor Box: Sunken-Panel Tone-Down Gray (#d8dee9) with Inset Shadow */
-        .gateway-root .status-card {
-          width: 100%;
-          background: #d8dee9;
-          border-top: 2px solid #64748b;
-          border-left: 2px solid #64748b;
-          border-bottom: 2px solid #ffffff;
-          border-right: 2px solid #ffffff;
-          border-radius: 2px;
-          padding: 14px 16px;
-          box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.22);
-          margin-bottom: 18px;
-          box-sizing: border-box;
-        }
-        .gateway-root .status-header {
-          display: flex;
-          justify-content: space-between;
-          font-size: 11px;
-          font-weight: bold;
-          color: #334155;
-          border-bottom: 1px solid #b4c2d4;
-          padding-bottom: 6px;
-          margin-bottom: 9px;
-          font-family: monospace;
-        }
-        .gateway-root .status-badge {
-          color: #0284c7;
-          font-weight: 800;
-        }
-        .gateway-root .status-item {
-          font-family: monospace;
-          font-size: 12px;
-          color: #1e293b;
-          margin-bottom: 6px;
-          letter-spacing: 0.2px;
-        }
-        .gateway-root .status-item:last-child {
-          margin-bottom: 0;
-        }
-        .gateway-root .status-item span.highlight {
-          color: #0369a1;
-          font-weight: 800;
-        }
-
-        /* 4. Button: Classic Windows 3D Bevel Button */
-        .gateway-root .enter-btn {
-          width: 100%;
-          height: 42px;
-          background: #d1d7e0;
-          border-top: 2px solid #ffffff;
-          border-left: 2px solid #ffffff;
-          border-bottom: 2px solid #334155;
-          border-right: 2px solid #334155;
-          box-shadow: 1px 1px 0px #0f172a;
-          font-size: 13px;
-          font-weight: 800;
-          font-family: 'Segoe UI', Tahoma, monospace, sans-serif;
-          letter-spacing: 1px;
-          color: #0f172a;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: background-color 0.05s ease;
-        }
-        .gateway-root .enter-btn:hover {
-          background: #dbe1ea;
-        }
-        .gateway-root .enter-btn:active {
-          border-top: 2px solid #334155;
-          border-left: 2px solid #334155;
-          border-bottom: 2px solid #ffffff;
-          border-right: 2px solid #ffffff;
-          box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.4);
-          background: #c3cad4;
-          padding-top: 2px;
-          padding-left: 2px;
-        }
-
-        /* 하단 상태바 (Classic Groove & Industrial Bevel) */
-        .gateway-root .status-bar {
-          background: #b5bdc7;
-          border-top: 1px solid #94a3b8;
-          padding: 5px 12px;
-          font-size: 11px;
-          font-family: monospace;
-          color: #334155;
-          display: flex;
-          justify-content: space-between;
-        }
-        .gateway-root .ready-indicator {
-          color: #047857;
-          font-weight: bold;
-        }
-      `}</style>
+      <style>{LOGIN_GATEWAY_STYLES}</style>
+      <style>{LOGIN_GATEWAY_TASK_STYLES}</style>
+      <style>{LOGIN_GATEWAY_ACCOUNT_CARD_STYLES}</style>
 
       <div className="window">
         {/* 상단 타이틀바 */}
@@ -285,13 +118,37 @@ export default function LoginGateway({ onEnter, onLogin }: LoginGatewayProps) {
             <div className="status-item">
               &gt; DATA HYDRATION: <span className="highlight">DEFERRED (EXECUTES POST-LOGIN)</span>
             </div>
+            {/* TODO: wire to real user_sessions.expires_at once user_accounts backend exists */}
+            <div className="status-item">
+              &gt; SESSION POLICY: <span className="highlight">30분 미조작 시 자동 로그아웃</span>
+            </div>
           </div>
 
-          {/* 4. Button: Classic Windows 3D Bevel Button */}
-          <button type="button" className="enter-btn" onClick={handleLogin}>
-            <span>[ ENTER PORTAL ]</span>
-            <span>➔</span>
-          </button>
+          {/* 3b. Quick-Login: user_accounts 시드 3계정 카드 선택 (비밀번호 입력 없음) */}
+          <div className="quick-login-row">
+            <span className="quick-login-label">&gt; QUICK LOGIN (계정 선택)</span>
+            {USER_ACCOUNTS.map((account) => (
+              <QuickLoginAccountCard
+                key={account.userId}
+                account={account}
+                disabled={isLockedOut}
+                onSelect={handleSelectAccount}
+              />
+            ))}
+          </div>
+
+          {/* 계정 잠금 안내 — 컴포넌트 로컬 상태 기반 UI 시뮬레이션 (새로고침 시 초기화, user_accounts 미연동, 비기능) */}
+          {isLockedOut && lockoutUntil !== null && (
+            <div className="lockout-banner">
+              계정이 잠겼습니다. {formatCountdown(lockoutUntil - now)} 후 다시 시도하세요.
+              (로컬 UI 시뮬레이션 — 실제 계정 잠금 아님)
+            </div>
+          )}
+          {!isLockedOut && failedAttempts > 0 && (
+            <div className="lockout-banner">
+              로그인 실패 ({failedAttempts}/{MAX_FAILED_ATTEMPTS} 시도)
+            </div>
+          )}
         </div>
 
         {/* 하단 상태 바 */}

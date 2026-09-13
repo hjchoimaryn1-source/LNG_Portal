@@ -274,6 +274,7 @@ export default function SidebarNav({
             )}
             {renderNavItem('SAFETY_GAS_TESTING', 'Gas Logs')}
             {renderNavItem('SAFETY_ERT_READINESS', 'ERT')}
+            {renderNavItem('SAFETY_SOP_REFERENCE', 'SOP Reference')}
           </div>
         </div>
 

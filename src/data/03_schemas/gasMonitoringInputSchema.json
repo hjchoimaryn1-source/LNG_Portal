@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nias-lng-portal/schemas/gasMonitoringInputSchema.json",
+  "title": "Gas Monitoring Input",
+  "description": "Standardized input contract for a gas-test/AGT reading. Field names mirror PTWPermit.gasReadings and CargoHandlingGasPoint (src/types/lng.ts), and thresholds mirror the universal gate constants in src/data/ptwGasSafetyRules.ts. Reference-only for next-phase RBAC/PTW runtime wiring — does not replace validatePTWGasSafety()/checkUniversalGasBands() or the periodic Zone AGT register in src/data/01_raw_docs/gasTestingLogData.ts (a separate, permit-independent domain — see that file's DOMAIN NOTE).",
+  "type": "object",
+  "required": ["tagId", "lelPercent", "o2Percent", "h2sPpm", "coPpm", "testedAt"],
+  "properties": {
+    "tagId": { "type": "string", "description": "Measurement point, e.g. T-201..T-204 (Unloading Skid), VAP-101..106" },
+    "zone": {
+      "type": "string",
+      "description": "Optional; mirrors GasTestZone in gasTestingLogData.ts",
+      "enum": ["UNLOADING_SKID", "AMBIENT_VAPORIZER", "PRSS_HEADER", "BOG_COMPRESSOR"]
+    },
+    "lelPercent": { "type": "number", "minimum": 0 },
+    "o2Percent": { "type": "number", "minimum": 0, "maximum": 100, "description": "Universal safe band: 19.5 - 23.5 (O2_MIN_PERCENT/O2_MAX_PERCENT)" },
+    "h2sPpm": { "type": "number", "minimum": 0, "description": "Fails at >= 10 ppm (H2S_MAX_PPM)" },
+    "coPpm": { "type": "number", "minimum": 0, "description": "Fails at >= 25 ppm (CO_MAX_PPM)" },
+    "hgPpm": { "type": "number", "minimum": 0, "description": "Optional; captured for audit only, no numeric SSHQE ceiling confirmed" },
+    "testedAt": { "type": "string", "format": "date-time" },
+    "permitRefNo": { "type": "string", "description": "Optional; links a permit-scoped reading back to its PTWPermit. Absent for the independent periodic Zone AGT register." },
+    "isSafeForWork": { "type": "boolean" }
+  }
+}

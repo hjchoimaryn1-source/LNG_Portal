@@ -4,13 +4,26 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
 import { PTWPermit, PTWType, StaffPersonnel } from '../../../types/lng';
-import { PTW_SOP_FORMS, isGasMeasurementApplicable, validatePTWWorkerEligibility } from '../../../data/ptwMasterData';
+import { PTW_SOP_FORMS, isGasMeasurementApplicable } from '../../../data/ptwMasterData';
 import { PLANT_WORK_LOCATIONS } from '../../../data/ptwWorkAreas';
 import { CmmsPermitMeta, useCMMSPTWForm } from '../../../hooks/useCMMSPTWForm';
 import PRACChecklistSection from './ptw/PRACChecklistSection';
-import WorkforcePillPicker from './ptw/WorkforcePillPicker';
+import PermitPersonnelSection from './ptw/PermitPersonnelSection';
 import SimopsWarningModal from './ptw/SimopsWarningModal';
 import StageOneSummaryFlags from './ptw/StageOneSummaryFlags';
+import { SopQuickLinkBar } from '../../sop';
+import GuardrailBlockedBanner from '../../shared/GuardrailBlockedBanner';
+import { SopQuickLinkContext } from '../../sop/constants/sopQuickLinkMap';
+
+// form.newPermitType (Exclude<PTWType, 'CARGO_HANDLING'>) -> SopQuickLinkContext 1:1 매핑.
+const PTW_TYPE_TO_SOP_CONTEXT: Record<Exclude<PTWType, 'CARGO_HANDLING'>, SopQuickLinkContext> = {
+  COLD_WORK: 'PTW_COLD_WORK',
+  HOT_WORK: 'PTW_HOT_WORK',
+  CONFINED_SPACE: 'PTW_CONFINED_SPACE',
+  ELECTRICAL: 'PTW_ELECTRICAL',
+  EXCAVATION: 'PTW_EXCAVATION',
+  RADIOGRAPHY: 'PTW_RADIOGRAPHY',
+};
 
 export interface NewPTWPermitModalProps {
   isOpen: boolean;
@@ -22,6 +35,7 @@ export interface NewPTWPermitModalProps {
   // Phase 1 stage/status + payloadHash baseline (permit_lock_state) generated
   // alongside the legacy permit — see src/hooks/useCMMSPTWForm.ts.
   onSubmitSuccess: (newPermit: PTWPermit, cmmsMeta: CmmsPermitMeta) => void;
+  onOpenSopReference?: () => void;
 }
 
 export default function NewPTWPermitModal({
@@ -31,6 +45,7 @@ export default function NewPTWPermitModal({
   sequenceNumber,
   activePermits,
   onSubmitSuccess,
+  onOpenSopReference,
 }: NewPTWPermitModalProps) {
   const form = useCMMSPTWForm({ personnelList, sequenceNumber, activePermits, onSubmitSuccess, onClose });
 
@@ -63,6 +78,15 @@ export default function NewPTWPermitModal({
             ✕
           </button>
         </div>
+
+        <div className="bg-[#d4d0c8] px-6 py-1 border-b border-slate-400 shrink-0">
+          <SopQuickLinkBar
+            context={PTW_TYPE_TO_SOP_CONTEXT[form.newPermitType]}
+            onSelect={() => onOpenSopReference?.()}
+          />
+        </div>
+
+        <GuardrailBlockedBanner message={form.blockedMessage} />
 
         <div className="p-6 sm:p-8 space-y-5 text-sm overflow-y-auto flex-1">
           {/* 1. PTW Form Type & Plant Location */}
@@ -153,50 +177,15 @@ export default function NewPTWPermitModal({
           </div>
 
           {/* 3. Personnel: Originator, Work Leader & Workforce */}
-          <div className="space-y-4">
-            {/* Originator — Read-Only */}
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-800">
-                Originator / Applicant
-                <span className="text-xs font-normal text-slate-500 ml-1.5">(Read-Only — Auto-filled from session)</span>
-              </label>
-              <div className="w-full h-10 px-3.5 flex items-center border border-slate-200 rounded-md bg-slate-50 text-slate-600 font-medium text-sm select-none">
-                {form.originatorLabel}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Work Leader */}
-              <div className="space-y-1.5">
-                <label className="block font-bold text-slate-800">Work Leader</label>
-                <select
-                  value={form.newWorkLeaderId}
-                  onChange={(e) => form.setNewWorkLeaderId(e.target.value)}
-                  className="w-full h-10 px-3.5 border border-slate-300 rounded-md font-medium bg-white cursor-pointer shadow-sm"
-                >
-                  {personnelList.map((m) => {
-                    const check = validatePTWWorkerEligibility(m, form.newPermitType);
-                    return (
-                      <option key={m.id} value={m.id} disabled={!check.isEligible}>
-                        {m.name} ({m.role}) {!check.isEligible ? `[⚠️ Ineligible: ${check.reason}]` : '✓ Qualified'}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-
-              {/* Assigned Workforce — Pill Picker */}
-              <div className="space-y-1.5">
-                <label className="block font-bold text-slate-800">Assigned Workforce (PJSM Participants)</label>
-                <WorkforcePillPicker
-                  personnelList={personnelList}
-                  permitType={form.newPermitType}
-                  selectedIds={form.assignedWorkerIds}
-                  onToggle={form.toggleAssignedWorker}
-                />
-              </div>
-            </div>
-          </div>
+          <PermitPersonnelSection
+            originatorLabel={form.originatorLabel}
+            personnelList={personnelList}
+            permitType={form.newPermitType}
+            workLeaderId={form.newWorkLeaderId}
+            onWorkLeaderChange={form.setNewWorkLeaderId}
+            assignedWorkerIds={form.assignedWorkerIds}
+            onToggleWorker={form.toggleAssignedWorker}
+          />
 
           {/* 4. Stage-1 Derived Summary Flags */}
           <StageOneSummaryFlags isHighRisk={isHighRisk} isGasRequired={isGasRequired} />

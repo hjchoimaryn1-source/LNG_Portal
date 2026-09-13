@@ -58,6 +58,7 @@ export default function PortalRouteView({
         showWoSchedulerPreview={showWoSchedulerPreview}
         setShowWoSchedulerPreview={setShowWoSchedulerPreview}
         focusRecordId={focusRecordId}
+        onNavigateToSopReference={() => handleSelectSubProcess('SAFETY_SOP_REFERENCE')}
       />
       <ManpowerSafetyRoutes
         activeKey={activeKey}

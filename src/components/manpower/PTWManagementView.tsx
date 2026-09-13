@@ -23,6 +23,7 @@ interface PTWManagementViewProps {
   };
   onNavigateToMatrix?: (empId: string) => void;
   onNavigateToDailyShift?: () => void;
+  onNavigateToSopReference?: () => void;
   focusId?: string;
 }
 
@@ -36,6 +37,7 @@ export default function PTWManagementView({
   personnelList,
   isERTMet,
   onNavigateToMatrix,
+  onNavigateToSopReference,
   focusId,
 }: PTWManagementViewProps) {
   switch (activeTab) {
@@ -52,6 +54,7 @@ export default function PTWManagementView({
           personnelList={personnelList}
           isERTMet={isERTMet}
           onNavigateToMatrix={onNavigateToMatrix}
+          onNavigateToSopReference={onNavigateToSopReference}
           focusId={focusId}
         />
       );

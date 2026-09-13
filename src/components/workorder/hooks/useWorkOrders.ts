@@ -17,6 +17,8 @@ import type { PTWPermit, WOItem } from '../../../types/lng';
 import { buildMockWorkOrdersFromAssets } from '../../cmms/mockWorkOrderGenerator';
 import { toNewWorkOrderInput, applyRecordToItem } from '../../../utils/workOrderRecordMapper';
 import type { WorkOrderRecord } from '../../../adapters/db/workOrderDao';
+import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { evaluateMutationGuardrails } from '../../../adapters/guardrailUiAdapter';
 
 const WORK_ORDERS_API = '/api/v1/cmms/work-orders';
 
@@ -29,6 +31,10 @@ export function useWorkOrders(cmmsAssetRows: CmmsAssetRow[], permits: PTWPermit[
   const [records, setRecords] = useState<WorkOrderRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const activeSession = useActiveSession();
+  // Phase 3 MOD_3 UI 표준화: Auditor Mode 차단 사유를 GuardrailBlockedBanner로
+  // 표시하기 위한 상태. WorkOrderListView.tsx가 이 값을 배너에 전달한다.
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 
   const decoratedItems = useMemo(
     () => buildMockWorkOrdersFromAssets(cmmsAssetRows, permits),
@@ -86,6 +92,19 @@ export function useWorkOrders(cmmsAssetRows: CmmsAssetRow[], permits: PTWPermit[
   );
 
   async function markCompleted(workOrderId: string, lastPerformedAt: string) {
+    setBlockedMessage(null);
+    // Phase 3 MOD_3: Auditor Mode hard block. No fatigueCheck — WOItem.tech is a
+    // display-only technician name, not a userId matching daily_shift_assignments
+    // (see CMMS_Architecture.md §3.4); fabricating that mapping is out of scope.
+    // Fail-open if no active session exists yet (pre-existing DEV bypass).
+    if (activeSession) {
+      const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'UPDATE' });
+      if (!guard.allowed) {
+        setBlockedMessage(guard.reason ?? 'WORK ORDER UPDATE BLOCKED');
+        return;
+      }
+    }
+
     const res = await fetch(WORK_ORDERS_API, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -97,5 +116,5 @@ export function useWorkOrders(cmmsAssetRows: CmmsAssetRow[], permits: PTWPermit[
     }
   }
 
-  return { workOrders, loading, error, markCompleted };
+  return { workOrders, loading, error, markCompleted, blockedMessage };
 }

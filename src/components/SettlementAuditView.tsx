@@ -4,6 +4,8 @@
 import React, { useState, useMemo } from 'react';
 import { usePortalData } from '../context/PortalDataContext';
 import { exportToCSV } from '../utils/exportCsv';
+import { useActiveSession } from '../lib/rbac/activeSessionStore';
+import { evaluateMutationGuardrails } from '../adapters/guardrailUiAdapter';
 import {
   Scale,
   AlertTriangle,
@@ -25,6 +27,7 @@ import {
 
 export default function SettlementAuditView() {
   const { settlementRecords, gasCompositions, addFlobossAndGCLog } = usePortalData();
+  const activeSession = useActiveSession();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'VERIFIED' | 'DISPUTE_ALERT'>('ALL');
   const [isGCModalOpen, setIsGCModalOpen] = useState<boolean>(false);
@@ -139,6 +142,18 @@ export default function SettlementAuditView() {
 
   const handleGCSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Phase 3 MOD_4 (Custody/Settlement, mapped from "Gas Sales & Metering" —
+    // see CMMS_Architecture.md §3.4 Phase 3 notes). Auditor Mode hard block only —
+    // no fatigueCheck (this form has no work-leader/technician userId field).
+    // Fail-open if no active session exists yet (pre-existing DEV bypass).
+    if (activeSession) {
+      const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'CREATE' });
+      if (!guard.allowed) {
+        setToastMessage(`⚠️ [GC LOG BLOCKED] ${guard.reason}`);
+        setTimeout(() => setToastMessage(null), 3500);
+        return;
+      }
+    }
     if (gcSource === 'Plant Gas GC M-101A/B') {
       addFlobossAndGCLog(
         {},
