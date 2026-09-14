@@ -16,6 +16,9 @@ import { PatrolFieldInput } from './PatrolFieldInput';
 import { ReadingStatusControl } from './ReadingStatusControl';
 import { emptyPatrolValues, type PatrolSaveHandler } from './patrolFormTypes';
 
+/** Train A/B equipment tags — single source of truth for other consumers (e.g. PIDOverlayView). */
+export const METERING_EQUIPMENT_TAGS = ['METERING-TRAIN-A', 'METERING-TRAIN-B'];
+
 export interface MeteringPatrolFormProps {
   train: 'A' | 'B';
   onSave: PatrolSaveHandler;

@@ -21,7 +21,8 @@ import { emptyPatrolValues, type PatrolSaveHandler } from './patrolFormTypes';
 const N2_FIELDS = PATROL_FIELD_MAP.n2_skid;
 const N2_CYLINDER_TAGS = Array.from({ length: 10 }, (_, i) => `N2-CYL-${String(i + 1).padStart(2, '0')}`);
 const N2_SKID_AREA_TAGS = ['N2-SKID-SUPPLY-1', 'N2-SKID-SUPPLY-2', 'N2-SKID-SUPPLY-3'];
-const N2_ALL_TAGS = [...N2_CYLINDER_TAGS, ...N2_SKID_AREA_TAGS];
+/** 10 cylinders + 3 skid-area tags — single source of truth for other consumers (e.g. PIDOverlayView). */
+export const N2_ALL_TAGS = [...N2_CYLINDER_TAGS, ...N2_SKID_AREA_TAGS];
 
 interface RowState {
   values: PatrolValues;

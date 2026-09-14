@@ -10,6 +10,10 @@
 //   BACKGROUND_IMAGE_URL: JSK 원본 다이어그램 파일이 저장소에 없어(Stage A
 //   deviation) 자리표시자를 그린다 — HJ가 자산을 제공하면 이 상수만 채우면 된다.
 //
+//   후보 태그 목록(CANDIDATE_TAG_DOMAIN)은 Phase 12 Addendum 2에서 AAV
+//   4개뿐이던 것을 7개 도메인으로 확장했다(pidCandidateTags.ts) — iso_tank_cargo는
+//   NiasActiveBayWorkspace.tsx 소관이라 계속 제외.
+//
 //   모니터링/입력 전용 뷰 — DailyReportPrintView는 이 폴더(src/cmms-daily-ops/pid/*)를
 //   임포트하지 않는다(구조적으로 Stage C 인쇄 산출물과 분리, 이 컴포넌트 자체가
 //   그 보장을 강제하지는 않지만 임포트 그래프상 단방향임을 명시해 둔다).
@@ -18,8 +22,7 @@
 
 import { useEffect, useState, type MouseEvent } from 'react';
 import { RAISED_PANEL, BEVEL_BUTTON, BEVEL_BUTTON_PRESSED } from '../../components/cmms/scadaStyles';
-import { AAV_EQUIPMENT_TAGS } from '../components/patrol/AavPatrolForm';
-import type { PatrolDomain } from '../types/patrolLog';
+import { CANDIDATE_TAG_DOMAIN, PRIMARY_COLUMN_BY_DOMAIN } from './pidCandidateTags';
 import { PidTagBadge } from './PidTagBadge';
 import { CalibrationTagPicker } from './CalibrationTagPicker';
 
@@ -28,13 +31,6 @@ const NATIVE_HEIGHT = 924;
 const PID_COORDINATES_API = '/api/v1/cmms/pid-tag-coordinates';
 const BACKGROUND_IMAGE_URL: string | null = null;
 const ZOOM_LEVELS = [1, 1.5] as const;
-
-const CANDIDATE_TAG_DOMAIN: Record<string, PatrolDomain> = Object.fromEntries(
-  AAV_EQUIPMENT_TAGS.map((tag) => [tag, 'aav' as PatrolDomain])
-);
-const PRIMARY_COLUMN_BY_DOMAIN: Partial<Record<PatrolDomain, string>> = {
-  aav: 'pressure_gauge_us_bar',
-};
 
 interface CoordinateDto {
   tagId: string;

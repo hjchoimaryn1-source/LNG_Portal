@@ -33,6 +33,9 @@ const ELECTRICAL_SUB_BLOCKS: ElectricalSubBlock[] = [
   { tag: 'UPS-01', label: 'UPS', columns: ['status_text', 'battery_capacity_pct', 'ups_load_pct'] },
 ];
 
+/** Single source of truth for other consumers (e.g. PIDOverlayView). */
+export const ELECTRICAL_EQUIPMENT_TAGS = ELECTRICAL_SUB_BLOCKS.map((b) => b.tag);
+
 function fieldsFor(columns: string[]): PatrolFieldSpec[] {
   return columns.map((c) => ELECTRICAL_FIELDS.find((f) => f.columnName === c)!);
 }

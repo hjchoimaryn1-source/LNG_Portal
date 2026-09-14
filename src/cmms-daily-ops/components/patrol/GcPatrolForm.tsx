@@ -16,7 +16,8 @@ import { PatrolFieldInput } from './PatrolFieldInput';
 import { ReadingStatusControl } from './ReadingStatusControl';
 import { emptyPatrolValues, type PatrolSaveHandler } from './patrolFormTypes';
 
-const GC_EQUIPMENT_TAG = 'GC-01';
+/** Single source of truth for other consumers (e.g. PIDOverlayView). */
+export const GC_EQUIPMENT_TAG = 'GC-01';
 const GC_FIELDS = PATROL_FIELD_MAP.gc;
 const GC_STATUS_FIELDS = GC_FIELDS.filter((f) => f.type === 'text');
 const GC_COMPOSITION_FIELDS = GC_FIELDS.filter((f) => f.type === 'number');
