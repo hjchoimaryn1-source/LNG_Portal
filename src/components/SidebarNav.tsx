@@ -291,6 +291,19 @@ export default function SidebarNav({
           </div>
         </div>
 
+        {/* ========================================================================= */}
+        {/* 7. ENVIRONMENT & WASTE (NP-10)                                            */}
+        {/* ========================================================================= */}
+        <div>
+          {/* 3D Classic Raised Bevel Header */}
+          <div className={SECTION_HEADER_BEVEL}>
+            <span>Environment &amp; Waste</span>
+          </div>
+          <div className="bg-[#d4d0c8]">
+            {renderNavItem('ENVIRONMENT_HUB', 'NP-10 Hub', undefined, activeKey.startsWith('ENVIRONMENT'))}
+          </div>
+        </div>
+
       </div>
 
       {/* 4. Windows Statusbar Footer */}
