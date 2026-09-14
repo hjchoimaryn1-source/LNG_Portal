@@ -83,7 +83,12 @@ export type SubProcessKey =
   | 'TRUCKING_PRE_OP'
   | 'TRUCKING_PERIODIC_INSPECTION'
   | 'TRUCKING_TRAFFIC_MGMT'
-  | 'TRUCKING_POST_TRANSIT';
+  | 'TRUCKING_POST_TRANSIT'
+  // Environmental & Waste Management (NP-10) — Phase 11b Stage 2
+  | 'ENVIRONMENT_HUB'
+  | 'ENVIRONMENT_AIR_WATER_NOISE'
+  | 'ENVIRONMENT_WASTE_TRANSFER'
+  | 'ENVIRONMENT_THWS_INVENTORY';
 
 export interface OffloadHeelMetrics {
   offloadDate: string;
