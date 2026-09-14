@@ -12,6 +12,8 @@
 //   (ISO Tank UI는 NiasActiveBayWorkspace.tsx 소관, 범위 밖), 임의의 태그를
 //   지어내지 않기 위해 의도적으로 제외했다(Stage C1 deviation note 참고).
 
+import type { PatrolDomain } from '../types/patrolLog';
+
 export const METERING_EQUIPMENT_TAGS = ['METERING-TRAIN-A', 'METERING-TRAIN-B'];
 export const AAV_EQUIPMENT_TAGS = ['AAV-102', 'AAV-103', 'AAV-105', 'AAV-106'];
 export const N2_CYLINDER_TAGS = Array.from({ length: 10 }, (_, i) => `N2-CYL-${String(i + 1).padStart(2, '0')}`);
@@ -23,3 +25,19 @@ export const ELECTRICAL_EQUIPMENT_TAGS = ['MV-SWGR-01', 'LV-SWGR-01', 'TRAFO-01'
 // Phase 12 Addendum 2 자리표시자 — 실제 순찰 폼이 아직 없는 유일한 도메인이라
 // 지시에 명시된 값을 그대로 쓴다.
 export const ISO_TANK_UNLOADING_SKID_TAGS = ['T-201', 'T-202', 'T-203', 'T-204'];
+
+/**
+ * (domain → equipment_tag[]) 전체 — iso_tank_cargo 제외 7개 도메인.
+ * Stage C1 generateSnapshot과 pidCandidateTags.ts가 공유하는 그룹핑.
+ * iso_tank_cargo는 순찰 폼이 없어(ISO Tank UI는 NiasActiveBayWorkspace.tsx
+ * 소관) 의도적으로 빠져 있다 — 임의의 태그를 지어내지 않기 위함.
+ */
+export const PATROL_EQUIPMENT_TAGS_BY_DOMAIN: Partial<Record<PatrolDomain, string[]>> = {
+  metering_train_a: [METERING_EQUIPMENT_TAGS[0]],
+  metering_train_b: [METERING_EQUIPMENT_TAGS[1]],
+  aav: AAV_EQUIPMENT_TAGS,
+  n2_skid: N2_ALL_TAGS,
+  gc: [GC_EQUIPMENT_TAG],
+  electrical: ELECTRICAL_EQUIPMENT_TAGS,
+  iso_tank_unloading_skid: ISO_TANK_UNLOADING_SKID_TAGS,
+};

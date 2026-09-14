@@ -9,31 +9,14 @@
 //   iso_tank_cargo는 지시에 따라 이 목록에서 제외한다 — ISO Tank 순찰 UI/
 //   태그는 NiasActiveBayWorkspace.tsx의 기존 도메인 소관이며 범위 밖이다.
 
-import {
-  AAV_EQUIPMENT_TAGS,
-  METERING_EQUIPMENT_TAGS,
-  N2_ALL_TAGS,
-  GC_EQUIPMENT_TAG,
-  ELECTRICAL_EQUIPMENT_TAGS,
-  ISO_TANK_UNLOADING_SKID_TAGS,
-} from '../dao/patrolEquipmentTags';
+import { PATROL_EQUIPMENT_TAGS_BY_DOMAIN } from '../dao/patrolEquipmentTags';
 import type { PatrolDomain } from '../types/patrolLog';
 
-function domainMap(tags: string[], domain: PatrolDomain): Array<[string, PatrolDomain]> {
-  return tags.map((tag) => [tag, domain]);
-}
-
-export const CANDIDATE_TAG_DOMAIN: Record<string, PatrolDomain> = Object.fromEntries([
-  // METERING_EQUIPMENT_TAGS === ['METERING-TRAIN-A', 'METERING-TRAIN-B'] — index 0/1 map
-  // 1:1 to the two metering domains, unlike the other domains' single-domain tag lists.
-  [METERING_EQUIPMENT_TAGS[0], 'metering_train_a' as PatrolDomain],
-  [METERING_EQUIPMENT_TAGS[1], 'metering_train_b' as PatrolDomain],
-  ...domainMap(AAV_EQUIPMENT_TAGS, 'aav'),
-  ...domainMap(N2_ALL_TAGS, 'n2_skid'),
-  ...domainMap([GC_EQUIPMENT_TAG], 'gc'),
-  ...domainMap(ELECTRICAL_EQUIPMENT_TAGS, 'electrical'),
-  ...domainMap(ISO_TANK_UNLOADING_SKID_TAGS, 'iso_tank_unloading_skid'),
-]);
+export const CANDIDATE_TAG_DOMAIN: Record<string, PatrolDomain> = Object.fromEntries(
+  Object.entries(PATROL_EQUIPMENT_TAGS_BY_DOMAIN).flatMap(([domain, tags]) =>
+    (tags ?? []).map((tag) => [tag, domain as PatrolDomain])
+  )
+);
 
 /** 배지에 표시할 도메인별 대표 컬럼 1개 — PidTagBadge.tsx가 사용한다. */
 export const PRIMARY_COLUMN_BY_DOMAIN: Partial<Record<PatrolDomain, string>> = {
