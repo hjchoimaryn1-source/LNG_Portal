@@ -7,8 +7,9 @@
 //   비어 있으므로(pidReconciliationSchema.ts 헤더 참고), "Calibrate Tags"
 //   토글로 클릭 위치 → 태그 매핑을 직접 저장할 수 있게 했다.
 //
-//   BACKGROUND_IMAGE_URL: JSK 원본 다이어그램 파일이 저장소에 없어(Stage A
-//   deviation) 자리표시자를 그린다 — HJ가 자산을 제공하면 이 상수만 채우면 된다.
+//   BACKGROUND_IMAGE_URL: HJ가 제공한 /public/images/P&ID.png를 가리킨다.
+//   파일이 없던 Stage A 당시엔 자리표시자(placeholder rect)를 그렸으나,
+//   이제 자산이 존재해 실제 이미지로 교체했다.
 //
 //   후보 태그 목록(CANDIDATE_TAG_DOMAIN)은 Phase 12 Addendum 2에서 AAV
 //   4개뿐이던 것을 7개 도메인으로 확장했다(pidCandidateTags.ts) — iso_tank_cargo는
@@ -29,7 +30,7 @@ import { CalibrationTagPicker } from './CalibrationTagPicker';
 const NATIVE_WIDTH = 1316;
 const NATIVE_HEIGHT = 924;
 const PID_COORDINATES_API = '/api/v1/cmms/pid-tag-coordinates';
-const BACKGROUND_IMAGE_URL: string | null = null;
+const BACKGROUND_IMAGE_URL: string | null = '/images/P&ID.png';
 const ZOOM_LEVELS = [1, 1.5] as const;
 
 interface CoordinateDto {
@@ -48,7 +49,9 @@ interface PendingPick {
 
 export function PIDOverlayView() {
   const [coordinates, setCoordinates] = useState<CoordinateDto[]>([]);
-  const [calibrateMode, setCalibrateMode] = useState(false);
+  // 진입 시 기본값은 항상 false — [Calibrate Tags] 버튼을 눌러야만 캔버스
+  // 클릭이 편집 박스(CalibrationTagPicker)를 띄운다(handleCanvasClick 가드 참고).
+  const [isCalibrating, setIsCalibrating] = useState(false);
   const [zoom, setZoom] = useState<(typeof ZOOM_LEVELS)[number]>(1);
   const [pendingPick, setPendingPick] = useState<PendingPick | null>(null);
 
@@ -67,7 +70,7 @@ export function PIDOverlayView() {
   const visibleBadges = coordinates.filter((c) => c.calibrated);
 
   function handleCanvasClick(e: MouseEvent<SVGSVGElement>) {
-    if (!calibrateMode) return;
+    if (!isCalibrating) return;
     const rect = e.currentTarget.getBoundingClientRect();
     setPendingPick({
       x: ((e.clientX - rect.left) / rect.width) * NATIVE_WIDTH,
@@ -96,8 +99,8 @@ export function PIDOverlayView() {
           <span className="text-[11px] font-bold text-slate-700 uppercase">P&ID LIVE OVERLAY</span>
           <button
             type="button"
-            onClick={() => setCalibrateMode((v) => !v)}
-            className={calibrateMode ? BEVEL_BUTTON_PRESSED : BEVEL_BUTTON}
+            onClick={() => setIsCalibrating((v) => !v)}
+            className={isCalibrating ? BEVEL_BUTTON_PRESSED : BEVEL_BUTTON}
           >
             Calibrate Tags
           </button>
@@ -118,7 +121,7 @@ export function PIDOverlayView() {
             width={NATIVE_WIDTH * zoom}
             height={NATIVE_HEIGHT * zoom}
             viewBox={`0 0 ${NATIVE_WIDTH} ${NATIVE_HEIGHT}`}
-            style={{ display: 'block', cursor: calibrateMode ? 'crosshair' : 'default' }}
+            style={{ display: 'block', cursor: isCalibrating ? 'crosshair' : 'default' }}
             onClick={handleCanvasClick}
           >
             {BACKGROUND_IMAGE_URL ? (
