@@ -9,11 +9,12 @@
 
 import { useState } from 'react';
 import type { ShiftTimeSlot } from '../../types/patrolLog';
+import { AAV_EQUIPMENT_TAGS } from '../../dao/patrolEquipmentTags';
 import { ShiftSlotSelector } from './ShiftSlotSelector';
 import { AavUnitBlock } from './AavUnitBlock';
 import type { PatrolSaveHandler } from './patrolFormTypes';
 
-export const AAV_EQUIPMENT_TAGS = ['AAV-102', 'AAV-103', 'AAV-105', 'AAV-106'];
+export { AAV_EQUIPMENT_TAGS };
 
 export interface AavPatrolFormProps {
   onSave: PatrolSaveHandler;

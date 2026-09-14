@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { RAISED_PANEL, BEVEL_BUTTON, SUNKEN_PANEL } from '../../../components/cmms/scadaStyles';
 import { PATROL_FIELD_MAP } from '../../dao/patrolFieldMaps';
+import { N2_ALL_TAGS } from '../../dao/patrolEquipmentTags';
 import type { PatrolValues, PatrolFieldValue } from '../../dao/dailyOpsPatrolDao';
 import type { ReadingStatus, ShiftTimeSlot } from '../../types/patrolLog';
 import { ShiftSlotSelector } from './ShiftSlotSelector';
@@ -18,11 +19,9 @@ import { PatrolFieldInput } from './PatrolFieldInput';
 import { ReadingStatusControl } from './ReadingStatusControl';
 import { emptyPatrolValues, type PatrolSaveHandler } from './patrolFormTypes';
 
+export { N2_ALL_TAGS };
+
 const N2_FIELDS = PATROL_FIELD_MAP.n2_skid;
-const N2_CYLINDER_TAGS = Array.from({ length: 10 }, (_, i) => `N2-CYL-${String(i + 1).padStart(2, '0')}`);
-const N2_SKID_AREA_TAGS = ['N2-SKID-SUPPLY-1', 'N2-SKID-SUPPLY-2', 'N2-SKID-SUPPLY-3'];
-/** 10 cylinders + 3 skid-area tags — single source of truth for other consumers (e.g. PIDOverlayView). */
-export const N2_ALL_TAGS = [...N2_CYLINDER_TAGS, ...N2_SKID_AREA_TAGS];
 
 interface RowState {
   values: PatrolValues;

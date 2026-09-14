@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { RAISED_PANEL, BEVEL_BUTTON } from '../../../components/cmms/scadaStyles';
 import { PATROL_FIELD_MAP } from '../../dao/patrolFieldMaps';
+import { GC_EQUIPMENT_TAG } from '../../dao/patrolEquipmentTags';
 import type { PatrolValues, PatrolFieldValue } from '../../dao/dailyOpsPatrolDao';
 import type { ReadingStatus, ShiftTimeSlot } from '../../types/patrolLog';
 import { ShiftSlotSelector } from './ShiftSlotSelector';
@@ -16,8 +17,8 @@ import { PatrolFieldInput } from './PatrolFieldInput';
 import { ReadingStatusControl } from './ReadingStatusControl';
 import { emptyPatrolValues, type PatrolSaveHandler } from './patrolFormTypes';
 
-/** Single source of truth for other consumers (e.g. PIDOverlayView). */
-export const GC_EQUIPMENT_TAG = 'GC-01';
+export { GC_EQUIPMENT_TAG };
+
 const GC_FIELDS = PATROL_FIELD_MAP.gc;
 const GC_STATUS_FIELDS = GC_FIELDS.filter((f) => f.type === 'text');
 const GC_COMPOSITION_FIELDS = GC_FIELDS.filter((f) => f.type === 'number');

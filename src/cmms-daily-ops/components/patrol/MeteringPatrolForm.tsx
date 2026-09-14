@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { RAISED_PANEL, BEVEL_BUTTON } from '../../../components/cmms/scadaStyles';
 import { PATROL_FIELD_MAP } from '../../dao/patrolFieldMaps';
+import { METERING_EQUIPMENT_TAGS } from '../../dao/patrolEquipmentTags';
 import type { PatrolValues, PatrolFieldValue } from '../../dao/dailyOpsPatrolDao';
 import type { PatrolDomain, ReadingStatus, ShiftTimeSlot } from '../../types/patrolLog';
 import { ShiftSlotSelector } from './ShiftSlotSelector';
@@ -16,8 +17,7 @@ import { PatrolFieldInput } from './PatrolFieldInput';
 import { ReadingStatusControl } from './ReadingStatusControl';
 import { emptyPatrolValues, type PatrolSaveHandler } from './patrolFormTypes';
 
-/** Train A/B equipment tags — single source of truth for other consumers (e.g. PIDOverlayView). */
-export const METERING_EQUIPMENT_TAGS = ['METERING-TRAIN-A', 'METERING-TRAIN-B'];
+export { METERING_EQUIPMENT_TAGS };
 
 export interface MeteringPatrolFormProps {
   train: 'A' | 'B';
@@ -26,7 +26,7 @@ export interface MeteringPatrolFormProps {
 
 export function MeteringPatrolForm({ train, onSave }: MeteringPatrolFormProps) {
   const domain: PatrolDomain = train === 'A' ? 'metering_train_a' : 'metering_train_b';
-  const equipmentTag = `METERING-TRAIN-${train}`;
+  const equipmentTag = train === 'A' ? METERING_EQUIPMENT_TAGS[0] : METERING_EQUIPMENT_TAGS[1];
   const fields = PATROL_FIELD_MAP[domain];
 
   const [shiftTimeSlot, setShiftTimeSlot] = useState<ShiftTimeSlot>('08:00');
