@@ -32,5 +32,8 @@ export function getInitialNav(key: SubProcessKey): { menu: string; subTab: strin
   if (key.startsWith('ENVIRONMENT')) {
     return { menu: 'environment', subTab: key };
   }
+  if (key.startsWith('MOC')) {
+    return { menu: 'moc', subTab: key };
+  }
   return { menu: 'lng-process', subTab: key };
 }

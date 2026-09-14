@@ -97,6 +97,9 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
     } else if (key.startsWith('ENVIRONMENT')) {
       setActiveMenu('environment');
       setActiveSubTab(key);
+    } else if (key.startsWith('MOC')) {
+      setActiveMenu('moc');
+      setActiveSubTab(key);
     } else {
       setActiveMenu(key);
       setActiveSubTab(key);

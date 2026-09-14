@@ -88,7 +88,11 @@ export type SubProcessKey =
   | 'ENVIRONMENT_HUB'
   | 'ENVIRONMENT_AIR_WATER_NOISE'
   | 'ENVIRONMENT_WASTE_TRANSFER'
-  | 'ENVIRONMENT_THWS_INVENTORY';
+  | 'ENVIRONMENT_THWS_INVENTORY'
+  // Management of Change (NP-12) — Phase 11c Stage 2
+  | 'MOC_HUB'
+  | 'MOC_PLAN_OF_CHANGE'
+  | 'MOC_COMPLETION_REPORT';
 
 export interface OffloadHeelMetrics {
   offloadDate: string;
