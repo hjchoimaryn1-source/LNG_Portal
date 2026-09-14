@@ -17,6 +17,7 @@ import type { DailyReportSnapshotSummary } from './useDailyReportApproval';
 
 const OPEN_API = '/api/v1/cmms/daily-report-hq-edit-open';
 const CLOSE_API = '/api/v1/cmms/daily-report-hq-edit-close';
+const ACK_API = '/api/v1/cmms/daily-report-hq-edit-ack';
 
 export function useHqEditWindow(snapshot: DailyReportSnapshotSummary | null, reloadSnapshot: () => void) {
   const activeSession = useActiveSession();
@@ -25,6 +26,12 @@ export function useHqEditWindow(snapshot: DailyReportSnapshotSummary | null, rel
   // canUnlockApproved: SYSTEM_ADMIN만 true(rolePermissionService.ts D-ADD-2).
   const canUnlockApproved = activeSession
     ? getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT')?.canUnlockApproved === true
+    : false;
+
+  // D-ADD-2b — 통보 확인(acknowledge)은 canApprove 티어(SITE_MANAGER/
+  // ACTING_SITE_MANAGER/SYSTEM_ADMIN)가 대상 — 이 리포트를 승인했을 역할과 동일.
+  const canAcknowledge = activeSession
+    ? getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT')?.canApprove === true
     : false;
 
   async function openWindow(reasonText: string): Promise<void> {
@@ -105,5 +112,34 @@ export function useHqEditWindow(snapshot: DailyReportSnapshotSummary | null, rel
     reloadSnapshot();
   }
 
-  return { canUnlockApproved, message, openWindow, closeWindow };
+  // D-ADD-2b — Daily Ops Overview의 NoticeBanner가 사용.
+  async function acknowledge(): Promise<void> {
+    setMessage(null);
+    if (!snapshot || !activeSession) {
+      setMessage('로그인 세션이 없습니다.');
+      return;
+    }
+    if (!canAcknowledge) {
+      setMessage(`역할 ${activeSession.roleCode}은(는) HQ 수정 통보를 확인할 권한이 없습니다.`);
+      return;
+    }
+
+    const res = await fetch(ACK_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        snapshotId: snapshot.id,
+        roleCode: activeSession.roleCode,
+        actorId: activeSession.userId,
+      }),
+    });
+    const json = await res.json();
+    if (!json.success) {
+      setMessage(json.error ?? 'HQ 수정 통보 확인 실패');
+      return;
+    }
+    reloadSnapshot();
+  }
+
+  return { canUnlockApproved, canAcknowledge, message, openWindow, closeWindow, acknowledge };
 }

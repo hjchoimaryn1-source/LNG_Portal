@@ -17,6 +17,7 @@ import { RAISED_PANEL, SUNKEN_INPUT } from '../../components/cmms/scadaStyles';
 import { useDailyReportApproval } from '../hooks/useDailyReportApproval';
 import { useHqEditWindow } from '../hooks/useHqEditWindow';
 import { ApprovalPanel } from '../components/report/ApprovalPanel';
+import { NoticeBanner } from '../components/report/NoticeBanner';
 import { CriticalEventsEditor } from '../components/report/CriticalEventsEditor';
 import { SafetyNotesEditor } from '../components/report/SafetyNotesEditor';
 import { SignatureBlock } from '../components/report/SignatureBlock';
@@ -31,7 +32,8 @@ export function DailyOpsOverviewView() {
   const [reportDate, setReportDate] = useState(today);
   const [showPrintView, setShowPrintView] = useState(false);
   const { snapshot, loading, message, canApprove, generate, approve, reject, reload } = useDailyReportApproval(reportDate);
-  const { canUnlockApproved, message: hqEditMessage, openWindow, closeWindow } = useHqEditWindow(snapshot, reload);
+  const { canUnlockApproved, canAcknowledge, message: hqEditMessage, openWindow, closeWindow, acknowledge } =
+    useHqEditWindow(snapshot, reload);
 
   return (
     <div className="p-4 space-y-4">
@@ -62,6 +64,10 @@ export function DailyOpsOverviewView() {
         onOpenHqEdit={openWindow}
         onCloseHqEdit={closeWindow}
       />
+
+      {snapshot && (
+        <NoticeBanner snapshot={snapshot} canAcknowledge={canAcknowledge} onAcknowledge={acknowledge} />
+      )}
 
       {snapshot && (
         <>
