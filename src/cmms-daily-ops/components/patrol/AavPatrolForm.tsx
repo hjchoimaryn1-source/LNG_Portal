@@ -13,7 +13,7 @@ import { ShiftSlotSelector } from './ShiftSlotSelector';
 import { AavUnitBlock } from './AavUnitBlock';
 import type { PatrolSaveHandler } from './patrolFormTypes';
 
-const AAV_EQUIPMENT_TAGS = ['AAV-102', 'AAV-103', 'AAV-105', 'AAV-106'];
+export const AAV_EQUIPMENT_TAGS = ['AAV-102', 'AAV-103', 'AAV-105', 'AAV-106'];
 
 export interface AavPatrolFormProps {
   onSave: PatrolSaveHandler;
