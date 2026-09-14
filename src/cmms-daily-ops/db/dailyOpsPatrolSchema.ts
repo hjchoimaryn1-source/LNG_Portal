@@ -100,6 +100,13 @@ export const DAILY_OPS_PATROL_ENTRIES_DDL = `
   );
   CREATE INDEX IF NOT EXISTS idx_daily_ops_patrol_domain_tag_date
       ON daily_ops_patrol_entries(domain, equipment_tag, report_date DESC, shift_time_slot DESC);
+
+  -- Phase 12 Addendum 1: Stage B 배포 당시 이 UNIQUE 인덱스가 없어
+  -- dailyOpsPatrolDao.ts가 SELECT→UPDATE/INSERT 앱 레벨 upsert로 우회했다
+  -- (deviation #1). CREATE TABLE 컬럼 정의는 건드리지 않는 순수 추가 문이며
+  -- 테이블 재생성이 필요 없다 — ALTER-only 정책과 무관.
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_ops_patrol_unique
+      ON daily_ops_patrol_entries(domain, equipment_tag, report_date, shift_time_slot);
 `;
 
 /** daily_ops_patrol_entries 테이블을 멱등(idempotent)하게 보강한다. */

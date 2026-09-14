@@ -4,12 +4,12 @@
 //   daily_ops_patrol_entries에 대한 도메인-비특정(domain-agnostic) 순수 DAO.
 //   SqlExecutor에만 의존하며 React/Next 바인딩이 없다 (truckInspectionDao.ts와 동일 패턴).
 //
-//   UPSERT 주의: Stage A DDL(dailyOpsPatrolSchema.ts)에는 (domain, equipment_tag,
-//   report_date, shift_time_slot) UNIQUE 제약이 없다(인덱스만 존재) — SQLite
-//   ON CONFLICT를 쓰려면 스키마에 UNIQUE 제약을 추가해야 하는데, 이는 CLAUDE.md
-//   §5 ALTER-only 정책상 12-step rebuild가 필요해 HJ 확인 없이는 불가하다.
-//   따라서 이 DAO는 SELECT로 기존 행을 먼저 찾고 UPDATE/INSERT를 분기하는
-//   앱 레벨 upsert로 구현한다.
+//   UPSERT: Phase 12 Addendum 1에서 dailyOpsPatrolSchema.ts에
+//   idx_daily_ops_patrol_unique(domain, equipment_tag, report_date, shift_time_slot)
+//   UNIQUE 인덱스를 추가했다 — node:sqlite(DatabaseSync)에서 `INSERT ...
+//   ON CONFLICT(...) DO UPDATE SET ...` 단일 문 upsert가 정상 동작함을 확인
+//   (동일 named param을 VALUES/SET에서 재사용해도 문제없음). Stage B의
+//   SELECT→UPDATE/INSERT 2단계 앱 레벨 upsert(deviation #1)를 대체한다.
 //
 //   컬럼 화이트리스트: values의 키(컬럼명)는 동적 SQL 텍스트에 그대로
 //   들어가므로, patrolFieldMaps.ts의 PATROL_FIELD_MAP에 없는 키는 즉시 거부한다.
@@ -46,12 +46,6 @@ interface PatrolEntryRow {
   recorded_at: string;
   [column: string]: unknown;
 }
-
-const SELECT_ID_SQL = `
-  SELECT id FROM daily_ops_patrol_entries
-  WHERE domain = @domain AND equipment_tag = @equipmentTag
-    AND report_date = @reportDate AND shift_time_slot = @shiftTimeSlot
-`;
 
 const SELECT_ENTRIES_SQL = `
   SELECT * FROM daily_ops_patrol_entries
@@ -106,7 +100,7 @@ function rowToEntry(row: PatrolEntryRow, domain: PatrolDomain): PatrolEntry {
   };
 }
 
-/** (domain, equipmentTag, reportDate, shiftTimeSlot) 키로 upsert한다. */
+/** (domain, equipmentTag, reportDate, shiftTimeSlot) 키로 upsert한다 (idx_daily_ops_patrol_unique 대상). */
 export function insertPatrolEntry(
   db: SqlExecutor,
   domain: PatrolDomain,
@@ -120,22 +114,7 @@ export function insertPatrolEntry(
 ): void {
   assertKnownColumns(domain, values);
   const recordedAt = new Date().toISOString();
-  const keyParams = { domain, equipmentTag, reportDate, shiftTimeSlot };
-  const existing = db.get<{ id: number }>(SELECT_ID_SQL, keyParams);
   const columnNames = Object.keys(values);
-
-  if (existing) {
-    const valueSetClause = columnNames.map((c) => `${c} = @${c}`).join(', ');
-    const sql = `
-      UPDATE daily_ops_patrol_entries
-      SET reading_status = @readingStatus, remark_text = @remarkText,
-          recorded_by = @recordedBy, recorded_at = @recordedAt
-          ${valueSetClause ? ', ' + valueSetClause : ''}
-      WHERE id = @id
-    `;
-    db.run(sql, { ...values, id: existing.id, readingStatus, remarkText, recordedBy, recordedAt });
-    return;
-  }
 
   const insertColumns = [
     'domain',
@@ -159,9 +138,19 @@ export function insertPatrolEntry(
     '@recordedAt',
     ...columnNames.map((c) => `@${c}`),
   ];
+  const updateSetClause = [
+    'reading_status = @readingStatus',
+    'remark_text = @remarkText',
+    'recorded_by = @recordedBy',
+    'recorded_at = @recordedAt',
+    ...columnNames.map((c) => `${c} = @${c}`),
+  ].join(', ');
+
   const sql = `
     INSERT INTO daily_ops_patrol_entries (${insertColumns.join(', ')})
     VALUES (${insertPlaceholders.join(', ')})
+    ON CONFLICT(domain, equipment_tag, report_date, shift_time_slot)
+    DO UPDATE SET ${updateSetClause}
   `;
   db.run(sql, {
     ...values,
