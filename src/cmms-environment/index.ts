@@ -21,3 +21,20 @@ export type {
   ThwsInventoryItem,
   NewThwsInventoryItemInput,
 } from './types/environment';
+
+export {
+  insertAirQualityLog,
+  selectAllAirQualityLogs,
+  insertWastewaterLog,
+  selectAllWastewaterLogs,
+  insertNoiseLog,
+  selectAllNoiseLogs,
+  insertSeawaterLog,
+  selectAllSeawaterLogs,
+} from './dao/environmentMonitoringDao';
+
+export {
+  getThwsDaysRemaining,
+  flagPendingReview,
+  type MonitoringStatusRecord,
+} from './services/environmentMonitoringService';
