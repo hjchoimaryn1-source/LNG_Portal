@@ -18,6 +18,7 @@ import type { DailyReportStatus } from '../dao/dailyReportSnapshotDao';
 
 const SNAPSHOTS_API = '/api/v1/cmms/daily-report-snapshots';
 const APPROVAL_API = '/api/v1/cmms/daily-report-approval';
+const REJECT_API = '/api/v1/cmms/daily-report-reject';
 
 export interface DailyReportSnapshotSummary {
   id: number;
@@ -103,5 +104,46 @@ export function useDailyReportApproval(reportDate: string) {
     reload();
   }
 
-  return { snapshot, loading, message, canApprove, generate, approve, reload };
+  // D-ADD-1 — 반려는 승인과 동일한 canApprove 권한 티어를 요구한다.
+  async function reject(reasonText: string): Promise<void> {
+    setMessage(null);
+    if (!snapshot) return;
+    if (!activeSession) {
+      setMessage('로그인 세션이 없습니다.');
+      return;
+    }
+    if (!canApprove) {
+      setMessage(`역할 ${activeSession.roleCode}은(는) Daily Ops 리포트를 반려할 권한이 없습니다.`);
+      return;
+    }
+    if (!reasonText.trim()) {
+      setMessage('반려 사유를 입력하세요.');
+      return;
+    }
+    const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'APPROVE' });
+    if (!guard.allowed) {
+      setMessage(guard.reason ?? 'REJECT BLOCKED');
+      return;
+    }
+
+    const res = await fetch(REJECT_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        snapshotId: snapshot.id,
+        roleCode: activeSession.roleCode,
+        actorId: activeSession.userId,
+        reasonText,
+      }),
+    });
+    const json = await res.json();
+    if (!json.success) {
+      setMessage(json.error ?? '반려 실패');
+      return;
+    }
+    setMessage('리포트가 반려되어 DRAFT로 되돌아갔습니다.');
+    reload();
+  }
+
+  return { snapshot, loading, message, canApprove, generate, approve, reject, reload };
 }

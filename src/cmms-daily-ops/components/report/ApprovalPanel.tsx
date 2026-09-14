@@ -32,10 +32,21 @@ export interface ApprovalPanelProps {
   canApprove: boolean;
   onGenerate: (generatedBy: string) => void;
   onApprove: () => void;
+  onReject: (reasonText: string) => void;
 }
 
-export function ApprovalPanel({ reportDate, snapshot, loading, message, canApprove, onGenerate, onApprove }: ApprovalPanelProps) {
+export function ApprovalPanel({
+  reportDate,
+  snapshot,
+  loading,
+  message,
+  canApprove,
+  onGenerate,
+  onApprove,
+  onReject,
+}: ApprovalPanelProps) {
   const [generatedBy, setGeneratedBy] = useState('');
+  const [rejectReason, setRejectReason] = useState('');
 
   return (
     <div className={`${RAISED_PANEL} p-3 space-y-2`}>
@@ -78,15 +89,32 @@ export function ApprovalPanel({ reportDate, snapshot, loading, message, canAppro
       )}
 
       {snapshot?.status === 'SUBMITTED' && (
-        <button
-          type="button"
-          onClick={onApprove}
-          disabled={!canApprove}
-          className={`${BEVEL_BUTTON} ${!canApprove ? 'opacity-50 cursor-not-allowed' : ''}`}
-          title={canApprove ? undefined : 'Site Manager / Acting Site Manager 권한이 필요합니다.'}
-        >
-          Approve (Site Manager)
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={onApprove}
+            disabled={!canApprove}
+            className={`${BEVEL_BUTTON} ${!canApprove ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title={canApprove ? undefined : 'Site Manager / Acting Site Manager 권한이 필요합니다.'}
+          >
+            Approve (Site Manager)
+          </button>
+          <input
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="반려 사유"
+            className={SUNKEN_INPUT}
+          />
+          <button
+            type="button"
+            onClick={() => onReject(rejectReason)}
+            disabled={!canApprove}
+            className={`${BEVEL_BUTTON} ${!canApprove ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title={canApprove ? undefined : 'Site Manager / Acting Site Manager 권한이 필요합니다.'}
+          >
+            반려 (Reject)
+          </button>
+        </div>
       )}
 
       {loading && <div className="text-[10px] text-slate-400">Loading...</div>}

@@ -29,7 +29,7 @@ function today(): string {
 export function DailyOpsOverviewView() {
   const [reportDate, setReportDate] = useState(today);
   const [showPrintView, setShowPrintView] = useState(false);
-  const { snapshot, loading, message, canApprove, generate, approve } = useDailyReportApproval(reportDate);
+  const { snapshot, loading, message, canApprove, generate, approve, reject } = useDailyReportApproval(reportDate);
 
   return (
     <div className="p-4 space-y-4">
@@ -54,6 +54,7 @@ export function DailyOpsOverviewView() {
         canApprove={canApprove}
         onGenerate={generate}
         onApprove={approve}
+        onReject={reject}
       />
 
       {snapshot && (

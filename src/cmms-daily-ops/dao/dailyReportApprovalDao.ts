@@ -24,6 +24,14 @@ const APPROVE_SQL = `
   SET status = 'APPROVED'
   WHERE id = @id AND status = 'SUBMITTED'
 `;
+// D-ADD-1 — Site Manager 반려: 서명 완료본을 승인 전 단계로 되돌려 patrol
+// 재작업을 허용한다(SUBMITTED -> DRAFT). APPROVED에서는 반려할 수 없다 —
+// 그 경우는 D-ADD-2의 HQ 수정 창(openHqEditWindow)을 사용한다.
+const REJECT_SQL = `
+  UPDATE daily_report_snapshots
+  SET status = 'DRAFT'
+  WHERE id = @id AND status = 'SUBMITTED'
+`;
 
 /** report_date의 현재 승인 상태. 스냅샷이 없으면 undefined(아직 DRAFT 대상조차 없음). */
 export function getReportStatus(db: SqlExecutor, reportDate: string): DailyReportStatus | undefined {
@@ -73,6 +81,42 @@ export function approveSnapshot(
     actorUserId: approvedBy,
     actorRole: approverRole,
     reasonText: null,
+  });
+  return { success: true };
+}
+
+/**
+ * D-ADD-1 — SUBMITTED -> DRAFT 전이 (Site Manager 반려). SUBMITTED 상태가
+ * 아니면 거부한다. reasonText는 필수(빈 문자열 거부는 호출부 책임).
+ */
+export function rejectSubmission(
+  db: SqlExecutor,
+  snapshotId: number,
+  rejectedBy: string,
+  rejectorRole: RoleCode,
+  reasonText: string
+): ApproveSnapshotResult {
+  const existing = db.get<{ id: number; status: DailyReportStatus }>(SELECT_STATUS_BY_ID_SQL, { id: snapshotId });
+  if (!existing) {
+    return { success: false, error: `snapshot id ${snapshotId} not found.`, currentStatus: null };
+  }
+  if (existing.status !== 'SUBMITTED') {
+    return {
+      success: false,
+      error: `snapshot id ${snapshotId} is ${existing.status}, not SUBMITTED — cannot reject.`,
+      currentStatus: existing.status,
+    };
+  }
+
+  db.run(REJECT_SQL, { id: snapshotId });
+  logStatusEvent(db, {
+    snapshotId,
+    eventType: 'status_transition',
+    fromStatus: 'SUBMITTED',
+    toStatus: 'DRAFT',
+    actorUserId: rejectedBy,
+    actorRole: rejectorRole,
+    reasonText,
   });
   return { success: true };
 }
