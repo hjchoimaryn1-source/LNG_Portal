@@ -92,7 +92,7 @@ export function useDailyReportApproval(reportDate: string) {
     const res = await fetch(APPROVAL_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ snapshotId: snapshot.id, roleCode: activeSession.roleCode }),
+      body: JSON.stringify({ snapshotId: snapshot.id, roleCode: activeSession.roleCode, actorId: activeSession.userId }),
     });
     const json = await res.json();
     if (!json.success) {

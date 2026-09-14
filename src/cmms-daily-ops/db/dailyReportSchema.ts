@@ -96,11 +96,31 @@ function ensureStatusColumn(raw: DatabaseSync): void {
   }
 }
 
-/** daily_report_snapshots + 3개 child 테이블을 멱등(idempotent)하게 보강한다. */
+// Stage D Addendum (D-ADD-3) — audit trail of every status-machine event on a
+// snapshot. A brand-new table (not a rebuild of an existing one), so the
+// ALTER-only policy does not apply here.
+export const DAILY_REPORT_STATUS_LOG_DDL = `
+  CREATE TABLE IF NOT EXISTS daily_report_status_log (
+      id               INTEGER PRIMARY KEY AUTOINCREMENT,
+      snapshot_id      INTEGER NOT NULL,
+      event_type       TEXT NOT NULL CHECK (event_type IN ('status_transition', 'hq_unlock', 'hq_relock', 'hq_edit_ack')),
+      from_status      TEXT,
+      to_status        TEXT,
+      actor_user_id    TEXT NOT NULL,
+      actor_role       TEXT NOT NULL,
+      reason_text      TEXT,
+      created_at       TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+      CONSTRAINT fk_statuslog_snapshot FOREIGN KEY (snapshot_id) REFERENCES daily_report_snapshots(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS idx_daily_report_status_log_snapshot ON daily_report_status_log(snapshot_id);
+`;
+
+/** daily_report_snapshots + 3개 child 테이블 + 상태 로그 테이블을 멱등(idempotent)하게 보강한다. */
 export function ensureDailyReportSchema(raw: DatabaseSync): void {
   raw.exec(DAILY_REPORT_SNAPSHOTS_DDL);
   ensureStatusColumn(raw);
   raw.exec(DAILY_REPORT_CRITICAL_EVENTS_DDL);
   raw.exec(DAILY_REPORT_SAFETY_NOTES_DDL);
   raw.exec(DAILY_REPORT_SIGNATURES_DDL);
+  raw.exec(DAILY_REPORT_STATUS_LOG_DDL);
 }

@@ -20,12 +20,13 @@ export const runtime = 'nodejs';
 interface ApprovalPayload {
   snapshotId: number;
   roleCode: RoleCode;
+  actorId: string;
 }
 
 function isValidPayload(body: unknown): body is ApprovalPayload {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
-  return typeof r.snapshotId === 'number' && typeof r.roleCode === 'string';
+  return typeof r.snapshotId === 'number' && typeof r.roleCode === 'string' && typeof r.actorId === 'string';
 }
 
 export async function POST(request: NextRequest) {
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
   }
 
   const db = getDailyOpsDb();
-  const result = approveSnapshot(db, body.snapshotId);
+  const result = approveSnapshot(db, body.snapshotId, body.actorId, body.roleCode);
   if (!result.success) {
     return NextResponse.json({ success: false, error: result.error, currentStatus: result.currentStatus }, { status: 409 });
   }

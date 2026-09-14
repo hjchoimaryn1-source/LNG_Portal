@@ -112,7 +112,7 @@ describe('dailyReportSnapshotDao.generateSnapshot', () => {
     expect(first.success).toBe(true);
     if (!first.success) return;
     finalizeSnapshot(db, first.snapshot.id);
-    const approval = approveSnapshot(db, first.snapshot.id);
+    const approval = approveSnapshot(db, first.snapshot.id, 'SM1', 'SITE_MANAGER');
     expect(approval.success).toBe(true);
 
     const second = generateSnapshot(db, '2026-09-14', 'HJ2');

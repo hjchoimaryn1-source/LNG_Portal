@@ -14,6 +14,8 @@
 
 import type { SqlExecutor } from '../../adapters/db/sqlExecutor';
 import type { DailyReportStatus } from './dailyReportSnapshotDao';
+import type { RoleCode } from '../../types/rbac';
+import { logStatusEvent } from './dailyReportStatusLogDao';
 
 const SELECT_STATUS_BY_DATE_SQL = `SELECT status FROM daily_report_snapshots WHERE report_date = @reportDate`;
 const SELECT_STATUS_BY_ID_SQL = `SELECT id, status FROM daily_report_snapshots WHERE id = @id`;
@@ -41,9 +43,15 @@ export type ApproveSnapshotResult =
 /**
  * SUBMITTED -> APPROVED 전이 (Site Manager 승인). SUBMITTED 상태가 아니면
  * 거부한다 — 서명 미완료(DRAFT) 리포트를 건너뛰어 승인하거나, 이미
- * APPROVED된 리포트를 중복 승인하는 것을 막는다.
+ * APPROVED된 리포트를 중복 승인하는 것을 막는다. (D-ADD-3) 성공 시
+ * daily_report_status_log에 status_transition 이벤트를 남긴다.
  */
-export function approveSnapshot(db: SqlExecutor, snapshotId: number): ApproveSnapshotResult {
+export function approveSnapshot(
+  db: SqlExecutor,
+  snapshotId: number,
+  approvedBy: string,
+  approverRole: RoleCode
+): ApproveSnapshotResult {
   const existing = db.get<{ id: number; status: DailyReportStatus }>(SELECT_STATUS_BY_ID_SQL, { id: snapshotId });
   if (!existing) {
     return { success: false, error: `snapshot id ${snapshotId} not found.`, currentStatus: null };
@@ -57,5 +65,14 @@ export function approveSnapshot(db: SqlExecutor, snapshotId: number): ApproveSna
   }
 
   db.run(APPROVE_SQL, { id: snapshotId });
+  logStatusEvent(db, {
+    snapshotId,
+    eventType: 'status_transition',
+    fromStatus: 'SUBMITTED',
+    toStatus: 'APPROVED',
+    actorUserId: approvedBy,
+    actorRole: approverRole,
+    reasonText: null,
+  });
   return { success: true };
 }

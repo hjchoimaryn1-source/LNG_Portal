@@ -19,6 +19,7 @@ import { ApprovalPanel } from '../components/report/ApprovalPanel';
 import { CriticalEventsEditor } from '../components/report/CriticalEventsEditor';
 import { SafetyNotesEditor } from '../components/report/SafetyNotesEditor';
 import { SignatureBlock } from '../components/report/SignatureBlock';
+import { AuditTrailView } from '../components/report/AuditTrailView';
 import { DailyReportPrintView } from '../print/DailyReportPrintView';
 
 function today(): string {
@@ -73,6 +74,8 @@ export function DailyOpsOverviewView() {
             {showPrintView ? 'Hide' : 'Show'} FORM-NP-08-33-N Print Preview
           </button>
           {showPrintView && <DailyReportPrintView reportDate={reportDate} />}
+
+          <AuditTrailView snapshotId={snapshot.id} />
         </>
       )}
     </div>
