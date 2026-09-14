@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createRequire } from 'node:module';
 import type { SqlExecutor } from '../../adapters/db/sqlExecutor';
 import { ensureDailyOpsPatrolSchema } from '../db/dailyOpsPatrolSchema';
-import { insertPatrolEntry, getPatrolEntries, getLatestPatrolValue } from './dailyOpsPatrolDao';
+import { insertPatrolEntry, getPatrolEntries, getLatestPatrolValue, getAllLatestPatrolValues } from './dailyOpsPatrolDao';
 
 // vitest(vite-node)의 정적 ESM 리졸버가 실험적 코어 모듈 'node:sqlite'를
 // 인식하지 못해(Vite builtin 목록 미포함) 직접 import 시 실패한다 — CJS
@@ -108,5 +108,21 @@ describe('dailyOpsPatrolDao', () => {
 
   it('getLatestPatrolValue returns undefined when no entries exist', () => {
     expect(getLatestPatrolValue(db, 'gc', 'GC-01')).toBeUndefined();
+  });
+
+  it('getAllLatestPatrolValues returns one row per (domain, equipmentTag), each the most recent', () => {
+    insertPatrolEntry(db, 'aav', 'AAV-102', '2026-09-13', '20:00', { pressure_gauge_us_bar: 4.0 }, 'normal', null, 'FIELD OP-1');
+    insertPatrolEntry(db, 'aav', 'AAV-102', '2026-09-14', '08:00', { pressure_gauge_us_bar: 4.3 }, 'normal', null, 'FIELD OP-1');
+    insertPatrolEntry(db, 'n2_skid', 'N2-CYL-01', '2026-09-14', '00:00', { cylinder_pressure_bar: 148 }, 'normal', null, 'FIELD OP-1');
+
+    const all = getAllLatestPatrolValues(db);
+    expect(all).toHaveLength(2);
+
+    const aavRow = all.find((e) => e.equipmentTag === 'AAV-102');
+    expect(aavRow?.reportDate).toBe('2026-09-14');
+    expect(aavRow?.values.pressure_gauge_us_bar).toBe(4.3);
+
+    const n2Row = all.find((e) => e.equipmentTag === 'N2-CYL-01');
+    expect(n2Row?.values.cylinder_pressure_bar).toBe(148);
   });
 });

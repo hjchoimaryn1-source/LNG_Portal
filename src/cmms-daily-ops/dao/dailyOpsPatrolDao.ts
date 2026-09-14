@@ -66,6 +66,18 @@ const SELECT_LATEST_SQL = `
   LIMIT 1
 `;
 
+// (domain, equipment_tag)별 최신 1행만 — B3(DailyOpsDataContext)가 마운트 시
+// Live P&ID 스토어(B2)를 DB의 마지막 저장값으로 채우는 데 쓴다.
+const SELECT_ALL_LATEST_SQL = `
+  SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (
+      PARTITION BY domain, equipment_tag
+      ORDER BY report_date DESC, shift_time_slot DESC
+    ) AS rn
+    FROM daily_ops_patrol_entries
+  ) WHERE rn = 1
+`;
+
 function assertKnownColumns(domain: PatrolDomain, values: PatrolValues): void {
   const known = new Set(PATROL_FIELD_MAP[domain].map((f) => f.columnName));
   for (const columnName of Object.keys(values)) {
@@ -184,4 +196,9 @@ export function getLatestPatrolValue(
 ): PatrolEntry | undefined {
   const row = db.get<PatrolEntryRow>(SELECT_LATEST_SQL, { domain, equipmentTag });
   return row ? rowToEntry(row, domain) : undefined;
+}
+
+/** (domain, equipmentTag)마다 가장 최근 값 1건씩, 테이블 전체 — B3 초기 로드가 사용 */
+export function getAllLatestPatrolValues(db: SqlExecutor): PatrolEntry[] {
+  return db.all<PatrolEntryRow>(SELECT_ALL_LATEST_SQL).map((row) => rowToEntry(row, row.domain));
 }
