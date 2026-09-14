@@ -18,6 +18,9 @@ import type { RoleCode } from '../../types/rbac';
 import { logStatusEvent } from './dailyReportStatusLogDao';
 
 const SELECT_STATUS_BY_DATE_SQL = `SELECT status FROM daily_report_snapshots WHERE report_date = @reportDate`;
+const SELECT_LOCK_STATE_BY_DATE_SQL = `
+  SELECT status, hq_edit_unlock_active FROM daily_report_snapshots WHERE report_date = @reportDate
+`;
 const SELECT_STATUS_BY_ID_SQL = `SELECT id, status FROM daily_report_snapshots WHERE id = @id`;
 const APPROVE_SQL = `
   UPDATE daily_report_snapshots
@@ -32,16 +35,24 @@ const REJECT_SQL = `
   SET status = 'DRAFT'
   WHERE id = @id AND status = 'SUBMITTED'
 `;
-
 /** report_date의 현재 승인 상태. 스냅샷이 없으면 undefined(아직 DRAFT 대상조차 없음). */
 export function getReportStatus(db: SqlExecutor, reportDate: string): DailyReportStatus | undefined {
   const row = db.get<{ status: DailyReportStatus }>(SELECT_STATUS_BY_DATE_SQL, { reportDate });
   return row?.status;
 }
 
-/** 승인 락(옵션 c) 판정 — true면 해당 report_date의 패트롤 저장/스냅샷 재생성을 모두 거부해야 한다. */
+/**
+ * 승인 락(옵션 c) 판정 — true면 해당 report_date의 패트롤 저장/스냅샷 재생성을
+ * 모두 거부해야 한다. (D-ADD-2) hq_edit_unlock_active=true인 동안은 APPROVED여도
+ * false를 반환한다 — HQ가 명시적으로 연 수정 창 안에서는 패트롤 저장/재생성을 허용한다.
+ */
 export function isReportDateApproved(db: SqlExecutor, reportDate: string): boolean {
-  return getReportStatus(db, reportDate) === 'APPROVED';
+  const row = db.get<{ status: DailyReportStatus; hq_edit_unlock_active: number }>(
+    SELECT_LOCK_STATE_BY_DATE_SQL,
+    { reportDate }
+  );
+  if (!row) return false;
+  return row.status === 'APPROVED' && row.hq_edit_unlock_active !== 1;
 }
 
 export type ApproveSnapshotResult =

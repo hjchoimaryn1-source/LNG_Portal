@@ -38,4 +38,10 @@ export interface RolePermission {
   canDelete: boolean;
   canApprove: boolean;
   isReadOnlyForced: boolean;
+  /**
+   * Stage D Addendum (D-ADD-2) — SYSTEM_ADMIN-only right to open an HQ
+   * in-place edit window on an APPROVED Daily Ops report. Optional and only
+   * ever set on DAILY_OPS_REPORT rows; absent means false everywhere else.
+   */
+  canUnlockApproved?: boolean;
 }

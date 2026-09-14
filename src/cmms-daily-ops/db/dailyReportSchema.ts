@@ -88,12 +88,36 @@ const ADD_STATUS_COLUMN_SQL = `
 
 // SQLite has no `ADD COLUMN IF NOT EXISTS` — guard via PRAGMA table_info(), same
 // convention as src/db/migrations/phase10Stage1ARunner.ts's WORK_ORDER_NEW_COLUMNS.
-function ensureStatusColumn(raw: DatabaseSync): void {
-  const columns = raw.prepare(`PRAGMA table_info(daily_report_snapshots)`).all();
-  const hasStatus = columns.some((c) => (c as { name: string }).name === 'status');
-  if (!hasStatus) {
-    raw.exec(ADD_STATUS_COLUMN_SQL);
+// Generalized (Stage D Addendum D-ADD-2) so each additive column below reuses
+// the same guard instead of a bespoke ensureXColumn() per column.
+function ensureColumn(raw: DatabaseSync, table: string, columnName: string, addColumnSql: string): void {
+  const columns = raw.prepare(`PRAGMA table_info(${table})`).all();
+  const hasColumn = columns.some((c) => (c as { name: string }).name === columnName);
+  if (!hasColumn) {
+    raw.exec(addColumnSql);
   }
+}
+
+// Stage D Addendum (D-ADD-2) — HQ in-place edit window while status stays
+// APPROVED. hq_edit_unlock_active gates the generateSnapshot/patrol-save
+// APPROVED-lock guards; hq_edit_pending_ack/notice_* back the D-ADD-2b
+// notify/acknowledge banner.
+const ADD_HQ_EDIT_UNLOCK_ACTIVE_SQL = `
+  ALTER TABLE daily_report_snapshots
+  ADD COLUMN hq_edit_unlock_active INTEGER NOT NULL DEFAULT 0 CHECK (hq_edit_unlock_active IN (0, 1))
+`;
+const ADD_HQ_EDIT_PENDING_ACK_SQL = `
+  ALTER TABLE daily_report_snapshots
+  ADD COLUMN hq_edit_pending_ack INTEGER NOT NULL DEFAULT 0 CHECK (hq_edit_pending_ack IN (0, 1))
+`;
+const ADD_HQ_EDIT_NOTICE_TEXT_SQL = `ALTER TABLE daily_report_snapshots ADD COLUMN hq_edit_notice_text TEXT`;
+const ADD_HQ_EDIT_NOTICE_AT_SQL = `ALTER TABLE daily_report_snapshots ADD COLUMN hq_edit_notice_at TEXT`;
+
+function ensureHqEditColumns(raw: DatabaseSync): void {
+  ensureColumn(raw, 'daily_report_snapshots', 'hq_edit_unlock_active', ADD_HQ_EDIT_UNLOCK_ACTIVE_SQL);
+  ensureColumn(raw, 'daily_report_snapshots', 'hq_edit_pending_ack', ADD_HQ_EDIT_PENDING_ACK_SQL);
+  ensureColumn(raw, 'daily_report_snapshots', 'hq_edit_notice_text', ADD_HQ_EDIT_NOTICE_TEXT_SQL);
+  ensureColumn(raw, 'daily_report_snapshots', 'hq_edit_notice_at', ADD_HQ_EDIT_NOTICE_AT_SQL);
 }
 
 // Stage D Addendum (D-ADD-3) — audit trail of every status-machine event on a
@@ -118,7 +142,8 @@ export const DAILY_REPORT_STATUS_LOG_DDL = `
 /** daily_report_snapshots + 3개 child 테이블 + 상태 로그 테이블을 멱등(idempotent)하게 보강한다. */
 export function ensureDailyReportSchema(raw: DatabaseSync): void {
   raw.exec(DAILY_REPORT_SNAPSHOTS_DDL);
-  ensureStatusColumn(raw);
+  ensureColumn(raw, 'daily_report_snapshots', 'status', ADD_STATUS_COLUMN_SQL);
+  ensureHqEditColumns(raw);
   raw.exec(DAILY_REPORT_CRITICAL_EVENTS_DDL);
   raw.exec(DAILY_REPORT_SAFETY_NOTES_DDL);
   raw.exec(DAILY_REPORT_SIGNATURES_DDL);

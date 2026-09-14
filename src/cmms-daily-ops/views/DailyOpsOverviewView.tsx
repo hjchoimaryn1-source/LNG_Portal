@@ -15,6 +15,7 @@
 import { useState } from 'react';
 import { RAISED_PANEL, SUNKEN_INPUT } from '../../components/cmms/scadaStyles';
 import { useDailyReportApproval } from '../hooks/useDailyReportApproval';
+import { useHqEditWindow } from '../hooks/useHqEditWindow';
 import { ApprovalPanel } from '../components/report/ApprovalPanel';
 import { CriticalEventsEditor } from '../components/report/CriticalEventsEditor';
 import { SafetyNotesEditor } from '../components/report/SafetyNotesEditor';
@@ -29,7 +30,8 @@ function today(): string {
 export function DailyOpsOverviewView() {
   const [reportDate, setReportDate] = useState(today);
   const [showPrintView, setShowPrintView] = useState(false);
-  const { snapshot, loading, message, canApprove, generate, approve, reject } = useDailyReportApproval(reportDate);
+  const { snapshot, loading, message, canApprove, generate, approve, reject, reload } = useDailyReportApproval(reportDate);
+  const { canUnlockApproved, message: hqEditMessage, openWindow, closeWindow } = useHqEditWindow(snapshot, reload);
 
   return (
     <div className="p-4 space-y-4">
@@ -55,6 +57,10 @@ export function DailyOpsOverviewView() {
         onGenerate={generate}
         onApprove={approve}
         onReject={reject}
+        canUnlockApproved={canUnlockApproved}
+        hqEditMessage={hqEditMessage}
+        onOpenHqEdit={openWindow}
+        onCloseHqEdit={closeWindow}
       />
 
       {snapshot && (

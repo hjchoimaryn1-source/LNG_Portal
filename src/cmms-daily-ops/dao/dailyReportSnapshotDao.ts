@@ -44,6 +44,12 @@ export interface DailyReportSnapshot {
   status: DailyReportStatus;
   /** Computed alias of `status === 'APPROVED'` — does not read the legacy is_finalized column. */
   isFinalized: boolean;
+  /** D-ADD-2 — true while HQ (SYSTEM_ADMIN) has an open in-place edit window on an APPROVED report. */
+  hqEditUnlockActive: boolean;
+  /** D-ADD-2b — true after closeHqEditWindowAndNotify() until the Site Manager acknowledges. */
+  hqEditPendingAck: boolean;
+  hqEditNoticeText: string | null;
+  hqEditNoticeAt: string | null;
 }
 
 /** domains[domain][equipmentTag] — 해당 태그의 최신 순찰값 전체 필드, 기록이 없으면 null. */
@@ -77,6 +83,10 @@ interface DailyReportSnapshotRow {
   snapshot_payload: string;
   is_finalized: number;
   status: DailyReportStatus;
+  hq_edit_unlock_active: number;
+  hq_edit_pending_ack: number;
+  hq_edit_notice_text: string | null;
+  hq_edit_notice_at: string | null;
 }
 
 const SELECT_BY_DATE_SQL = `SELECT * FROM daily_report_snapshots WHERE report_date = @reportDate`;
@@ -91,6 +101,10 @@ function rowToSnapshot(row: DailyReportSnapshotRow): DailyReportSnapshot {
     snapshotPayload: row.snapshot_payload,
     status: row.status,
     isFinalized: row.status === 'APPROVED',
+    hqEditUnlockActive: row.hq_edit_unlock_active === 1,
+    hqEditPendingAck: row.hq_edit_pending_ack === 1,
+    hqEditNoticeText: row.hq_edit_notice_text,
+    hqEditNoticeAt: row.hq_edit_notice_at,
   };
 }
 
@@ -157,11 +171,14 @@ function collectDomainValues(db: SqlExecutor): SnapshotDomainValues {
 
 /**
  * report_date의 스냅샷을 (재)생성한다. is_finalized=true인 기존 스냅샷은
- * 덮어쓰지 않고 명시적 실패 결과를 반환한다 — 서명 완료본 보호.
+ * 덮어쓰지 않고 명시적 실패 결과를 반환한다 — 서명 완료본 보호. (D-ADD-2)
+ * 단, hq_edit_unlock_active=true(HQ 수정 창이 열려있는 동안)라면 APPROVED
+ * 상태여도 재생성을 허용한다 — SYSTEM_ADMIN이 openHqEditWindow()로 명시적
+ * 잠금 해제한 경우에 한함.
  */
 export function generateSnapshot(db: SqlExecutor, reportDate: string, generatedBy: string): GenerateSnapshotResult {
   const existing = getSnapshot(db, reportDate);
-  if (existing?.isFinalized) {
+  if (existing?.isFinalized && !existing.hqEditUnlockActive) {
     return {
       success: false,
       error: `report_date ${reportDate} is already finalized; regeneration is blocked.`,

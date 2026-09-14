@@ -52,6 +52,10 @@ export async function GET(request: NextRequest) {
       generatedBy: snapshot.generatedBy,
       status: snapshot.status,
       isFinalized: snapshot.isFinalized,
+      hqEditUnlockActive: snapshot.hqEditUnlockActive,
+      hqEditPendingAck: snapshot.hqEditPendingAck,
+      hqEditNoticeText: snapshot.hqEditNoticeText,
+      hqEditNoticeAt: snapshot.hqEditNoticeAt,
       payload: JSON.parse(snapshot.snapshotPayload),
     },
   });

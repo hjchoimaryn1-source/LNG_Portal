@@ -25,6 +25,10 @@ export interface DailyReportSnapshotSummary {
   status: DailyReportStatus;
   generatedBy: string;
   generatedAt: string;
+  hqEditUnlockActive: boolean;
+  hqEditPendingAck: boolean;
+  hqEditNoticeText: string | null;
+  hqEditNoticeAt: string | null;
 }
 
 export function useDailyReportApproval(reportDate: string) {

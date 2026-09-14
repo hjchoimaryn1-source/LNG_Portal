@@ -24,7 +24,7 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 9, roleCode: 'SYSTEM_ADMIN', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
   { rolePermissionId: 10, roleCode: 'SYSTEM_ADMIN', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
   { rolePermissionId: 11, roleCode: 'SYSTEM_ADMIN', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 78, roleCode: 'SYSTEM_ADMIN', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
+  { rolePermissionId: 78, roleCode: 'SYSTEM_ADMIN', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false, canUnlockApproved: true },
 
   // SITE_MANAGER: read all, create/update PTW+WO(row-level), approve PTW/WO/Shift/CAR
   { rolePermissionId: 12, roleCode: 'SITE_MANAGER', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },

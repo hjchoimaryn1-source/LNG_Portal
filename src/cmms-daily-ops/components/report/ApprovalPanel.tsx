@@ -33,6 +33,10 @@ export interface ApprovalPanelProps {
   onGenerate: (generatedBy: string) => void;
   onApprove: () => void;
   onReject: (reasonText: string) => void;
+  canUnlockApproved: boolean;
+  hqEditMessage: string | null;
+  onOpenHqEdit: (reasonText: string) => void;
+  onCloseHqEdit: (summaryText: string) => void;
 }
 
 export function ApprovalPanel({
@@ -44,9 +48,15 @@ export function ApprovalPanel({
   onGenerate,
   onApprove,
   onReject,
+  canUnlockApproved,
+  hqEditMessage,
+  onOpenHqEdit,
+  onCloseHqEdit,
 }: ApprovalPanelProps) {
   const [generatedBy, setGeneratedBy] = useState('');
   const [rejectReason, setRejectReason] = useState('');
+  const [hqUnlockReason, setHqUnlockReason] = useState('');
+  const [hqCloseSummary, setHqCloseSummary] = useState('');
 
   return (
     <div className={`${RAISED_PANEL} p-3 space-y-2`}>
@@ -61,12 +71,21 @@ export function ApprovalPanel({
 
       {message && <GuardrailBlockedBanner message={message} variant={message.includes('완료') ? 'warning' : 'error'} />}
 
-      {snapshot?.status === 'APPROVED' && (
+      {snapshot?.status === 'APPROVED' && !snapshot.hqEditUnlockActive && (
         <GuardrailBlockedBanner
           message={`${reportDate} 리포트는 Site Manager 승인으로 잠겼습니다 — 패트롤 데이터 수정 및 리포트 재생성이 모두 차단됩니다.`}
           variant="warning"
         />
       )}
+
+      {snapshot?.status === 'APPROVED' && snapshot.hqEditUnlockActive && (
+        <GuardrailBlockedBanner
+          message={`${reportDate} 리포트는 현재 HQ 수정 중입니다 — 패트롤 데이터 수정 및 리포트 재생성이 임시로 허용됩니다.`}
+          variant="warning"
+        />
+      )}
+
+      {hqEditMessage && <GuardrailBlockedBanner message={hqEditMessage} variant={hqEditMessage.includes('완료') || hqEditMessage.includes('열렸습니다') ? 'warning' : 'error'} />}
 
       {!snapshot && (
         <div className="flex gap-2 items-center">
@@ -113,6 +132,35 @@ export function ApprovalPanel({
             title={canApprove ? undefined : 'Site Manager / Acting Site Manager 권한이 필요합니다.'}
           >
             반려 (Reject)
+          </button>
+        </div>
+      )}
+
+      {snapshot?.status === 'APPROVED' && canUnlockApproved && !snapshot.hqEditUnlockActive && (
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            value={hqUnlockReason}
+            onChange={(e) => setHqUnlockReason(e.target.value)}
+            placeholder="HQ 수정 사유"
+            className={SUNKEN_INPUT}
+          />
+          <button type="button" onClick={() => onOpenHqEdit(hqUnlockReason)} className={BEVEL_BUTTON}>
+            HQ 수정 모드 열기
+          </button>
+        </div>
+      )}
+
+      {snapshot?.status === 'APPROVED' && canUnlockApproved && snapshot.hqEditUnlockActive && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-none bg-amber-200 text-amber-900">HQ 수정 중</span>
+          <input
+            value={hqCloseSummary}
+            onChange={(e) => setHqCloseSummary(e.target.value)}
+            placeholder="수정 완료 요약"
+            className={SUNKEN_INPUT}
+          />
+          <button type="button" onClick={() => onCloseHqEdit(hqCloseSummary)} className={BEVEL_BUTTON}>
+            수정 완료 &amp; 통보
           </button>
         </div>
       )}
