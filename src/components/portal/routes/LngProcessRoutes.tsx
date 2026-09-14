@@ -9,6 +9,10 @@ import MvSaviourView from '../../locations/MvSaviourView';
 import NiasTerminalView from '../../locations/NiasTerminalView';
 import NiasOperationalOverviewTab from '../../locations/nias/NiasOperationalOverviewTab';
 import SectorLauncherHub from '../../launcher/SectorLauncherHub';
+import { IsoTankLogisticsPlaceholderView } from '../../../cmms-daily-ops/views/IsoTankLogisticsPlaceholderView';
+import { LngEnergyOperationView } from '../../../cmms-daily-ops/views/LngEnergyOperationView';
+import { ElectricalSystemView } from '../../../cmms-daily-ops/views/ElectricalSystemView';
+import { PIDOverlayView } from '../../../cmms-daily-ops/pid/PIDOverlayView';
 
 interface LngProcessRoutesProps {
   activeKey: SubProcessKey;
@@ -100,6 +104,14 @@ export default function LngProcessRoutes({ activeKey, activeSubTab, handleSelect
       {activeKey === 'SAVIOUR_MARINE_PRESSURE' && (
         <MvSaviourView initialSubTab="STOWAGE_PLAN" />
       )}
+
+      {/* ========================================================= */}
+      {/* Daily Ops — Phase 12 Stage C4 (4 new LNG-Process tabs)    */}
+      {/* ========================================================= */}
+      {activeKey === 'DAILY_OPS_ISO_TANK_LOGISTICS' && <IsoTankLogisticsPlaceholderView />}
+      {activeKey === 'DAILY_OPS_LNG_ENERGY_OPERATION' && <LngEnergyOperationView />}
+      {activeKey === 'DAILY_OPS_ELECTRICAL_SYSTEM' && <ElectricalSystemView />}
+      {activeKey === 'DAILY_OPS_LIVE_PID_MAP' && <PIDOverlayView />}
     </>
   );
 }

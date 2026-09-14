@@ -92,7 +92,13 @@ export type SubProcessKey =
   // Management of Change (NP-12) — Phase 11c Stage 2
   | 'MOC_HUB'
   | 'MOC_PLAN_OF_CHANGE'
-  | 'MOC_COMPLETION_REPORT';
+  | 'MOC_COMPLETION_REPORT'
+  // Daily Ops — Phase 12 Stage C4 (4 new LNG-Process tabs). Addendum C4 assumed
+  // these existed from "original Stage A" — they did not; added here now.
+  | 'DAILY_OPS_ISO_TANK_LOGISTICS'
+  | 'DAILY_OPS_LNG_ENERGY_OPERATION'
+  | 'DAILY_OPS_ELECTRICAL_SYSTEM'
+  | 'DAILY_OPS_LIVE_PID_MAP';
 
 export interface OffloadHeelMetrics {
   offloadDate: string;

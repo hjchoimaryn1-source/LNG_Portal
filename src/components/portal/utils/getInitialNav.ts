@@ -35,5 +35,7 @@ export function getInitialNav(key: SubProcessKey): { menu: string; subTab: strin
   if (key.startsWith('MOC')) {
     return { menu: 'moc', subTab: key };
   }
+  // DAILY_OPS_* (Stage C4 tabs) fall through to the default below —
+  // they belong to the 'lng-process' menu group like the fallback already does.
   return { menu: 'lng-process', subTab: key };
 }
