@@ -7,6 +7,7 @@ import { PTWPermitsProvider } from '../context/PTWPermitsProvider';
 import { ThemeProvider } from '../context/ThemeContext';
 import { TruckingDataProvider } from '../context/TruckingDataContext';
 import { EnvironmentDataProvider } from '../context/EnvironmentDataContext';
+import { MocDataProvider } from '../context/MocDataContext';
 import { SubProcessKey } from '../types/lng';
 import LoginGateway from './auth/LoginGateway';
 import SectorLauncherHub from './launcher/SectorLauncherHub';
@@ -22,18 +23,20 @@ export default function LNGPortalApp() {
         /* Module Entry: Only when operator clicks one of the 5 sector cards, mount provider and load module */
         <EnvironmentDataProvider>
           <TruckingDataProvider>
-            <CmmsAwarePortalProvider>
-              <PTWPermitsProvider>
-                <LNGPortalInner
-                  initialKey={activeSector}
-                  onReturnToLauncher={() => setActiveSector(null)}
-                  onLogout={() => {
-                    setActiveSector(null);
-                    setIsAuthenticated(false);
-                  }}
-                />
-              </PTWPermitsProvider>
-            </CmmsAwarePortalProvider>
+            <MocDataProvider>
+              <CmmsAwarePortalProvider>
+                <PTWPermitsProvider>
+                  <LNGPortalInner
+                    initialKey={activeSector}
+                    onReturnToLauncher={() => setActiveSector(null)}
+                    onLogout={() => {
+                      setActiveSector(null);
+                      setIsAuthenticated(false);
+                    }}
+                  />
+                </PTWPermitsProvider>
+              </CmmsAwarePortalProvider>
+            </MocDataProvider>
           </TruckingDataProvider>
         </EnvironmentDataProvider>
       ) : (

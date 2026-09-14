@@ -6,20 +6,12 @@
 'use client';
 
 import { SubProcessKey } from '../../../types/lng';
+import MocModuleHub from '../../moc/MocModuleHub';
 
 interface MocRoutesProps {
   activeKey: SubProcessKey;
 }
 
-// NOTE: MocModuleHub is wired in Stage 2-E (requires MocDataContext, created
-// in that same sub-stage) — this placeholder keeps Stage 2-D independently
-// compilable/committable.
 export default function MocRoutes({ activeKey }: MocRoutesProps) {
-  return (
-    <>
-      {activeKey.startsWith('MOC') && (
-        <div className="win-panel p-4 text-xs font-mono text-slate-600">MOC module hub pending (Stage 2-E).</div>
-      )}
-    </>
-  );
+  return <>{activeKey.startsWith('MOC') && <MocModuleHub />}</>;
 }
