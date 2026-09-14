@@ -38,3 +38,18 @@ export {
   flagPendingReview,
   type MonitoringStatusRecord,
 } from './services/environmentMonitoringService';
+
+export {
+  insertWasteTransferLog,
+  selectAllWasteTransferLogs,
+  insertThwsInventoryItem,
+  selectAllThwsInventory,
+  updateThwsStatus,
+} from './dao/environmentWasteDao';
+
+export {
+  computeThwsStatus,
+  aggregateWasteByCategory,
+  type WasteCategoryLog,
+  type WasteCategoryAggregate,
+} from './services/environmentWasteService';
