@@ -20,6 +20,7 @@ const SECTOR_BUTTONS: SectorButton[] = [
   { id: 'MOD_7', name: '[ Jakarta HQ Overview ]', targetKey: 'HQ_OVERVIEW_DASHBOARD' },
   { id: 'MOD_8', name: '[ Trucking & Logistics (NP-03) ]', targetKey: 'TRUCKING_HUB' },
   { id: 'MOD_9', name: '[ Environment & Waste (NP-10) ]', targetKey: 'ENVIRONMENT_HUB' },
+  { id: 'MOD_10', name: '[ Management of Change (NP-12) ]', targetKey: 'MOC_HUB' },
 ];
 
 interface SectorLauncherHubProps {

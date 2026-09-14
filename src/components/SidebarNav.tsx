@@ -304,6 +304,19 @@ export default function SidebarNav({
           </div>
         </div>
 
+        {/* ========================================================================= */}
+        {/* 8. MANAGEMENT OF CHANGE (NP-12)                                           */}
+        {/* ========================================================================= */}
+        <div>
+          {/* 3D Classic Raised Bevel Header */}
+          <div className={SECTION_HEADER_BEVEL}>
+            <span>Management of Change</span>
+          </div>
+          <div className="bg-[#d4d0c8]">
+            {renderNavItem('MOC_HUB', 'NP-12 Hub', undefined, activeKey.startsWith('MOC'))}
+          </div>
+        </div>
+
       </div>
 
       {/* 4. Windows Statusbar Footer */}
