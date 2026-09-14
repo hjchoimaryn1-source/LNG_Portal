@@ -98,7 +98,9 @@ export type SubProcessKey =
   | 'DAILY_OPS_ISO_TANK_LOGISTICS'
   | 'DAILY_OPS_LNG_ENERGY_OPERATION'
   | 'DAILY_OPS_ELECTRICAL_SYSTEM'
-  | 'DAILY_OPS_LIVE_PID_MAP';
+  | 'DAILY_OPS_LIVE_PID_MAP'
+  // Daily Ops Overview — Phase 12 Pre-Flight III (approval state machine + RBAC)
+  | 'DAILY_OPS_OVERVIEW';
 
 export interface OffloadHeelMetrics {
   offloadDate: string;

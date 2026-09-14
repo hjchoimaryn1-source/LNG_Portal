@@ -15,6 +15,17 @@
 //   is_finalized=true인 리포트는 재생성을 거부하고 명시적 에러 결과를
 //   반환한다(서명 완료본을 조용히 덮어쓰지 않기 위함) — UI가 이 결과를
 //   확인 프롬프트로 보여줄 수 있게 throw 대신 result 타입을 쓴다.
+//
+//   Phase 12 Pre-Flight III 결정(옵션 a): DRAFT -> SUBMITTED -> APPROVED
+//   status 컬럼(dailyReportSchema.ts, ALTER TABLE) 도입에 따라 isFinalized는
+//   더 이상 raw is_finalized 컬럼을 신뢰하지 않고 `status === 'APPROVED'`의
+//   계산된 값으로 취급한다(rowToSnapshot 참고) — is_finalized 물리 컬럼은
+//   ALTER-only 정책상 제거하지 않고 레거시로 남긴다.
+//   finalizeSnapshot()은 기존 호출부(daily-report-signatures/route.ts,
+//   "양쪽 서명 완료" 트리거)를 그대로 유지하되, 의미가 DRAFT->SUBMITTED로
+//   바뀐다 — 최종 승인(APPROVED)은 dailyReportApprovalDao.ts의
+//   approveSnapshot()(Site Manager 전용)이 별도로 수행한다. Stage C 기존
+//   동작(양쪽 서명 = 최종 잠금)을 변경하는 deviation이며 HJ 승인 하에 진행.
 
 import type { SqlExecutor } from '../../adapters/db/sqlExecutor';
 import { getLatestPatrolValue, type PatrolValues } from './dailyOpsPatrolDao';
@@ -22,12 +33,16 @@ import { PATROL_EQUIPMENT_TAGS_BY_DOMAIN, METERING_EQUIPMENT_TAGS } from './patr
 import { mscfFromMmcf } from './unitConversion';
 import type { PatrolDomain } from '../types/patrolLog';
 
+export type DailyReportStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED';
+
 export interface DailyReportSnapshot {
   id: number;
   reportDate: string;
   generatedAt: string;
   generatedBy: string;
   snapshotPayload: string;
+  status: DailyReportStatus;
+  /** Computed alias of `status === 'APPROVED'` — does not read the legacy is_finalized column. */
   isFinalized: boolean;
 }
 
@@ -61,6 +76,7 @@ interface DailyReportSnapshotRow {
   generated_by: string;
   snapshot_payload: string;
   is_finalized: number;
+  status: DailyReportStatus;
 }
 
 const SELECT_BY_DATE_SQL = `SELECT * FROM daily_report_snapshots WHERE report_date = @reportDate`;
@@ -73,7 +89,8 @@ function rowToSnapshot(row: DailyReportSnapshotRow): DailyReportSnapshot {
     generatedAt: row.generated_at,
     generatedBy: row.generated_by,
     snapshotPayload: row.snapshot_payload,
-    isFinalized: row.is_finalized === 1,
+    status: row.status,
+    isFinalized: row.status === 'APPROVED',
   };
 }
 
@@ -95,7 +112,9 @@ const UPSERT_SNAPSHOT_SQL = `
     generated_at = @generatedAt, generated_by = @generatedBy, snapshot_payload = @snapshotPayload
 `;
 
-const FINALIZE_SQL = `UPDATE daily_report_snapshots SET is_finalized = 1 WHERE id = @id`;
+// "Finalize" here means both signatures complete -> ready for Site Manager review
+// (DRAFT -> SUBMITTED), not final approval. See file header comment.
+const FINALIZE_SQL = `UPDATE daily_report_snapshots SET status = 'SUBMITTED' WHERE id = @id AND status = 'DRAFT'`;
 
 function numericValue(values: PatrolValues | null, columnName: string): number {
   if (!values) return 0;
@@ -171,7 +190,7 @@ export function generateSnapshot(db: SqlExecutor, reportDate: string, generatedB
   return { success: true, snapshot, payload };
 }
 
-/** 양쪽 서명(prepared_by/acknowledged_by) 저장 후 호출 — is_finalized=1로 잠근다. */
+/** 양쪽 서명(prepared_by/acknowledged_by) 저장 후 호출 — DRAFT -> SUBMITTED로 전이한다. */
 export function finalizeSnapshot(db: SqlExecutor, snapshotId: number): void {
   db.run(FINALIZE_SQL, { id: snapshotId });
 }

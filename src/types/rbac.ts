@@ -25,7 +25,8 @@ export type ModuleCode =
   | 'PTW_PERMITS'
   | 'SAFETY_GAS_TESTING'
   | 'SAFETY_ERT_READINESS'
-  | 'SAFETY_OVERVIEW';
+  | 'SAFETY_OVERVIEW'
+  | 'DAILY_OPS_REPORT';
 
 export interface RolePermission {
   rolePermissionId: number;

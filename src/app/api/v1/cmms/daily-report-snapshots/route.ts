@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
       reportDate: snapshot.reportDate,
       generatedAt: snapshot.generatedAt,
       generatedBy: snapshot.generatedBy,
+      status: snapshot.status,
       isFinalized: snapshot.isFinalized,
       payload: JSON.parse(snapshot.snapshotPayload),
     },

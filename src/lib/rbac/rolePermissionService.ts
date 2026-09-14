@@ -24,6 +24,7 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 9, roleCode: 'SYSTEM_ADMIN', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
   { rolePermissionId: 10, roleCode: 'SYSTEM_ADMIN', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
   { rolePermissionId: 11, roleCode: 'SYSTEM_ADMIN', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
+  { rolePermissionId: 78, roleCode: 'SYSTEM_ADMIN', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
 
   // SITE_MANAGER: read all, create/update PTW+WO(row-level), approve PTW/WO/Shift/CAR
   { rolePermissionId: 12, roleCode: 'SITE_MANAGER', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
@@ -37,6 +38,8 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 20, roleCode: 'SITE_MANAGER', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 21, roleCode: 'SITE_MANAGER', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 22, roleCode: 'SITE_MANAGER', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: false, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
+  // Phase 12 — Daily Ops Report approval lock: only SITE_MANAGER/ACTING_SITE_MANAGER may approve (DRAFT->SUBMITTED->APPROVED).
+  { rolePermissionId: 79, roleCode: 'SITE_MANAGER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: false, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
 
   // ACTING_SITE_MANAGER: mirrors SITE_MANAGER but approve limited to PTW Stage 4 / SM-absence approval
   { rolePermissionId: 23, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
@@ -50,6 +53,7 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 31, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 32, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 33, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
+  { rolePermissionId: 80, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
 
   // OPERATION_TEAM_LEADER: site/operational modules only
   { rolePermissionId: 34, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'HQ_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
@@ -63,6 +67,7 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 42, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 43, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 44, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
+  { rolePermissionId: 81, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
 
   // HSSE_OFFICER: safety/PTW modules only
   { rolePermissionId: 45, roleCode: 'HSSE_OFFICER', moduleCode: 'HQ_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
@@ -76,6 +81,7 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 53, roleCode: 'HSSE_OFFICER', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
   { rolePermissionId: 54, roleCode: 'HSSE_OFFICER', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 55, roleCode: 'HSSE_OFFICER', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
+  { rolePermissionId: 82, roleCode: 'HSSE_OFFICER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
 
   // WORK_LEADER_TECH: assigned WO + TBM sign only (row-level filtering required at query level)
   { rolePermissionId: 56, roleCode: 'WORK_LEADER_TECH', moduleCode: 'HQ_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
@@ -89,6 +95,7 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 64, roleCode: 'WORK_LEADER_TECH', moduleCode: 'SAFETY_GAS_TESTING', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 65, roleCode: 'WORK_LEADER_TECH', moduleCode: 'SAFETY_ERT_READINESS', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 66, roleCode: 'WORK_LEADER_TECH', moduleCode: 'SAFETY_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
+  { rolePermissionId: 83, roleCode: 'WORK_LEADER_TECH', moduleCode: 'DAILY_OPS_REPORT', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
 
   // HQ_SUPERVISOR_AUDITOR: read-only everywhere except own HQ_OVERVIEW home module (forced read-only on all Site modules)
   { rolePermissionId: 67, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
@@ -102,6 +109,7 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 75, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
   { rolePermissionId: 76, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
   { rolePermissionId: 77, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
+  { rolePermissionId: 84, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
 ];
 
 export function getEffectivePermission(

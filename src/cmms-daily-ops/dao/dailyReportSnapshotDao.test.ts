@@ -5,6 +5,7 @@ import { ensureDailyOpsPatrolSchema } from '../db/dailyOpsPatrolSchema';
 import { ensureDailyReportSchema } from '../db/dailyReportSchema';
 import { insertPatrolEntry } from './dailyOpsPatrolDao';
 import { generateSnapshot, finalizeSnapshot, getSnapshot } from './dailyReportSnapshotDao';
+import { approveSnapshot } from './dailyReportApprovalDao';
 
 const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as typeof import('node:sqlite');
 
@@ -94,11 +95,25 @@ describe('dailyReportSnapshotDao.generateSnapshot', () => {
     expect(snapshot?.generatedBy).toBe('HJ2');
   });
 
-  it('rejects regeneration once finalized, returning the existing snapshot rather than overwriting', () => {
+  it('still allows regeneration once SUBMITTED (both signatures done, awaiting Site Manager approval)', () => {
     const first = generateSnapshot(db, '2026-09-14', 'HJ');
     expect(first.success).toBe(true);
     if (!first.success) return;
     finalizeSnapshot(db, first.snapshot.id);
+    expect(getSnapshot(db, '2026-09-14')?.status).toBe('SUBMITTED');
+    expect(getSnapshot(db, '2026-09-14')?.isFinalized).toBe(false);
+
+    const second = generateSnapshot(db, '2026-09-14', 'HJ2');
+    expect(second.success).toBe(true);
+  });
+
+  it('rejects regeneration once APPROVED by Site Manager, returning the existing snapshot rather than overwriting', () => {
+    const first = generateSnapshot(db, '2026-09-14', 'HJ');
+    expect(first.success).toBe(true);
+    if (!first.success) return;
+    finalizeSnapshot(db, first.snapshot.id);
+    const approval = approveSnapshot(db, first.snapshot.id);
+    expect(approval.success).toBe(true);
 
     const second = generateSnapshot(db, '2026-09-14', 'HJ2');
     expect(second.success).toBe(false);

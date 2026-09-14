@@ -8,12 +8,16 @@
 //   GET: Stage B3(DailyOpsDataContext) 초기 로드 — (domain, equipment_tag)별
 //   최신 1건씩 전체를 반환해 B2 Live-sync 스토어를 DB 마지막 값으로 채운다.
 //   POST: Stage C4에서 B1 폼의 onSave 콜백을 실제 저장에 연결하며 추가.
+//
+//   Phase 12 Pre-Flight III 승인 락(옵션 c): report_date가 이미 APPROVED면
+//   저장을 거부한다(409) — Site Manager 승인 완료 후 패트롤 데이터 수정 차단.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getDailyOpsDb } from '../../../../../cmms-daily-ops/db/dailyOpsDbSingleton';
 import { getAllLatestPatrolValues, insertPatrolEntry } from '../../../../../cmms-daily-ops/dao/dailyOpsPatrolDao';
 import type { PatrolValues } from '../../../../../cmms-daily-ops/dao/dailyOpsPatrolDao';
 import type { PatrolDomain, ReadingStatus, ShiftTimeSlot } from '../../../../../cmms-daily-ops/types/patrolLog';
+import { isReportDateApproved } from '../../../../../cmms-daily-ops/dao/dailyReportApprovalDao';
 
 export const runtime = 'nodejs';
 
@@ -61,6 +65,12 @@ export async function POST(request: NextRequest) {
   }
 
   const db = getDailyOpsDb();
+  if (isReportDateApproved(db, body.reportDate)) {
+    return NextResponse.json(
+      { success: false, error: `Report date ${body.reportDate} is already approved by Site Manager — patrol entries are locked.` },
+      { status: 409 }
+    );
+  }
   try {
     insertPatrolEntry(
       db,

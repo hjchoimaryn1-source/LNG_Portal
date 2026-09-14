@@ -10,6 +10,14 @@
 //   snapshot_payload(JSON)에 저장한다 — 이후 patrol 원본이 바뀌어도 발행된
 //   리포트는 불변으로 유지하기 위함. is_finalized=1(양쪽 서명 완료) 이후
 //   재생성 차단 여부는 DAO 레벨에서 확인 절차로 처리한다(스키마는 플래그만 보관).
+//
+//   Phase 12 Pre-Flight III 결정: DRAFT -> SUBMITTED -> APPROVED 3단계
+//   승인 상태 머신을 위해 status 컬럼을 ALTER TABLE ADD COLUMN으로 추가한다
+//   (CLAUDE.md §5 ALTER-only 정책 — 테이블 재생성 아님). is_finalized 컬럼은
+//   그대로 두되(ALTER-only 정책상 DROP 불가) dailyReportSnapshotDao.ts의
+//   DTO 계층에서 `status === 'APPROVED'`로부터 계산되는 값으로 취급하고
+//   더 이상 신뢰하지 않는다 — 레거시 컬럼. node:sqlite(DatabaseSync)에서
+//   CHECK 제약을 포함한 ALTER TABLE ADD COLUMN이 정상 동작함을 확인했다.
 
 import type { DatabaseSync } from 'node:sqlite';
 
@@ -73,9 +81,25 @@ export const DAILY_REPORT_SIGNATURES_DDL = `
   CREATE INDEX IF NOT EXISTS idx_daily_report_signatures_snapshot ON daily_report_signatures(snapshot_id);
 `;
 
+const ADD_STATUS_COLUMN_SQL = `
+  ALTER TABLE daily_report_snapshots
+  ADD COLUMN status TEXT NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'SUBMITTED', 'APPROVED'))
+`;
+
+// SQLite has no `ADD COLUMN IF NOT EXISTS` — guard via PRAGMA table_info(), same
+// convention as src/db/migrations/phase10Stage1ARunner.ts's WORK_ORDER_NEW_COLUMNS.
+function ensureStatusColumn(raw: DatabaseSync): void {
+  const columns = raw.prepare(`PRAGMA table_info(daily_report_snapshots)`).all();
+  const hasStatus = columns.some((c) => (c as { name: string }).name === 'status');
+  if (!hasStatus) {
+    raw.exec(ADD_STATUS_COLUMN_SQL);
+  }
+}
+
 /** daily_report_snapshots + 3개 child 테이블을 멱등(idempotent)하게 보강한다. */
 export function ensureDailyReportSchema(raw: DatabaseSync): void {
   raw.exec(DAILY_REPORT_SNAPSHOTS_DDL);
+  ensureStatusColumn(raw);
   raw.exec(DAILY_REPORT_CRITICAL_EVENTS_DDL);
   raw.exec(DAILY_REPORT_SAFETY_NOTES_DDL);
   raw.exec(DAILY_REPORT_SIGNATURES_DDL);

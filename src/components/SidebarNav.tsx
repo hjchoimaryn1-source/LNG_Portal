@@ -180,6 +180,7 @@ export default function SidebarNav({
             {renderNavItem('DAILY_OPS_LNG_ENERGY_OPERATION', 'LNG & NG Energy Operation')}
             {renderNavItem('DAILY_OPS_ELECTRICAL_SYSTEM', 'Electrical System')}
             {renderNavItem('DAILY_OPS_LIVE_PID_MAP', 'Live P&ID Map')}
+            {renderNavItem('DAILY_OPS_OVERVIEW', 'Daily Ops Overview')}
           </div>
         </div>
 

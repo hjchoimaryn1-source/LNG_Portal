@@ -13,6 +13,7 @@ import { IsoTankLogisticsPlaceholderView } from '../../../cmms-daily-ops/views/I
 import { LngEnergyOperationView } from '../../../cmms-daily-ops/views/LngEnergyOperationView';
 import { ElectricalSystemView } from '../../../cmms-daily-ops/views/ElectricalSystemView';
 import { PIDOverlayView } from '../../../cmms-daily-ops/pid/PIDOverlayView';
+import { DailyOpsOverviewView } from '../../../cmms-daily-ops/views/DailyOpsOverviewView';
 
 interface LngProcessRoutesProps {
   activeKey: SubProcessKey;
@@ -112,6 +113,9 @@ export default function LngProcessRoutes({ activeKey, activeSubTab, handleSelect
       {activeKey === 'DAILY_OPS_LNG_ENERGY_OPERATION' && <LngEnergyOperationView />}
       {activeKey === 'DAILY_OPS_ELECTRICAL_SYSTEM' && <ElectricalSystemView />}
       {activeKey === 'DAILY_OPS_LIVE_PID_MAP' && <PIDOverlayView />}
+
+      {/* Phase 12 Pre-Flight III — 승인 상태 머신 + RBAC 편입 */}
+      {activeKey === 'DAILY_OPS_OVERVIEW' && <DailyOpsOverviewView />}
     </>
   );
 }

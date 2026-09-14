@@ -10,6 +10,10 @@
 //   recordedBy: 인증/현재 사용자 컨텍스트가 이 프로젝트에 아직 없어(제로터치
 //   대상 파일들과 무관한 별개 갭) 호출부가 문자열을 직접 넘긴다 — 인증 연동은
 //   범위 밖.
+//
+//   onBlocked(Phase 12 Pre-Flight III): report_date가 APPROVED라 저장이
+//   409로 거부되면 사유를 전달한다. 선택적 파라미터라 기존 4개 호출부는
+//   무수정으로 남는다(그 뷰들에서는 여전히 조용히 무시됨).
 
 'use client';
 
@@ -20,7 +24,12 @@ import type { PatrolSaveHandler, PatrolSaveInput } from '../components/patrol/pa
 
 const PATROL_ENTRIES_API = '/api/v1/cmms/daily-ops-patrol-entries';
 
-export function usePatrolSaveHandler(domain: PatrolDomain, reportDate: string, recordedBy: string): PatrolSaveHandler {
+export function usePatrolSaveHandler(
+  domain: PatrolDomain,
+  reportDate: string,
+  recordedBy: string,
+  onBlocked?: (reason: string) => void
+): PatrolSaveHandler {
   return useCallback(
     (input: PatrolSaveInput) => {
       fetch(PATROL_ENTRIES_API, {
@@ -29,11 +38,15 @@ export function usePatrolSaveHandler(domain: PatrolDomain, reportDate: string, r
         body: JSON.stringify({ domain, reportDate, recordedBy, ...input }),
       })
         .then((res) => res.json())
-        .then((json: { success: boolean }) => {
-          if (json.success) setLatestPatrolEntry(domain, input.equipmentTag, input.values);
+        .then((json: { success: boolean; error?: string }) => {
+          if (json.success) {
+            setLatestPatrolEntry(domain, input.equipmentTag, input.values);
+          } else if (onBlocked && json.error) {
+            onBlocked(json.error);
+          }
         })
         .catch(() => {});
     },
-    [domain, reportDate, recordedBy]
+    [domain, reportDate, recordedBy, onBlocked]
   );
 }
