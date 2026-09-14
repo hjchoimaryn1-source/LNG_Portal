@@ -27,6 +27,8 @@ export interface WorkOrderRecord {
   nextDueDate: string | null;
   status: WorkOrderStatus;
   createdAt: string;
+  /** Phase10 Stage1A 추가 컬럼. Stage1C evaluateSafetyGateRules() 판정 결과 — 생성 시점에만 세팅된다. */
+  isPtwRequired: boolean;
 }
 
 export interface NewWorkOrderInput {
@@ -36,6 +38,8 @@ export interface NewWorkOrderInput {
   pmCycleDays?: number | null;
   lastPerformedAt?: string | null;
   status?: WorkOrderStatus;
+  /** src/cmms-mro-bridge/safetyGate/evaluateSafetyGateRules.ts 판정 결과. 미지정 시 false. */
+  isPtwRequired?: boolean;
 }
 
 export interface WorkOrderUpdateInput {
@@ -55,13 +59,14 @@ interface WorkOrderRow {
   next_due_date: string | null;
   status: string;
   created_at: string;
+  is_ptw_required: number;
 }
 
 const INSERT_SQL = `
   INSERT INTO work_orders (
-    work_order_id, asset_tag, title, pm_cycle_days, last_performed_at, next_due_date, status
+    work_order_id, asset_tag, title, pm_cycle_days, last_performed_at, next_due_date, status, is_ptw_required
   ) VALUES (
-    @workOrderId, @assetTag, @title, @pmCycleDays, @lastPerformedAt, @nextDueDate, @status
+    @workOrderId, @assetTag, @title, @pmCycleDays, @lastPerformedAt, @nextDueDate, @status, @isPtwRequired
   )
 `;
 
@@ -101,6 +106,7 @@ function rowToRecord(row: WorkOrderRow): WorkOrderRecord {
     nextDueDate: row.next_due_date,
     status: row.status as WorkOrderStatus,
     createdAt: row.created_at,
+    isPtwRequired: row.is_ptw_required === 1,
   };
 }
 
@@ -116,6 +122,7 @@ export function insertWorkOrder(db: SqlExecutor, input: NewWorkOrderInput): void
     lastPerformedAt,
     nextDueDate: computeNextDueDate(lastPerformedAt, pmCycleDays),
     status: input.status ?? 'SCHEDULED',
+    isPtwRequired: input.isPtwRequired ? 1 : 0,
   });
 }
 

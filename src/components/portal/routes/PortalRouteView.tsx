@@ -9,6 +9,8 @@ import EquipmentRoutes from './EquipmentRoutes';
 import WorkOrderRoutes from './WorkOrderRoutes';
 import ManpowerSafetyRoutes from './ManpowerSafetyRoutes';
 import OverviewCalibrationRoutes from './OverviewCalibrationRoutes';
+import TruckingRoutes from './TruckingRoutes';
+import EnvironmentRoutes from './EnvironmentRoutes';
 
 interface PortalRouteViewProps {
   activeKey: SubProcessKey;
@@ -58,7 +60,7 @@ export default function PortalRouteView({
         showWoSchedulerPreview={showWoSchedulerPreview}
         setShowWoSchedulerPreview={setShowWoSchedulerPreview}
         focusRecordId={focusRecordId}
-        onNavigateToSopReference={() => handleSelectSubProcess('SAFETY_SOP_REFERENCE')}
+        onNavigateToSopReference={(target) => handleSelectSubProcess('SAFETY_SOP_REFERENCE', target)}
       />
       <ManpowerSafetyRoutes
         activeKey={activeKey}
@@ -72,6 +74,11 @@ export default function PortalRouteView({
         calibrationFilter={calibrationFilter}
         handleSelectSubProcess={handleSelectSubProcess}
       />
+      <TruckingRoutes
+        activeKey={activeKey}
+        handleSelectSubProcess={handleSelectSubProcess}
+      />
+      <EnvironmentRoutes activeKey={activeKey} />
     </div>
   );
 }

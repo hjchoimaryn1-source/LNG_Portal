@@ -16,6 +16,10 @@ export interface BuildDraftPtwPermitArgs {
   workingAtHeight: boolean;
   leader: StaffPersonnel;
   workers: StaffPersonnel[];
+  // Stage-1 PRAC ALARP outcome + Stage-2/3 JSA reference (CMMS_Architecture.md
+  // §2.2). Optional — omitted callers get the previous (permissive) behavior.
+  isAlarpYes?: boolean;
+  jsaAttachmentRef?: string | null;
 }
 
 // CARGO_HANDLING is excluded — that type has its own required `cargoHandling`
@@ -32,6 +36,8 @@ export function buildDraftPtwPermit({
   workingAtHeight,
   leader,
   workers,
+  isAlarpYes,
+  jsaAttachmentRef,
 }: BuildDraftPtwPermitArgs): PTWPermit {
   const formDef = PTW_SOP_FORMS[type];
   const newId = `PTW-2026-0901-${String(sequenceNumber).padStart(2, '0')}`;
@@ -74,5 +80,7 @@ export function buildDraftPtwPermit({
     emergencyProtocol: 'Radio Channel 1 Emergency Channel Active',
     createdAt: '2026-09-01 12:00',
     hazardDescription: `${formDef.category} protocol active under SOP ${formDef.formNumber}.`,
+    isAlarpYes,
+    jsaAttachmentRef: jsaAttachmentRef?.trim() || null,
   };
 }

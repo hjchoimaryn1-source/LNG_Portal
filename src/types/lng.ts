@@ -77,7 +77,18 @@ export type SubProcessKey =
   // CMMS-wide Overview Dashboard (cross-module KPI landing)
   | 'CMMS_OVERVIEW_DASHBOARD'
   // Jakarta HQ Overview Dashboard (Sector 7 — CMMS_Architecture.md §3.1.1)
-  | 'HQ_OVERVIEW_DASHBOARD';
+  | 'HQ_OVERVIEW_DASHBOARD'
+  // Trucking & Logistics (NP-03) — Phase 11a Stage 2
+  | 'TRUCKING_HUB'
+  | 'TRUCKING_PRE_OP'
+  | 'TRUCKING_PERIODIC_INSPECTION'
+  | 'TRUCKING_TRAFFIC_MGMT'
+  | 'TRUCKING_POST_TRANSIT'
+  // Environmental & Waste Management (NP-10) — Phase 11b Stage 2
+  | 'ENVIRONMENT_HUB'
+  | 'ENVIRONMENT_AIR_WATER_NOISE'
+  | 'ENVIRONMENT_WASTE_TRANSFER'
+  | 'ENVIRONMENT_THWS_INVENTORY';
 
 export interface OffloadHeelMetrics {
   offloadDate: string;
@@ -427,6 +438,13 @@ interface PTWPermitBase {
   // usePTWPermits.addSignature(). A role may appear at most once per permit
   // (evaluateSignatureGate/hasSignedRole treat the first match as authoritative).
   signatures?: PTWSignatureEntry[];
+  // PRAC Stage-1 ALARP outcome (CMMS_Architecture.md §2.2). false = at least
+  // one identified hazard's residual risk was NOT ALARP. Optional; undefined
+  // is treated as "no non-ALARP risk recorded" (permissive) until backfilled.
+  isAlarpYes?: boolean;
+  // Stage-2/3 mandatory JSA document reference, required by §2.2 before
+  // Stage-3 approval when isAlarpYes === false. null/absent = not attached yet.
+  jsaAttachmentRef?: string | null;
 }
 
 // Discriminated on `type`: only CARGO_HANDLING carries `cargoHandling`, and it

@@ -23,11 +23,32 @@ import { insertSignature, selectSignaturesByPermit, selectAllSignaturesByPermit 
 import { selectPermitLockState, upsertPermitLockState } from './db/permitLockStateDao';
 import { insertPermitSyncConflict, selectOpenPermitSyncConflicts, type PermitSyncConflictRow } from './db/permitSyncConflictDao';
 import { computePayloadHash, legacyStatusToCmmsStage } from './ptwStatusMapper';
+import { insertPermitMetadataIfAbsent } from './db/permitMetadataDao';
+import { evaluateAndSyncSuspensions } from './permitSuspensionAdapter';
+import type { PermitSuspensionRow } from './db/permitSuspensionDao';
 import type { PTWSignatureEntry } from '../types/lng';
 
 /** DB가 비어있을 때만 시딩 — 이미 존재하는 permit_id는 건드리지 않는다(work_orders와 동일 컨벤션). */
 export function seedPermitLifecycleIfAbsent(draft: PTWPermitLifecycleDraft): void {
   insertPermitLifecycleIfAbsent(getCmmsDb(), draft);
+}
+
+/**
+ * permit 생성 시점의 type/work_area/equipment_tag 스냅샷 시딩 — §5.2 SIMOPS
+ * DB 판정(simopsDbAdapter.ts)의 후보 집합 소스. 이미 존재하는 permit_ref_no는
+ * 건드리지 않는다(위 seedPermitLifecycleIfAbsent와 동일 컨벤션).
+ */
+export function seedPermitMetadataIfAbsent(permitId: string, ptwType: string, workArea: string, equipmentTag: string): void {
+  insertPermitMetadataIfAbsent(getCmmsDb(), { permitRefNo: permitId, ptwType, workArea, equipmentTag });
+}
+
+/**
+ * §5.3 AGT 4시간 타임아웃 / 시프트 교대 정지 상태를 호출 시점 기준으로
+ * 재평가하고 현재 활성 정지 집합을 반환한다. 읽기(GET /ptw-permits)와
+ * 쓰기(applyPermitUpdateWithConflictCheck) 양쪽 경로에서 호출된다.
+ */
+export function getActiveSuspensionsSnapshot(): PermitSuspensionRow[] {
+  return evaluateAndSyncSuspensions(getCmmsDb());
 }
 
 /** transitionStatus() 결과 반영. 대상 permit_id가 DB에 아직 없으면 undefined(호출부가 무시). */
@@ -115,6 +136,9 @@ function refreshLockState(db: ReturnType<typeof getCmmsDb>, permitId: string, re
  */
 export function applyPermitUpdateWithConflictCheck(input: PermitSyncUpdateInput): PermitSyncUpdateResult {
   const db = getCmmsDb();
+  // §5.3 정지 상태를 이번 쓰기가 반영되기 전에 최신화한다 — transitionStatus의
+  // Gate 5(suspendedByPermit 조회)가 다음 sync 라운드에서 정확한 값을 보도록.
+  evaluateAndSyncSuspensions(db);
   const existing = selectPermitLifecycle(db, input.permitId);
   if (!existing) return { outcome: 'NOT_FOUND' };
 

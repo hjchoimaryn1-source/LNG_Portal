@@ -9,12 +9,16 @@ import {
   isFireWatchApplicable,
   validatePTWGasSafety,
 } from '../../../../data/ptwMasterData';
+import type { PermitSuspensionRow } from '../../../../adapters/db/permitSuspensionDao';
 
 export interface PermitRowProps {
   permit: PTWPermit;
   isSelected: boolean;
   rowIndex: number;
   onSelect: (permitId: string) => void;
+  // CMMS_Architecture.md §5.3 AGT timeout / shift-change suspension state for
+  // this specific permit. Optional — omitted/undefined renders unchanged.
+  suspension?: PermitSuspensionRow;
 }
 
 // Short activity-type label keyed by the PTWType enum (never touches the
@@ -70,10 +74,13 @@ const SAFE_DOT_CLASS: Record<SafeDotStatus, string> = {
   NA: 'bg-neutral-400',
 };
 
-export default function PermitRow({ permit, isSelected, rowIndex, onSelect }: PermitRowProps) {
+export default function PermitRow({ permit, isSelected, rowIndex, onSelect, suspension }: PermitRowProps) {
   const equipmentTag = getEquipmentTag(permit);
   const typeLabel = TYPE_SHORT_LABEL[permit.type] || permit.type.slice(0, 4);
   const safeStatus = computeSafeDotStatus(permit);
+  const suspensionTitle = suspension
+    ? `SUSPENDED (${suspension.reason === 'AGT_GAS_TIMEOUT' ? 'AGT gas re-test overdue' : 'shift-change boundary crossed'} at ${suspension.suspendedAt})`
+    : undefined;
 
   const rowBgClass = isSelected
     ? 'border-l-4 border-[#0B192C] bg-blue-50 font-semibold'
@@ -101,7 +108,15 @@ export default function PermitRow({ permit, isSelected, rowIndex, onSelect }: Pe
           <span className={`inline-block w-2 h-2 rounded-full ${SAFE_DOT_CLASS[safeStatus]}`} />
         )}
       </td>
-      <td className="flex-1 truncate px-1 text-xs" title={permit.title}>
+      <td className="flex-1 truncate px-1 text-xs" title={suspensionTitle ?? permit.title}>
+        {suspension && (
+          <span
+            className="mr-1 px-1 py-0.2 font-bold bg-rose-700 text-white rounded-sm text-[10px] align-middle"
+            title={suspensionTitle}
+          >
+            SUSPENDED
+          </span>
+        )}
         {permit.title}
       </td>
       <td className="w-24 truncate px-1 text-xs font-mono" title={permit.workLeaderName}>

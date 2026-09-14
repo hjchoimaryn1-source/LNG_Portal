@@ -14,7 +14,7 @@ interface WorkOrderRoutesProps {
   showWoSchedulerPreview: boolean;
   setShowWoSchedulerPreview: (value: boolean) => void;
   focusRecordId?: string | null;
-  onNavigateToSopReference?: () => void;
+  onNavigateToSopReference?: (target?: string) => void;
 }
 
 export default function WorkOrderRoutes({

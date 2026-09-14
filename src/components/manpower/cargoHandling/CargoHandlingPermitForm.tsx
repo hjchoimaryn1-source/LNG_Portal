@@ -9,13 +9,14 @@ import { mapCargoHandlingFormToPermit } from '../../../data/ptwCargoHandlingMapp
 import { useCargoHandlingPermitForm } from './hooks/useCargoHandlingPermitForm';
 import StatusGateChecklist from './StatusGateChecklist';
 import { SopQuickLinkBar } from '../../sop';
+import { encodeSopQuickLinkTarget } from '../../sop/utils/sopQuickLinkTarget';
 
 export interface CargoHandlingPermitFormProps {
   isOpen: boolean;
   onClose: () => void;
   sequenceNumber: number;
   onSubmitSuccess: (newPermit: PTWPermit) => void;
-  onOpenSopReference?: () => void;
+  onOpenSopReference?: (target?: string) => void;
 }
 
 const ACTIVITY_LABELS: Record<CargoHandlingActivityType, string> = {
@@ -56,8 +57,18 @@ export default function CargoHandlingPermitForm({ isOpen, onClose, sequenceNumbe
         </div>
 
         <div className="bg-[#d4d0c8] px-3 py-1 border-b border-[#808080]">
-          {isUnloading && <SopQuickLinkBar context="PTW_CARGO_HANDLING_UNLOADING" onSelect={() => onOpenSopReference?.()} />}
-          {isLifting && <SopQuickLinkBar context="PTW_CARGO_HANDLING_LIFTING" onSelect={() => onOpenSopReference?.()} />}
+          {isUnloading && (
+            <SopQuickLinkBar
+              context="PTW_CARGO_HANDLING_UNLOADING"
+              onSelect={(link) => onOpenSopReference?.(encodeSopQuickLinkTarget(link))}
+            />
+          )}
+          {isLifting && (
+            <SopQuickLinkBar
+              context="PTW_CARGO_HANDLING_LIFTING"
+              onSelect={(link) => onOpenSopReference?.(encodeSopQuickLinkTarget(link))}
+            />
+          )}
         </div>
 
         <div className="p-3 grid grid-cols-2 gap-3 bg-[#d4d0c8]">

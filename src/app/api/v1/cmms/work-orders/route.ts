@@ -13,12 +13,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllWorkOrderRecords, seedWorkOrdersIfEmpty, markWorkOrderPerformed } from '../../../../../adapters/workOrderDbAdapter';
 import type { NewWorkOrderInput, WorkOrderStatus } from '../../../../../adapters/db/workOrderDao';
+import {
+  evaluateSafetyGateRules,
+  EMPTY_SAFETY_GATE_INPUT,
+  type SafetyGateWorkOrderInput,
+} from '../../../../../cmms-mro-bridge/safetyGate/evaluateSafetyGateRules';
 
 export const runtime = 'nodejs';
 
 const VALID_STATUSES: WorkOrderStatus[] = ['SCHEDULED', 'IN_PROGRESS', 'PARTS_PENDING', 'COMPLETED'];
 
-function isValidSeedInput(body: unknown): body is NewWorkOrderInput[] {
+/**
+ * Phase10 Stage1C hook: work order 생성(seed) 시점에만 evaluateSafetyGateRules()를
+ * 호출해 is_ptw_required를 세팅한다. 오늘의 유일한 호출부(useWorkOrders.ts ->
+ * toNewWorkOrderInput)는 jobCategories/workAreaZone/equipmentCriticality를 아직
+ * 채워 보내지 않으므로(WOItem에 그런 필드가 없음 — Stage 0 Task 2 확인), 그 경우
+ * safetyGateInput 생략 시 EMPTY_SAFETY_GATE_INPUT으로 평가되어 항상 false가 된다.
+ * 이 값을 실제로 채워 보내는 호출부가 생기면 그대로 판정에 반영된다. PTW
+ * 상태전이/승인 라우트는 이 파일과 무관하며 미변경이다.
+ */
+type SeedInputWithSafetyGate = NewWorkOrderInput & { safetyGateInput?: Partial<SafetyGateWorkOrderInput> };
+
+function isValidSeedInput(body: unknown): body is SeedInputWithSafetyGate[] {
   if (!Array.isArray(body)) return false;
   return body.every((d) => {
     if (!d || typeof d !== 'object') return false;
@@ -26,6 +42,13 @@ function isValidSeedInput(body: unknown): body is NewWorkOrderInput[] {
     return typeof r.workOrderId === 'string' && r.workOrderId.length > 0 &&
       typeof r.assetTag === 'string' && r.assetTag.length > 0 &&
       typeof r.title === 'string';
+  });
+}
+
+function applySafetyGate(items: SeedInputWithSafetyGate[]): NewWorkOrderInput[] {
+  return items.map(({ safetyGateInput, ...item }) => {
+    const gateResult = evaluateSafetyGateRules({ ...EMPTY_SAFETY_GATE_INPUT, ...safetyGateInput });
+    return { ...item, isPtwRequired: gateResult.isPtwRequired };
   });
 }
 
@@ -55,7 +78,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Invalid NewWorkOrderInput[] payload.' }, { status: 400 });
   }
 
-  const records = seedWorkOrdersIfEmpty(body);
+  const records = seedWorkOrdersIfEmpty(applySafetyGate(body));
   return NextResponse.json({ success: true, records });
 }
 

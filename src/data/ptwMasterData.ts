@@ -181,7 +181,10 @@ export const PTW_SOP_FORMS: Record<PTWType, PTWSOPFormDef> = {
     description: 'LNG ISO Tank 하역(Unloading Skid) 및 크레인/리치스태커를 이용한 인양·이송(Lifting Transfer) 작업. 연동 SOP는 작업 유형에 따라 NP08-02/04/10/15 조합으로 결정됨 (src/data/ptwCargoHandlingValidators.ts 참조).',
     mandatoryCerts: ['CERT-HSE-01'],
     gasRestrictions: {
-      maxLelPercent: 10,
+      // Corrected 2026-09-12 (Phase 7 Stage 1, Discrepancy 1): was 10 —
+      // exceeded CMMS_Architecture.md §2.3 universal LEL ceiling (4.9% PASS /
+      // >=5.0% FAIL). No cargo-handling-specific exception is documented.
+      maxLelPercent: 4.9,
       minO2Percent: 19.5,
       maxO2Percent: 23.5,
       maxH2sPpm: 10,

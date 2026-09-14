@@ -3,15 +3,30 @@
 // list) on the left, Layer 2 (raw markdown viewer) opens on the right once
 // an anchor is selected. Composes the pieces below; owns no business logic.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSopIndex } from './hooks/useSopIndex';
 import { SopSearchPanel } from './SopSearchPanel';
 import { SopStructuredCard } from './SopStructuredCard';
 import { SopRawMarkdownViewer } from './SopRawMarkdownViewer';
+import { SopQuickLinkTarget } from './utils/sopQuickLinkTarget';
 
-export function SopReferenceViewer() {
+interface SopReferenceViewerProps {
+  // Set when navigation arrived here from a SopQuickLinkBar click (PTW/WO
+  // screens) — opens straight to that document, scrolled to its anchor,
+  // instead of the blank "SELECT AN SOP" state.
+  initialTarget?: SopQuickLinkTarget | null;
+}
+
+export function SopReferenceViewer({ initialTarget = null }: SopReferenceViewerProps) {
   const { filteredDocuments, filters, setFilters, findByNpCode } = useSopIndex();
-  const [rawTarget, setRawTarget] = useState<{ npCode: string; anchorId?: string } | null>(null);
+  const [rawTarget, setRawTarget] = useState<{ npCode: string; anchorId?: string } | null>(initialTarget);
+
+  // Re-sync if a new quick-link target arrives while this viewer is already
+  // mounted (e.g. the parent route re-renders with a different focusRecordId
+  // without unmounting SopReferenceViewer in between).
+  useEffect(() => {
+    if (initialTarget) setRawTarget(initialTarget);
+  }, [initialTarget]);
 
   const rawDoc = rawTarget ? findByNpCode(rawTarget.npCode) : undefined;
 

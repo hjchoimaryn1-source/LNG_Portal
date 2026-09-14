@@ -13,7 +13,9 @@ export type SopQuickLinkContext =
   | 'PTW_RADIOGRAPHY'
   | 'PTW_CARGO_HANDLING_UNLOADING'
   | 'PTW_CARGO_HANDLING_LIFTING'
-  | 'WORK_ORDER_MAINTENANCE';
+  | 'WORK_ORDER_MAINTENANCE'
+  | 'TRUCKING_POST_TRANSIT'
+  | 'TRUCKING_TRAFFIC_VERIFICATION';
 
 export interface SopQuickLink {
   npCode: string;
@@ -49,5 +51,11 @@ export const SOP_QUICK_LINK_MAP: Record<SopQuickLinkContext, SopQuickLink[]> = {
   ],
   WORK_ORDER_MAINTENANCE: [
     { npCode: 'NP-09', anchorId: 'np-09-np09-01-risk-assessment-procedure', label: 'NP-09 Risk Assessment' },
+  ],
+  TRUCKING_POST_TRANSIT: [
+    { npCode: 'NP-03', anchorId: 'np-03-7-15-post-transit-vehicle-condition-report', label: 'NP03-15 Post-Transit Report' },
+  ],
+  TRUCKING_TRAFFIC_VERIFICATION: [
+    { npCode: 'NP-03', anchorId: 'np-03-7-08-traffic-management-plan-form', label: 'NP03-08 Traffic Mgmt Plan' },
   ],
 };

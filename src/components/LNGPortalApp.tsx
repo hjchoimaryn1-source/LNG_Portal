@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 import { CmmsAwarePortalProvider } from '../context/CmmsAwarePortalProvider';
 import { PTWPermitsProvider } from '../context/PTWPermitsProvider';
 import { ThemeProvider } from '../context/ThemeContext';
+import { TruckingDataProvider } from '../context/TruckingDataContext';
+import { EnvironmentDataProvider } from '../context/EnvironmentDataContext';
 import { SubProcessKey } from '../types/lng';
 import LoginGateway from './auth/LoginGateway';
 import SectorLauncherHub from './launcher/SectorLauncherHub';
@@ -18,18 +20,22 @@ export default function LNGPortalApp() {
     <ThemeProvider>
       {activeSector !== null ? (
         /* Module Entry: Only when operator clicks one of the 5 sector cards, mount provider and load module */
-        <CmmsAwarePortalProvider>
-          <PTWPermitsProvider>
-            <LNGPortalInner
-              initialKey={activeSector}
-              onReturnToLauncher={() => setActiveSector(null)}
-              onLogout={() => {
-                setActiveSector(null);
-                setIsAuthenticated(false);
-              }}
-            />
-          </PTWPermitsProvider>
-        </CmmsAwarePortalProvider>
+        <EnvironmentDataProvider>
+          <TruckingDataProvider>
+            <CmmsAwarePortalProvider>
+              <PTWPermitsProvider>
+                <LNGPortalInner
+                  initialKey={activeSector}
+                  onReturnToLauncher={() => setActiveSector(null)}
+                  onLogout={() => {
+                    setActiveSector(null);
+                    setIsAuthenticated(false);
+                  }}
+                />
+              </PTWPermitsProvider>
+            </CmmsAwarePortalProvider>
+          </TruckingDataProvider>
+        </EnvironmentDataProvider>
       ) : (
         /* Unified Background: Full-screen plant background image with dark overlay */
         <div

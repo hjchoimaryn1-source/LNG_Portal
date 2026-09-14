@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { PTWPermit } from '../../../../types/lng';
 import PermitRow from './PermitRow';
+import type { PermitSuspensionRow } from '../../../../adapters/db/permitSuspensionDao';
 
 export interface PermitSlotSectionProps {
   title: string;
@@ -12,6 +13,9 @@ export interface PermitSlotSectionProps {
   selectedPermitId: string;
   onSelectPermit: (permitId: string) => void;
   defaultCollapsed?: boolean;
+  // CMMS_Architecture.md §5.3 suspension state, keyed by permitId. Optional —
+  // omitted renders exactly as before (no badges).
+  suspendedByPermit?: Map<string, PermitSuspensionRow>;
 }
 
 export default function PermitSlotSection({
@@ -21,6 +25,7 @@ export default function PermitSlotSection({
   selectedPermitId,
   onSelectPermit,
   defaultCollapsed = false,
+  suspendedByPermit,
 }: PermitSlotSectionProps) {
   const [isExpanded, setIsExpanded] = useState(!defaultCollapsed);
   const slotPermits = permits.filter(predicate);
@@ -57,6 +62,7 @@ export default function PermitSlotSection({
                 isSelected={selectedPermitId === permit.id}
                 rowIndex={index}
                 onSelect={onSelectPermit}
+                suspension={suspendedByPermit?.get(permit.id)}
               />
             ))}
           </tbody>

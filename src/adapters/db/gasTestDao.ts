@@ -55,6 +55,14 @@ const SELECT_RECENT_SQL = `
   ORDER BY tested_at DESC, gas_test_id DESC
 `;
 
+// permitSuspensionAdapter.ts (§5.3 AGT 4h timeout)의 staleness 판정용 — permit당
+// 가장 최근 tested_at 1건만 필요하므로 전체 이력을 permit별로 다시 불러오지 않는다.
+const SELECT_LATEST_TESTED_AT_PER_PERMIT_SQL = `
+  SELECT permit_id, MAX(tested_at) as latest_tested_at
+  FROM permit_gas_tests
+  GROUP BY permit_id
+`;
+
 function rowToDraft(row: GasTestRow): GasTestRecordDraft {
   return {
     permitRefNo: row.permit_id,
@@ -103,4 +111,10 @@ export function selectAllGasTestRecords(db: SqlExecutor): GasTestRecordDraft[] {
 export function selectRecentGasTestRecords(db: SqlExecutor, windowHours: number): GasTestRecordDraft[] {
   const rows = db.all<GasTestRow>(SELECT_RECENT_SQL, { windowClause: `-${windowHours} hours` });
   return rows.map(rowToDraft);
+}
+
+/** permit_ref_no -> 가장 최근 tested_at(ISO). 기록이 없는 permit은 맵에 없다. */
+export function selectLatestTestedAtByPermit(db: SqlExecutor): Map<string, string> {
+  const rows = db.all<{ permit_id: string; latest_tested_at: string }>(SELECT_LATEST_TESTED_AT_PER_PERMIT_SQL);
+  return new Map(rows.map((r) => [r.permit_id, r.latest_tested_at]));
 }

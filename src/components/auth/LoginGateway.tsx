@@ -4,10 +4,12 @@
 import React, { useEffect, useState } from 'react';
 import { USER_ACCOUNTS, type UserAccountSeedRow } from '../../lib/rbac/userAccountsSeed';
 import { setActiveSession } from '../../lib/rbac/activeSessionStore';
+import type { EffectiveRole } from '../../cmms-auth/rbacTypes';
 import { LOGIN_GATEWAY_STYLES } from './loginGatewayStyles';
 import { LOGIN_GATEWAY_TASK_STYLES } from './loginGatewayTaskStyles';
 import { LOGIN_GATEWAY_ACCOUNT_CARD_STYLES } from './loginGatewayAccountCardStyles';
 import QuickLoginAccountCard from './QuickLoginAccountCard';
+import PinEntryModal from './PinEntryModal';
 
 interface LoginGatewayProps {
   onEnter?: () => void;
@@ -31,6 +33,9 @@ export default function LoginGateway({ onEnter, onLogin }: LoginGatewayProps) {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [pendingAccount, setPendingAccount] = useState<UserAccountSeedRow | null>(null);
+  const [isSubmittingPin, setIsSubmittingPin] = useState(false);
+  const [pinError, setPinError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (lockoutUntil === null) return;
@@ -49,14 +54,52 @@ export default function LoginGateway({ onEnter, onLogin }: LoginGatewayProps) {
 
   const handleSelectAccount = (account: UserAccountSeedRow) => {
     if (isLockedOut) return;
+    setPinError(undefined);
+    setPendingAccount(account);
+  };
 
-    // Quick-Login: password_hash 검증 없이 선택된 계정을 세션에 직접 기록한다.
+  const handlePinCancel = () => {
+    setPendingAccount(null);
+    setPinError(undefined);
+  };
+
+  // PIN 입력 후 /api/v1/cmms/auth/login을 거쳐 실제 authenticate() 경로를
+  // 통과한다 — src/cmms-auth/index.ts 참조.
+  const handlePinSubmit = async (pin: string) => {
+    if (!pendingAccount) return;
+    setIsSubmittingPin(true);
+    setPinError(undefined);
+
+    let res: Response;
+    try {
+      res = await fetch('/api/v1/cmms/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin, staffId: pendingAccount.userId }),
+      });
+    } catch {
+      setIsSubmittingPin(false);
+      setPinError('네트워크 오류 — 다시 시도하세요.');
+      return;
+    }
+
+    if (!res.ok) {
+      setIsSubmittingPin(false);
+      setFailedAttempts((prev) => prev + 1);
+      setPinError('PIN이 올바르지 않습니다.');
+      return;
+    }
+
+    const data: { effectiveRole?: EffectiveRole } = await res.json();
     setActiveSession({
-      userId: account.userId,
-      roleCode: account.roleCode,
-      homeLocation: account.homeLocation,
+      userId: pendingAccount.userId,
+      roleCode: pendingAccount.roleCode,
+      homeLocation: pendingAccount.homeLocation,
+      effectiveRole: data.effectiveRole,
     });
+    setIsSubmittingPin(false);
     setFailedAttempts(0);
+    setPendingAccount(null);
     if (onLogin) {
       onLogin();
     } else if (onEnter) {
@@ -157,6 +200,16 @@ export default function LoginGateway({ onEnter, onLogin }: LoginGatewayProps) {
           <span className="ready-indicator">⦿ SESSION STANDBY</span>
         </div>
       </div>
+
+      {pendingAccount && (
+        <PinEntryModal
+          account={pendingAccount}
+          onSubmit={handlePinSubmit}
+          onCancel={handlePinCancel}
+          isSubmitting={isSubmittingPin}
+          errorMessage={pinError}
+        />
+      )}
     </div>
   );
 }
