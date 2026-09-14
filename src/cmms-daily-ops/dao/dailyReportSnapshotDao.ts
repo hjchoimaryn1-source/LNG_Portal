@@ -50,6 +50,8 @@ export interface DailyReportSnapshot {
   hqEditPendingAck: boolean;
   hqEditNoticeText: string | null;
   hqEditNoticeAt: string | null;
+  /** D-ADD-4 — timestamp of the most recent generateSnapshot() call; compared against signature signed_at for staleness. */
+  lastRegeneratedAt: string | null;
 }
 
 /** domains[domain][equipmentTag] — 해당 태그의 최신 순찰값 전체 필드, 기록이 없으면 null. */
@@ -87,6 +89,7 @@ interface DailyReportSnapshotRow {
   hq_edit_pending_ack: number;
   hq_edit_notice_text: string | null;
   hq_edit_notice_at: string | null;
+  last_regenerated_at: string | null;
 }
 
 const SELECT_BY_DATE_SQL = `SELECT * FROM daily_report_snapshots WHERE report_date = @reportDate`;
@@ -105,6 +108,7 @@ function rowToSnapshot(row: DailyReportSnapshotRow): DailyReportSnapshot {
     hqEditPendingAck: row.hq_edit_pending_ack === 1,
     hqEditNoticeText: row.hq_edit_notice_text,
     hqEditNoticeAt: row.hq_edit_notice_at,
+    lastRegeneratedAt: row.last_regenerated_at,
   };
 }
 
@@ -119,11 +123,13 @@ export function listRecentSnapshots(db: SqlExecutor, limit = 10): DailyReportSna
   return db.all<DailyReportSnapshotRow>(SELECT_RECENT_SQL, { limit }).map(rowToSnapshot);
 }
 
+// last_regenerated_at is stamped on every (re)generation — D-ADD-4 compares it
+// against signature signed_at to flag a stale signature after a regeneration.
 const UPSERT_SNAPSHOT_SQL = `
-  INSERT INTO daily_report_snapshots (report_date, generated_at, generated_by, snapshot_payload, is_finalized)
-  VALUES (@reportDate, @generatedAt, @generatedBy, @snapshotPayload, 0)
+  INSERT INTO daily_report_snapshots (report_date, generated_at, generated_by, snapshot_payload, is_finalized, last_regenerated_at)
+  VALUES (@reportDate, @generatedAt, @generatedBy, @snapshotPayload, 0, @generatedAt)
   ON CONFLICT(report_date) DO UPDATE SET
-    generated_at = @generatedAt, generated_by = @generatedBy, snapshot_payload = @snapshotPayload
+    generated_at = @generatedAt, generated_by = @generatedBy, snapshot_payload = @snapshotPayload, last_regenerated_at = @generatedAt
 `;
 
 // "Finalize" here means both signatures complete -> ready for Site Manager review

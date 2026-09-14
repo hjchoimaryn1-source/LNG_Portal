@@ -16,6 +16,7 @@ import { useState } from 'react';
 import { RAISED_PANEL, SUNKEN_INPUT } from '../../components/cmms/scadaStyles';
 import { useDailyReportApproval } from '../hooks/useDailyReportApproval';
 import { useHqEditWindow } from '../hooks/useHqEditWindow';
+import { useSignatureValidity } from '../hooks/useSignatureValidity';
 import { ApprovalPanel } from '../components/report/ApprovalPanel';
 import { NoticeBanner } from '../components/report/NoticeBanner';
 import { CriticalEventsEditor } from '../components/report/CriticalEventsEditor';
@@ -34,6 +35,7 @@ export function DailyOpsOverviewView() {
   const { snapshot, loading, message, canApprove, generate, approve, reject, reload } = useDailyReportApproval(reportDate);
   const { canUnlockApproved, canAcknowledge, message: hqEditMessage, openWindow, closeWindow, acknowledge } =
     useHqEditWindow(snapshot, reload);
+  const showSignatureWarning = useSignatureValidity(snapshot?.id ?? null, snapshot?.lastRegeneratedAt ?? null);
 
   return (
     <div className="p-4 space-y-4">
@@ -63,6 +65,7 @@ export function DailyOpsOverviewView() {
         hqEditMessage={hqEditMessage}
         onOpenHqEdit={openWindow}
         onCloseHqEdit={closeWindow}
+        showSignatureWarning={showSignatureWarning}
       />
 
       {snapshot && (

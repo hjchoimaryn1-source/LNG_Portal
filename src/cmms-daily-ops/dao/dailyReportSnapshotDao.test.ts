@@ -95,6 +95,15 @@ describe('dailyReportSnapshotDao.generateSnapshot', () => {
     expect(snapshot?.generatedBy).toBe('HJ2');
   });
 
+  it('stamps lastRegeneratedAt on every generateSnapshot() call (D-ADD-4)', () => {
+    const result = generateSnapshot(db, '2026-09-14', 'HJ');
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    const snapshot = getSnapshot(db, '2026-09-14');
+    expect(snapshot?.lastRegeneratedAt).toBe(result.payload.generatedAt);
+  });
+
   it('still allows regeneration once SUBMITTED (both signatures done, awaiting Site Manager approval)', () => {
     const first = generateSnapshot(db, '2026-09-14', 'HJ');
     expect(first.success).toBe(true);

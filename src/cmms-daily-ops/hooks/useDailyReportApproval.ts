@@ -29,6 +29,7 @@ export interface DailyReportSnapshotSummary {
   hqEditPendingAck: boolean;
   hqEditNoticeText: string | null;
   hqEditNoticeAt: string | null;
+  lastRegeneratedAt: string | null;
 }
 
 export function useDailyReportApproval(reportDate: string) {

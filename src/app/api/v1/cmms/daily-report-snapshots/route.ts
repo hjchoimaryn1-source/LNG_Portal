@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
       hqEditPendingAck: snapshot.hqEditPendingAck,
       hqEditNoticeText: snapshot.hqEditNoticeText,
       hqEditNoticeAt: snapshot.hqEditNoticeAt,
+      lastRegeneratedAt: snapshot.lastRegeneratedAt,
       payload: JSON.parse(snapshot.snapshotPayload),
     },
   });

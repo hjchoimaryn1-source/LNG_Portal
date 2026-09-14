@@ -120,6 +120,11 @@ function ensureHqEditColumns(raw: DatabaseSync): void {
   ensureColumn(raw, 'daily_report_snapshots', 'hq_edit_notice_at', ADD_HQ_EDIT_NOTICE_AT_SQL);
 }
 
+// Stage D Addendum (D-ADD-4) — timestamp of the most recent generateSnapshot()
+// call, compared against signature signed_at to flag stale signatures after a
+// regeneration (SUBMITTED-stage or HQ in-place edit window alike).
+const ADD_LAST_REGENERATED_AT_SQL = `ALTER TABLE daily_report_snapshots ADD COLUMN last_regenerated_at TEXT`;
+
 // Stage D Addendum (D-ADD-3) — audit trail of every status-machine event on a
 // snapshot. A brand-new table (not a rebuild of an existing one), so the
 // ALTER-only policy does not apply here.
@@ -144,6 +149,7 @@ export function ensureDailyReportSchema(raw: DatabaseSync): void {
   raw.exec(DAILY_REPORT_SNAPSHOTS_DDL);
   ensureColumn(raw, 'daily_report_snapshots', 'status', ADD_STATUS_COLUMN_SQL);
   ensureHqEditColumns(raw);
+  ensureColumn(raw, 'daily_report_snapshots', 'last_regenerated_at', ADD_LAST_REGENERATED_AT_SQL);
   raw.exec(DAILY_REPORT_CRITICAL_EVENTS_DDL);
   raw.exec(DAILY_REPORT_SAFETY_NOTES_DDL);
   raw.exec(DAILY_REPORT_SIGNATURES_DDL);

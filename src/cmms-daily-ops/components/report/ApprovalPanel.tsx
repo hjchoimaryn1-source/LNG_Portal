@@ -37,6 +37,8 @@ export interface ApprovalPanelProps {
   hqEditMessage: string | null;
   onOpenHqEdit: (reasonText: string) => void;
   onCloseHqEdit: (summaryText: string) => void;
+  /** D-ADD-4 — true when lastRegeneratedAt is later than any signature's signed_at, regardless of status. */
+  showSignatureWarning: boolean;
 }
 
 export function ApprovalPanel({
@@ -52,6 +54,7 @@ export function ApprovalPanel({
   hqEditMessage,
   onOpenHqEdit,
   onCloseHqEdit,
+  showSignatureWarning,
 }: ApprovalPanelProps) {
   const [generatedBy, setGeneratedBy] = useState('');
   const [rejectReason, setRejectReason] = useState('');
@@ -65,6 +68,11 @@ export function ApprovalPanel({
         {snapshot && (
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-none ${STATUS_BADGE[snapshot.status]}`}>
             {STATUS_LABEL[snapshot.status]}
+          </span>
+        )}
+        {snapshot && showSignatureWarning && (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-none bg-red-200 text-red-900">
+            재발행됨 — 서명 확인 필요
           </span>
         )}
       </div>
