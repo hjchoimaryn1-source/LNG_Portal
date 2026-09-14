@@ -10,6 +10,7 @@ import WorkOrderRoutes from './WorkOrderRoutes';
 import ManpowerSafetyRoutes from './ManpowerSafetyRoutes';
 import OverviewCalibrationRoutes from './OverviewCalibrationRoutes';
 import TruckingRoutes from './TruckingRoutes';
+import EnvironmentRoutes from './EnvironmentRoutes';
 
 interface PortalRouteViewProps {
   activeKey: SubProcessKey;
@@ -77,6 +78,7 @@ export default function PortalRouteView({
         activeKey={activeKey}
         handleSelectSubProcess={handleSelectSubProcess}
       />
+      <EnvironmentRoutes activeKey={activeKey} />
     </div>
   );
 }
