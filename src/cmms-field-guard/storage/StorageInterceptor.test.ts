@@ -37,17 +37,38 @@ describe('installFieldStorageGuard', () => {
     vi.unstubAllGlobals();
   });
 
-  it('FIELD_CLIENT mode: setItem/getItem round-trip returns null after guard install', () => {
+  it('FIELD_CLIENT mode: setItem/getItem round-trips within the session via in-memory store', () => {
+    const originalLocalStorage = window.localStorage;
+
     installFieldStorageGuard();
 
     window.localStorage.setItem('permitDraft', 'value');
-    expect(window.localStorage.getItem('permitDraft')).toBeNull();
+    expect(window.localStorage.getItem('permitDraft')).toBe('value');
 
     window.sessionStorage.setItem('permitDraft', 'value');
-    expect(window.sessionStorage.getItem('permitDraft')).toBeNull();
+    expect(window.sessionStorage.getItem('permitDraft')).toBe('value');
+
+    // Confirm no writes reach the pre-guard (jsdom-backing-equivalent) stub.
+    expect(originalLocalStorage.getItem('permitDraft')).toBeNull();
   });
 
-  it('DEV mode: real localStorage still works when guard is not installed', () => {
+  it('FIELD_CLIENT mode: removeItem/clear/key/length behave like real Storage', () => {
+    installFieldStorageGuard();
+
+    window.localStorage.setItem('a', '1');
+    window.localStorage.setItem('b', '2');
+    expect(window.localStorage.length).toBe(2);
+    expect(window.localStorage.key(0)).toBe('a');
+
+    window.localStorage.removeItem('a');
+    expect(window.localStorage.getItem('a')).toBeNull();
+    expect(window.localStorage.length).toBe(1);
+
+    window.localStorage.clear();
+    expect(window.localStorage.length).toBe(0);
+  });
+
+  it('DEV mode: real localStorage is untouched when guard is not installed', () => {
     window.localStorage.setItem('permitDraft', 'value');
     expect(window.localStorage.getItem('permitDraft')).toBe('value');
   });
