@@ -20,9 +20,13 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { setLatestPatrolEntry } from '../cmms-daily-ops/state/useDailyOpsPatrolStore';
+import { setHmiTagAliases } from '../hmi/state/hmiTagAliasCache';
 import type { PatrolDomain } from '../cmms-daily-ops/types/patrolLog';
 
 const DAILY_OPS_PATROL_ENTRIES_API = '/api/v1/cmms/daily-ops-patrol-entries';
+// HMI-2-alias: 기존 refresh() 로직과 별개의 하이드레이션 경로 — pure addition, 아래 기존
+// fetch/상태 로직은 한 줄도 변경하지 않는다.
+const PID_TAG_ALIASES_API = '/api/v1/cmms/pid-tag-aliases';
 
 interface LatestPatrolEntryDto {
   domain: PatrolDomain;
@@ -62,6 +66,22 @@ export function DailyOpsDataProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // HMI-2-alias: 별도 하이드레이션 — 실패해도 위 refresh()의 isLoading/error 상태는 건드리지 않는다.
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(PID_TAG_ALIASES_API, { cache: 'no-store' });
+        const json = (await res.json()) as {
+          success: boolean;
+          records: { canonicalTagId: string; aliasTagId: string; sourceDocument: string }[];
+        };
+        if (res.ok && json.success) setHmiTagAliases(json.records);
+      } catch {
+        // 표시 레이어 저하(별칭 미해결)일 뿐 — 조용히 무시.
+      }
+    })();
+  }, []);
 
   return <DailyOpsDataContext.Provider value={{ isLoading, error, refresh }}>{children}</DailyOpsDataContext.Provider>;
 }

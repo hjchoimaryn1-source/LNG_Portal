@@ -30,6 +30,7 @@
 import { useDailyOpsPatrolValue } from '../../cmms-daily-ops/state/useDailyOpsPatrolStore';
 import { PATROL_FIELD_MAP } from '../../cmms-daily-ops/dao/patrolFieldMaps';
 import { evaluateAlarmState, worstAlarmPriority } from '../alarms/evaluateAlarmState';
+import { resolveHmiDisplayTag } from './hmiTagAliasCache';
 import type { HmiEquipmentSnapshot, HmiInstrumentReading, PatrolDomain } from '../types/hmiCore';
 
 /** patrolFieldMaps.ts 기준 도메인당 최대 컬럼 수(gc=15). */
@@ -61,13 +62,17 @@ export function useHmiEquipment(domain: PatrolDomain, equipmentTag: string): Hmi
     slot8, slot9, slot10, slot11, slot12, slot13, slot14,
   ];
 
+  // HMI-2-alias: DB/폼은 bridging 태그(예: AAV-102)를 그대로 쓴다 — 아래 슬롯 조회는
+  // equipmentTag(원본)를 쓰고, displayTag(canonical)는 표시 필드에만 적용한다.
+  const displayTag = resolveHmiDisplayTag(equipmentTag);
+
   const fieldSpecs = PATROL_FIELD_MAP[domain];
   const readings: HmiInstrumentReading[] = [];
   for (let i = 0; i < fieldSpecs.length && i < MAX_FIELD_SLOTS; i++) {
     const value = slotValues[i];
     if (value === undefined || value === null) continue;
     const reading: HmiInstrumentReading = {
-      tagId: equipmentTag,
+      tagId: displayTag,
       domain,
       columnName: fieldSpecs[i].columnName,
       instrumentType: 'OTHER',
@@ -82,9 +87,9 @@ export function useHmiEquipment(domain: PatrolDomain, equipmentTag: string): Hmi
   }
 
   return {
-    equipmentTag,
+    equipmentTag: displayTag,
     domain,
-    displayName: equipmentTag,
+    displayName: displayTag,
     readings,
     interlock: { status: 'NOT_IMPLEMENTED', reason: null },
     worstAlarmPriority: worstAlarmPriority(readings),
