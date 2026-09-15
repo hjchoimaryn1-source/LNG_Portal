@@ -32,7 +32,7 @@ import { useDailyOpsPatrolValue } from '../../cmms-daily-ops/state/useDailyOpsPa
 import { PATROL_FIELD_MAP } from '../../cmms-daily-ops/dao/patrolFieldMaps';
 import { evaluateAlarmState, worstAlarmPriority } from '../alarms/evaluateAlarmState';
 import { resolveHmiDisplayTag } from './hmiTagAliasCache';
-import { recordAlarmOnsetObservation } from './useAlarmAckStore';
+import { recordAlarmOnsetObservation } from './alarmCurrentStateCache';
 import type { AlarmPriority, HmiEquipmentSnapshot, HmiInstrumentReading, PatrolDomain } from '../types/hmiCore';
 
 /** patrolFieldMaps.ts 기준 도메인당 최대 컬럼 수(gc=15). */

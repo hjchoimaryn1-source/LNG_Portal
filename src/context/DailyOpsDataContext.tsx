@@ -23,6 +23,7 @@ import { setLatestPatrolEntry } from '../cmms-daily-ops/state/useDailyOpsPatrolS
 import { setHmiTagAliases } from '../hmi/state/hmiTagAliasCache';
 import { setAlarmSetpointOverrides, type AlarmSetpointOverrideRecord } from '../hmi/state/alarmSetpointOverrideCache';
 import { setActiveSuppressions, type ActiveSuppressionRecord } from '../hmi/state/useAlarmSuppressionStore';
+import { setAlarmOnsets, type AlarmOnsetRecord } from '../hmi/state/alarmCurrentStateCache';
 import type { PatrolDomain } from '../cmms-daily-ops/types/patrolLog';
 
 const DAILY_OPS_PATROL_ENTRIES_API = '/api/v1/cmms/daily-ops-patrol-entries';
@@ -31,6 +32,7 @@ const DAILY_OPS_PATROL_ENTRIES_API = '/api/v1/cmms/daily-ops-patrol-entries';
 const PID_TAG_ALIASES_API = '/api/v1/cmms/pid-tag-aliases';
 const ALARM_SETPOINT_OVERRIDES_API = '/api/v1/cmms/alarm-setpoint-overrides';
 const ALARM_ACTION_LOG_API = '/api/v1/cmms/alarm-action-log';
+const ALARM_CURRENT_STATE_API = '/api/v1/cmms/alarm-current-state';
 
 interface LatestPatrolEntryDto {
   domain: PatrolDomain;
@@ -109,6 +111,20 @@ export function DailyOpsDataProvider({ children }: { children: React.ReactNode }
         if (res.ok && json.success) setActiveSuppressions(json.records);
       } catch {
         // 억제 상태 미해결 시 배지가 실제 등급 그대로 보일 뿐(안전 방향 폴백) — 조용히 무시.
+      }
+    })();
+  }, []);
+
+  // HMI-2d-2-fix-b: alarm_current_state(onset) 하이드레이션 — 위 네 useEffect와 동일하게 독립적.
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(ALARM_CURRENT_STATE_API, { cache: 'no-store' });
+        const json = (await res.json()) as { success: boolean; records: AlarmOnsetRecord[] };
+        if (res.ok && json.success) setAlarmOnsets(json.records);
+      } catch {
+        // onset 미해결 시 클라이언트가 라이브 평가로 다시 관측하는 대로 낙관 반영/POST —
+        // 조용히 무시(안전 방향 폴백, 최악의 경우 재확인 요구가 한 번 더 뜰 뿐).
       }
     })();
   }, []);
