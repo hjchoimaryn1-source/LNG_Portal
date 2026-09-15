@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { BEVEL_BUTTON, SUNKEN_INPUT, RAISED_PANEL } from '../../components/cmms/scadaStyles';
 import { MeteringPatrolForm } from '../components/patrol/MeteringPatrolForm';
+import { NgBufferTankPatrolForm } from '../components/patrol/NgBufferTankPatrolForm';
 import { usePatrolSaveHandler } from '../hooks/usePatrolSaveHandler';
 import { DailyReportPrintView } from '../print/DailyReportPrintView';
 
@@ -27,6 +28,7 @@ export function LngEnergyOperationView() {
 
   const onSaveTrainA = usePatrolSaveHandler('metering_train_a', reportDate, 'FIELD OP-1');
   const onSaveTrainB = usePatrolSaveHandler('metering_train_b', reportDate, 'FIELD OP-1');
+  const onSaveNgBufferTank = usePatrolSaveHandler('ng_buffer_tank', reportDate, 'FIELD OP-1');
 
   async function handleGenerate() {
     if (!generatedBy.trim()) {
@@ -52,6 +54,7 @@ export function LngEnergyOperationView() {
       <h2 className="text-sm font-black uppercase text-slate-800">LNG &amp; NG Energy Operation</h2>
       <MeteringPatrolForm train="A" onSave={onSaveTrainA} />
       <MeteringPatrolForm train="B" onSave={onSaveTrainB} />
+      <NgBufferTankPatrolForm onSave={onSaveNgBufferTank} />
 
       <div className={`${RAISED_PANEL} p-3 space-y-2`}>
         <div className="text-[11px] font-bold uppercase text-slate-700">Generate Daily Report — {reportDate}</div>

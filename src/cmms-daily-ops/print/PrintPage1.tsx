@@ -4,13 +4,16 @@
 //   FORM-NP-08-33-N p1: NG Buffer Tank, Metering Train A/B, Station Total,
 //   GC composition, GC/Cylinder status, Calibration Gas, Carrier Gas.
 //
-//   두 항목은 실제 데이터 소스가 없어 자리 안내만 표시한다(지어내지 않음):
-//     - NG Buffer Tank: Stage A/B 어떤 PatrolDomain에도 대응 테이블/컬럼이 없다.
+//   NG Buffer Tank는 Stage E-2부터 실데이터를 표시한다(ng_buffer_tank 도메인,
+//   PATROL_EQUIPMENT_TAGS_BY_DOMAIN을 통해 generateSnapshot이 이미 수집함 — DAO
+//   변경 불필요, 이 파일의 표시부만 교체).
+//
+//   Carrier Gas 한 항목만 실제 데이터 소스가 없어 자리 안내로 남는다(지어내지 않음):
 //     - Carrier Gas: gc 도메인 15개 컬럼 중 "carrier gas" 전용 필드가 없다
 //       (calibration_gas_cylinder_id는 Calibration Gas로 표시).
 
 import { PATROL_FIELD_MAP } from '../dao/patrolFieldMaps';
-import { METERING_EQUIPMENT_TAGS, GC_EQUIPMENT_TAG } from '../dao/patrolEquipmentTags';
+import { METERING_EQUIPMENT_TAGS, GC_EQUIPMENT_TAG, NG_BUFFER_TANK_EQUIPMENT_TAG } from '../dao/patrolEquipmentTags';
 import type { DailyReportSnapshotPayload } from '../dao/dailyReportSnapshotDao';
 import { PrintSectionHeader } from './PrintSectionHeader';
 import { PrintFieldGrid } from './PrintFieldGrid';
@@ -31,7 +34,11 @@ export function PrintPage1({ payload }: PrintPageProps) {
       <PrintSectionHeader>A. MONITORING METERING SYSTEM</PrintSectionHeader>
 
       <PrintSectionHeader>NG BUFFER TANK</PrintSectionHeader>
-      <div className="print-gap-notice">데이터 없음 — 해당 도메인/테이블이 Stage A/B에 정의되지 않음</div>
+      <PrintFieldGrid
+        title={NG_BUFFER_TANK_EQUIPMENT_TAG}
+        fields={PATROL_FIELD_MAP.ng_buffer_tank}
+        values={payload.domains.ng_buffer_tank?.[NG_BUFFER_TANK_EQUIPMENT_TAG]}
+      />
 
       <PrintSectionHeader>METERING TRAIN A</PrintSectionHeader>
       <PrintFieldGrid title={METERING_EQUIPMENT_TAGS[0]} fields={PATROL_FIELD_MAP.metering_train_a} values={payload.domains.metering_train_a?.[METERING_EQUIPMENT_TAGS[0]]} />

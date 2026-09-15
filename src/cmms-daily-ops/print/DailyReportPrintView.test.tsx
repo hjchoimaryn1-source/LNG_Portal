@@ -93,10 +93,11 @@ describe('DailyReportPrintView', () => {
     expect(container!.textContent).toContain('STATION TOTAL');
   });
 
-  it('flags ISO Tank cargo and NG Buffer Tank as missing data rather than fabricating values', async () => {
+  it('renders NG Buffer Tank as real data (Stage E-2) while flagging ISO Tank cargo/Carrier Gas as missing', async () => {
     stubFetchFound();
     await mountAndFlush();
+    expect(container!.textContent).toContain('V-101');
     const gapNotices = container!.querySelectorAll('.print-gap-notice');
-    expect(gapNotices.length).toBeGreaterThanOrEqual(3); // NG Buffer Tank, Carrier Gas, ISO Tank Cargo x2
+    expect(gapNotices.length).toBeGreaterThanOrEqual(2); // Carrier Gas, ISO Tank Cargo x2
   });
 });
