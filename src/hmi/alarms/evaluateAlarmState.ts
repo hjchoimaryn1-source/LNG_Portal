@@ -4,14 +4,32 @@
 //   HmiInstrumentReading 1건의 알람 등급을 판정하는 순수 함수. useHmiLiveStore.ts는
 //   이 함수를 호출만 하고 임계값 로직을 직접 갖지 않는다.
 //
-//   STUB — NotebookLM 임계값 데이터 도착 전까지 항상 'NORMAL'을 반환한다.
-//   거짓 알람 판정을 막기 위한 의도적 스텁이며, 이번 스테이지에서 임계값
-//   테이블을 채우지 않는다.
+//   Stage HMI-2b — alarmPriorityRules.ts의 (domain, columnName) 규칙으로 실제 판정한다.
+//   규칙이 없거나(getAlarmThresholds() undefined) 값을 평가할 수 없는 경우(null/비숫자)
+//   'NORMAL'을 반환하지만, 이는 AlarmPriority가 4단계 고정(5번째 UNKNOWN 멤버 추가는
+//   이번 스테이지 범위 밖, HJ 승인 필요)이라 "평가 불가"와 "확인된 정상"을 타입 레벨에서
+//   구분 못 하는 알려진 표현 한계다 — 이 자리에서 조용히 해소된 것으로 간주하지 말 것.
 
 import type { HmiInstrumentReading, AlarmPriority } from '../types/hmiCore';
+import { getAlarmThresholds } from '../config/alarmPriorityRules';
 
-export function evaluateAlarmState(_reading: HmiInstrumentReading): AlarmPriority {
-  return 'NORMAL';
+/** iso_tank* pressure_mpa(patrolFieldMaps.ts 저장 단위) → alarmPriorityRules.ts 'bar' 규칙 변환 계수. */
+const MPA_TO_BAR = 10;
+
+export function evaluateAlarmState(reading: HmiInstrumentReading): AlarmPriority {
+  const rule = getAlarmThresholds(reading.domain, reading.columnName);
+  // "평가 불가"(규칙 없음/null/비숫자)와 "확인된 NORMAL"을 구분 못 하는 알려진 갭 — 위 PURPOSE 참고.
+  if (rule === undefined || reading.value === null || typeof reading.value !== 'number') {
+    return 'NORMAL';
+  }
+
+  const comparisonValue = rule.unit === 'bar' && reading.unit === 'MPa' ? reading.value * MPA_TO_BAR : reading.value;
+
+  if (comparisonValue <= rule.LL) return 'CRITICAL';
+  if (comparisonValue <= rule.L) return 'LOW';
+  if (comparisonValue < rule.H) return 'NORMAL';
+  if (comparisonValue < rule.HH) return 'HIGH';
+  return 'CRITICAL';
 }
 
 const PRIORITY_RANK: Record<AlarmPriority, number> = { CRITICAL: 0, HIGH: 1, LOW: 2, NORMAL: 3 };
