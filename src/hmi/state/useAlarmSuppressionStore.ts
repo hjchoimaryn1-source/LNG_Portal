@@ -61,6 +61,16 @@ export function useIsAlarmSuppressed(domain: string, equipmentTag: string, colum
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
+/** HMI-2e-1 — 동기 판정(non-hook). useAlarmBadgeState.ts의 다컬럼 집계 reduce용. */
+export function isAlarmSuppressedNow(domain: string, equipmentTag: string, columnName: string): boolean {
+  return computeIsSuppressed(makeKey(domain, equipmentTag, columnName));
+}
+
+/** HMI-2e-1 — 이 스토어의 구독만 필요한 소비자(배지 집계)용. useIsAlarmSuppressed와 동일 리스너 집합. */
+export function subscribeToSuppressionChanges(listener: () => void): () => void {
+  return subscribe(listener);
+}
+
 /** 테스트 전용 — 모듈 스코프 캐시를 초기화한다. */
 export function __resetAlarmSuppressionStoreForTests(): void {
   suppressExpiresAtByKey.clear();

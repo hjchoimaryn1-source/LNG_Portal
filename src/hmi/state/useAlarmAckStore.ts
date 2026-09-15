@@ -84,6 +84,16 @@ export function useIsAlarmAcknowledged(domain: string, equipmentTag: string, col
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
+/** HMI-2e-1 — 동기 판정(non-hook). useAlarmBadgeState.ts의 다컬럼 집계 reduce용. */
+export function isAlarmAcknowledgedNow(domain: string, equipmentTag: string, columnName: string): boolean {
+  return computeIsAcknowledged(domain, equipmentTag, columnName);
+}
+
+/** HMI-2e-1 — onset×ack 합산 구독(이 파일의 subscribe)을 배지 집계 훅에 노출한다. */
+export function subscribeToAlarmAckChanges(listener: () => void): () => void {
+  return subscribe(listener);
+}
+
 /** 테스트 전용 — 모듈 스코프 캐시를 초기화한다(ack만 — onset은 alarmCurrentStateCache.ts 소관). */
 export function __resetAlarmAckStoreForTests(): void {
   acknowledgedAtByKey.clear();
