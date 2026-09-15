@@ -102,4 +102,11 @@ export const PATROL_FIELD_MAP: Record<PatrolDomain, PatrolFieldSpec[]> = {
     { columnName: 'pressure_mpa', label: '압력', unit: 'MPa', type: 'number' },
     { columnName: 'temperature_c', label: '온도', unit: '°C', type: 'number' },
   ],
+  // NG Buffer Tank V-101 (2 fields, FORM-NP-08-40 NP08-40-3 매핑) — 현장 게이지(PI-07A)와
+  // 제어실 트랜스미터(PT-07A) 1페어. pms-master-specification.md §NG Buffer Tank가 두
+  // 계기를 상호 대조 검증 대상으로 명시 — PT-07B 등 2번째 트랜스미터는 근거자료에 없다.
+  ng_buffer_tank: [
+    { columnName: 'pressure_gauge_barg', label: '압력계 (PI-07A)', unit: 'barg', type: 'number' },
+    { columnName: 'pressure_transmitter_barg', label: '압력 트랜스미터 (PT-07A)', unit: 'barg', type: 'number' },
+  ],
 };

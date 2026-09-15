@@ -14,13 +14,18 @@
 
 import type { DatabaseSync } from 'node:sqlite';
 
+// Phase 12 Stage E-1: domain 컬럼의 CHECK(IN (...)) 제약을 제거했다 — 새 도메인을
+// 추가할 때마다 SQLite가 CHECK 변경을 ALTER로 지원하지 않아 매번 12-step 테이블
+// 재생성이 필요해지는 문제를 근본적으로 없애기 위함(HJ 확인, ng_buffer_tank 추가
+// 시 결정). 유효성 검사는 이제 PatrolDomain 유니온 타입 + dailyOpsPatrolDao.ts의
+// assertKnownColumns()(도메인별 PATROL_FIELD_MAP 화이트리스트)가 앱 레이어에서
+// 전담한다. 기존에 이미 배포된 DB(추적 대상 nias_cmms.db)는 이 DDL이 아니라
+// phase12StageE1PatrolDomainRebuildRunner.ts(12-step 재생성)로 별도 정리한다 —
+// CREATE TABLE IF NOT EXISTS는 기존 테이블에 no-op이기 때문.
 export const DAILY_OPS_PATROL_ENTRIES_DDL = `
   CREATE TABLE IF NOT EXISTS daily_ops_patrol_entries (
       id                                INTEGER PRIMARY KEY AUTOINCREMENT,
-      domain                            TEXT NOT NULL CHECK (domain IN (
-          'metering_train_a', 'metering_train_b', 'aav', 'n2_skid', 'gc',
-          'electrical', 'iso_tank_unloading_skid', 'iso_tank_cargo'
-      )),
+      domain                            TEXT NOT NULL,
       equipment_tag                     TEXT NOT NULL,
       report_date                       TEXT NOT NULL,
       shift_time_slot                   TEXT NOT NULL CHECK (shift_time_slot IN (
@@ -109,7 +114,24 @@ export const DAILY_OPS_PATROL_ENTRIES_DDL = `
       ON daily_ops_patrol_entries(domain, equipment_tag, report_date, shift_time_slot);
 `;
 
+// SQLite has no `ADD COLUMN IF NOT EXISTS` — guard via PRAGMA table_info(), same
+// convention as dailyReportSchema.ts의 ensureColumn().
+function ensureColumn(raw: DatabaseSync, table: string, columnName: string, addColumnSql: string): void {
+  const columns = raw.prepare(`PRAGMA table_info(${table})`).all();
+  const hasColumn = columns.some((c) => (c as { name: string }).name === columnName);
+  if (!hasColumn) {
+    raw.exec(addColumnSql);
+  }
+}
+
+// NG Buffer Tank V-101 (Stage E-1) — PI-07A(게이지) / PT-07A(트랜스미터), 0-15 Barg
+// range per NIAS-IS-LS-0001.
+const ADD_PRESSURE_GAUGE_BARG_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN pressure_gauge_barg REAL`;
+const ADD_PRESSURE_TRANSMITTER_BARG_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN pressure_transmitter_barg REAL`;
+
 /** daily_ops_patrol_entries 테이블을 멱등(idempotent)하게 보강한다. */
 export function ensureDailyOpsPatrolSchema(raw: DatabaseSync): void {
   raw.exec(DAILY_OPS_PATROL_ENTRIES_DDL);
+  ensureColumn(raw, 'daily_ops_patrol_entries', 'pressure_gauge_barg', ADD_PRESSURE_GAUGE_BARG_SQL);
+  ensureColumn(raw, 'daily_ops_patrol_entries', 'pressure_transmitter_barg', ADD_PRESSURE_TRANSMITTER_BARG_SQL);
 }

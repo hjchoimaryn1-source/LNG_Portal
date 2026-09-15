@@ -4,7 +4,7 @@
 // src/cmms-trucking/types.ts의 격리 규칙(외부 임포트 금지, DAO/컴포넌트가
 // 이 파일을 참조하되 역방향 금지)을 그대로 따른다.
 
-/** daily_ops_patrol_entries.domain — FORM-NP-08-33-N이 다루는 8개 순찰 대상. */
+/** daily_ops_patrol_entries.domain — FORM-NP-08-33-N/NP-08-40이 다루는 9개 순찰 대상. */
 export type PatrolDomain =
   | 'metering_train_a'
   | 'metering_train_b'
@@ -13,7 +13,8 @@ export type PatrolDomain =
   | 'gc'
   | 'electrical'
   | 'iso_tank_unloading_skid'
-  | 'iso_tank_cargo';
+  | 'iso_tank_cargo'
+  | 'ng_buffer_tank';
 
 /** daily_ops_patrol_entries.shift_time_slot — 4시간 교대 순찰 슬롯(고정 6개). */
 export type ShiftTimeSlot = '00:00' | '04:00' | '08:00' | '12:00' | '16:00' | '20:00';

@@ -15,8 +15,9 @@
 //   유입측·극저온) 컬럼은 의도적으로 규칙 미등록 — getAlarmThresholds()가 undefined를
 //   반환해야 하며, 이는 아직 채울 값이 없는 갭이지 버그가 아니다.
 //
-//   NG Buffer Tank pressure: patrolFieldMaps.ts에 해당 domain/컬럼이 아예 없어(재확인됨)
-//   플레이스홀더 키조차 등록하지 않는다 — 별도 스테이지의 스키마 갭으로만 추적.
+//   NG Buffer Tank pressure (Stage E-1로 컬럼 실재: pressure_gauge_barg/
+//   pressure_transmitter_barg): NIAS-IS-LS-0004에 이 용기의 DCS 알람 설정치가 없다
+//   (PSV-03 기계적 릴리프 14.1 Barg만 존재) — 컬럼은 있지만 의도적으로 규칙 미등록.
 //   V-101 PSV 정정압력(14.1 Barg)은 MECHANICAL_RELIEF_REFERENCE_BARG로 별도 보관한다 —
 //   HH 임계값이 아니며 evaluateAlarmState.ts가 소비해서는 안 된다(기계적 릴리프 기준치일 뿐,
 //   계기 알람 판정과 무관).

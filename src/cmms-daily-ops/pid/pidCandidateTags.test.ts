@@ -2,11 +2,20 @@ import { describe, it, expect } from 'vitest';
 import { CANDIDATE_TAG_DOMAIN, PRIMARY_COLUMN_BY_DOMAIN } from './pidCandidateTags';
 
 describe('pidCandidateTags', () => {
-  it('covers all 8 PatrolDomains except iso_tank_cargo', () => {
+  it('covers all 9 PatrolDomains except iso_tank_cargo', () => {
     const domains = new Set(Object.values(CANDIDATE_TAG_DOMAIN));
     expect(domains.has('iso_tank_cargo')).toBe(false);
     expect(domains).toEqual(
-      new Set(['metering_train_a', 'metering_train_b', 'aav', 'n2_skid', 'gc', 'electrical', 'iso_tank_unloading_skid'])
+      new Set([
+        'metering_train_a',
+        'metering_train_b',
+        'aav',
+        'n2_skid',
+        'gc',
+        'electrical',
+        'iso_tank_unloading_skid',
+        'ng_buffer_tank',
+      ])
     );
   });
 

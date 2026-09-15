@@ -26,8 +26,12 @@ export const ELECTRICAL_EQUIPMENT_TAGS = ['MV-SWGR-01', 'LV-SWGR-01', 'TRAFO-01'
 // 지시에 명시된 값을 그대로 쓴다.
 export const ISO_TANK_UNLOADING_SKID_TAGS = ['T-201', 'T-202', 'T-203', 'T-204'];
 
+// Phase 12 Stage E-1 — NG Buffer Tank는 단일 용기(P&ID/계기 index와 일치,
+// pms-master-specification.md §NG Buffer Tank 행 및 sopIndex.json NP08-40-3 근거).
+export const NG_BUFFER_TANK_EQUIPMENT_TAG = 'V-101';
+
 /**
- * (domain → equipment_tag[]) 전체 — iso_tank_cargo 제외 7개 도메인.
+ * (domain → equipment_tag[]) 전체 — iso_tank_cargo 제외 8개 도메인.
  * Stage C1 generateSnapshot과 pidCandidateTags.ts가 공유하는 그룹핑.
  * iso_tank_cargo는 순찰 폼이 없어(ISO Tank UI는 NiasActiveBayWorkspace.tsx
  * 소관) 의도적으로 빠져 있다 — 임의의 태그를 지어내지 않기 위함.
@@ -40,4 +44,5 @@ export const PATROL_EQUIPMENT_TAGS_BY_DOMAIN: Partial<Record<PatrolDomain, strin
   gc: [GC_EQUIPMENT_TAG],
   electrical: ELECTRICAL_EQUIPMENT_TAGS,
   iso_tank_unloading_skid: ISO_TANK_UNLOADING_SKID_TAGS,
+  ng_buffer_tank: [NG_BUFFER_TANK_EQUIPMENT_TAG],
 };
