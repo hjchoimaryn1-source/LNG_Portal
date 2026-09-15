@@ -10,6 +10,17 @@ import { createRoot, type Root } from 'react-dom/client';
 import { useOverviewHmiData } from '../useOverviewHmiData';
 import { OVERVIEW_UNIT_SLOTS } from '../overviewUnitSlots';
 import {
+  AAV_NORMAL_MIN_BAR,
+  AAV_TYPICAL_MIN_BAR,
+  AAV_TYPICAL_MAX_BAR,
+  GC_METHANE_NORMAL_MAX_PCT,
+  GC_METHANE_TYPICAL_MAX_PCT,
+  ISO_TANK_UNLOADING_SKID_NORMAL_MIN_PCT,
+  ISO_TANK_UNLOADING_SKID_TYPICAL_MIN_PCT,
+  METERING_TRAIN_NORMAL_MAX_BARG,
+  METERING_TRAIN_TYPICAL_MAX_BARG,
+  N2_SKID_NORMAL_MIN_BAR,
+  N2_SKID_TYPICAL_MIN_BAR,
   NG_BUFFER_TANK_NORMAL_MIN_BARG,
   NG_BUFFER_TANK_TYPICAL_MIN_BARG,
   NG_BUFFER_TANK_TYPICAL_MAX_BARG,
@@ -22,6 +33,9 @@ import type { OverviewHmiData } from '../hmiOverviewTypes';
 const NG_BUFFER_TANK_SLOT = OVERVIEW_UNIT_SLOTS.find((s) => s.domain === 'ng_buffer_tank')!;
 const AAV_SLOT = OVERVIEW_UNIT_SLOTS.find((s) => s.domain === 'aav')!;
 const N2_SLOT = OVERVIEW_UNIT_SLOTS.find((s) => s.domain === 'n2_skid')!;
+const METERING_A_SLOT = OVERVIEW_UNIT_SLOTS.find((s) => s.domain === 'metering_train_a')!;
+const GC_SLOT = OVERVIEW_UNIT_SLOTS.find((s) => s.domain === 'gc')!;
+const ISO_TANK_SLOT = OVERVIEW_UNIT_SLOTS.find((s) => s.domain === 'iso_tank_unloading_skid')!;
 
 let container: HTMLDivElement | null = null;
 let root: Root | null = null;
@@ -73,6 +87,7 @@ describe('useOverviewHmiData', () => {
     expect(unit.status).toBe('NORMAL');
     expect(unit.primaryValue).toBe(3.2);
     expect(unit.secondaryValue).toBe(-162.1);
+    expect(unit.isThresholdValidated).toBe(false);
   });
 
   it('leaves secondaryValue undefined for a domain with no secondary column (n2_skid)', async () => {
@@ -120,5 +135,142 @@ describe('useOverviewHmiData', () => {
     const data = await readHookResult();
     const unit = data.units.find((u) => u.equipmentTag === NG_BUFFER_TANK_SLOT.equipmentTag)!;
     expect(unit.status).toBe('ALARM');
+  });
+
+  it('marks ng_buffer_tank units as threshold-validated (HJ-confirmed band)', async () => {
+    act(() => {
+      setLatestPatrolEntry(NG_BUFFER_TANK_SLOT.domain, NG_BUFFER_TANK_SLOT.equipmentTag, {
+        [NG_BUFFER_TANK_SLOT.primaryColumn]: 7.8,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === NG_BUFFER_TANK_SLOT.equipmentTag)!;
+    expect(unit.isThresholdValidated).toBe(true);
+  });
+
+  it('reports ALARM for AAV outside its PLACEHOLDER normal band', async () => {
+    act(() => {
+      setLatestPatrolEntry(AAV_SLOT.domain, AAV_SLOT.equipmentTag, {
+        [AAV_SLOT.primaryColumn]: AAV_NORMAL_MIN_BAR - 0.1,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === AAV_SLOT.equipmentTag)!;
+    expect(unit.status).toBe('ALARM');
+    expect(unit.isThresholdValidated).toBe(false);
+  });
+
+  it('reports WARNING for AAV inside normal but outside its PLACEHOLDER typical band', async () => {
+    act(() => {
+      setLatestPatrolEntry(AAV_SLOT.domain, AAV_SLOT.equipmentTag, {
+        [AAV_SLOT.primaryColumn]: AAV_TYPICAL_MAX_BAR + 0.1,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === AAV_SLOT.equipmentTag)!;
+    expect(unit.status).toBe('WARNING');
+  });
+
+  it('reports NORMAL for AAV mid-typical-band', async () => {
+    const midTypical = (AAV_TYPICAL_MIN_BAR + AAV_TYPICAL_MAX_BAR) / 2;
+    act(() => {
+      setLatestPatrolEntry(AAV_SLOT.domain, AAV_SLOT.equipmentTag, {
+        [AAV_SLOT.primaryColumn]: midTypical,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === AAV_SLOT.equipmentTag)!;
+    expect(unit.status).toBe('NORMAL');
+  });
+
+  it('reports ALARM for Metering Train A above its PLACEHOLDER normal band', async () => {
+    act(() => {
+      setLatestPatrolEntry(METERING_A_SLOT.domain, METERING_A_SLOT.equipmentTag, {
+        [METERING_A_SLOT.primaryColumn]: METERING_TRAIN_NORMAL_MAX_BARG + 0.1,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === METERING_A_SLOT.equipmentTag)!;
+    expect(unit.status).toBe('ALARM');
+    expect(unit.isThresholdValidated).toBe(false);
+  });
+
+  it('reports WARNING for Metering Train A above its PLACEHOLDER typical band', async () => {
+    act(() => {
+      setLatestPatrolEntry(METERING_A_SLOT.domain, METERING_A_SLOT.equipmentTag, {
+        [METERING_A_SLOT.primaryColumn]: METERING_TRAIN_TYPICAL_MAX_BARG + 0.1,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === METERING_A_SLOT.equipmentTag)!;
+    expect(unit.status).toBe('WARNING');
+  });
+
+  it('reports ALARM for N2 Skid below its PLACEHOLDER normal band', async () => {
+    act(() => {
+      setLatestPatrolEntry(N2_SLOT.domain, N2_SLOT.equipmentTag, {
+        [N2_SLOT.primaryColumn]: N2_SKID_NORMAL_MIN_BAR - 1,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === N2_SLOT.equipmentTag)!;
+    expect(unit.status).toBe('ALARM');
+  });
+
+  it('reports WARNING for N2 Skid below its PLACEHOLDER typical band', async () => {
+    act(() => {
+      setLatestPatrolEntry(N2_SLOT.domain, N2_SLOT.equipmentTag, {
+        [N2_SLOT.primaryColumn]: N2_SKID_TYPICAL_MIN_BAR - 1,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === N2_SLOT.equipmentTag)!;
+    expect(unit.status).toBe('WARNING');
+  });
+
+  it('reports ALARM for GC methane% above its PLACEHOLDER normal band', async () => {
+    act(() => {
+      setLatestPatrolEntry(GC_SLOT.domain, GC_SLOT.equipmentTag, {
+        [GC_SLOT.primaryColumn]: GC_METHANE_NORMAL_MAX_PCT + 0.1,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === GC_SLOT.equipmentTag)!;
+    expect(unit.status).toBe('ALARM');
+    expect(unit.isThresholdValidated).toBe(false);
+  });
+
+  it('reports WARNING for GC methane% above its PLACEHOLDER typical band', async () => {
+    act(() => {
+      setLatestPatrolEntry(GC_SLOT.domain, GC_SLOT.equipmentTag, {
+        [GC_SLOT.primaryColumn]: GC_METHANE_TYPICAL_MAX_PCT + 0.1,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === GC_SLOT.equipmentTag)!;
+    expect(unit.status).toBe('WARNING');
+  });
+
+  it('reports ALARM for ISO Tank Unloading Skid level below its PLACEHOLDER normal band', async () => {
+    act(() => {
+      setLatestPatrolEntry(ISO_TANK_SLOT.domain, ISO_TANK_SLOT.equipmentTag, {
+        [ISO_TANK_SLOT.primaryColumn]: ISO_TANK_UNLOADING_SKID_NORMAL_MIN_PCT - 1,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === ISO_TANK_SLOT.equipmentTag)!;
+    expect(unit.status).toBe('ALARM');
+    expect(unit.isThresholdValidated).toBe(false);
+  });
+
+  it('reports WARNING for ISO Tank Unloading Skid level below its PLACEHOLDER typical band', async () => {
+    act(() => {
+      setLatestPatrolEntry(ISO_TANK_SLOT.domain, ISO_TANK_SLOT.equipmentTag, {
+        [ISO_TANK_SLOT.primaryColumn]: ISO_TANK_UNLOADING_SKID_TYPICAL_MIN_PCT - 1,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === ISO_TANK_SLOT.equipmentTag)!;
+    expect(unit.status).toBe('WARNING');
   });
 });

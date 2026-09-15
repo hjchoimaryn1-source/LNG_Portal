@@ -21,6 +21,13 @@ export interface OverviewHmiUnit {
   primaryUnit: string;
   secondaryValue?: number | null;
   secondaryUnit?: string;
+  /**
+   * true only for a domain whose NORMAL/WARNING/ALARM band is HJ-confirmed
+   * (currently ng_buffer_tank only) — false means the band is a Stage 1
+   * PLACEHOLDER (hmiOverviewConstants.ts) not yet validated by a site
+   * engineer. Lets the UI mark provisional WARNING/ALARM readings.
+   */
+  isThresholdValidated: boolean;
 }
 
 export interface OverviewHmiData {

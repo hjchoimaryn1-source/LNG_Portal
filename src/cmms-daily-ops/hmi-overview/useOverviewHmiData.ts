@@ -25,9 +25,14 @@
 //
 //   Status derivation (deliberately conservative — no useHmiEquipment/alarm
 //   store coupling in this sub-stage, per hmi-overview module scope):
-//   OFFLINE when the primary value is null/undefined; ng_buffer_tank uses
-//   the HJ-confirmed bands (hmiOverviewConstants.ts); every other domain is
-//   NORMAL whenever a primary value is present.
+//   OFFLINE when the primary value is null/undefined; otherwise every
+//   in-scope domain (DOMAIN_BANDS below, hmiOverviewConstants.ts) bands its
+//   primary value into NORMAL/WARNING/ALARM. ng_buffer_tank's band is
+//   HJ-confirmed; every other domain's band is a Stage 1 PLACEHOLDER (see
+//   hmiOverviewConstants.ts header) — isThresholdValidated on each unit
+//   tells the UI which is which. Only the primary value is banded (matches
+//   the pre-Stage-1 ng_buffer_tank pattern); secondary values stay
+//   informational/un-banded.
 //   TODO(hmi-overview-C-or-later): replace with full alarm-priority
 //   thresholds via useHmiEquipment once that scope is separately approved.
 
@@ -37,19 +42,94 @@ import { useDailyOpsPatrolValue } from '../state/useDailyOpsPatrolStore';
 import type { HmiOverviewUnitStatus, OverviewHmiData, OverviewHmiUnit } from './hmiOverviewTypes';
 import { OVERVIEW_UNIT_SLOTS } from './overviewUnitSlots';
 import {
+  AAV_NORMAL_MAX_BAR,
+  AAV_NORMAL_MIN_BAR,
+  AAV_TYPICAL_MAX_BAR,
+  AAV_TYPICAL_MIN_BAR,
+  GC_METHANE_NORMAL_MAX_PCT,
+  GC_METHANE_NORMAL_MIN_PCT,
+  GC_METHANE_TYPICAL_MAX_PCT,
+  GC_METHANE_TYPICAL_MIN_PCT,
+  ISO_TANK_UNLOADING_SKID_NORMAL_MAX_PCT,
+  ISO_TANK_UNLOADING_SKID_NORMAL_MIN_PCT,
+  ISO_TANK_UNLOADING_SKID_TYPICAL_MAX_PCT,
+  ISO_TANK_UNLOADING_SKID_TYPICAL_MIN_PCT,
+  METERING_TRAIN_NORMAL_MAX_BARG,
+  METERING_TRAIN_NORMAL_MIN_BARG,
+  METERING_TRAIN_TYPICAL_MAX_BARG,
+  METERING_TRAIN_TYPICAL_MIN_BARG,
+  N2_SKID_NORMAL_MAX_BAR,
+  N2_SKID_NORMAL_MIN_BAR,
+  N2_SKID_TYPICAL_MAX_BAR,
+  N2_SKID_TYPICAL_MIN_BAR,
   NG_BUFFER_TANK_NORMAL_MAX_BARG,
   NG_BUFFER_TANK_NORMAL_MIN_BARG,
   NG_BUFFER_TANK_TYPICAL_MAX_BARG,
   NG_BUFFER_TANK_TYPICAL_MIN_BARG,
 } from './hmiOverviewConstants';
 
+interface DomainBand {
+  normalMin: number;
+  normalMax: number;
+  typicalMin: number;
+  typicalMax: number;
+}
+
+// isThresholdValidated: true only for ng_buffer_tank (HJ-confirmed band). Every other
+// entry here is a Stage 1 PLACEHOLDER — see hmiOverviewConstants.ts header.
+const DOMAIN_BANDS: Partial<Record<string, DomainBand>> = {
+  ng_buffer_tank: {
+    normalMin: NG_BUFFER_TANK_NORMAL_MIN_BARG,
+    normalMax: NG_BUFFER_TANK_NORMAL_MAX_BARG,
+    typicalMin: NG_BUFFER_TANK_TYPICAL_MIN_BARG,
+    typicalMax: NG_BUFFER_TANK_TYPICAL_MAX_BARG,
+  },
+  aav: {
+    normalMin: AAV_NORMAL_MIN_BAR,
+    normalMax: AAV_NORMAL_MAX_BAR,
+    typicalMin: AAV_TYPICAL_MIN_BAR,
+    typicalMax: AAV_TYPICAL_MAX_BAR,
+  },
+  metering_train_a: {
+    normalMin: METERING_TRAIN_NORMAL_MIN_BARG,
+    normalMax: METERING_TRAIN_NORMAL_MAX_BARG,
+    typicalMin: METERING_TRAIN_TYPICAL_MIN_BARG,
+    typicalMax: METERING_TRAIN_TYPICAL_MAX_BARG,
+  },
+  metering_train_b: {
+    normalMin: METERING_TRAIN_NORMAL_MIN_BARG,
+    normalMax: METERING_TRAIN_NORMAL_MAX_BARG,
+    typicalMin: METERING_TRAIN_TYPICAL_MIN_BARG,
+    typicalMax: METERING_TRAIN_TYPICAL_MAX_BARG,
+  },
+  n2_skid: {
+    normalMin: N2_SKID_NORMAL_MIN_BAR,
+    normalMax: N2_SKID_NORMAL_MAX_BAR,
+    typicalMin: N2_SKID_TYPICAL_MIN_BAR,
+    typicalMax: N2_SKID_TYPICAL_MAX_BAR,
+  },
+  gc: {
+    normalMin: GC_METHANE_NORMAL_MIN_PCT,
+    normalMax: GC_METHANE_NORMAL_MAX_PCT,
+    typicalMin: GC_METHANE_TYPICAL_MIN_PCT,
+    typicalMax: GC_METHANE_TYPICAL_MAX_PCT,
+  },
+  iso_tank_unloading_skid: {
+    normalMin: ISO_TANK_UNLOADING_SKID_NORMAL_MIN_PCT,
+    normalMax: ISO_TANK_UNLOADING_SKID_NORMAL_MAX_PCT,
+    typicalMin: ISO_TANK_UNLOADING_SKID_TYPICAL_MIN_PCT,
+    typicalMax: ISO_TANK_UNLOADING_SKID_TYPICAL_MAX_PCT,
+  },
+};
+
+const THRESHOLD_VALIDATED_DOMAINS = new Set<string>(['ng_buffer_tank']);
+
 function deriveStatus(domain: string, primaryValue: number | null): HmiOverviewUnitStatus {
   if (primaryValue === null) return 'OFFLINE';
-  if (domain === 'ng_buffer_tank') {
-    if (primaryValue < NG_BUFFER_TANK_NORMAL_MIN_BARG || primaryValue > NG_BUFFER_TANK_NORMAL_MAX_BARG) return 'ALARM';
-    if (primaryValue < NG_BUFFER_TANK_TYPICAL_MIN_BARG || primaryValue > NG_BUFFER_TANK_TYPICAL_MAX_BARG) return 'WARNING';
-    return 'NORMAL';
-  }
+  const band = DOMAIN_BANDS[domain];
+  if (!band) return 'NORMAL';
+  if (primaryValue < band.normalMin || primaryValue > band.normalMax) return 'ALARM';
+  if (primaryValue < band.typicalMin || primaryValue > band.typicalMax) return 'WARNING';
   return 'NORMAL';
 }
 
@@ -135,6 +215,7 @@ export function useOverviewHmiData(reportDate: string): OverviewHmiData {
       primaryUnit: slot.primaryUnit,
       secondaryValue: slot.secondaryColumn ? toNumber(secondaryValues[i]) : undefined,
       secondaryUnit: slot.secondaryColumn ? slot.secondaryUnit : undefined,
+      isThresholdValidated: THRESHOLD_VALIDATED_DOMAINS.has(slot.domain),
     };
   });
 

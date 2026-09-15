@@ -14,6 +14,12 @@
 //   Pure presentation — no hooks beyond props, label text comes entirely
 //   from `unit.label` (never a literal tag string), per the "no hardcoded
 //   naming" constraint.
+//
+//   Stage 1 (site launch readiness) — when unit.isThresholdValidated is
+//   false, the WARNING/ALARM band behind this tile's color is a mock
+//   PLACEHOLDER (hmiOverviewConstants.ts), not an HJ-confirmed safety
+//   threshold. A small "~" marker + tooltip is added so field staff/HJ can
+//   tell at a glance; deliberately minimal, no badge redesign.
 
 'use client';
 
@@ -58,7 +64,17 @@ export function OverviewUnitBadge({ unit, onSelect, children }: OverviewUnitBadg
       }}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="font-bold text-slate-700 truncate">{unit.label}</span>
+        <span className="font-bold text-slate-700 truncate flex items-center gap-1">
+          {unit.label}
+          {!unit.isThresholdValidated && (
+            <span
+              className="text-slate-400 font-normal"
+              title="PLACEHOLDER threshold — pending site engineer confirmation"
+            >
+              ~
+            </span>
+          )}
+        </span>
         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: fill }} />
       </div>
       <div className="text-slate-800">
