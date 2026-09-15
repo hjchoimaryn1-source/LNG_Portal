@@ -19,6 +19,7 @@
 import { useState } from 'react';
 import { RAISED_PANEL, TITLE_BAR } from '../../components/cmms/scadaStyles';
 import type { OverviewHmiData, OverviewHmiUnit } from './hmiOverviewTypes';
+import type { ShiftTimeSlot } from '../types/patrolLog';
 import { DOMAIN_GROUP_LABEL, DOMAIN_GROUP_ORDER } from './domainGroupLabels';
 import { OverviewUnitBadge } from './OverviewUnitBadge';
 import { NgBufferTankGauge } from './NgBufferTankGauge';
@@ -26,6 +27,8 @@ import { ShiftInputStatusStrip } from './ShiftInputStatusStrip';
 
 interface HmiOverviewViewProps {
   data: OverviewHmiData;
+  /** Sub-stage B (HmiOverviewContainer.tsx) supplies real getShiftInputStatus data here; omitted = ShiftInputStatusStrip's own placeholder. */
+  shiftInputStatus?: Record<ShiftTimeSlot, boolean>;
 }
 
 function groupByDomain(units: OverviewHmiUnit[]): Map<string, OverviewHmiUnit[]> {
@@ -38,7 +41,7 @@ function groupByDomain(units: OverviewHmiUnit[]): Map<string, OverviewHmiUnit[]>
   return groups;
 }
 
-export function HmiOverviewView({ data }: HmiOverviewViewProps) {
+export function HmiOverviewView({ data, shiftInputStatus }: HmiOverviewViewProps) {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const groups = groupByDomain(data.units);
   const selectedUnit = data.units.find((u) => u.equipmentTag === selectedTag) ?? null;
@@ -50,7 +53,7 @@ export function HmiOverviewView({ data }: HmiOverviewViewProps) {
       </div>
 
       <div className={`${RAISED_PANEL} p-2`}>
-        <ShiftInputStatusStrip />
+        <ShiftInputStatusStrip status={shiftInputStatus} />
       </div>
 
       {DOMAIN_GROUP_ORDER.filter((domain) => groups.has(domain)).map((domain) => (
