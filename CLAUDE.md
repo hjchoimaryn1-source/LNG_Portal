@@ -38,9 +38,11 @@
 - 파일 수정 후 반드시 타입 체크(`npx tsc --noEmit`) 또는 linter를 실행해 에러가 없는지 자체 검증한다.
 
 ## 4. Context Optimization Rules
-- 코드베이스 검색 시 `.claude-map.json` 파일의 인덱스를 최우선으로 읽어 파일 구조와 모듈 연관성을 파악합니다.
 - 불필요한 전체 디렉터리 재귀 스캔(`ls -R`, 전체 `grep`)을 자제하고 최소한의 대상 파일만 컨텍스트에 포함합니다.
-- 주요 컴포넌트 추가나 파일 구조 수정 작업을 마친 후에는 작업을 종료하기 전 bash 명령어로 `npx claude-map build`를 자동 실행하여 인덱스를 최신화합니다.
+- (Phase 12 Stage E-5 정정: 이전에 여기 있던 `.claude-map.json` 인덱스 우선 참조 및
+  `npx claude-map build` 자동 실행 지침을 제거했다 — claude-map 패키지가 로컬/글로벌
+  어디에도 설치되어 있지 않고(`package.json`에 의존성 없음) 이 저장소에 `.claude-map.json`
+  파일 자체가 존재하지 않아, 두 지침 모두 실행 불가능한 상태였다.)
 
 ## 5. DB Schema Change Policy (ALTER-only)
 - 모든 SQLite 스키마 변경은 `ALTER TABLE ADD COLUMN` / `ALTER TABLE ... ADD/MODIFY` 계열만 허용한다.
