@@ -68,6 +68,8 @@ export function useHmiEquipment(domain: PatrolDomain, equipmentTag: string): Hmi
     if (value === undefined || value === null) continue;
     const reading: HmiInstrumentReading = {
       tagId: equipmentTag,
+      domain,
+      columnName: fieldSpecs[i].columnName,
       instrumentType: 'OTHER',
       value,
       unit: fieldSpecs[i].unit,

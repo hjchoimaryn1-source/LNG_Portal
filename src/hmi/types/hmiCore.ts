@@ -17,6 +17,10 @@ export type AlarmPriority = 'CRITICAL' | 'HIGH' | 'LOW' | 'NORMAL';
 
 export interface HmiInstrumentReading {
   tagId: string;
+  /** daily_ops_patrol_entries.domain — alarmPriorityRules.ts 키잉에 사용(HMI-2a-pre). */
+  domain: PatrolDomain;
+  /** patrolFieldMaps.ts의 실제 컬럼명 — alarmPriorityRules.ts 키잉에 사용(HMI-2a-pre). */
+  columnName: string;
   instrumentType: 'PT' | 'TT' | 'DPT' | 'LEVEL' | 'STATUS' | 'OTHER';
   value: number | string | null;
   unit: string;
