@@ -62,3 +62,37 @@ export function listActiveSuppressions(db: SqlExecutor, nowIso: string): ActiveS
     suppressExpiresAt: row.suppress_expires_at,
   }));
 }
+
+interface LatestAcknowledgedAtRow {
+  domain: string;
+  equipment_tag: string;
+  column_name: string;
+  acknowledged_at: string;
+}
+
+export interface LatestAcknowledgedAt {
+  domain: string;
+  equipmentTag: string;
+  columnName: string;
+  acknowledgedAt: string;
+}
+
+const LATEST_ACKNOWLEDGED_AT_SQL = `
+  SELECT domain, equipment_tag, column_name, MAX(created_at) AS acknowledged_at
+  FROM alarm_action_log
+  WHERE action_type = 'acknowledge'
+  GROUP BY domain, equipment_tag, column_name
+`;
+
+/**
+ * (domain, equipment_tag, column_name)별 가장 최근 acknowledge 시각 — HMI-2d-2-fix-c
+ * 재무장 판정(alarm_current_state.onset_at과 교차 참조)용.
+ */
+export function listLatestAcknowledgedAt(db: SqlExecutor): LatestAcknowledgedAt[] {
+  return db.all<LatestAcknowledgedAtRow>(LATEST_ACKNOWLEDGED_AT_SQL).map((row) => ({
+    domain: row.domain,
+    equipmentTag: row.equipment_tag,
+    columnName: row.column_name,
+    acknowledgedAt: row.acknowledged_at,
+  }));
+}

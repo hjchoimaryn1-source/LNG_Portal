@@ -5,10 +5,18 @@
 //   GET은 useAlarmSuppressionStore 하이드레이션 전용(DailyOpsDataContext), POST는
 //   FaceplateReadoutRowActions.tsx의 버튼이 useAlarmActionLog.ts를 통해 호출한다.
 //   reset_to_default는 이 라우트로 노출하지 않는다(HMI-2a-final 범위 — UI 트리거 없음).
+//
+//   HMI-2d-2-fix-c: GET 응답에 acknowledgements(태그+컬럼별 최신 acknowledge 시각)를
+//   추가했다 — useAlarmAckStore.ts가 alarm_current_state.onset_at과 교차 참조해
+//   재무장 여부를 판정하는 데 쓴다. 기존 records(suppression) 필드는 그대로 유지.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getDailyOpsDb } from '../../../../../cmms-daily-ops/db/dailyOpsDbSingleton';
-import { logAlarmAction, listActiveSuppressions } from '../../../../../cmms-daily-ops/dao/alarmActionLogDao';
+import {
+  logAlarmAction,
+  listActiveSuppressions,
+  listLatestAcknowledgedAt,
+} from '../../../../../cmms-daily-ops/dao/alarmActionLogDao';
 
 export const runtime = 'nodejs';
 
@@ -46,7 +54,11 @@ function isValidPayload(body: unknown): body is LogActionPayload {
 
 export async function GET() {
   const db = getDailyOpsDb();
-  return NextResponse.json({ success: true, records: listActiveSuppressions(db, new Date().toISOString()) });
+  return NextResponse.json({
+    success: true,
+    records: listActiveSuppressions(db, new Date().toISOString()),
+    acknowledgements: listLatestAcknowledgedAt(db),
+  });
 }
 
 export async function POST(request: NextRequest) {

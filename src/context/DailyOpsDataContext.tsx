@@ -24,6 +24,7 @@ import { setHmiTagAliases } from '../hmi/state/hmiTagAliasCache';
 import { setAlarmSetpointOverrides, type AlarmSetpointOverrideRecord } from '../hmi/state/alarmSetpointOverrideCache';
 import { setActiveSuppressions, type ActiveSuppressionRecord } from '../hmi/state/useAlarmSuppressionStore';
 import { setAlarmOnsets, type AlarmOnsetRecord } from '../hmi/state/alarmCurrentStateCache';
+import { setAlarmAcknowledgedAts, type AlarmAcknowledgedAtRecord } from '../hmi/state/useAlarmAckStore';
 import type { PatrolDomain } from '../cmms-daily-ops/types/patrolLog';
 
 const DAILY_OPS_PATROL_ENTRIES_API = '/api/v1/cmms/daily-ops-patrol-entries';
@@ -125,6 +126,21 @@ export function DailyOpsDataProvider({ children }: { children: React.ReactNode }
       } catch {
         // onset 미해결 시 클라이언트가 라이브 평가로 다시 관측하는 대로 낙관 반영/POST —
         // 조용히 무시(안전 방향 폴백, 최악의 경우 재확인 요구가 한 번 더 뜰 뿐).
+      }
+    })();
+  }, []);
+
+  // HMI-2d-2-fix-c: alarm_action_log의 최신 acknowledge 시각 하이드레이션 — 별도 fetch로
+  // 위 suppress 하이드레이션 useEffect는 한 줄도 건드리지 않는다(같은 API를 다시 부르지만
+  // 이 파일의 기존 컨벤션대로 기능별 독립 useEffect를 유지한다).
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(ALARM_ACTION_LOG_API, { cache: 'no-store' });
+        const json = (await res.json()) as { success: boolean; acknowledgements: AlarmAcknowledgedAtRecord[] };
+        if (res.ok && json.success) setAlarmAcknowledgedAts(json.acknowledgements);
+      } catch {
+        // ack 이력 미해결 시 안전 방향 폴백(계속 미확인으로 표시) — 조용히 무시.
       }
     })();
   }, []);
