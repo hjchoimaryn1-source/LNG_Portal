@@ -100,7 +100,10 @@ export type SubProcessKey =
   | 'DAILY_OPS_ELECTRICAL_SYSTEM'
   | 'DAILY_OPS_LIVE_PID_MAP'
   // Daily Ops Overview — Phase 12 Pre-Flight III (approval state machine + RBAC)
-  | 'DAILY_OPS_OVERVIEW';
+  | 'DAILY_OPS_OVERVIEW'
+  // HMI Overview — Phase 12 Daily Ops Sub-stage C. Parallel to DAILY_OPS_LIVE_PID_MAP
+  // (raster-overlay), not a replacement — HJ decision 2026-09-15, see HmiOverviewContainer.tsx.
+  | 'DAILY_OPS_HMI_OVERVIEW';
 
 export interface OffloadHeelMetrics {
   offloadDate: string;
