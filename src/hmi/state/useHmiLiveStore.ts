@@ -27,11 +27,12 @@
 
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDailyOpsPatrolValue } from '../../cmms-daily-ops/state/useDailyOpsPatrolStore';
 import { PATROL_FIELD_MAP } from '../../cmms-daily-ops/dao/patrolFieldMaps';
 import { evaluateAlarmState, worstAlarmPriority } from '../alarms/evaluateAlarmState';
 import { resolveHmiDisplayTag } from './hmiTagAliasCache';
+import { recordAlarmOnsetObservation } from './useAlarmAckStore';
 import type { AlarmPriority, HmiEquipmentSnapshot, HmiInstrumentReading, PatrolDomain } from '../types/hmiCore';
 
 /** patrolFieldMaps.ts 기준 도메인당 최대 컬럼 수(gc=15). */
@@ -93,6 +94,17 @@ export function useHmiEquipment(domain: PatrolDomain, equipmentTag: string): Hmi
     previousPrioritiesRef.current.set(reading.columnName, reading.alarmPriority);
     readings.push(reading);
   }
+
+  // HMI-2d-2: onset 기록은 store를 직접 mutate하므로 렌더 중이 아니라 커밋 후
+  // effect에서 호출한다(previousPrioritiesRef처럼 렌더 중 ref를 mutate하는 것과 달리,
+  // 이건 다른 컴포넌트도 구독하는 외부 store라 렌더 순수성을 지켜야 한다).
+  useEffect(() => {
+    const nowIso = new Date().toISOString();
+    for (const reading of readings) {
+      recordAlarmOnsetObservation(domain, reading.tagId, reading.columnName, reading.alarmPriority, nowIso);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [domain, JSON.stringify(readings.map((r) => [r.tagId, r.columnName, r.alarmPriority]))]);
 
   return {
     equipmentTag: displayTag,

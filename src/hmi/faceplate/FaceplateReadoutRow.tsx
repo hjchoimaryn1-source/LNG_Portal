@@ -17,7 +17,9 @@
 
 import type { HmiInstrumentReading, AlarmPriority } from '../types/hmiCore';
 import { useIsAlarmSuppressed } from '../state/useAlarmSuppressionStore';
+import { useIsAlarmAcknowledged } from '../state/useAlarmAckStore';
 import { FaceplateReadoutRowActions } from './FaceplateReadoutRowActions';
+import './hmiAlarmFlash.css';
 
 const ALARM_BADGE_COLOR: Record<AlarmPriority, string> = {
   CRITICAL: '#D32F2F',
@@ -34,7 +36,10 @@ export interface FaceplateReadoutRowProps {
 
 export function FaceplateReadoutRow({ reading }: FaceplateReadoutRowProps) {
   const isSuppressed = useIsAlarmSuppressed(reading.domain, reading.tagId, reading.columnName);
+  const isAcknowledged = useIsAlarmAcknowledged(reading.domain, reading.tagId, reading.columnName);
   const isActionable = reading.alarmPriority === 'HIGH' || reading.alarmPriority === 'CRITICAL';
+  // HMI-2d-2: suppressed가 flashing/ack 표시보다 항상 우선한다 — 억제된 알람은 깜빡이지 않는다.
+  const isFlashing = isActionable && !isSuppressed && !isAcknowledged;
 
   return (
     <div className="flex flex-col gap-1 py-1 border-b border-[#e2ddd0] last:border-b-0">
@@ -48,7 +53,7 @@ export function FaceplateReadoutRow({ reading }: FaceplateReadoutRowProps) {
           </span>
         </div>
         <span
-          className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold text-white"
+          className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold text-white ${isFlashing ? 'hmi-alarm-flash' : ''}`}
           style={{ backgroundColor: isSuppressed ? SUPPRESSED_BADGE_COLOR : ALARM_BADGE_COLOR[reading.alarmPriority] }}
         >
           {reading.alarmPriority}

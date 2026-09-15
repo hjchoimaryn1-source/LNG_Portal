@@ -10,6 +10,7 @@
 import { useCallback } from 'react';
 import { useActiveSession } from '../../lib/rbac/activeSessionStore';
 import { addActiveSuppression } from '../state/useAlarmSuppressionStore';
+import { markAlarmAcknowledged } from '../state/useAlarmAckStore';
 import type { PatrolDomain } from '../types/hmiCore';
 
 const ALARM_ACTION_LOG_API = '/api/v1/cmms/alarm-action-log';
@@ -42,7 +43,7 @@ export function useAlarmActionLog(): UseAlarmActionLogResult {
   const acknowledge = useCallback(
     async (domain: PatrolDomain, equipmentTag: string, columnName: string) => {
       if (!activeSession) return '로그인 세션이 없습니다.';
-      return post({
+      const err = await post({
         domain,
         equipmentTag,
         columnName,
@@ -50,6 +51,8 @@ export function useAlarmActionLog(): UseAlarmActionLogResult {
         actorId: activeSession.userId,
         actorRole: activeSession.roleCode,
       });
+      if (!err) markAlarmAcknowledged(domain, equipmentTag, columnName, new Date().toISOString());
+      return err;
     },
     [activeSession, post]
   );
