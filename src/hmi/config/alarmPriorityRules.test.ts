@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { getAlarmThresholds } from './alarmPriorityRules';
 
 describe('alarmPriorityRules', () => {
-  it('returns the seeded rule for AAV downstream temperature columns', () => {
-    expect(getAlarmThresholds('aav', 'temperature_gauge_ds_c')).toEqual({ LL: -140.0, L: -120.0, H: 35.0, HH: 45.0, unit: 'c' });
-    expect(getAlarmThresholds('aav', 'temperature_transmitter_ds_c')).toEqual({ LL: -140.0, L: -120.0, H: 35.0, HH: 45.0, unit: 'c' });
+  it('returns the seeded rule for AAV downstream temperature columns (NIAS-IS-LS-0004 Rev B: LL=5/L=10, no H/HH)', () => {
+    expect(getAlarmThresholds('aav', 'temperature_gauge_ds_c')).toEqual({ LL: 5.0, L: 10.0, unit: 'c' });
+    expect(getAlarmThresholds('aav', 'temperature_transmitter_ds_c')).toEqual({ LL: 5.0, L: 10.0, unit: 'c' });
   });
 
   it('returns undefined for AAV upstream (cryogenic) temperature columns — intentional gap, not NORMAL', () => {

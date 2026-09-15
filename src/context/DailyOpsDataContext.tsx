@@ -21,12 +21,14 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { setLatestPatrolEntry } from '../cmms-daily-ops/state/useDailyOpsPatrolStore';
 import { setHmiTagAliases } from '../hmi/state/hmiTagAliasCache';
+import { setAlarmSetpointOverrides, type AlarmSetpointOverrideRecord } from '../hmi/state/alarmSetpointOverrideCache';
 import type { PatrolDomain } from '../cmms-daily-ops/types/patrolLog';
 
 const DAILY_OPS_PATROL_ENTRIES_API = '/api/v1/cmms/daily-ops-patrol-entries';
-// HMI-2-alias: 기존 refresh() 로직과 별개의 하이드레이션 경로 — pure addition, 아래 기존
-// fetch/상태 로직은 한 줄도 변경하지 않는다.
+// HMI-2-alias / HMI-2a-final: 기존 refresh() 로직과 별개의 하이드레이션 경로 — pure addition,
+// 아래 기존 fetch/상태 로직은 한 줄도 변경하지 않는다.
 const PID_TAG_ALIASES_API = '/api/v1/cmms/pid-tag-aliases';
+const ALARM_SETPOINT_OVERRIDES_API = '/api/v1/cmms/alarm-setpoint-overrides';
 
 interface LatestPatrolEntryDto {
   domain: PatrolDomain;
@@ -79,6 +81,19 @@ export function DailyOpsDataProvider({ children }: { children: React.ReactNode }
         if (res.ok && json.success) setHmiTagAliases(json.records);
       } catch {
         // 표시 레이어 저하(별칭 미해결)일 뿐 — 조용히 무시.
+      }
+    })();
+  }, []);
+
+  // HMI-2a-final: alarm_setpoint_overrides 하이드레이션 — 위 두 useEffect와 동일하게 독립적.
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(ALARM_SETPOINT_OVERRIDES_API, { cache: 'no-store' });
+        const json = (await res.json()) as { success: boolean; records: AlarmSetpointOverrideRecord[] };
+        if (res.ok && json.success) setAlarmSetpointOverrides(json.records);
+      } catch {
+        // 오버라이드 미해결 시 블루프린트 기본값으로 자연 폴백(getAlarmThresholds) — 조용히 무시.
       }
     })();
   }, []);

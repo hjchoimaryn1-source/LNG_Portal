@@ -4,7 +4,12 @@
 //   (domain, columnName)별 알람 임계값 테이블. instrumentType(PT/TT) 패턴이 아니라
 //   patrolFieldMaps.ts 실제 컬럼명으로 키잉한다 — instrumentType은 useHmiLiveStore.ts에서
 //   항상 'OTHER'로 고정돼(HMI-1b 디비에이션) 런타임에 도달 불가능하기 때문(HMI-2 pre-flight
-//   확인 사항). 값 자체는 HJ 지시 원문 그대로이며 이 파일에서 임의 조정하지 않는다.
+//   확인 사항).
+//
+//   HMI-2a-final: AAV DS 온도 규칙을 NIAS-IS-LS-0004(Rev B, 승인) TAL-08C/TALL-08C 실측치로
+//   교체했다 — 이전 -140/-120/35/45는 이 블루프린트 문서 이전의 추정 placeholder였다(HJ 확인,
+//   addendum). TAL-08C(Low)=10°C, TALL-08C(Low-Low)=5°C이며 High/High-High 알람은 정의되지
+//   않으므로 H/HH를 만들어 내지 않는다 — AlarmThresholdRule.H/HH가 optional로 바뀐 이유.
 //
 //   AAV temperature 규칙은 DS(하류, 기화 후·상온 근접)에만 적용한다. US(상류, LNG
 //   유입측·극저온) 컬럼은 의도적으로 규칙 미등록 — getAlarmThresholds()가 undefined를
@@ -12,22 +17,35 @@
 //
 //   NG Buffer Tank pressure: patrolFieldMaps.ts에 해당 domain/컬럼이 아예 없어(재확인됨)
 //   플레이스홀더 키조차 등록하지 않는다 — 별도 스테이지의 스키마 갭으로만 추적.
+//   V-101 PSV 정정압력(14.1 Barg)은 MECHANICAL_RELIEF_REFERENCE_BARG로 별도 보관한다 —
+//   HH 임계값이 아니며 evaluateAlarmState.ts가 소비해서는 안 된다(기계적 릴리프 기준치일 뿐,
+//   계기 알람 판정과 무관).
 
 import type { PatrolDomain } from '../types/hmiCore';
+import { getAlarmSetpointOverride } from '../state/alarmSetpointOverrideCache';
 
 export interface AlarmThresholdRule {
   LL: number;
   L: number;
-  H: number;
-  HH: number;
+  /** 상단 경계 — NIAS-IS-LS-0004에 High/High-High가 정의되지 않은 계기는 생략한다(임의 값 금지). */
+  H?: number;
+  HH?: number;
   /** 임계값이 정의된 단위 — 저장값 단위와 다르면 evaluateAlarmState.ts가 변환 후 비교한다. */
   unit: 'bar' | 'c';
 }
 
 type ColumnRuleMap = Record<string, AlarmThresholdRule>;
 
-const AAV_DS_TEMPERATURE_RULE: AlarmThresholdRule = { LL: -140.0, L: -120.0, H: 35.0, HH: 45.0, unit: 'c' };
+/** NIAS-IS-LS-0004 Rev B, TAL-08C(L)=10°C / TALL-08C(LL)=5°C — Outlet Vaporizer, H/HH 미정의. */
+const AAV_DS_TEMPERATURE_RULE: AlarmThresholdRule = { LL: 5.0, L: 10.0, unit: 'c' };
 const ISO_TANK_PRESSURE_RULE: AlarmThresholdRule = { LL: 1.0, L: 2.0, H: 15.0, HH: 18.0, unit: 'bar' };
+
+// PENDING SCHEMA — VAP-x(AAV) inlet DP 컬럼은 patrolFieldMaps.ts에 존재하지 않는다(HMI-2
+// pre-flight #3 재확인). 컬럼이 생기기 전까지는 아래 형태만 기록해 두고 등록하지 않는다:
+// const VAP_INLET_DP_RULE: AlarmThresholdRule = { LL: <TBD>, L: <TBD>, unit: 'bar' };
+
+/** V-101 PSV(Pressure Safety Valve) 정정압력 — 참고용 상수, HH 임계값 아님. */
+export const MECHANICAL_RELIEF_REFERENCE_BARG = 14.1;
 
 const ALARM_PRIORITY_RULES: Partial<Record<PatrolDomain, ColumnRuleMap>> = {
   aav: {
@@ -43,7 +61,10 @@ const ALARM_PRIORITY_RULES: Partial<Record<PatrolDomain, ColumnRuleMap>> = {
   },
 };
 
-/** 규칙이 없으면 undefined — 호출자는 "평가 불가"로 취급해야 하며 NORMAL로 기본값 처리하면 안 된다. */
+/**
+ * 규칙이 없으면 undefined — 호출자는 "평가 불가"로 취급해야 하며 NORMAL로 기본값 처리하면 안 된다.
+ * alarm_setpoint_overrides(HMI-2a-final)가 있으면 블루프린트 기본값보다 우선한다.
+ */
 export function getAlarmThresholds(domain: PatrolDomain, columnName: string): AlarmThresholdRule | undefined {
-  return ALARM_PRIORITY_RULES[domain]?.[columnName];
+  return getAlarmSetpointOverride(domain, columnName) ?? ALARM_PRIORITY_RULES[domain]?.[columnName];
 }

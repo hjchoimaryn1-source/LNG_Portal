@@ -15,6 +15,7 @@ import type { SqlExecutor } from '../../adapters/db/sqlExecutor';
 import { ensureDailyOpsPatrolSchema } from './dailyOpsPatrolSchema';
 import { ensureDailyReportSchema } from './dailyReportSchema';
 import { ensurePidReconciliationSchema } from './pidReconciliationSchema';
+import { ensureAlarmAuditSchema } from './alarmAuditSchema';
 import { seedInitialTagAliases } from '../pid/pidTagAliasesDao';
 
 let dailyOpsSchemaEnsured = false;
@@ -27,6 +28,7 @@ export function getDailyOpsDb(): SqlExecutor {
     ensureDailyOpsPatrolSchema(raw);
     ensureDailyReportSchema(raw);
     ensurePidReconciliationSchema(raw);
+    ensureAlarmAuditSchema(raw);
     seedInitialTagAliases(db);
     dailyOpsSchemaEnsured = true;
   }

@@ -17,25 +17,18 @@ function reading(overrides: Partial<HmiInstrumentReading>): HmiInstrumentReading
   };
 }
 
-describe('evaluateAlarmState — AAV downstream temperature (LL=-140/L=-120/H=35/HH=45)', () => {
+describe('evaluateAlarmState — AAV DS outlet temperature (NIAS-IS-LS-0004 Rev B: LL=5/L=10, no H/HH)', () => {
   it('CRITICAL at/below LL', () => {
-    expect(evaluateAlarmState(reading({ value: -140 }))).toBe('CRITICAL');
-    expect(evaluateAlarmState(reading({ value: -150 }))).toBe('CRITICAL');
+    expect(evaluateAlarmState(reading({ value: 5 }))).toBe('CRITICAL');
+    expect(evaluateAlarmState(reading({ value: 4 }))).toBe('CRITICAL');
   });
   it('LOW between LL(exclusive) and L(inclusive)', () => {
-    expect(evaluateAlarmState(reading({ value: -130 }))).toBe('LOW');
-    expect(evaluateAlarmState(reading({ value: -120 }))).toBe('LOW');
+    expect(evaluateAlarmState(reading({ value: 5.1 }))).toBe('LOW');
+    expect(evaluateAlarmState(reading({ value: 10 }))).toBe('LOW');
   });
-  it('NORMAL between L(exclusive) and H(exclusive)', () => {
-    expect(evaluateAlarmState(reading({ value: 0 }))).toBe('NORMAL');
-    expect(evaluateAlarmState(reading({ value: 34.9 }))).toBe('NORMAL');
-  });
-  it('HIGH between H(inclusive) and HH(exclusive)', () => {
-    expect(evaluateAlarmState(reading({ value: 35 }))).toBe('HIGH');
-    expect(evaluateAlarmState(reading({ value: 44.9 }))).toBe('HIGH');
-  });
-  it('CRITICAL at/above HH', () => {
-    expect(evaluateAlarmState(reading({ value: 45 }))).toBe('CRITICAL');
+  it('NORMAL above L — no H/HH defined, so no upper-bound alarm exists (not an implicit infinite HH)', () => {
+    expect(evaluateAlarmState(reading({ value: 10.1 }))).toBe('NORMAL');
+    expect(evaluateAlarmState(reading({ value: 1000 }))).toBe('NORMAL');
   });
 });
 
