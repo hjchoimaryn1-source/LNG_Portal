@@ -81,6 +81,13 @@ function assertKnownColumns(domain: PatrolDomain, values: PatrolValues): void {
   }
 }
 
+function assertKnownColumn(domain: PatrolDomain, columnName: string): void {
+  const known = new Set(PATROL_FIELD_MAP[domain].map((f) => f.columnName));
+  if (!known.has(columnName)) {
+    throw new Error(`Unknown patrol column "${columnName}" for domain "${domain}"`);
+  }
+}
+
 function rowToEntry(row: PatrolEntryRow, domain: PatrolDomain): PatrolEntry {
   const values: PatrolValues = {};
   for (const field of PATROL_FIELD_MAP[domain]) {
@@ -190,4 +197,47 @@ export function getLatestPatrolValue(
 /** (domain, equipmentTag)마다 가장 최근 값 1건씩, 테이블 전체 — B3 초기 로드가 사용 */
 export function getAllLatestPatrolValues(db: SqlExecutor): PatrolEntry[] {
   return db.all<PatrolEntryRow>(SELECT_ALL_LATEST_SQL).map((row) => rowToEntry(row, row.domain));
+}
+
+export interface PatrolTrendPoint {
+  timestamp: string;
+  value: number | null;
+}
+
+interface PatrolTrendRow {
+  report_date: string;
+  shift_time_slot: ShiftTimeSlot;
+  reading_status: ReadingStatus;
+  trend_value: number | null;
+}
+
+/**
+ * (domain, equipmentTag, columnName)의 sinceTimestamp(ISO) 이후 시계열.
+ * report_date에는 단일 datetime 컬럼이 없으므로 report_date+shift_time_slot을
+ * 'YYYY-MM-DDTHH:00' 문자열로 이어붙여 문자열 비교만으로 자정 경계를 넘는
+ * 조회를 처리한다(둘 다 zero-padded ISO 형식이라 사전식 비교가 시간순과 일치).
+ * reading_status='no_reading' 슬롯은 컬럼 원본값과 무관하게 value: null로
+ * 강제한다 — HMI-2d-3a 승인 결정(스파크라인에서 판독 불가 구간을 갭으로 표시).
+ */
+export function getPatrolEntriesForTrend(
+  db: SqlExecutor,
+  domain: PatrolDomain,
+  equipmentTag: string,
+  columnName: string,
+  sinceTimestamp: string
+): PatrolTrendPoint[] {
+  assertKnownColumn(domain, columnName);
+  const sql = `
+    SELECT report_date, shift_time_slot, reading_status, "${columnName}" AS trend_value
+    FROM daily_ops_patrol_entries
+    WHERE domain = @domain AND equipment_tag = @equipmentTag
+      AND (report_date || 'T' || shift_time_slot || ':00') >= @sinceTimestamp
+    ORDER BY report_date ASC, shift_time_slot ASC
+  `;
+  return db
+    .all<PatrolTrendRow>(sql, { domain, equipmentTag, sinceTimestamp })
+    .map((row) => ({
+      timestamp: `${row.report_date}T${row.shift_time_slot}`,
+      value: row.reading_status === 'no_reading' ? null : (row.trend_value ?? null),
+    }));
 }

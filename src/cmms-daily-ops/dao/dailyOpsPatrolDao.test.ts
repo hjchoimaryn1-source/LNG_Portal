@@ -2,7 +2,13 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createRequire } from 'node:module';
 import type { SqlExecutor } from '../../adapters/db/sqlExecutor';
 import { ensureDailyOpsPatrolSchema } from '../db/dailyOpsPatrolSchema';
-import { insertPatrolEntry, getPatrolEntries, getLatestPatrolValue, getAllLatestPatrolValues } from './dailyOpsPatrolDao';
+import {
+  insertPatrolEntry,
+  getPatrolEntries,
+  getLatestPatrolValue,
+  getAllLatestPatrolValues,
+  getPatrolEntriesForTrend,
+} from './dailyOpsPatrolDao';
 
 // vitest(vite-node)의 정적 ESM 리졸버가 실험적 코어 모듈 'node:sqlite'를
 // 인식하지 못해(Vite builtin 목록 미포함) 직접 import 시 실패한다 — CJS
@@ -124,5 +130,52 @@ describe('dailyOpsPatrolDao', () => {
 
     const n2Row = all.find((e) => e.equipmentTag === 'N2-CYL-01');
     expect(n2Row?.values.cylinder_pressure_bar).toBe(148);
+  });
+});
+
+describe('getPatrolEntriesForTrend', () => {
+  let db: SqlExecutor;
+
+  beforeEach(() => {
+    db = createTestDb();
+  });
+
+  it('spans a report_date boundary within a single sinceTimestamp query', () => {
+    insertPatrolEntry(db, 'n2_skid', 'N2-CYL-01', '2026-09-13', '20:00', { cylinder_pressure_bar: 150 }, 'normal', null, 'FIELD OP-1');
+    insertPatrolEntry(db, 'n2_skid', 'N2-CYL-01', '2026-09-14', '00:00', { cylinder_pressure_bar: 148 }, 'normal', null, 'FIELD OP-1');
+    insertPatrolEntry(db, 'n2_skid', 'N2-CYL-01', '2026-09-14', '04:00', { cylinder_pressure_bar: 146 }, 'normal', null, 'FIELD OP-1');
+
+    const trend = getPatrolEntriesForTrend(db, 'n2_skid', 'N2-CYL-01', 'cylinder_pressure_bar', '2026-09-13T18:00:00.000Z');
+    expect(trend).toEqual([
+      { timestamp: '2026-09-13T20:00', value: 150 },
+      { timestamp: '2026-09-14T00:00', value: 148 },
+      { timestamp: '2026-09-14T04:00', value: 146 },
+    ]);
+  });
+
+  it('returns an empty array when no entries fall within the window', () => {
+    insertPatrolEntry(db, 'n2_skid', 'N2-CYL-02', '2026-09-10', '00:00', { cylinder_pressure_bar: 150 }, 'normal', null, 'FIELD OP-1');
+
+    const trend = getPatrolEntriesForTrend(db, 'n2_skid', 'N2-CYL-02', 'cylinder_pressure_bar', '2026-09-14T00:00:00.000Z');
+    expect(trend).toEqual([]);
+  });
+
+  it('renders no_reading slots as value: null even when a stale column value is present', () => {
+    insertPatrolEntry(db, 'n2_skid', 'N2-CYL-03', '2026-09-14', '00:00', { cylinder_pressure_bar: 150 }, 'normal', null, 'FIELD OP-1');
+    insertPatrolEntry(db, 'n2_skid', 'N2-CYL-03', '2026-09-14', '04:00', { cylinder_pressure_bar: 150 }, 'no_reading', 'Gauge stuck', 'FIELD OP-1');
+    insertPatrolEntry(db, 'n2_skid', 'N2-CYL-03', '2026-09-14', '08:00', { cylinder_pressure_bar: 149 }, 'normal', null, 'FIELD OP-1');
+
+    const trend = getPatrolEntriesForTrend(db, 'n2_skid', 'N2-CYL-03', 'cylinder_pressure_bar', '2026-09-13T00:00:00.000Z');
+    expect(trend).toEqual([
+      { timestamp: '2026-09-14T00:00', value: 150 },
+      { timestamp: '2026-09-14T04:00', value: null },
+      { timestamp: '2026-09-14T08:00', value: 149 },
+    ]);
+  });
+
+  it('rejects a column name outside the domain field manifest', () => {
+    expect(() =>
+      getPatrolEntriesForTrend(db, 'n2_skid', 'N2-CYL-01', 'mol_methane', '2026-09-01T00:00:00.000Z')
+    ).toThrow(/Unknown patrol column/);
   });
 });
