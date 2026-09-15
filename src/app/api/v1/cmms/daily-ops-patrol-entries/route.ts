@@ -7,6 +7,9 @@
 //
 //   GET: Stage B3(DailyOpsDataContext) 초기 로드 — (domain, equipment_tag)별
 //   최신 1건씩 전체를 반환해 B2 Live-sync 스토어를 DB 마지막 값으로 채운다.
+//   GET + ?trend=1: Stage HMI-2d-3b — FaceplateSparkline.tsx가 쓰는 단일
+//   (domain, equipmentTag, columnName) 시계열 조회. 별도 라우트 대신 기존
+//   GET을 query param으로 분기(최소 diff) — POST/기존 GET 동작은 변경 없음.
 //   POST: Stage C4에서 B1 폼의 onSave 콜백을 실제 저장에 연결하며 추가.
 //
 //   Phase 12 Pre-Flight III 승인 락(옵션 c): report_date가 이미 APPROVED면
@@ -14,7 +17,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getDailyOpsDb } from '../../../../../cmms-daily-ops/db/dailyOpsDbSingleton';
-import { getAllLatestPatrolValues, insertPatrolEntry } from '../../../../../cmms-daily-ops/dao/dailyOpsPatrolDao';
+import {
+  getAllLatestPatrolValues,
+  getPatrolEntriesForTrend,
+  insertPatrolEntry,
+} from '../../../../../cmms-daily-ops/dao/dailyOpsPatrolDao';
 import type { PatrolValues } from '../../../../../cmms-daily-ops/dao/dailyOpsPatrolDao';
 import type { PatrolDomain, ReadingStatus, ShiftTimeSlot } from '../../../../../cmms-daily-ops/types/patrolLog';
 import { isReportDateApproved } from '../../../../../cmms-daily-ops/dao/dailyReportApprovalDao';
@@ -47,8 +54,29 @@ function isValidPayload(body: unknown): body is InsertPayload {
   );
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const params = request.nextUrl.searchParams;
   const db = getDailyOpsDb();
+
+  if (params.get('trend') === '1') {
+    const domain = params.get('domain');
+    const equipmentTag = params.get('equipmentTag');
+    const columnName = params.get('columnName');
+    const sinceTimestamp = params.get('sinceTimestamp');
+    if (!domain || !equipmentTag || !columnName || !sinceTimestamp) {
+      return NextResponse.json(
+        { success: false, error: 'trend query requires domain, equipmentTag, columnName, sinceTimestamp.' },
+        { status: 400 }
+      );
+    }
+    try {
+      const points = getPatrolEntriesForTrend(db, domain as PatrolDomain, equipmentTag, columnName, sinceTimestamp);
+      return NextResponse.json({ success: true, points });
+    } catch (err) {
+      return NextResponse.json({ success: false, error: err instanceof Error ? err.message : 'Trend query failed.' }, { status: 400 });
+    }
+  }
+
   const records = getAllLatestPatrolValues(db);
   return NextResponse.json({ success: true, records });
 }

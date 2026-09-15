@@ -19,6 +19,7 @@ import type { HmiInstrumentReading, AlarmPriority } from '../types/hmiCore';
 import { useIsAlarmSuppressed } from '../state/useAlarmSuppressionStore';
 import { useIsAlarmAcknowledged } from '../state/useAlarmAckStore';
 import { FaceplateReadoutRowActions } from './FaceplateReadoutRowActions';
+import { FaceplateSparkline } from './FaceplateSparkline';
 import './hmiAlarmFlash.css';
 
 const ALARM_BADGE_COLOR: Record<AlarmPriority, string> = {
@@ -60,6 +61,7 @@ export function FaceplateReadoutRow({ reading }: FaceplateReadoutRowProps) {
           {isSuppressed ? ' (SUPPRESSED)' : ''}
         </span>
       </div>
+      <FaceplateSparkline domain={reading.domain} equipmentTag={reading.tagId} columnName={reading.columnName} />
       {isActionable && <FaceplateReadoutRowActions reading={reading} />}
     </div>
   );
