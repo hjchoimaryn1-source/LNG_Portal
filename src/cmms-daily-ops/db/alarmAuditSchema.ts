@@ -46,8 +46,24 @@ export const ALARM_ACTION_LOG_DDL = `
   );
 `;
 
-/** alarm_setpoint_overrides + alarm_action_log를 멱등 보강한다. */
+/**
+ * HMI-2d-2-fix-a — "현재 onset" 전용 상태 테이블(HJ 승인, alarm_current_state 그대로).
+ * alarm_action_log(사람 조치를 append하는 감사로그)와 별개다 — 태그+컬럼당 onset 1행만
+ * 유지하며, 알람 해제 시 행을 지운다(재진입 시 새 onset을 다시 기록하기 위함).
+ */
+export const ALARM_CURRENT_STATE_DDL = `
+  CREATE TABLE IF NOT EXISTS alarm_current_state (
+      domain          TEXT NOT NULL,
+      equipment_tag   TEXT NOT NULL,
+      column_name     TEXT NOT NULL,
+      onset_at        TEXT NOT NULL,
+      PRIMARY KEY (domain, equipment_tag, column_name)
+  );
+`;
+
+/** alarm_setpoint_overrides + alarm_action_log + alarm_current_state를 멱등 보강한다. */
 export function ensureAlarmAuditSchema(raw: DatabaseSync): void {
   raw.exec(ALARM_SETPOINT_OVERRIDES_DDL);
   raw.exec(ALARM_ACTION_LOG_DDL);
+  raw.exec(ALARM_CURRENT_STATE_DDL);
 }
