@@ -6,10 +6,18 @@
 //   따라 행 배경에는 채도 높은 색을 쓰지 않고, 작은 배지 칩에만 알람색을 준다.
 //   NORMAL은 PidTagBadge.tsx에서 이미 정한 회색 토큰(--hmi-alarm-normal)을
 //   재사용한다 — 새 회색값을 만들지 않는다.
+//
+//   HMI-2c-final — suppress는 스타일만 죽이고 판정 자체(reading.alarmPriority)는
+//   evaluateAlarmState.ts가 계속 실제로 계산한 값 그대로 저장/전달된다(이 컴포넌트는
+//   표시만 바꾼다). --hmi-alarm-suppressed는 --hmi-alarm-normal(#94a3b8)과 다른 색 +
+//   텍스트 접미사 둘 다로 구분한다 — "진짜 NORMAL"과 "억제된 알람"이 색만으로도,
+//   텍스트만으로도 혼동되지 않게.
 
 'use client';
 
 import type { HmiInstrumentReading, AlarmPriority } from '../types/hmiCore';
+import { useIsAlarmSuppressed } from '../state/useAlarmSuppressionStore';
+import { FaceplateReadoutRowActions } from './FaceplateReadoutRowActions';
 
 const ALARM_BADGE_COLOR: Record<AlarmPriority, string> = {
   CRITICAL: '#D32F2F',
@@ -18,27 +26,36 @@ const ALARM_BADGE_COLOR: Record<AlarmPriority, string> = {
   NORMAL: 'var(--hmi-alarm-normal, #94a3b8)',
 };
 
+const SUPPRESSED_BADGE_COLOR = 'var(--hmi-alarm-suppressed, #7c6f9c)';
+
 export interface FaceplateReadoutRowProps {
   reading: HmiInstrumentReading;
 }
 
 export function FaceplateReadoutRow({ reading }: FaceplateReadoutRowProps) {
+  const isSuppressed = useIsAlarmSuppressed(reading.domain, reading.tagId, reading.columnName);
+  const isActionable = reading.alarmPriority === 'HIGH' || reading.alarmPriority === 'CRITICAL';
+
   return (
-    <div className="flex items-center justify-between gap-2 py-1 border-b border-[#e2ddd0] last:border-b-0">
-      <div className="flex flex-col min-w-0">
-        <span className="font-mono text-[9px] text-slate-500 truncate">
-          {reading.tagId} · {reading.columnName}
-        </span>
-        <span className="font-mono">
-          {reading.value ?? '—'} {reading.unit}
+    <div className="flex flex-col gap-1 py-1 border-b border-[#e2ddd0] last:border-b-0">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col min-w-0">
+          <span className="font-mono text-[9px] text-slate-500 truncate">
+            {reading.tagId} · {reading.columnName}
+          </span>
+          <span className="font-mono">
+            {reading.value ?? '—'} {reading.unit}
+          </span>
+        </div>
+        <span
+          className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold text-white"
+          style={{ backgroundColor: isSuppressed ? SUPPRESSED_BADGE_COLOR : ALARM_BADGE_COLOR[reading.alarmPriority] }}
+        >
+          {reading.alarmPriority}
+          {isSuppressed ? ' (SUPPRESSED)' : ''}
         </span>
       </div>
-      <span
-        className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold text-white"
-        style={{ backgroundColor: ALARM_BADGE_COLOR[reading.alarmPriority] }}
-      >
-        {reading.alarmPriority}
-      </span>
+      {isActionable && <FaceplateReadoutRowActions reading={reading} />}
     </div>
   );
 }
