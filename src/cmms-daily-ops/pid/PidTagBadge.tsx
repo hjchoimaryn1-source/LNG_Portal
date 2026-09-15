@@ -21,8 +21,10 @@
 import type { MouseEvent } from 'react';
 import { useDailyOpsPatrolValue } from '../state/useDailyOpsPatrolStore';
 import { useHmiEquipment } from '../../hmi/state/useHmiLiveStore';
+import { useAlarmBadgeState } from '../../hmi/state/useAlarmBadgeState';
 import type { PatrolDomain } from '../types/patrolLog';
 import type { AlarmPriority } from '../../hmi/types/hmiCore';
+import '../../hmi/faceplate/hmiAlarmFlash.css';
 
 export interface PidTagBadgeProps {
   tagId: string;
@@ -47,14 +49,20 @@ const ALARM_PRIORITY_FILL: Record<AlarmPriority, string> = {
   NORMAL: 'var(--hmi-alarm-normal, #94a3b8)',
 };
 
+/** FaceplateReadoutRow.tsx와 동일한 억제색 토큰 — 새 회색/보라값을 만들지 않는다. */
+const SUPPRESSED_FILL = 'var(--hmi-alarm-suppressed, #7c6f9c)';
+
 export function PidTagBadge({ tagId, x, y, domain, primaryColumn, isCalibrating, onClick }: PidTagBadgeProps) {
   // Hooks 규칙상 조건부 호출 불가 — domain 미지정 시 무해한 더미 키('aav')로
   // 조회하고 hasReading으로 표시 여부만 게이팅한다.
   const value = useDailyOpsPatrolValue(domain ?? 'aav', tagId, primaryColumn ?? '');
   const hasReading = domain !== undefined && primaryColumn !== undefined && value !== undefined && value !== null;
 
-  const { worstAlarmPriority } = useHmiEquipment(domain ?? 'aav', tagId);
-  const fill = ALARM_PRIORITY_FILL[worstAlarmPriority];
+  const { worstAlarmPriority, readings } = useHmiEquipment(domain ?? 'aav', tagId);
+  // HMI-2e-1: readings(장비의 전 컬럼)을 컬럼 단위 flash/ack/suppress 판정(useAlarmAckStore.ts,
+  // useAlarmSuppressionStore.ts)에 걸쳐 배지 하나짜리 최악값으로 접는다.
+  const { isFlashing, isSuppressed } = useAlarmBadgeState(readings);
+  const fill = isSuppressed ? SUPPRESSED_FILL : ALARM_PRIORITY_FILL[worstAlarmPriority];
 
   function handleBadgeClick(e: MouseEvent<SVGGElement>) {
     // 캘리브레이션 모드에선 아무 것도 하지 않고 그대로 버블링시켜, 캔버스의
@@ -70,7 +78,14 @@ export function PidTagBadge({ tagId, x, y, domain, primaryColumn, isCalibrating,
       onClick={handleBadgeClick}
       style={{ cursor: !isCalibrating && onClick ? 'pointer' : 'inherit' }}
     >
-      <circle r={6} fill={fill} stroke="white" strokeWidth={1.5} />
+      <circle r={6} fill={fill} stroke="white" strokeWidth={1.5} className={isFlashing ? 'hmi-alarm-flash' : undefined} />
+      {/* 배지가 작아 FaceplateReadoutRow의 "(SUPPRESSED)" 텍스트가 들어갈 자리가 없다 —
+          동일한 색-비의존 원칙을 지키는 축약형 아이콘 오버레이(HMI-2e-2 승인된 대안). */}
+      {isSuppressed && (
+        <text x={5} y={-4} fontSize={7} fontFamily="monospace" fontWeight="bold" fill="white" stroke="#002b4d" strokeWidth={0.6} textAnchor="middle">
+          S
+        </text>
+      )}
       <rect x={10} y={-10} width={100} height={20} rx={3} fill="#002b4d" opacity={0.9} />
       <text x={16} y={4} fontSize={10} fontFamily="monospace" fill="white">
         {tagId}
