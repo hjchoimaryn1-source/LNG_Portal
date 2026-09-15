@@ -15,6 +15,10 @@
 //   항상 false라는 JS 암묵 동작에 기대 CRITICAL로 새는 것을 명시적으로 막는다 — "무한대
 //   HH"가 아니라 "상단 알람 불가능"으로 취급한다.
 //
+//   Stage E-4 — rule.LL/L도 같은 이유로 optional이 됐다(AAV inlet DP: High만 정의). H/HH와
+//   대칭으로 LL이 없으면 CRITICAL(저측) 판정을 건너뛰고, L이 없으면 LOW 판정을 건너뛴다 —
+//   "무한소 LL"이 아니라 "하단 알람 불가능"으로 취급한다.
+//
 //   HMI-2b-final — 데드밴드/히스테리시스. previousPriority(선택 인자)가 주어지면, "그
 //   임계값을 발생시킨 등급"으로부터 회복(덜 심각한 등급으로 전환)할 때만 해당 임계값에
 //   데드밴드를 더해(하단) 또는 빼서(상단) 적용한다 — 임계값을 살짝 다시 터치하는 것만으로
@@ -48,11 +52,15 @@ export function evaluateAlarmState(reading: HmiInstrumentReading, previousPriori
   const comparisonValue = rule.unit === 'bar' && reading.unit === 'MPa' ? reading.value * MPA_TO_BAR : reading.value;
   const deadband = rule.unit === 'c' ? TEMPERATURE_DEADBAND_C : PRESSURE_DEADBAND_BAR;
 
-  const llThreshold = previousPriority === 'CRITICAL' ? rule.LL + deadband : rule.LL;
-  if (comparisonValue <= llThreshold) return 'CRITICAL';
+  if (rule.LL !== undefined) {
+    const llThreshold = previousPriority === 'CRITICAL' ? rule.LL + deadband : rule.LL;
+    if (comparisonValue <= llThreshold) return 'CRITICAL';
+  }
 
-  const lThreshold = previousPriority === 'LOW' ? rule.L + deadband : rule.L;
-  if (comparisonValue <= lThreshold) return 'LOW';
+  if (rule.L !== undefined) {
+    const lThreshold = previousPriority === 'LOW' ? rule.L + deadband : rule.L;
+    if (comparisonValue <= lThreshold) return 'LOW';
+  }
 
   if (rule.H === undefined) return 'NORMAL';
   const hThreshold = previousPriority === 'HIGH' ? rule.H - deadband : rule.H;

@@ -15,6 +15,11 @@
 //   유입측·극저온) 컬럼은 의도적으로 규칙 미등록 — getAlarmThresholds()가 undefined를
 //   반환해야 하며, 이는 아직 채울 값이 없는 갭이지 버그가 아니다.
 //
+//   Stage E-4: AAV inlet DP(differential_pressure_us_barg)는 NIAS-IS-LS-0004에 High만
+//   정의돼 있다(DPIA-01C/D, DPI-01E/F, H=0.5 barg — LL/L/HH 없음). 이 때문에
+//   AlarmThresholdRule.LL/L도 H/HH처럼 optional로 바꿨다 — evaluateAlarmState.ts가 동일한
+//   패턴(undefined면 해당 단계 건너뜀)으로 처리한다.
+//
 //   NG Buffer Tank pressure (Stage E-1로 컬럼 실재: pressure_gauge_barg/
 //   pressure_transmitter_barg): NIAS-IS-LS-0004에 이 용기의 DCS 알람 설정치가 없다
 //   (PSV-03 기계적 릴리프 14.1 Barg만 존재) — 컬럼은 있지만 의도적으로 규칙 미등록.
@@ -26,8 +31,9 @@ import type { PatrolDomain } from '../types/hmiCore';
 import { getAlarmSetpointOverride } from '../state/alarmSetpointOverrideCache';
 
 export interface AlarmThresholdRule {
-  LL: number;
-  L: number;
+  /** 하단 경계 — NIAS-IS-LS-0004에 Low/Low-Low가 정의되지 않은 계기는 생략한다(임의 값 금지). */
+  LL?: number;
+  L?: number;
   /** 상단 경계 — NIAS-IS-LS-0004에 High/High-High가 정의되지 않은 계기는 생략한다(임의 값 금지). */
   H?: number;
   HH?: number;
@@ -41,9 +47,8 @@ type ColumnRuleMap = Record<string, AlarmThresholdRule>;
 const AAV_DS_TEMPERATURE_RULE: AlarmThresholdRule = { LL: 5.0, L: 10.0, unit: 'c' };
 const ISO_TANK_PRESSURE_RULE: AlarmThresholdRule = { LL: 1.0, L: 2.0, H: 15.0, HH: 18.0, unit: 'bar' };
 
-// PENDING SCHEMA — VAP-x(AAV) inlet DP 컬럼은 patrolFieldMaps.ts에 존재하지 않는다(HMI-2
-// pre-flight #3 재확인). 컬럼이 생기기 전까지는 아래 형태만 기록해 두고 등록하지 않는다:
-// const VAP_INLET_DP_RULE: AlarmThresholdRule = { LL: <TBD>, L: <TBD>, unit: 'bar' };
+/** NIAS-IS-LS-0004, DPIA-01C/D·DPI-01E/F(H)=0.5 barg — Inlet Vaporizer DP, High만 정의(LL/L/HH 없음). */
+const AAV_INLET_DP_RULE: AlarmThresholdRule = { H: 0.5, unit: 'bar' };
 
 /** V-101 PSV(Pressure Safety Valve) 정정압력 — 참고용 상수, HH 임계값 아님. */
 export const MECHANICAL_RELIEF_REFERENCE_BARG = 14.1;
@@ -53,6 +58,7 @@ const ALARM_PRIORITY_RULES: Partial<Record<PatrolDomain, ColumnRuleMap>> = {
     temperature_gauge_ds_c: AAV_DS_TEMPERATURE_RULE,
     temperature_transmitter_ds_c: AAV_DS_TEMPERATURE_RULE,
     // temperature_gauge_us_c / temperature_transmitter_us_c: 의도적 미등록(US, 극저온측).
+    differential_pressure_us_barg: AAV_INLET_DP_RULE,
   },
   iso_tank_unloading_skid: {
     pressure_mpa: ISO_TANK_PRESSURE_RULE,

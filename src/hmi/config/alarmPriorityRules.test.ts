@@ -17,8 +17,13 @@ describe('alarmPriorityRules', () => {
     expect(getAlarmThresholds('iso_tank_cargo', 'pressure_mpa')).toEqual({ LL: 1.0, L: 2.0, H: 15.0, HH: 18.0, unit: 'bar' });
   });
 
-  it('returns undefined for domains/columns with no seeded rule (e.g. metering_train_a, NG Buffer Tank has no column at all)', () => {
+  it('returns undefined for domains/columns with no seeded rule (e.g. metering_train_a; NG Buffer Tank columns exist but have no DCS setpoint)', () => {
     expect(getAlarmThresholds('metering_train_a', 'press_barg')).toBeUndefined();
     expect(getAlarmThresholds('aav', 'pressure_gauge_us_bar')).toBeUndefined();
+    expect(getAlarmThresholds('ng_buffer_tank', 'pressure_transmitter_barg')).toBeUndefined();
+  });
+
+  it('returns the High-only seeded rule for AAV inlet DP (NIAS-IS-LS-0004: H=0.5 barg, no LL/L/HH)', () => {
+    expect(getAlarmThresholds('aav', 'differential_pressure_us_barg')).toEqual({ H: 0.5, unit: 'bar' });
   });
 });

@@ -28,14 +28,14 @@ function mount(onSave: (input: unknown) => void) {
 }
 
 describe('AavPatrolForm', () => {
-  it('renders 4 AAV unit blocks with 8 fields each', () => {
+  it('renders 4 AAV unit blocks with 9 fields each (8 + Stage E-4 inlet DP)', () => {
     mount(() => {});
     const unitHeaders = Array.from(container!.querySelectorAll('div')).filter((el) =>
       /^AAV-(102|103|105|106)$/.test(el.textContent ?? '')
     );
     expect(unitHeaders.length).toBeGreaterThanOrEqual(4);
-    // 4 units x 8 numeric fields = 32 number inputs
-    expect(container!.querySelectorAll('input[type="number"]')).toHaveLength(32);
+    // 4 units x 9 numeric fields = 36 number inputs
+    expect(container!.querySelectorAll('input[type="number"]')).toHaveLength(36);
   });
 
   it('saves the entered value under the selected shift slot and equipment tag', () => {

@@ -129,9 +129,19 @@ function ensureColumn(raw: DatabaseSync, table: string, columnName: string, addC
 const ADD_PRESSURE_GAUGE_BARG_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN pressure_gauge_barg REAL`;
 const ADD_PRESSURE_TRANSMITTER_BARG_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN pressure_transmitter_barg REAL`;
 
+// AAV inlet DP (Stage E-4) — DPIA-01C/D, DPI-01E/F per NIAS-IS-LS-0001/0004
+// (Inlet Vaporizer DP, High-only alarm).
+const ADD_DIFFERENTIAL_PRESSURE_US_BARG_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN differential_pressure_us_barg REAL`;
+
 /** daily_ops_patrol_entries 테이블을 멱등(idempotent)하게 보강한다. */
 export function ensureDailyOpsPatrolSchema(raw: DatabaseSync): void {
   raw.exec(DAILY_OPS_PATROL_ENTRIES_DDL);
   ensureColumn(raw, 'daily_ops_patrol_entries', 'pressure_gauge_barg', ADD_PRESSURE_GAUGE_BARG_SQL);
   ensureColumn(raw, 'daily_ops_patrol_entries', 'pressure_transmitter_barg', ADD_PRESSURE_TRANSMITTER_BARG_SQL);
+  ensureColumn(
+    raw,
+    'daily_ops_patrol_entries',
+    'differential_pressure_us_barg',
+    ADD_DIFFERENTIAL_PRESSURE_US_BARG_SQL
+  );
 }

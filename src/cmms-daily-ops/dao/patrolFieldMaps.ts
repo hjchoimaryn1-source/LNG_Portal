@@ -51,6 +51,8 @@ export const PATROL_FIELD_MAP: Record<PatrolDomain, PatrolFieldSpec[]> = {
     { columnName: 'pressure_transmitter_ds_bar', label: '압력 트랜스미터 (DS)', unit: 'bar', type: 'number' },
     { columnName: 'temperature_gauge_ds_c', label: '온도계 (DS)', unit: '°C', type: 'number' },
     { columnName: 'temperature_transmitter_ds_c', label: '온도 트랜스미터 (DS)', unit: '°C', type: 'number' },
+    // Stage E-4 — Inlet Vaporizer DP (DPIA-01C/D, DPI-01E/F), 순수 append.
+    { columnName: 'differential_pressure_us_barg', label: '차압 (Inlet)', unit: 'barg', type: 'number' },
   ],
   n2_skid: [
     { columnName: 'cylinder_pressure_bar', label: '실린더 압력', unit: 'bar', type: 'number' },

@@ -32,6 +32,19 @@ describe('evaluateAlarmState — AAV DS outlet temperature (NIAS-IS-LS-0004 Rev 
   });
 });
 
+describe('evaluateAlarmState — AAV inlet DP (NIAS-IS-LS-0004: H=0.5 barg, no LL/L/HH)', () => {
+  const dpReading = (value: number) => reading({ columnName: 'differential_pressure_us_barg', unit: 'bar', value });
+
+  it('NORMAL below H — no LL/L defined, so no lower-bound alarm exists', () => {
+    expect(evaluateAlarmState(dpReading(0))).toBe('NORMAL');
+    expect(evaluateAlarmState(dpReading(0.49))).toBe('NORMAL');
+  });
+  it('HIGH at/above H — no HH defined, so it never escalates to CRITICAL', () => {
+    expect(evaluateAlarmState(dpReading(0.5))).toBe('HIGH');
+    expect(evaluateAlarmState(dpReading(100))).toBe('HIGH');
+  });
+});
+
 describe('evaluateAlarmState — AAV upstream (no rule) always NORMAL, never a false CRITICAL', () => {
   it('returns NORMAL for cryogenic inlet temp with no seeded rule', () => {
     expect(evaluateAlarmState(reading({ columnName: 'temperature_gauge_us_c', value: -160 }))).toBe('NORMAL');
