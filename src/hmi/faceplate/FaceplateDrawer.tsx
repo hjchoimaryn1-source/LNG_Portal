@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { RAISED_PANEL, TITLE_BAR, SUNKEN_PANEL, BEVEL_BUTTON, BEVEL_BUTTON_PRESSED } from '../../components/cmms/scadaStyles';
 import { CANDIDATE_TAG_DOMAIN } from '../../cmms-daily-ops/pid/pidCandidateTags';
 import { useHmiEquipment } from '../state/useHmiLiveStore';
+import { FaceplateReadoutRow } from './FaceplateReadoutRow';
 import type { PatrolDomain } from '../types/hmiCore';
 
 type FaceplateTab = 'readout' | 'trend' | 'patrol-history';
@@ -80,7 +81,15 @@ export function FaceplateDrawer({ equipmentTag, onClose, initialTab = 'readout' 
               <span>{snapshot.interlock.status}</span>
             )}
           </div>
-          <div className="text-slate-500">{TAB_LABEL[activeTab]} — 준비 중</div>
+          {activeTab === 'readout' ? (
+            snapshot.readings.length === 0 ? (
+              <div className="text-slate-500">표시할 계기 값 없음</div>
+            ) : (
+              snapshot.readings.map((r) => <FaceplateReadoutRow key={r.columnName} reading={r} />)
+            )
+          ) : (
+            <div className="text-slate-500">{TAB_LABEL[activeTab]} — 준비 중</div>
+          )}
         </div>
       </div>
     </div>
