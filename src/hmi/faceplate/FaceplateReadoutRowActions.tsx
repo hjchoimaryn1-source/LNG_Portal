@@ -11,11 +11,27 @@
 import { useState } from 'react';
 import { BEVEL_BUTTON, SUNKEN_INPUT } from '../../components/cmms/scadaStyles';
 import { useAlarmActionLog } from '../hooks/useAlarmActionLog';
+import { getNextShiftBoundary } from '../../cmms-auth/shiftBoundaryMonitor';
 import type { HmiInstrumentReading } from '../types/hmiCore';
 
 export interface FaceplateReadoutRowActionsProps {
   reading: HmiInstrumentReading;
 }
+
+/** <input type="datetime-local">가 받는 로컬 타임존 "YYYY-MM-DDTHH:mm" 문자열로 변환. */
+function toDatetimeLocalValue(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/** HMI-2d-4 — Quick Suppress 프리셋 만료 칩(1hr/4hr/End of Shift). */
+const SUPPRESS_EXPIRY_PRESETS: { label: string; resolve: (now: Date) => Date }[] = [
+  { label: '1hr', resolve: (now) => new Date(now.getTime() + 60 * 60 * 1000) },
+  { label: '4hr', resolve: (now) => new Date(now.getTime() + 4 * 60 * 60 * 1000) },
+  // src/cmms-auth/shiftBoundaryMonitor.ts의 07:00/19:00 시프트 경계 재사용 —
+  // 임의의 고정 시각을 새로 만들지 않는다(HMI-2d 지시문 제약).
+  { label: 'End of Shift', resolve: (now) => getNextShiftBoundary(now) },
+];
 
 export function FaceplateReadoutRowActions({ reading }: FaceplateReadoutRowActionsProps) {
   const { acknowledge, suppress } = useAlarmActionLog();
@@ -61,6 +77,16 @@ export function FaceplateReadoutRowActions({ reading }: FaceplateReadoutRowActio
             placeholder="억제 사유 (필수)"
             className={`${SUNKEN_INPUT} text-[9px] py-0.5`}
           />
+          {SUPPRESS_EXPIRY_PRESETS.map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => setExpiresAtLocal(toDatetimeLocalValue(preset.resolve(new Date())))}
+              className={`${BEVEL_BUTTON} text-[9px] px-2 py-0.5`}
+            >
+              {preset.label}
+            </button>
+          ))}
           <input
             type="datetime-local"
             value={expiresAtLocal}
