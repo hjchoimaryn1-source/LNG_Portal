@@ -14,6 +14,11 @@ interface SidebarNavProps {
   onCloseMobile?: () => void;
 }
 
+// Stage 2 (site launch readiness, 2026-09-15) — hides the tab from the sidebar without
+// deleting the SubProcessKey/route/component (lng.ts, LngProcessRoutes.tsx unchanged).
+// Flip back to true to restore.
+const SHOW_ISO_TANK_LOGISTICS_TAB = false;
+
 // Windows Classic 3D Raised Bevel Section Header Style
 const SECTION_HEADER_BEVEL =
   "bg-[#d4d0c8] text-slate-900 font-extrabold text-xs px-2.5 py-1.5 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] tracking-wider uppercase flex items-center justify-between cursor-default select-none shadow-xs";
@@ -176,7 +181,7 @@ export default function SidebarNav({
                 activeKey !== 'NIAS_TERMINAL_OVERVIEW'
             )}
             {renderNavItem('MAINTENANCE_MRO_HUB', 'Maintenance & Depot')}
-            {renderNavItem('DAILY_OPS_ISO_TANK_LOGISTICS', 'ISO Tank Logistics')}
+            {SHOW_ISO_TANK_LOGISTICS_TAB && renderNavItem('DAILY_OPS_ISO_TANK_LOGISTICS', 'ISO Tank Logistics')}
             {renderNavItem('DAILY_OPS_LNG_ENERGY_OPERATION', 'LNG & NG Energy Operation')}
             {renderNavItem('DAILY_OPS_ELECTRICAL_SYSTEM', 'Electrical System')}
             {renderNavItem('DAILY_OPS_LIVE_PID_MAP', 'Live P&ID Map')}
