@@ -29,7 +29,7 @@
 
 'use client';
 
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useState, type CSSProperties, type MouseEvent } from 'react';
 import { RAISED_PANEL, BEVEL_BUTTON, BEVEL_BUTTON_PRESSED } from '../../components/cmms/scadaStyles';
 import { CANDIDATE_TAG_DOMAIN, PRIMARY_COLUMN_BY_DOMAIN } from './pidCandidateTags';
 import { PidTagBadge } from './PidTagBadge';
@@ -41,6 +41,18 @@ const NATIVE_HEIGHT = 924;
 const PID_COORDINATES_API = '/api/v1/cmms/pid-tag-coordinates';
 const BACKGROUND_IMAGE_URL: string | null = '/images/P&ID.png';
 const ZOOM_LEVELS = [1, 1.5] as const;
+
+/**
+ * HMI-2d-1 — Rockwell/ISA-101 라이트 그레이스케일 팔레트(그대로 채택, 배경 #E0E0E0).
+ * 이 서브트리 루트(아래 최상위 div)에서만 선언 — scadaStyles.ts/전역 globals.css는
+ * 건드리지 않는다(지시 범위: src/hmi/*, src/cmms-daily-ops/pid/*). FaceplateDrawer는
+ * 이 div의 DOM 자손이라 CSS 상속으로 값을 그대로 물려받는다.
+ */
+const HMI_PALETTE_VARS = {
+  '--hmi-bg-normal': '#E0E0E0',
+  '--hmi-line-static': '#A0A0A4',
+  '--hmi-text-primary': '#1e293b', // slate-800, #E0E0E0 대비 11.08:1 (WCAG AAA)
+} as CSSProperties;
 
 interface CoordinateDto {
   tagId: string;
@@ -103,7 +115,7 @@ export function PIDOverlayView() {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" style={HMI_PALETTE_VARS}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-bold text-slate-700 uppercase">P&ID LIVE OVERLAY</span>
@@ -138,8 +150,8 @@ export function PIDOverlayView() {
               <image href={BACKGROUND_IMAGE_URL} width={NATIVE_WIDTH} height={NATIVE_HEIGHT} />
             ) : (
               <>
-                <rect width={NATIVE_WIDTH} height={NATIVE_HEIGHT} fill="#e8e4dc" stroke="#b0aaa0" />
-                <text x={NATIVE_WIDTH / 2} y={NATIVE_HEIGHT / 2} textAnchor="middle" fontSize={16} fill="#8b8478" fontFamily="monospace">
+                <rect width={NATIVE_WIDTH} height={NATIVE_HEIGHT} fill="var(--hmi-bg-normal, #E0E0E0)" stroke="var(--hmi-line-static, #A0A0A4)" />
+                <text x={NATIVE_WIDTH / 2} y={NATIVE_HEIGHT / 2} textAnchor="middle" fontSize={16} fill="var(--hmi-text-primary, #1e293b)" fontFamily="monospace">
                   JSK CONCEPT DIAGRAM — background image not yet provided
                 </text>
               </>
