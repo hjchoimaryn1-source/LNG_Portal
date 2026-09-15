@@ -19,13 +19,13 @@
 //   임포트하지 않는다(구조적으로 Stage C 인쇄 산출물과 분리, 이 컴포넌트 자체가
 //   그 보장을 강제하지는 않지만 임포트 그래프상 단방향임을 명시해 둔다).
 //
-//   Stage HMI-1d: 배지 클릭 시 FaceplateDrawer를 연다. 캘리브레이션 모드가
-//   ON이면 클릭은 좌표 지정으로 소비돼야 하므로, 그 동안은 배지 onClick 자체를
-//   비활성화한다(PidTagBadge에 onClick={undefined} 전달 — 클릭이 그대로
-//   버블링돼 기존 handleCanvasClick 로직에 위임됨, 이 파일이 별도로 분기하지
-//   않는다). PIDOverlayView는 전체 장비 스냅샷을 구독하지 않는다 — 배지 색상은
-//   PidTagBadge.tsx가 각자 자신의 equipmentTag로 useHmiEquipment를 호출해
-//   자체 처리한다(HMI-1b deviation 참고, useHmiAllEquipment 없음).
+//   Stage HMI-1d: 배지 클릭 시 FaceplateDrawer를 연다. 캘리브레이션 모드와의
+//   상호배제(isCalibrating이면 클릭은 좌표 재지정으로 소비돼야 함)는 이 파일이
+//   아니라 PidTagBadge.tsx가 isCalibrating prop을 받아 직접 분기한다 — 이
+//   컴포넌트는 activeFaceplateTag(string|null) state와 FaceplateDrawer 마운트만
+//   담당한다. PIDOverlayView는 전체 장비 스냅샷을 구독하지 않는다 — 배지
+//   색상은 PidTagBadge.tsx가 각자 자신의 equipmentTag로 useHmiEquipment를
+//   호출해 자체 처리한다(HMI-1b deviation 참고, useHmiAllEquipment 없음).
 
 'use client';
 
@@ -154,7 +154,8 @@ export function PIDOverlayView() {
                 primaryColumn={
                   CANDIDATE_TAG_DOMAIN[c.tagId] ? PRIMARY_COLUMN_BY_DOMAIN[CANDIDATE_TAG_DOMAIN[c.tagId]] : undefined
                 }
-                onClick={isCalibrating ? undefined : () => setActiveFaceplateTag(c.tagId)}
+                isCalibrating={isCalibrating}
+                onClick={() => setActiveFaceplateTag(c.tagId)}
               />
             ))}
           </svg>

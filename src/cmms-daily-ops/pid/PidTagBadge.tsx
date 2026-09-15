@@ -11,9 +11,14 @@
 //   반환하는 스텁이라 지금은 전부 저채도 회색조로 보이는 게 정상이다
 //   (버그 아님). 표시값(value)은 여전히 useDailyOpsPatrolValue로 조회 —
 //   최소 diff를 위해 기존 경로를 그대로 둔다.
+//
+//   isCalibrating(PIDOverlayView.tsx 로컬 state)이 true인 동안은 배지 클릭도
+//   좌표 재지정으로 소비돼야 하므로, 이 컴포넌트가 직접 그 분기를 갖는다 —
+//   PIDOverlayView는 값을 그대로 내려줄 뿐 상호배제 로직을 갖지 않는다.
 
 'use client';
 
+import type { MouseEvent } from 'react';
 import { useDailyOpsPatrolValue } from '../state/useDailyOpsPatrolStore';
 import { useHmiEquipment } from '../../hmi/state/useHmiLiveStore';
 import type { PatrolDomain } from '../types/patrolLog';
@@ -25,6 +30,8 @@ export interface PidTagBadgeProps {
   y: number;
   domain: PatrolDomain | undefined;
   primaryColumn: string | undefined;
+  /** true면 캔버스가 캘리브레이션 모드 — 배지 클릭도 좌표 재지정으로 위임한다. */
+  isCalibrating: boolean;
   onClick?: (tagId: string) => void;
 }
 
@@ -40,7 +47,7 @@ const ALARM_PRIORITY_FILL: Record<AlarmPriority, string> = {
   NORMAL: 'var(--hmi-alarm-normal, #94a3b8)',
 };
 
-export function PidTagBadge({ tagId, x, y, domain, primaryColumn, onClick }: PidTagBadgeProps) {
+export function PidTagBadge({ tagId, x, y, domain, primaryColumn, isCalibrating, onClick }: PidTagBadgeProps) {
   // Hooks 규칙상 조건부 호출 불가 — domain 미지정 시 무해한 더미 키('aav')로
   // 조회하고 hasReading으로 표시 여부만 게이팅한다.
   const value = useDailyOpsPatrolValue(domain ?? 'aav', tagId, primaryColumn ?? '');
@@ -49,18 +56,19 @@ export function PidTagBadge({ tagId, x, y, domain, primaryColumn, onClick }: Pid
   const { worstAlarmPriority } = useHmiEquipment(domain ?? 'aav', tagId);
   const fill = ALARM_PRIORITY_FILL[worstAlarmPriority];
 
+  function handleBadgeClick(e: MouseEvent<SVGGElement>) {
+    // 캘리브레이션 모드에선 아무 것도 하지 않고 그대로 버블링시켜, 캔버스의
+    // handleCanvasClick(좌표 재지정 전용)에 클릭을 위임한다.
+    if (isCalibrating || !onClick) return;
+    e.stopPropagation();
+    onClick(tagId);
+  }
+
   return (
     <g
       transform={`translate(${x}, ${y})`}
-      onClick={
-        onClick
-          ? (e) => {
-              e.stopPropagation();
-              onClick(tagId);
-            }
-          : undefined
-      }
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
+      onClick={handleBadgeClick}
+      style={{ cursor: !isCalibrating && onClick ? 'pointer' : 'inherit' }}
     >
       <circle r={6} fill={fill} stroke="white" strokeWidth={1.5} />
       <rect x={10} y={-10} width={100} height={20} rx={3} fill="#002b4d" opacity={0.9} />
