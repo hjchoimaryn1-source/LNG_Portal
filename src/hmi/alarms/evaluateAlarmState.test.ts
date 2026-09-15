@@ -65,6 +65,35 @@ describe('evaluateAlarmState — cannot-evaluate cases fall back to NORMAL, not 
   });
 });
 
+describe('evaluateAlarmState — HMI-2b-final deadband/hysteresis (previousPriority optional 2nd arg)', () => {
+  it('without previousPriority, behaves exactly like the no-hysteresis ladder', () => {
+    expect(evaluateAlarmState(reading({ value: 9.7 }))).toBe('LOW');
+  });
+
+  it('LOW does not recover to NORMAL by merely re-touching L=10 — needs L + 0.5°C deadband', () => {
+    expect(evaluateAlarmState(reading({ value: 10.3 }), 'LOW')).toBe('LOW');
+    expect(evaluateAlarmState(reading({ value: 10.5 }), 'LOW')).toBe('LOW');
+    expect(evaluateAlarmState(reading({ value: 10.6 }), 'LOW')).toBe('NORMAL');
+  });
+
+  it('CRITICAL does not recover to LOW by merely re-touching LL=5 — needs LL + 0.5°C deadband', () => {
+    expect(evaluateAlarmState(reading({ value: 5.3 }), 'CRITICAL')).toBe('CRITICAL');
+    expect(evaluateAlarmState(reading({ value: 5.6 }), 'CRITICAL')).toBe('LOW');
+  });
+
+  it('escalation to a more severe state is immediate — no deadband delay on SET', () => {
+    expect(evaluateAlarmState(reading({ value: 10 }), 'NORMAL')).toBe('LOW');
+    expect(evaluateAlarmState(reading({ value: 5 }), 'LOW')).toBe('CRITICAL');
+  });
+
+  it('pressure columns use 0.1 bar deadband, never the 0.5°C temperature deadband (ISO Tank HIGH at H=15 bar)', () => {
+    const isoReading = (value: number) =>
+      reading({ domain: 'iso_tank_unloading_skid', columnName: 'pressure_mpa', unit: 'MPa', value });
+    expect(evaluateAlarmState(isoReading(1.495), 'HIGH')).toBe('HIGH'); // 14.95 bar — within H(15) - 0.1 deadband
+    expect(evaluateAlarmState(isoReading(1.48), 'HIGH')).toBe('NORMAL'); // 14.80 bar — past the deadband
+  });
+});
+
 describe('worstAlarmPriority', () => {
   it('picks the most severe reading', () => {
     const readings = [reading({ value: 0, alarmPriority: 'NORMAL' }), reading({ value: -160, alarmPriority: 'CRITICAL' })];

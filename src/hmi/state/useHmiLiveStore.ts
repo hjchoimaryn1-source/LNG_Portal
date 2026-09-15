@@ -27,11 +27,12 @@
 
 'use client';
 
+import { useRef } from 'react';
 import { useDailyOpsPatrolValue } from '../../cmms-daily-ops/state/useDailyOpsPatrolStore';
 import { PATROL_FIELD_MAP } from '../../cmms-daily-ops/dao/patrolFieldMaps';
 import { evaluateAlarmState, worstAlarmPriority } from '../alarms/evaluateAlarmState';
 import { resolveHmiDisplayTag } from './hmiTagAliasCache';
-import type { HmiEquipmentSnapshot, HmiInstrumentReading, PatrolDomain } from '../types/hmiCore';
+import type { AlarmPriority, HmiEquipmentSnapshot, HmiInstrumentReading, PatrolDomain } from '../types/hmiCore';
 
 /** patrolFieldMaps.ts 기준 도메인당 최대 컬럼 수(gc=15). */
 const MAX_FIELD_SLOTS = 15;
@@ -66,6 +67,11 @@ export function useHmiEquipment(domain: PatrolDomain, equipmentTag: string): Hmi
   // equipmentTag(원본)를 쓰고, displayTag(canonical)는 표시 필드에만 적용한다.
   const displayTag = resolveHmiDisplayTag(equipmentTag);
 
+  // HMI-2b-final: 데드밴드/히스테리시스용 "직전 등급" — 이 훅 인스턴스(장비 1개) 생애주기
+  // 동안 columnName별로 유지한다. evaluateAlarmState.ts는 순수 함수이고 이 ref가 상태를
+  // 실제로 소유한다(모듈 스코프 전역 아님).
+  const previousPrioritiesRef = useRef<Map<string, AlarmPriority>>(new Map());
+
   const fieldSpecs = PATROL_FIELD_MAP[domain];
   const readings: HmiInstrumentReading[] = [];
   for (let i = 0; i < fieldSpecs.length && i < MAX_FIELD_SLOTS; i++) {
@@ -82,7 +88,9 @@ export function useHmiEquipment(domain: PatrolDomain, equipmentTag: string): Hmi
       lastUpdatedAt: null,
       alarmPriority: 'NORMAL',
     };
-    reading.alarmPriority = evaluateAlarmState(reading);
+    const previousPriority = previousPrioritiesRef.current.get(reading.columnName);
+    reading.alarmPriority = evaluateAlarmState(reading, previousPriority);
+    previousPrioritiesRef.current.set(reading.columnName, reading.alarmPriority);
     readings.push(reading);
   }
 
