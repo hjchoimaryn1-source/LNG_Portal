@@ -14,11 +14,19 @@
 //   onBlocked(Phase 12 Pre-Flight III): report_date가 APPROVED라 저장이
 //   409로 거부되면 사유를 전달한다. 선택적 파라미터라 기존 4개 호출부는
 //   무수정으로 남는다(그 뷰들에서는 여전히 조용히 무시됨).
+//
+//   Explicit allow-list per HJ decision 2026-09-15 — Phase 12 field-readiness pass.
+//   useDailyReportApproval.ts와 동일한 패턴(getEffectivePermission +
+//   evaluateMutationGuardrails)으로 fetch 이전에 클라이언트측 차단. 서버
+//   (daily-ops-patrol-entries/route.ts)도 roleCode를 재검증한다.
 
 'use client';
 
 import { useCallback } from 'react';
 import { setLatestPatrolEntry } from '../state/useDailyOpsPatrolStore';
+import { useActiveSession } from '../../lib/rbac/activeSessionStore';
+import { evaluateMutationGuardrails } from '../../adapters/guardrailUiAdapter';
+import { getEffectivePermission } from '../../lib/rbac/rolePermissionService';
 import type { PatrolDomain } from '../types/patrolLog';
 import type { PatrolSaveHandler, PatrolSaveInput } from '../components/patrol/patrolFormTypes';
 
@@ -30,12 +38,30 @@ export function usePatrolSaveHandler(
   recordedBy: string,
   onBlocked?: (reason: string) => void
 ): PatrolSaveHandler {
+  const activeSession = useActiveSession();
+
   return useCallback(
     (input: PatrolSaveInput) => {
+      if (!activeSession) {
+        onBlocked?.('로그인 세션이 없습니다.');
+        return;
+      }
+      const canRecord =
+        getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_PATROL_ENTRY')?.canCreate === true;
+      if (!canRecord) {
+        onBlocked?.(`역할 ${activeSession.roleCode}은(는) 패트롤 기록 입력 권한이 없습니다.`);
+        return;
+      }
+      const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'CREATE' });
+      if (!guard.allowed) {
+        onBlocked?.(guard.reason ?? 'PATROL SAVE BLOCKED');
+        return;
+      }
+
       fetch(PATROL_ENTRIES_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ domain, reportDate, recordedBy, ...input }),
+        body: JSON.stringify({ domain, reportDate, recordedBy, roleCode: activeSession.roleCode, ...input }),
       })
         .then((res) => res.json())
         .then((json: { success: boolean; error?: string }) => {
@@ -47,6 +73,6 @@ export function usePatrolSaveHandler(
         })
         .catch(() => {});
     },
-    [domain, reportDate, recordedBy, onBlocked]
+    [domain, reportDate, recordedBy, onBlocked, activeSession]
   );
 }

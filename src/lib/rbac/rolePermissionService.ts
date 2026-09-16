@@ -25,6 +25,12 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 10, roleCode: 'SYSTEM_ADMIN', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
   { rolePermissionId: 11, roleCode: 'SYSTEM_ADMIN', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
   { rolePermissionId: 78, roleCode: 'SYSTEM_ADMIN', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false, canUnlockApproved: true },
+  // Explicit allow-list per HJ decision 2026-09-15 — Phase 12 field-readiness pass.
+  // DAILY_OPS_PATROL_ENTRY is distinct from DAILY_OPS_REPORT: SITE_MANAGER has
+  // canCreate:false on the latter (report generation), but must still be able to
+  // record patrol readings — a separate moduleCode avoids repurposing a permission
+  // that would otherwise block SITE_MANAGER.
+  { rolePermissionId: 85, roleCode: 'SYSTEM_ADMIN', moduleCode: 'DAILY_OPS_PATROL_ENTRY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
 
   // SITE_MANAGER: read all, create/update PTW+WO(row-level), approve PTW/WO/Shift/CAR
   { rolePermissionId: 12, roleCode: 'SITE_MANAGER', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
@@ -40,6 +46,8 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 22, roleCode: 'SITE_MANAGER', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: false, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
   // Phase 12 — Daily Ops Report approval lock: only SITE_MANAGER/ACTING_SITE_MANAGER may approve (DRAFT->SUBMITTED->APPROVED).
   { rolePermissionId: 79, roleCode: 'SITE_MANAGER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: false, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
+  // Explicit allow-list per HJ decision 2026-09-15 — Phase 12 field-readiness pass.
+  { rolePermissionId: 86, roleCode: 'SITE_MANAGER', moduleCode: 'DAILY_OPS_PATROL_ENTRY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
 
   // ACTING_SITE_MANAGER: mirrors SITE_MANAGER but approve limited to PTW Stage 4 / SM-absence approval
   { rolePermissionId: 23, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
@@ -68,6 +76,8 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 43, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 44, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 81, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
+  // Explicit allow-list per HJ decision 2026-09-15 — Phase 12 field-readiness pass.
+  { rolePermissionId: 87, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'DAILY_OPS_PATROL_ENTRY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
 
   // HSSE_OFFICER: safety/PTW modules only
   { rolePermissionId: 45, roleCode: 'HSSE_OFFICER', moduleCode: 'HQ_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },

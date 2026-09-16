@@ -26,7 +26,8 @@ export type ModuleCode =
   | 'SAFETY_GAS_TESTING'
   | 'SAFETY_ERT_READINESS'
   | 'SAFETY_OVERVIEW'
-  | 'DAILY_OPS_REPORT';
+  | 'DAILY_OPS_REPORT'
+  | 'DAILY_OPS_PATROL_ENTRY';
 
 export interface RolePermission {
   rolePermissionId: number;

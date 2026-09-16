@@ -14,6 +14,11 @@
 //
 //   Phase 12 Pre-Flight III 승인 락(옵션 c): report_date가 이미 APPROVED면
 //   저장을 거부한다(409) — Site Manager 승인 완료 후 패트롤 데이터 수정 차단.
+//
+//   Explicit allow-list per HJ decision 2026-09-15 — Phase 12 field-readiness pass.
+//   roleCode가 SITE_MANAGER/OPERATION_TEAM_LEADER/SYSTEM_ADMIN 밖이면 APPROVED
+//   락 체크보다 먼저 403으로 거부한다 — 클라이언트(usePatrolSaveHandler.ts)의
+//   getEffectivePermission 체크를 서버에서 재검증.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getDailyOpsDb } from '../../../../../cmms-daily-ops/db/dailyOpsDbSingleton';
@@ -25,6 +30,8 @@ import {
 import type { PatrolValues } from '../../../../../cmms-daily-ops/dao/dailyOpsPatrolDao';
 import type { PatrolDomain, ReadingStatus, ShiftTimeSlot } from '../../../../../cmms-daily-ops/types/patrolLog';
 import { isReportDateApproved } from '../../../../../cmms-daily-ops/dao/dailyReportApprovalDao';
+import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
@@ -37,6 +44,7 @@ interface InsertPayload {
   readingStatus: ReadingStatus;
   remarkText: string | null;
   recordedBy: string;
+  roleCode: RoleCode;
 }
 
 function isValidPayload(body: unknown): body is InsertPayload {
@@ -50,7 +58,8 @@ function isValidPayload(body: unknown): body is InsertPayload {
     typeof r.values === 'object' &&
     r.values !== null &&
     typeof r.readingStatus === 'string' &&
-    typeof r.recordedBy === 'string'
+    typeof r.recordedBy === 'string' &&
+    typeof r.roleCode === 'string'
   );
 }
 
@@ -90,6 +99,13 @@ export async function POST(request: NextRequest) {
   }
   if (!isValidPayload(body)) {
     return NextResponse.json({ success: false, error: 'Invalid patrol entry payload.' }, { status: 400 });
+  }
+
+  if (getEffectivePermission(body.roleCode, 'DAILY_OPS_PATROL_ENTRY')?.canCreate !== true) {
+    return NextResponse.json(
+      { success: false, error: `Role ${body.roleCode} is not permitted to record patrol entries.` },
+      { status: 403 }
+    );
   }
 
   const db = getDailyOpsDb();

@@ -7,6 +7,7 @@ import {
   useDailyOpsPatrolValue,
   __resetDailyOpsPatrolStoreForTests,
 } from '../state/useDailyOpsPatrolStore';
+import { setActiveSession, clearActiveSession } from '../../lib/rbac/activeSessionStore';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -21,11 +22,18 @@ afterEach(() => {
   container = null;
   root = null;
   __resetDailyOpsPatrolStoreForTests();
+  clearActiveSession();
   vi.unstubAllGlobals();
 });
 
-function Probe({ onSaved }: { onSaved: (fn: ReturnType<typeof usePatrolSaveHandler>) => void }) {
-  const handler = usePatrolSaveHandler('aav', '2026-09-14', 'FIELD OP-1');
+function Probe({
+  onSaved,
+  onBlocked,
+}: {
+  onSaved: (fn: ReturnType<typeof usePatrolSaveHandler>) => void;
+  onBlocked?: (reason: string) => void;
+}) {
+  const handler = usePatrolSaveHandler('aav', '2026-09-14', 'FIELD OP-1', onBlocked);
   onSaved(handler);
   const value = useDailyOpsPatrolValue('aav', 'AAV-102', 'pressure_gauge_us_bar');
   return <span data-testid="value">{value === undefined ? 'undefined' : String(value)}</span>;
@@ -44,6 +52,7 @@ async function mountAndCapture() {
 
 describe('usePatrolSaveHandler', () => {
   it('POSTs the domain/reportDate/recordedBy alongside the form input, then updates the B2 store on success', async () => {
+    setActiveSession({ userId: 'u1', roleCode: 'SITE_MANAGER', homeLocation: 'SITE' });
     const postCalls: unknown[] = [];
     vi.stubGlobal(
       'fetch',
@@ -71,12 +80,14 @@ describe('usePatrolSaveHandler', () => {
       domain: 'aav',
       reportDate: '2026-09-14',
       recordedBy: 'FIELD OP-1',
+      roleCode: 'SITE_MANAGER',
       equipmentTag: 'AAV-102',
     });
     expect(container!.querySelector('[data-testid="value"]')!.textContent).toBe('4.2');
   });
 
   it('does not update the B2 store when the save fails', async () => {
+    setActiveSession({ userId: 'u1', roleCode: 'SITE_MANAGER', homeLocation: 'SITE' });
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: false }) }));
 
     const handler = await mountAndCapture();
@@ -93,5 +104,55 @@ describe('usePatrolSaveHandler', () => {
     });
 
     expect(container!.querySelector('[data-testid="value"]')!.textContent).toBe('undefined');
+  });
+
+  it('blocks the save and does not fetch when the active role is outside the allow-list', async () => {
+    setActiveSession({ userId: 'u1', roleCode: 'HSSE_OFFICER', homeLocation: 'SITE' });
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const blocked: string[] = [];
+
+    let handler: ReturnType<typeof usePatrolSaveHandler> | null = null;
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () => {
+      root!.render(
+        <Probe onSaved={(fn) => (handler = fn)} onBlocked={(reason) => blocked.push(reason)} />
+      );
+    });
+
+    await act(async () => {
+      handler!({
+        equipmentTag: 'AAV-102',
+        shiftTimeSlot: '08:00',
+        values: { pressure_gauge_us_bar: 4.2 },
+        readingStatus: 'normal',
+        remarkText: null,
+      });
+      await Promise.resolve();
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(blocked).toHaveLength(1);
+  });
+
+  it('blocks the save when there is no active session', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const handler = await mountAndCapture();
+    await act(async () => {
+      handler({
+        equipmentTag: 'AAV-102',
+        shiftTimeSlot: '08:00',
+        values: { pressure_gauge_us_bar: 4.2 },
+        readingStatus: 'normal',
+        remarkText: null,
+      });
+      await Promise.resolve();
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
