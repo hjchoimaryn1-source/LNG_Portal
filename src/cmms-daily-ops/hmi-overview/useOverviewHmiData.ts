@@ -152,7 +152,10 @@ function toNumber(value: number | string | null | undefined): number | null {
 }
 
 export function useOverviewHmiData(reportDate: string): OverviewHmiData {
-  void reportDate; // see header note — the B2 store has no date-scoped query.
+  // see header note — the B2 store has no date-scoped query. When date-scoping
+  // lands, use dailyOpsDateHelpers.ts's todayWib() (Stage 3 Step 2) for the
+  // WIB-correct default instead of plain today()/new Date().
+  void reportDate;
 
   const { refresh } = useDailyOpsData();
   useEffect(() => {
