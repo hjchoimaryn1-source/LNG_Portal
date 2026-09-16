@@ -71,14 +71,18 @@ export function usePTWPermitSync(permits: PTWPermit[]) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [permits.length]);
 
-  /** transitionStatus() 로컬 갱신 직후 호출되는 fire-and-forget 영속화 — 게이트 판정에 영향 없음. */
-  const persistStatusChange = useCallback((permitId: string, status: PTWWorkflowStatus, closedAt: string | null) => {
+  /**
+   * transitionStatus() 로컬 갱신 직후 호출되는 fire-and-forget 영속화 — 게이트 판정에
+   * 영향 없음. roleCode는 optional(4번째 인자) — NP08 useCargoHandlingLifecycle처럼
+   * 아직 넘기지 않는 호출부는 서버측 RBAC 검증 없이 기존과 동일하게 동작한다(하위호환).
+   */
+  const persistStatusChange = useCallback((permitId: string, status: PTWWorkflowStatus, closedAt: string | null, roleCode?: RoleCode) => {
     (async () => {
       try {
         const res = await fetch(PTW_PERMITS_API, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ permitId, status, closedAt }),
+          body: JSON.stringify({ permitId, status, closedAt, ...(roleCode ? { roleCode } : {}) }),
         });
         const json = (await res.json()) as { success: boolean; record?: PTWPermitLifecycleDraft };
         if (res.ok && json.success && json.record) {

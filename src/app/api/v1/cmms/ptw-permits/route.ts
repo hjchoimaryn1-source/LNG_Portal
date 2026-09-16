@@ -19,6 +19,8 @@ import {
   type PermitLifecycleLocalChanges,
 } from '../../../../../adapters/permitPersistenceAdapter';
 import type { PTWPermitLifecycleDraft } from '../../../../../adapters/db/ptwPermitDao';
+import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
@@ -52,6 +54,15 @@ interface StatusUpdateBody {
   baseVersion?: string;
   /** status/closedAt 외에 함께 반영할 안전 체크리스트 필드만 담는다(§5.5 동기화 충돌 판정 대상). */
   localChanges?: PermitLifecycleLocalChanges;
+  /**
+   * RBAC audit remediation — ptw-permits PATCH, 2026-09-16. 생략 시(NP08
+   * useCargoHandlingLifecycle 등 미마이그레이션 호출부) 권한 검증 없이 기존처럼
+   * 적용된다(하위호환) — NOTE: roleCode는 클라이언트가 보내는 값이며 서버가
+   * 세션 신원을 검증하지 않는다(인증 토큰 백엔드 없음 — §3.5 참고). 이 게이트는
+   * 정상 UI 오작동을 막는 것이지, roleCode를 위조한 직접 API 호출을 막는
+   * 보안 경계가 아니다.
+   */
+  roleCode?: RoleCode;
 }
 
 function isValidLocalChanges(value: unknown): value is PermitLifecycleLocalChanges {
@@ -73,6 +84,7 @@ function isValidStatusUpdate(body: unknown): body is StatusUpdateBody {
   if (!baseOk) return false;
   if (r.baseVersion !== undefined && typeof r.baseVersion !== 'string') return false;
   if (r.localChanges !== undefined && !isValidLocalChanges(r.localChanges)) return false;
+  if (r.roleCode !== undefined && typeof r.roleCode !== 'string') return false;
   return true;
 }
 
@@ -129,6 +141,19 @@ export async function PATCH(request: NextRequest) {
 
   if (!isValidStatusUpdate(body)) {
     return NextResponse.json({ success: false, error: 'Invalid status update payload.' }, { status: 400 });
+  }
+
+  // RBAC audit remediation — ptw-permits PATCH, 2026-09-16. NOTE: roleCode is
+  // client-supplied; server does not verify session identity (no auth-token
+  // backend — see §3.5). This blocks normal UI misuse, not a forged direct
+  // API call. roleCode is optional for backward compatibility with callers
+  // that have not been migrated to send it (e.g. NP08 cargo handling) — those
+  // requests bypass this check entirely, unchanged from prior behavior.
+  if (body.roleCode !== undefined && getEffectivePermission(body.roleCode, 'PTW_PERMITS')?.canUpdate !== true) {
+    return NextResponse.json(
+      { success: false, error: `Role ${body.roleCode} is not permitted to update PTW permits.` },
+      { status: 403 }
+    );
   }
 
   const result = applyPermitUpdateWithConflictCheck({

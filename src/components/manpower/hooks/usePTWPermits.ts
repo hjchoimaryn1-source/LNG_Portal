@@ -211,7 +211,7 @@ export function usePTWPermits() {
 
     // Fire-and-forget audit persistence — never re-validated, never blocks the
     // local status state above (see usePTWPermitSync.ts header).
-    permitSync.persistStatusChange(permitId, nextStatus, closedAt);
+    permitSync.persistStatusChange(permitId, nextStatus, closedAt, activeSession?.roleCode);
   };
 
   const stats = useMemo(() => {
