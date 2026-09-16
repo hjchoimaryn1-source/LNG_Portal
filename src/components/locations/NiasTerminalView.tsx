@@ -124,8 +124,8 @@ export type NiasTankSubTab =
 
 export type NiasRegasSubTab =
   | 'GAS_PROCESS_TELEMETRY'
-  | 'GC_GAS_QUALITY'
-  | 'GAS_METERING_LEDGER'
+  | 'PATROL_LOG'
+  | 'GAS_METERING_DAILY'
   | 'PLTMG_POWER_OUTPUT'
   | 'CUSTODY_HEAT_SETTLEMENT';
 

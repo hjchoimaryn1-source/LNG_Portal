@@ -14,7 +14,7 @@ describe('resolveNiasInitialView', () => {
   });
 
   it('infers REGAS_SYSTEM domain from any of its known subTab aliases', () => {
-    for (const alias of ['GAS_PROCESS_TELEMETRY', 'GC_GAS_QUALITY', 'HEAT_SETTLEMENT', 'ACTIVE_REGAS']) {
+    for (const alias of ['GAS_PROCESS_TELEMETRY', 'PATROL_LOG', 'HEAT_SETTLEMENT', 'ACTIVE_REGAS']) {
       expect(resolveNiasInitialView({ initialSubTab: alias }).domain).toBe('REGAS_SYSTEM');
     }
   });
@@ -35,8 +35,8 @@ describe('resolveNiasInitialView', () => {
   });
 
   it('resolves each regas sub-tab alias group to its canonical regasSubTab', () => {
-    expect(resolveNiasInitialView({ initialSubTab: 'NIAS_GC_GAS_QUALITY' }).regasSubTab).toBe('GC_GAS_QUALITY');
-    expect(resolveNiasInitialView({ initialSubTab: 'NIAS_GAS_METERING_LEDGER' }).regasSubTab).toBe('GAS_METERING_LEDGER');
+    expect(resolveNiasInitialView({ initialSubTab: 'NIAS_PATROL_LOG' }).regasSubTab).toBe('PATROL_LOG');
+    expect(resolveNiasInitialView({ initialSubTab: 'NIAS_GAS_METERING_DAILY' }).regasSubTab).toBe('GAS_METERING_DAILY');
     expect(resolveNiasInitialView({ initialSubTab: 'PLTMG_POWER_OUTPUT' }).regasSubTab).toBe('PLTMG_POWER_OUTPUT');
     expect(resolveNiasInitialView({ initialSubTab: 'HEAT_SETTLEMENT' }).regasSubTab).toBe('CUSTODY_HEAT_SETTLEMENT');
   });

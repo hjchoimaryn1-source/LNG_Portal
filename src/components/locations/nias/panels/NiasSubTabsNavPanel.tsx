@@ -96,22 +96,38 @@ export default function NiasSubTabsNavPanel({
 
               <button
                 type="button"
-                onClick={() => setRegasSubTab('GC_GAS_QUALITY')}
-                className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GC_GAS_QUALITY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                onClick={() => setRegasSubTab('PATROL_LOG')}
+                className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'PATROL_LOG' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
                   }`}
               >
-                GAS METERING - LOG
+                4-HR PATROL LOG
               </button>
 
               <button
                 type="button"
-                onClick={() => setRegasSubTab('GAS_METERING_LEDGER')}
-                className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GAS_METERING_LEDGER' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                onClick={() => setRegasSubTab('GAS_METERING_DAILY')}
+                className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GAS_METERING_DAILY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
                   }`}
               >
-                GAS METERING (LEDGER)
+                GAS METERING (DAILY)
               </button>
             </>
+          )}
+
+          {showGasProcessButtons && (
+            <button
+              type="button"
+              onClick={() => setRegasSubTab('CUSTODY_HEAT_SETTLEMENT')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
+            >
+              MONTHLY REPORT (PLN EPI)
+              {disputeCount > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 bg-red-600 text-white font-mono text-[9px] font-bold">
+                  {disputeCount} Alert
+                </span>
+              )}
+            </button>
           )}
 
           {showPowerButton && (
@@ -122,22 +138,6 @@ export default function NiasSubTabsNavPanel({
                 }`}
             >
               PLTMG POWER
-            </button>
-          )}
-
-          {showGasProcessButtons && (
-            <button
-              type="button"
-              onClick={() => setRegasSubTab('CUSTODY_HEAT_SETTLEMENT')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-                }`}
-            >
-              MONTHLY REPORT
-              {disputeCount > 0 && (
-                <span className="ml-1 px-1.5 py-0.2 bg-red-600 text-white font-mono text-[9px] font-bold">
-                  {disputeCount} Alert
-                </span>
-              )}
             </button>
           )}
         </div>

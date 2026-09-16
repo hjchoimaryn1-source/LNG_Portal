@@ -8,8 +8,8 @@ import { NiasActiveBayWorkspace } from '../NiasActiveBayWorkspace';
 import { NiasLd2BackhaulTab } from '../tabs/NiasLd2BackhaulTab';
 import NiasTankMassBalanceTab from '../NiasTankMassBalanceTab';
 import NiasProcessPIDDiagram from '../NiasProcessPIDDiagram';
-import NiasGasQualityTab from '../NiasGasQualityTab';
-import NiasGasQualityLedgerTab from '../NiasGasQualityLedgerTab';
+import NiasPatrolLogTab from '../NiasPatrolLogTab';
+import GasMeteringDailyTab from '../GasMeteringDailyTab';
 import NiasPowerThermalTab from '../NiasPowerThermalTab';
 import NiasCustodySettlementTab from '../NiasCustodySettlementTab';
 import type { NiasDomainContentRouterProps } from '../types/niasDomainContentRouter.types';
@@ -148,17 +148,17 @@ export default function NiasDomainContentRouter(props: NiasDomainContentRouterPr
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 2: ✍️ GAS METERING (ENTRY)                        */}
+      {/* DOMAIN 2 - SUB-TAB 2: 🕓 4-HR PATROL LOG                              */}
       {/* ==================================================================== */}
-      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GC_GAS_QUALITY' && (
-        <NiasGasQualityTab />
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'PATROL_LOG' && (
+        <NiasPatrolLogTab />
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 3: 📊 GAS METERING (LEDGER)                       */}
+      {/* DOMAIN 2 - SUB-TAB 3: 📊 GAS METERING (DAILY)                        */}
       {/* ==================================================================== */}
-      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_METERING_LEDGER' && (
-        <NiasGasQualityLedgerTab />
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_METERING_DAILY' && (
+        <GasMeteringDailyTab />
       )}
 
       {/* ==================================================================== */}

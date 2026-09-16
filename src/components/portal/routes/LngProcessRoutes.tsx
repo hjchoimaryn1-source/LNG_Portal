@@ -10,7 +10,6 @@ import NiasTankYardView from '../../locations/NiasTankYardView';
 import NiasRegasGasProcessView from '../../locations/NiasRegasGasProcessView';
 import NiasOperationalOverviewTab from '../../locations/nias/NiasOperationalOverviewTab';
 import { IsoTankLogisticsPlaceholderView } from '../../../cmms-daily-ops/views/IsoTankLogisticsPlaceholderView';
-import { LngEnergyOperationView } from '../../../cmms-daily-ops/views/LngEnergyOperationView';
 import { ElectricalSystemView } from '../../../cmms-daily-ops/views/ElectricalSystemView';
 import { PIDOverlayView } from '../../../cmms-daily-ops/pid/PIDOverlayView';
 import { DailyOpsOverviewView } from '../../../cmms-daily-ops/views/DailyOpsOverviewView';
@@ -65,11 +64,11 @@ export default function LngProcessRoutes({ activeKey, activeSubTab, handleSelect
       {(activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeSubTab === 'NIAS_GAS_PROCESS_TELEMETRY') && (
         <NiasRegasGasProcessView initialSubTab="GAS_PROCESS_TELEMETRY" />
       )}
-      {(activeKey === 'NIAS_GC_GAS_QUALITY' || activeSubTab === 'NIAS_GC_GAS_QUALITY') && (
-        <NiasRegasGasProcessView initialSubTab="GC_GAS_QUALITY" />
+      {(activeKey === 'NIAS_PATROL_LOG' || activeSubTab === 'NIAS_PATROL_LOG') && (
+        <NiasRegasGasProcessView initialSubTab="PATROL_LOG" />
       )}
-      {(activeKey === 'NIAS_GAS_METERING_LEDGER' || activeSubTab === 'NIAS_GAS_METERING_LEDGER') && (
-        <NiasRegasGasProcessView initialSubTab="GAS_METERING_LEDGER" />
+      {(activeKey === 'NIAS_GAS_METERING_DAILY' || activeSubTab === 'NIAS_GAS_METERING_DAILY') && (
+        <NiasRegasGasProcessView initialSubTab="GAS_METERING_DAILY" />
       )}
       {(activeKey === 'NIAS_HEAT_SETTLEMENT' || activeSubTab === 'NIAS_HEAT_SETTLEMENT') && (
         <NiasRegasGasProcessView initialSubTab="CUSTODY_HEAT_SETTLEMENT" />
@@ -112,7 +111,6 @@ export default function LngProcessRoutes({ activeKey, activeSubTab, handleSelect
       {/* Daily Ops — Phase 12 Stage C4 (4 new LNG-Process tabs)    */}
       {/* ========================================================= */}
       {activeKey === 'DAILY_OPS_ISO_TANK_LOGISTICS' && <IsoTankLogisticsPlaceholderView />}
-      {activeKey === 'DAILY_OPS_LNG_ENERGY_OPERATION' && <LngEnergyOperationView />}
       {activeKey === 'DAILY_OPS_ELECTRICAL_SYSTEM' && <ElectricalSystemView />}
       {activeKey === 'DAILY_OPS_LIVE_PID_MAP' && <PIDOverlayView />}
 

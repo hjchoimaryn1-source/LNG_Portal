@@ -63,8 +63,8 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
       key === 'NIAS_ACTIVE_BAY_TANKS' ||
       key === 'NIAS_LAYDOWN_3_HEEL' ||
       key === 'NIAS_GAS_PROCESS_TELEMETRY' ||
-      key === 'NIAS_GC_GAS_QUALITY' ||
-      key === 'NIAS_GAS_METERING_LEDGER' ||
+      key === 'NIAS_PATROL_LOG' ||
+      key === 'NIAS_GAS_METERING_DAILY' ||
       key === 'NIAS_PLTMG_POWER_OUTPUT' ||
       key === 'NIAS_HEAT_SETTLEMENT'
     ) {

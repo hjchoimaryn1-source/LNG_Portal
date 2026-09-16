@@ -82,15 +82,15 @@ export const SUBPROCESS_TITLES_LNG_PROCESS: Record<string, SubProcessTitleEntry>
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
-  NIAS_GC_GAS_QUALITY: {
+  NIAS_PATROL_LOG: {
     location: 'LNG-Process',
-    process: 'Regas & Gas Process > Gas Metering - Log',
+    process: 'Regas & Gas Process > 4-HR Patrol Log',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
-  NIAS_GAS_METERING_LEDGER: {
+  NIAS_GAS_METERING_DAILY: {
     location: 'LNG-Process',
-    process: 'Regas & Gas Process > Gas Metering (Ledger)',
+    process: 'Regas & Gas Process > Gas Metering (Daily)',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
@@ -102,7 +102,7 @@ export const SUBPROCESS_TITLES_LNG_PROCESS: Record<string, SubProcessTitleEntry>
   },
   NIAS_HEAT_SETTLEMENT: {
     location: 'LNG-Process',
-    process: 'Regas & Gas Process > Monthly Report (Custody Heat Settlement)',
+    process: 'Regas & Gas Process > Monthly Report (PLN EPI)',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },

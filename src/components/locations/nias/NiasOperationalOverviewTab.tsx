@@ -1328,7 +1328,7 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
                   if (activeModalBlock === 'BLOCK_1_ARUN') {
                     if (onNavigateSubTab) onNavigateSubTab('ARUN_LOADING_COQ');
                   } else if (activeModalBlock === 'BLOCK_4_REGAS_PRSS') {
-                    if (onNavigateSubTab) onNavigateSubTab('NIAS_GC_GAS_QUALITY', 'REGAS_SYSTEM');
+                    if (onNavigateSubTab) onNavigateSubTab('NIAS_GAS_METERING_DAILY', 'REGAS_SYSTEM');
                   } else if (activeModalBlock === 'BLOCK_2_SAVIOUR') {
                     if (onNavigateSubTab) onNavigateSubTab('SAVIOUR_VOYAGE_MONITORING');
                   } else if (activeModalBlock === 'BLOCK_3_NIAS_YARD') {

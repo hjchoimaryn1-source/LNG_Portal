@@ -31,9 +31,9 @@ function resolveInitialDomain(initialDomain: NiasDomain | undefined, initialSubT
   }
   if (
     initialSubTab === 'GAS_PROCESS_TELEMETRY' ||
-    initialSubTab === 'GC_GAS_QUALITY' ||
-    initialSubTab === 'GAS_METERING_LEDGER' ||
-    initialSubTab === 'NIAS_GAS_METERING_LEDGER' ||
+    initialSubTab === 'PATROL_LOG' ||
+    initialSubTab === 'GAS_METERING_DAILY' ||
+    initialSubTab === 'NIAS_GAS_METERING_DAILY' ||
     initialSubTab === 'PLTMG_POWER_OUTPUT' ||
     initialSubTab === 'CUSTODY_HEAT_SETTLEMENT' ||
     initialSubTab === 'FOUR_BAY_REGAS_GC' ||
@@ -76,8 +76,8 @@ function resolveInitialTankTab(initialSubTab: string | undefined): NiasTankSubTa
 }
 
 function resolveInitialRegasTab(initialSubTab: string | undefined): NiasRegasSubTab {
-  if (initialSubTab === 'GC_GAS_QUALITY' || initialSubTab === 'NIAS_GC_GAS_QUALITY') return 'GC_GAS_QUALITY';
-  if (initialSubTab === 'GAS_METERING_LEDGER' || initialSubTab === 'NIAS_GAS_METERING_LEDGER') return 'GAS_METERING_LEDGER';
+  if (initialSubTab === 'PATROL_LOG' || initialSubTab === 'NIAS_PATROL_LOG') return 'PATROL_LOG';
+  if (initialSubTab === 'GAS_METERING_DAILY' || initialSubTab === 'NIAS_GAS_METERING_DAILY') return 'GAS_METERING_DAILY';
   if (initialSubTab === 'PLTMG_POWER_OUTPUT') return 'PLTMG_POWER_OUTPUT';
   if (initialSubTab === 'CUSTODY_HEAT_SETTLEMENT' || initialSubTab === 'HEAT_SETTLEMENT') {
     return 'CUSTODY_HEAT_SETTLEMENT';
