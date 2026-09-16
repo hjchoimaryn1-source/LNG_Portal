@@ -207,4 +207,26 @@ describe('getEligibleRelieverCandidates', () => {
     const candidates = getEligibleRelieverCandidates(target, [target, otherHse, maintenance]);
     expect(candidates.map((c) => c.staff.id)).toEqual(['HSE-2']);
   });
+
+  // Phase 13 Target B Sub-stage C: coverage gap flagged during the manningCompliance.ts
+  // split — Rules 5 and 7 had no prior test coverage.
+  it('DCS Control Technician gets the DCS / Field Operator pool as primary candidates (Rule 5)', () => {
+    const target = makeStaff({ id: 'DCS-1', role: 'DCS Control Technician' });
+    const otherDcs = makeStaff({ id: 'DCS-2', role: 'DCS Control Technician' });
+    const fieldOp = makeStaff({ id: 'FO-1', role: 'Field Operator' });
+    const hseOfficer = makeStaff({ id: 'HSE-1', role: 'HSE Officer', department: 'HSSE' });
+    const candidates = getEligibleRelieverCandidates(target, [target, otherDcs, fieldOp, hseOfficer]);
+    const ids = candidates.map((c) => c.staff.id);
+    expect(ids).toContain('DCS-2');
+    expect(ids).toContain('FO-1');
+    expect(ids).not.toContain('HSE-1');
+  });
+
+  it('falls back to the same-department pool for roles matching no named rule (Rule 7)', () => {
+    const target = makeStaff({ id: 'LOG-1', role: 'Logistics Coordinator', department: 'LOGISTICS' });
+    const sameDept = makeStaff({ id: 'LOG-2', role: 'Logistics Coordinator', department: 'LOGISTICS' });
+    const otherDept = makeStaff({ id: 'MT-1', role: 'Mechanical Technician', department: 'MAINTENANCE' });
+    const candidates = getEligibleRelieverCandidates(target, [target, sameDept, otherDept]);
+    expect(candidates.map((c) => c.staff.id)).toEqual(['LOG-2']);
+  });
 });
