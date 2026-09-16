@@ -479,9 +479,15 @@ CREATE INDEX idx_app_hist_app_id ON approval_line_histories(approval_id);
 > **정정 (2026-09-16)**: 아래 타입 명세는 여전히 유효하나, "구현 예정" 서술은 더 이상 정확하지
 > 않다. `resolveEffectivePermission`은 `src/lib/rbac/guardrails.ts`에 **이미 구현되어 있고**,
 > HQ Overview Dashboard 진입점(Sector 7, §3.1.1 참조 — 원문의 "Sector 6"는 오기)에 실제로
-> 연동되어 있다. 반면 `validateApprovalGuardrails`라는 이름의 함수는 저장소 전체에서 확인되지
-> 않는다 — 이 함수는 여전히 미구현 상태다 (관련 로직은 `src/adapters/guardrailUiAdapter.ts`의
-> `evaluateMutationGuardrails` 및 `blockIfAuditorMode`가 대신 담당, §3.4 참조).
+> 연동되어 있다. `validateApprovalGuardrails` 역시 같은 파일에 **구현체 자체는 존재**한다
+> (self-approval / fatigue / delegate 검증, `approval_documents`/`approval_delegations`를
+> `db.query('...$1...')` 형태의 Postgres 스타일 인터페이스로 조회). 다만 이 두 테이블은
+> `cmmsDbSingleton.ts`의 런타임 SQLite DDL에 존재하지 않고, 저장소 전체에 이 함수를 호출하는
+> 지점이 **단 한 곳도 없다** — 즉 구현은 되어 있으나 실제로 wiring되지 않은 죽은 코드다.
+> `src/lib/rbac/ptwSelfApproval.ts`의 주석이 이를 "cannot be used against real PTW data"로
+> 명시하고 있으며, PTW 도메인의 자기승인/피로도 차단은 대신 `validatePtwSelfApproval`
+> (ptwSelfApproval.ts) + `evaluateMutationGuardrails`/`blockIfAuditorMode`
+> (`src/adapters/guardrailUiAdapter.ts`, §3.4 참조)가 담당한다.
 
 ```typescript
 export type RBACRole =
