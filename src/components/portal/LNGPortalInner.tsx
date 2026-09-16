@@ -44,7 +44,6 @@ export default function LNGPortalInner({
     currentModuleId,
     handleSelectSubProcess,
     handleManpowerSubTab,
-    handleRefreshCurrentModuleOverview,
   } = usePortalNavigation(initialKey, onReturnToLauncher);
 
   return (
@@ -80,7 +79,6 @@ export default function LNGPortalInner({
           setWorkOrderFilter={setWorkOrderFilter}
           handleSelectSubProcess={handleSelectSubProcess}
           handleManpowerSubTab={handleManpowerSubTab}
-          handleRefreshCurrentModuleOverview={handleRefreshCurrentModuleOverview}
           onReturnToLauncher={onReturnToLauncher}
           onLogout={onLogout}
         />

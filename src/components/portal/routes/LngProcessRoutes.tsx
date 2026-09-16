@@ -8,7 +8,6 @@ import ArunHeelBogLossView from '../../locations/arun/ArunHeelBogLossView';
 import MvSaviourView from '../../locations/MvSaviourView';
 import NiasTerminalView from '../../locations/NiasTerminalView';
 import NiasOperationalOverviewTab from '../../locations/nias/NiasOperationalOverviewTab';
-import SectorLauncherHub from '../../launcher/SectorLauncherHub';
 import { IsoTankLogisticsPlaceholderView } from '../../../cmms-daily-ops/views/IsoTankLogisticsPlaceholderView';
 import { LngEnergyOperationView } from '../../../cmms-daily-ops/views/LngEnergyOperationView';
 import { ElectricalSystemView } from '../../../cmms-daily-ops/views/ElectricalSystemView';
@@ -27,16 +26,9 @@ export default function LngProcessRoutes({ activeKey, activeSubTab, handleSelect
   return (
     <>
       {/* ========================================================= */}
-      {/* 0. SCADA SECTOR LAUNCHER HUB                              */}
-      {/* ========================================================= */}
-      {activeKey === 'SECTOR_LAUNCHER' && (
-        <SectorLauncherHub onSelectSector={(key) => handleSelectSubProcess(key)} />
-      )}
-
-      {/* ========================================================= */}
       {/* 1. LNG-PROCESS MAIN OVERVIEW (INTEGRATED 5-NODE PFD)      */}
       {/* ========================================================= */}
-      {activeKey !== 'SECTOR_LAUNCHER' && (activeKey === 'LNG_PROCESS_OVERVIEW' || activeKey === 'NIAS_TERMINAL_OVERVIEW' || activeSubTab === 'LNG_PROCESS_OVERVIEW' || (!activeKey && !activeSubTab)) && (
+      {(activeKey === 'LNG_PROCESS_OVERVIEW' || activeKey === 'NIAS_TERMINAL_OVERVIEW' || activeSubTab === 'LNG_PROCESS_OVERVIEW' || (!activeKey && !activeSubTab)) && (
         <NiasOperationalOverviewTab
           onNavigateSubTab={(targetTab, domain) => {
             if (targetTab.startsWith('ARUN_') || targetTab.startsWith('SAVIOUR_')) {

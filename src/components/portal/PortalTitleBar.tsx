@@ -12,7 +12,6 @@ interface PortalTitleBarProps {
   currentModuleId: string;
   onReturnToLauncher?: () => void;
   handleSelectSubProcess: (key: SubProcessKey) => void;
-  handleRefreshCurrentModuleOverview: () => void;
   onLogout?: () => void;
 }
 
@@ -21,7 +20,6 @@ export default function PortalTitleBar({
   currentModuleId,
   onReturnToLauncher,
   handleSelectSubProcess,
-  handleRefreshCurrentModuleOverview,
   onLogout,
 }: PortalTitleBarProps) {
   return (
@@ -57,7 +55,7 @@ export default function PortalTitleBar({
           })}
         </div>
 
-        {/* Right: Overview Return Refresh Button and Launcher Shortcut */}
+        {/* Right: Launcher Shortcut */}
         <div className="flex items-center gap-1.5 shrink-0">
           {onReturnToLauncher && (
             <button
