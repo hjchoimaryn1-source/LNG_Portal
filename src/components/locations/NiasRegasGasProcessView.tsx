@@ -6,8 +6,9 @@
 // unloading + gas custody metering + PLTMG fuel-gas acceptance, so it does
 // not belong exclusively under PLTMG Power).
 // PLTMG Power fold-back (2026-09-16): PLTMG Power was briefly split into its
-// own second-row tab (see NiasPltmgPowerView.tsx) then folded back in as a
-// first-level sub-tab here. `regasScope` is intentionally omitted (not
+// own second-row tab (formerly NiasPltmgPowerView.tsx, removed once its route
+// became dead — see commit history) then folded back in as a first-level
+// sub-tab here. `regasScope` is intentionally omitted (not
 // "GAS_PROCESS") so NiasSubTabsNavPanel shows all 5 first-level buttons —
 // GAS PROCESS / GAS METERING - LOG / GAS METERING (LEDGER) / PLTMG POWER /
 // MONTHLY REPORT — instead of filtering PLTMG POWER out.

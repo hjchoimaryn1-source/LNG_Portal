@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { usePortalData } from '@/context/PortalDataContext';
+import { PLTMG_PID_SUMMARY_SNAPSHOT, PLTMG_PID_GENERATOR_ROWS } from '@/data/pltmgPowerDisplayMocks';
 
 interface NiasProcessPIDDiagramProps {
   onSelectEquipment?: (eqId: string) => void;
@@ -509,7 +510,7 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                 PLTMG POWER OUTPUT
               </span>
               <span className="absolute right-1.5 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-none bg-[#2a3444] text-[#f8fafc] border border-[#526075] whitespace-nowrap">
-                [ 4/5 RUN / 60.0% MCR ]
+                [ {PLTMG_PID_SUMMARY_SNAPSHOT.headerBadge} ]
               </span>
             </div>
 
@@ -546,12 +547,12 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                 </thead>
                 <tbody>
                   <tr className="hover:bg-[#f8fafc]">
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-black text-[#0f172a]">22.05</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">4 / 5</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">60.0</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#15803d]">22.05 (100%)</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#64748b]">0.00 (0%)</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-black text-[#0f172a]">5,631.2</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-black text-[#0f172a]">{PLTMG_PID_SUMMARY_SNAPSHOT.outputMw.toFixed(2)}</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">{PLTMG_PID_SUMMARY_SNAPSHOT.runActive} / {PLTMG_PID_SUMMARY_SNAPSHOT.runTotal}</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">{PLTMG_PID_SUMMARY_SNAPSHOT.loadPctMcr.toFixed(1)}</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#15803d]">{PLTMG_PID_SUMMARY_SNAPSHOT.gasMw.toFixed(2)} ({PLTMG_PID_SUMMARY_SNAPSHOT.gasPct}%)</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#64748b]">{PLTMG_PID_SUMMARY_SNAPSHOT.dieselMw.toFixed(2)} ({PLTMG_PID_SUMMARY_SNAPSHOT.dieselPct}%)</td>
+                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-black text-[#0f172a]">{PLTMG_PID_SUMMARY_SNAPSHOT.totalGasFlowNm3h.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
                   </tr>
                 </tbody>
               </table>
@@ -583,66 +584,30 @@ export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcess
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="hover:bg-[#f8fafc]">
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">GEN-01</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#475569]">Gas</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
-                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#dcfce7] text-[#15803d] border border-[#86efac]">
-                        RUN
-                      </span>
-                    </td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">5,513</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">75.0</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">1,407.8</td>
-                  </tr>
-                  <tr className="hover:bg-[#f8fafc]">
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">GEN-02</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#475569]">Gas</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
-                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#dcfce7] text-[#15803d] border border-[#86efac]">
-                        RUN
-                      </span>
-                    </td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">5,513</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">75.0</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">1,407.8</td>
-                  </tr>
-                  <tr className="hover:bg-[#f8fafc]">
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">GEN-03</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#475569]">Gas</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
-                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#dcfce7] text-[#15803d] border border-[#86efac]">
-                        RUN
-                      </span>
-                    </td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">5,513</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">75.0</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">1,407.8</td>
-                  </tr>
-                  <tr className="hover:bg-[#f8fafc]">
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">GEN-04</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#475569]">Gas</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
-                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#dcfce7] text-[#15803d] border border-[#86efac]">
-                        RUN
-                      </span>
-                    </td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">5,513</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#0f172a]">75.0</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#0f172a]">1,407.8</td>
-                  </tr>
-                  <tr className="hover:bg-[#f8fafc]">
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#64748b]">GEN-05</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#64748b]">Diesel</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
-                      <span className="px-1.5 py-0.5 rounded-none text-[8px] font-bold bg-[#f1f5f9] text-[#64748b] border border-[#cbd5e1]">
-                        STOP
-                      </span>
-                    </td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#64748b]">0</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold text-[#64748b]">0.0</td>
-                    <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center text-[#64748b]">0.0</td>
-                  </tr>
+                  {PLTMG_PID_GENERATOR_ROWS.map((row) => {
+                    const isRunning = row.status === 'RUN';
+                    const dimClass = isRunning ? 'text-[#0f172a]' : 'text-[#64748b]';
+                    return (
+                      <tr key={row.tag} className="hover:bg-[#f8fafc]">
+                        <td className={`border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold ${dimClass}`}>{row.tag}</td>
+                        <td className={`border border-[#cbd5e1] py-0.5 px-0.5 text-center ${isRunning ? 'text-[#475569]' : 'text-[#64748b]'}`}>{row.mode}</td>
+                        <td className="border border-[#cbd5e1] py-0.5 px-0.5 text-center">
+                          <span
+                            className={`px-1.5 py-0.5 rounded-none text-[8px] font-bold ${
+                              isRunning
+                                ? 'bg-[#dcfce7] text-[#15803d] border border-[#86efac]'
+                                : 'bg-[#f1f5f9] text-[#64748b] border border-[#cbd5e1]'
+                            }`}
+                          >
+                            {row.status}
+                          </span>
+                        </td>
+                        <td className={`border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold ${dimClass}`}>{row.outputKw.toLocaleString()}</td>
+                        <td className={`border border-[#cbd5e1] py-0.5 px-0.5 text-center font-bold ${dimClass}`}>{row.loadPct.toFixed(1)}</td>
+                        <td className={`border border-[#cbd5e1] py-0.5 px-0.5 text-center ${dimClass}`}>{row.gasFlowNm3h.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
