@@ -47,41 +47,53 @@ pass.
 **Routes under `src/app/api/v1/cmms/**` with NO server-side role re-validation found** (checked this
 session via repo-wide search for `getEffectivePermission`, `roleCode`, `evaluateMutationGuardrails`,
 `blockIfAuditorMode`, `requireRole`, `validatePtwSelfApproval`, `Authorization`,
-`resolveEffectivePermission`, `checkFatigueBlock` — none of these appear in the files below):
+`resolveEffectivePermission`, `checkFatigueBlock` — none of these appear in the files below).
+`auth/login/route.ts` is excluded — it is the pre-authentication login endpoint itself, so a role check
+there is not applicable by definition.
 
-- `alarm-action-log/route.ts`
-- `alarm-current-state/route.ts`
-- `alarm-setpoint-overrides/route.ts`
-- `assets/route.ts`
-- `bootstrap/route.ts`
-- `daily-ops-shift-input-status/route.ts`
-- `daily-report-critical-events/route.ts`
-- `daily-report-safety-notes/route.ts`
-- `daily-report-signatures/route.ts`
-- `daily-report-snapshots/route.ts`
-- `daily-report-status-log/route.ts`
-- `environment/route.ts`
-- `gas-tests/route.ts`
-- `moc/route.ts`
-- `mro-inventory/route.ts`
-- `mro-inventory/adjustments/route.ts`
-- `mro-inventory/requisitions/route.ts`
-- `overview/summary/route.ts`
-- `permit-metadata/route.ts`
-- `permit-suspensions/route.ts`
-- `pid-tag-aliases/route.ts`
-- `pid-tag-coordinates/route.ts`
-- `ptw-permits/route.ts`
-- `ptw-permits/sync-conflicts/route.ts`
-- `ptw-signatures/route.ts`
-- `simops-check/route.ts`
-- `trucking-inspections/route.ts`
-- `work-orders/route.ts`
+**Priority rule**: HIGH = write-capable AND reachable today by any non-auditor role (client-side
+`evaluateMutationGuardrails` only blocks AUDITOR-mode/fatigued callers — it does **not** check role at
+all, so it does not restrict *which* roles reach these routes; several routes below have no client-side
+check whatsoever). MEDIUM = write-capable but low blast-radius (idempotent seed-if-empty, or explicitly
+documented audit-only/non-authoritative writes). LOW = read-only (GET only).
 
-`auth/login/route.ts` is excluded from the list above — it is the pre-authentication login endpoint
-itself, so a role check there is not applicable by definition.
+| Route | Methods | Read-only / Write-capable | Mutates | Priority |
+|---|---|---|---|---|
+| `alarm-action-log/route.ts` | GET, POST | write-capable | `alarm_action_log` (acknowledge/suppress an active alarm) — no role or guardrail check at all in the caller (`useAlarmActionLog.ts`) | HIGH |
+| `alarm-current-state/route.ts` | GET, POST | write-capable | `alarm_current_state` onset enter/clear — no role check found anywhere in its call path | HIGH |
+| `alarm-setpoint-overrides/route.ts` | GET | read-only | — | LOW |
+| `assets/route.ts` | GET | read-only | — | LOW |
+| `bootstrap/route.ts` | POST | write-capable | Full CMMS DB reset + re-seed (`runBootstrap({resetDb:true})`). Only gate is `NODE_ENV!=='development'`, not a role check — the caller (`AdminCmmsResetButton.tsx`, rendered unconditionally in `CmmsEquipmentRegistryView.tsx`) says so in its own header comment. In dev mode any role reaching that view can trigger it. | HIGH |
+| `daily-ops-shift-input-status/route.ts` | GET | read-only | — | LOW |
+| `daily-report-critical-events/route.ts` | GET, POST, DELETE | write-capable | Daily Report critical-events rows (insert/delete) — unlike sibling `daily-ops-patrol-entries` (Stage 3 Step 1, commit `4c243a9`), this child editor got no RBAC allow-list | HIGH |
+| `daily-report-safety-notes/route.ts` | GET, POST | write-capable | Daily Report safety-notes section (upsert) — same gap as above | HIGH |
+| `daily-report-signatures/route.ts` | GET, POST | write-capable | Daily Report signature entries; a `prepared_by`+`acknowledged_by` pair auto-triggers `finalizeSnapshot()` — no check that `signerName`/role matches the caller's actual session | HIGH |
+| `daily-report-snapshots/route.ts` | POST, GET | write-capable | Generates a report snapshot (`generateSnapshot`); refuses to overwrite an already-finalized one, so blast radius is lower than its child routes above | MEDIUM |
+| `daily-report-status-log/route.ts` | GET | read-only | — | LOW |
+| `environment/route.ts` | GET | read-only | — | LOW |
+| `gas-tests/route.ts` | POST, GET | write-capable | `permit_gas_tests` audit record — file header explicitly documents this as audit-only/non-authoritative for the PTW gate (client-side `validatePTWGasSafety` remains SSOT) | MEDIUM |
+| `moc/route.ts` | GET | read-only | — | LOW |
+| `mro-inventory/route.ts` | GET, POST | write-capable | `seedPartsIfEmpty` — idempotent, no-ops once parts exist | MEDIUM |
+| `mro-inventory/adjustments/route.ts` | GET, POST | write-capable | Real stock RECEIPT/ISSUE/ADJUSTMENT/RETURN/SCRAP via `adjustStock`; caller (`useMroInventory.ts`) only checks auditor/fatigue, not role | HIGH |
+| `mro-inventory/requisitions/route.ts` | GET | read-only | — | LOW |
+| `overview/summary/route.ts` | GET | read-only | — | LOW |
+| `permit-metadata/route.ts` | POST | write-capable | `seedPermitMetadataIfAbsent` — idempotent (only writes if `permit_ref_no` absent); feeds the SIMOPS candidate set but can't overwrite existing rows | MEDIUM |
+| `permit-suspensions/route.ts` | GET, PATCH | write-capable | `acknowledgeShiftHandover` lifts a SHIFT_CHANGE PTW suspension — route's own header says this should be Site Manager/HSSE-only, but no role check exists in code | HIGH |
+| `pid-tag-aliases/route.ts` | GET | read-only | — | LOW |
+| `pid-tag-coordinates/route.ts` | GET, POST | write-capable | P&ID overlay calibration coordinates — config/cosmetic, not a safety control value | MEDIUM |
+| `ptw-permits/route.ts` | GET, POST, PATCH | write-capable | PATCH drives the 5-stage PTW lifecycle (DRAFT→PREPARED→APPROVED→ACTIVE→CLOSED) + safety-checklist booleans (LOTO/gas detector/PPE/barricade); no server role re-validation. Needs its own dedicated audit of `usePTWPermits.transitionStatus`'s client-side gate — not fully traced this session. | HIGH |
+| `ptw-permits/sync-conflicts/route.ts` | GET | read-only | — | LOW |
+| `ptw-signatures/route.ts` | GET, POST | write-capable | PTW electronic signatures (Part C/D/E) — no check that `staffId`/role in the payload matches the caller's actual authenticated identity | HIGH |
+| `simops-check/route.ts` | GET | read-only | — | LOW |
+| `trucking-inspections/route.ts` | GET, POST | write-capable | NP-03 inspection checklist entries — records an inspection result, is not itself a gate/permission decision | MEDIUM |
+| `work-orders/route.ts` | GET, POST, PATCH | write-capable | POST is `seedWorkOrdersIfEmpty` (idempotent); PATCH (`markWorkOrderPerformed`) mutates real WO status + recalculates `next_due_date` — caller (`useWorkOrders.ts`) only checks auditor/fatigue, not role | HIGH |
 
-This list was produced by a keyword search across this session's known RBAC entry points, not by
-reading each route's full body line-by-line — a route could in principle gate on something this search
-didn't cover. If any of the above turn out to accept role-sensitive mutations (write/approve/delete),
-this should be scoped and re-audited as its own pass rather than assumed safe by omission.
+**Count check**: 28 routes total (11 HIGH, 6 MEDIUM, 11 LOW) — matches the prior session's "28 routes"
+figure exactly; re-verified by direct enumeration this session, not assumed.
+
+This table was built from each route's actual POST/PATCH/DELETE handler body and its real UI caller
+(hook/component), not from a keyword search alone — but "reachable by non-admin roles" reflects what
+this session could trace from `useActiveSession()`/`evaluateMutationGuardrails()` call sites in the time
+available, not an exhaustive walk of every render path. `ptw-permits/route.ts` PATCH in particular still
+needs a deeper look at `usePTWPermits.transitionStatus`'s own gate logic before this can be called
+closed.
