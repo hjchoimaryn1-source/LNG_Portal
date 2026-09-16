@@ -27,7 +27,8 @@ export type ModuleCode =
   | 'SAFETY_ERT_READINESS'
   | 'SAFETY_OVERVIEW'
   | 'DAILY_OPS_REPORT'
-  | 'DAILY_OPS_PATROL_ENTRY';
+  | 'DAILY_OPS_PATROL_ENTRY'
+  | 'ALARM_ACTION_LOG';
 
 export interface RolePermission {
   rolePermissionId: number;

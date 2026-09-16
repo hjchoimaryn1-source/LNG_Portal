@@ -17,6 +17,8 @@ import {
   listActiveSuppressions,
   listLatestAcknowledgedAt,
 } from '../../../../../cmms-daily-ops/dao/alarmActionLogDao';
+import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
@@ -70,6 +72,13 @@ export async function POST(request: NextRequest) {
   }
   if (!isValidPayload(body)) {
     return NextResponse.json({ success: false, error: 'Invalid alarm action payload.' }, { status: 400 });
+  }
+  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+  if (getEffectivePermission(body.actorRole as RoleCode, 'ALARM_ACTION_LOG')?.canCreate !== true) {
+    return NextResponse.json(
+      { success: false, error: `Role ${body.actorRole} is not permitted to record alarm actions.` },
+      { status: 403 }
+    );
   }
   const db = getDailyOpsDb();
   logAlarmAction(db, {

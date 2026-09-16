@@ -31,6 +31,8 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   // record patrol readings — a separate moduleCode avoids repurposing a permission
   // that would otherwise block SITE_MANAGER.
   { rolePermissionId: 85, roleCode: 'SYSTEM_ADMIN', moduleCode: 'DAILY_OPS_PATROL_ENTRY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
+  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+  { rolePermissionId: 88, roleCode: 'SYSTEM_ADMIN', moduleCode: 'ALARM_ACTION_LOG', canRead: true, canCreate: true, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
 
   // SITE_MANAGER: read all, create/update PTW+WO(row-level), approve PTW/WO/Shift/CAR
   { rolePermissionId: 12, roleCode: 'SITE_MANAGER', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
@@ -48,6 +50,8 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 79, roleCode: 'SITE_MANAGER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: false, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
   // Explicit allow-list per HJ decision 2026-09-15 — Phase 12 field-readiness pass.
   { rolePermissionId: 86, roleCode: 'SITE_MANAGER', moduleCode: 'DAILY_OPS_PATROL_ENTRY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
+  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+  { rolePermissionId: 89, roleCode: 'SITE_MANAGER', moduleCode: 'ALARM_ACTION_LOG', canRead: true, canCreate: true, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
 
   // ACTING_SITE_MANAGER: mirrors SITE_MANAGER but approve limited to PTW Stage 4 / SM-absence approval
   { rolePermissionId: 23, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
@@ -78,6 +82,8 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 81, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
   // Explicit allow-list per HJ decision 2026-09-15 — Phase 12 field-readiness pass.
   { rolePermissionId: 87, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'DAILY_OPS_PATROL_ENTRY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
+  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+  { rolePermissionId: 90, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'ALARM_ACTION_LOG', canRead: true, canCreate: true, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
 
   // HSSE_OFFICER: safety/PTW modules only
   { rolePermissionId: 45, roleCode: 'HSSE_OFFICER', moduleCode: 'HQ_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
@@ -92,6 +98,10 @@ const ROLE_PERMISSIONS: RolePermission[] = [
   { rolePermissionId: 54, roleCode: 'HSSE_OFFICER', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 55, roleCode: 'HSSE_OFFICER', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
   { rolePermissionId: 82, roleCode: 'HSSE_OFFICER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
+  // Forward-provisioned per HJ decision 2026-09-16 — no HSSE_OFFICER login account exists yet
+  // (see userAccountsSeed.ts); this row is inert until account seeding is separately authorized.
+  // Do not remove.
+  { rolePermissionId: 91, roleCode: 'HSSE_OFFICER', moduleCode: 'ALARM_ACTION_LOG', canRead: true, canCreate: true, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
 
   // WORK_LEADER_TECH: assigned WO + TBM sign only (row-level filtering required at query level)
   { rolePermissionId: 56, roleCode: 'WORK_LEADER_TECH', moduleCode: 'HQ_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
