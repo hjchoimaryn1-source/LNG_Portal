@@ -5,6 +5,7 @@ import React, { useMemo } from 'react';
 import { usePortalData } from '../context/PortalDataContext';
 import { NodeState, SubProcessKey } from '../types/lng';
 import { COMPANY_CONFIG } from '../config/siteConfig';
+import { NIAS_TANK_YARD_KEYS, NIAS_GAS_PROCESS_KEYS } from './portal/subtabs/LngProcessSubTabs';
 
 interface SidebarNavProps {
   activeKey: SubProcessKey;
@@ -164,11 +165,21 @@ export default function SidebarNav({
             )}
             {renderNavItem(
               'NIAS_TANK_OVERVIEW',
-              'Nias Regas Unit',
+              'Nias Tank Yard',
               counts.niasTotal,
-              activeKey.startsWith('NIAS') &&
-                activeKey !== 'LNG_PROCESS_OVERVIEW' &&
-                activeKey !== 'NIAS_TERMINAL_OVERVIEW'
+              NIAS_TANK_YARD_KEYS.includes(activeKey)
+            )}
+            {renderNavItem(
+              'NIAS_GAS_PROCESS_TELEMETRY',
+              'Regas & Gas Process',
+              undefined,
+              NIAS_GAS_PROCESS_KEYS.includes(activeKey)
+            )}
+            {renderNavItem(
+              'NIAS_PLTMG_POWER_OUTPUT',
+              'PLTMG Power',
+              undefined,
+              activeKey === 'NIAS_PLTMG_POWER_OUTPUT'
             )}
             {renderNavItem('MAINTENANCE_MRO_HUB', 'Maintenance & Depot')}
             {SHOW_ISO_TANK_LOGISTICS_TAB && renderNavItem('DAILY_OPS_ISO_TANK_LOGISTICS', 'ISO Tank Logistics')}

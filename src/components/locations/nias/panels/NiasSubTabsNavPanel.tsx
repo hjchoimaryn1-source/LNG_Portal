@@ -9,6 +9,12 @@ export interface NiasSubTabsNavPanelProps {
   regasSubTab: NiasRegasSubTab;
   setRegasSubTab: React.Dispatch<React.SetStateAction<NiasRegasSubTab>>;
   disputeCount: number;
+  // Nias sub-tab flattening (2026-09-16): REGAS_SYSTEM used to be one domain
+  // with a single 5-item row; it is now reached via two separate top-nav
+  // tabs (Regas & Gas Process / PLTMG Power), so the row must show only the
+  // items that belong to whichever tab routed here. Omitted = legacy
+  // behavior (all 5 items), unchanged for existing callers.
+  regasScope?: 'GAS_PROCESS' | 'POWER';
 }
 
 /**
@@ -22,7 +28,10 @@ export default function NiasSubTabsNavPanel({
   regasSubTab,
   setRegasSubTab,
   disputeCount,
+  regasScope,
 }: NiasSubTabsNavPanelProps) {
+  const showGasProcessButtons = regasScope !== 'POWER';
+  const showPowerButton = regasScope !== 'GAS_PROCESS';
   return (
     <div className="shrink-0 win-panel px-2 py-1 flex items-center justify-between border-t-0 border-[#808080] overflow-x-auto">
       {activeDomain === 'ISO_TANK_MGMT' ? (
@@ -74,55 +83,63 @@ export default function NiasSubTabsNavPanel({
         </div>
       ) : (
         <div className="flex items-center gap-1 text-xs font-bold overflow-x-auto max-w-full">
-          <button
-            type="button"
-            onClick={() => setRegasSubTab('GAS_PROCESS_TELEMETRY')}
-            className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GAS_PROCESS_TELEMETRY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
-          >
-            GAS PROCESS
-          </button>
+          {showGasProcessButtons && (
+            <>
+              <button
+                type="button"
+                onClick={() => setRegasSubTab('GAS_PROCESS_TELEMETRY')}
+                className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GAS_PROCESS_TELEMETRY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                  }`}
+              >
+                GAS PROCESS
+              </button>
 
-          <button
-            type="button"
-            onClick={() => setRegasSubTab('GC_GAS_QUALITY')}
-            className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GC_GAS_QUALITY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
-          >
-            GAS METERING - LOG
-          </button>
+              <button
+                type="button"
+                onClick={() => setRegasSubTab('GC_GAS_QUALITY')}
+                className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GC_GAS_QUALITY' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                  }`}
+              >
+                GAS METERING - LOG
+              </button>
 
-          <button
-            type="button"
-            onClick={() => setRegasSubTab('GAS_METERING_LEDGER')}
-            className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GAS_METERING_LEDGER' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
-          >
-            GAS METERING (LEDGER)
-          </button>
+              <button
+                type="button"
+                onClick={() => setRegasSubTab('GAS_METERING_LEDGER')}
+                className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'GAS_METERING_LEDGER' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                  }`}
+              >
+                GAS METERING (LEDGER)
+              </button>
+            </>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setRegasSubTab('PLTMG_POWER_OUTPUT')}
-            className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'PLTMG_POWER_OUTPUT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
-          >
-            PLTMG POWER
-          </button>
+          {showPowerButton && (
+            <button
+              type="button"
+              onClick={() => setRegasSubTab('PLTMG_POWER_OUTPUT')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'PLTMG_POWER_OUTPUT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
+            >
+              PLTMG POWER
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setRegasSubTab('CUSTODY_HEAT_SETTLEMENT')}
-            className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
-          >
-            MONTHLY REPORT
-            {disputeCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.2 bg-red-600 text-white font-mono text-[9px] font-bold">
-                {disputeCount} Alert
-              </span>
-            )}
-          </button>
+          {showGasProcessButtons && (
+            <button
+              type="button"
+              onClick={() => setRegasSubTab('CUSTODY_HEAT_SETTLEMENT')}
+              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                }`}
+            >
+              MONTHLY REPORT
+              {disputeCount > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 bg-red-600 text-white font-mono text-[9px] font-bold">
+                  {disputeCount} Alert
+                </span>
+              )}
+            </button>
+          )}
         </div>
       )}
     </div>

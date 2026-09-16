@@ -6,7 +6,9 @@ import { SubProcessKey } from '../../../types/lng';
 import ArunTerminalView from '../../locations/ArunTerminalView';
 import ArunHeelBogLossView from '../../locations/arun/ArunHeelBogLossView';
 import MvSaviourView from '../../locations/MvSaviourView';
-import NiasTerminalView from '../../locations/NiasTerminalView';
+import NiasTankYardView from '../../locations/NiasTankYardView';
+import NiasRegasGasProcessView from '../../locations/NiasRegasGasProcessView';
+import NiasPltmgPowerView from '../../locations/NiasPltmgPowerView';
 import NiasOperationalOverviewTab from '../../locations/nias/NiasOperationalOverviewTab';
 import { IsoTankLogisticsPlaceholderView } from '../../../cmms-daily-ops/views/IsoTankLogisticsPlaceholderView';
 import { LngEnergyOperationView } from '../../../cmms-daily-ops/views/LngEnergyOperationView';
@@ -44,35 +46,39 @@ export default function LngProcessRoutes({ activeKey, activeSubTab, handleSelect
         />
       )}
 
-      {/* Nias Regas Terminal - Domain 1: ISO Tank Management */}
+      {/* Nias Tank Yard (flattened 2026-09-16 from "Nias Regas Unit > ISO Tank Management") */}
       {(activeKey === 'NIAS_TANK_OVERVIEW' || activeSubTab === 'NIAS_TANK_OVERVIEW') && (
-        <NiasTerminalView initialDomain="ISO_TANK_MGMT" initialSubTab="TANK_OVERVIEW" />
+        <NiasTankYardView initialSubTab="TANK_OVERVIEW" />
       )}
       {(activeKey === 'NIAS_LAYDOWN_1_2_LOG' || activeSubTab === 'NIAS_LAYDOWN_1_2_LOG') && (
-        <NiasTerminalView initialDomain="ISO_TANK_MGMT" initialSubTab="LAYDOWN_1_2_LOG" />
+        <NiasTankYardView initialSubTab="LAYDOWN_1_2_LOG" />
       )}
       {(activeKey === 'NIAS_ACTIVE_BAY_TANKS' || activeSubTab === 'NIAS_ACTIVE_BAY_TANKS') && (
-        <NiasTerminalView initialDomain="ISO_TANK_MGMT" initialSubTab="ACTIVE_BAY_TANKS" />
+        <NiasTankYardView initialSubTab="ACTIVE_BAY_TANKS" />
       )}
       {(activeKey === 'NIAS_LAYDOWN_3_HEEL' || activeSubTab === 'NIAS_LAYDOWN_3_HEEL') && (
-        <NiasTerminalView initialDomain="ISO_TANK_MGMT" initialSubTab="LAYDOWN_3_HEEL" />
+        <NiasTankYardView initialSubTab="LAYDOWN_3_HEEL" />
       )}
 
-      {/* Nias Regas Terminal - Domain 2: Regas System & Gas-to-Power */}
+      {/* Regas & Gas Process (flattened 2026-09-16 from "Nias Regas Unit > Regas & Power";
+          MONTHLY REPORT / NIAS_HEAT_SETTLEMENT placed here per HJ decision — its content
+          spans ISO tank unloading + gas custody metering + PLTMG fuel-gas acceptance). */}
       {(activeKey === 'NIAS_GAS_PROCESS_TELEMETRY' || activeSubTab === 'NIAS_GAS_PROCESS_TELEMETRY') && (
-        <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="GAS_PROCESS_TELEMETRY" />
+        <NiasRegasGasProcessView initialSubTab="GAS_PROCESS_TELEMETRY" />
       )}
       {(activeKey === 'NIAS_GC_GAS_QUALITY' || activeSubTab === 'NIAS_GC_GAS_QUALITY') && (
-        <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="GC_GAS_QUALITY" />
+        <NiasRegasGasProcessView initialSubTab="GC_GAS_QUALITY" />
       )}
       {(activeKey === 'NIAS_GAS_METERING_LEDGER' || activeSubTab === 'NIAS_GAS_METERING_LEDGER') && (
-        <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="GAS_METERING_LEDGER" />
-      )}
-      {(activeKey === 'NIAS_PLTMG_POWER_OUTPUT' || activeSubTab === 'NIAS_PLTMG_POWER_OUTPUT') && (
-        <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="PLTMG_POWER_OUTPUT" />
+        <NiasRegasGasProcessView initialSubTab="GAS_METERING_LEDGER" />
       )}
       {(activeKey === 'NIAS_HEAT_SETTLEMENT' || activeSubTab === 'NIAS_HEAT_SETTLEMENT') && (
-        <NiasTerminalView initialDomain="REGAS_SYSTEM" initialSubTab="CUSTODY_HEAT_SETTLEMENT" />
+        <NiasRegasGasProcessView initialSubTab="CUSTODY_HEAT_SETTLEMENT" />
+      )}
+
+      {/* PLTMG Power (flattened 2026-09-16 from "Nias Regas Unit > Regas & Power") */}
+      {(activeKey === 'NIAS_PLTMG_POWER_OUTPUT' || activeSubTab === 'NIAS_PLTMG_POWER_OUTPUT') && (
+        <NiasPltmgPowerView />
       )}
 
       {/* Arun PAG Terminal */}

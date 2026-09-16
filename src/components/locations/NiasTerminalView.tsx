@@ -135,6 +135,12 @@ interface NiasTerminalViewProps {
   initialDomain?: NiasDomain;
   initialSubTab?: string;
   onNavigateSubTab?: (targetTab: string, domain?: 'ISO_TANK_MGMT' | 'REGAS_SYSTEM') => void;
+  // Nias sub-tab flattening (2026-09-16) — see NiasDomainHeaderPanelProps /
+  // NiasSubTabsNavPanelProps for the rationale. Both default to legacy
+  // (visible switcher, full 5-item regas row) so existing callers/tests are
+  // unaffected.
+  hideDomainSwitcher?: boolean;
+  regasScope?: 'GAS_PROCESS' | 'POWER';
 }
 
 type LaydownZone = 'ALL' | 'LAYDOWN_1' | 'SKID' | 'LAYDOWN_2' | 'LAYDOWN_3' | 'FOUR_BAY_REGAS';
@@ -151,6 +157,8 @@ export default function NiasTerminalView({
   initialDomain = 'TERMINAL_OVERVIEW',
   initialSubTab = 'TERMINAL_OVERVIEW',
   onNavigateSubTab,
+  hideDomainSwitcher = false,
+  regasScope,
 }: NiasTerminalViewProps) {
   const { theme, isDark } = useTheme();
   const {
@@ -521,6 +529,7 @@ export default function NiasTerminalView({
         setActiveDomain={setActiveDomain}
         zoneStats={zoneStats}
         activeBays={activeBays}
+        hideSwitcher={hideDomainSwitcher}
       />
 
       {/* Sub-Tabs Bar (Contextual to Selected Domain) */}
@@ -531,6 +540,7 @@ export default function NiasTerminalView({
         regasSubTab={regasSubTab}
         setRegasSubTab={setRegasSubTab}
         disputeCount={disputeCount}
+        regasScope={regasScope}
       />
 
       {/* Domain 1 (ISO_TANK_MGMT) & Domain 2 (REGAS_SYSTEM) sub-tab content router */}
