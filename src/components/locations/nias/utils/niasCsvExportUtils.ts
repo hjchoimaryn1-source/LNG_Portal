@@ -1,4 +1,3 @@
-import { DailyMasterRecord } from '../../../../types/lng';
 import { NiasTankAsset } from '../../NiasTerminalView';
 
 /**
@@ -14,53 +13,6 @@ function downloadCsv(filename: string, csvContent: string): void {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-}
-
-/**
- * Exports Daily Master Records to CSV using the standard 14-column layout.
- */
-export function exportDailyMasterToCsv(records: DailyMasterRecord[]): void {
-  const dateStr = records[0]?.reportDate || new Date().toISOString().split('T')[0];
-  const filename = `NIAS_ISO_Tank_Daily_Master_${dateStr}.csv`;
-
-  const headers = [
-    'Report Date',
-    'Serial No.',
-    'ISO Tk No.',
-    'Shipment',
-    'Yard Position',
-    'Level (%)',
-    'Level (m³)',
-    'Level (mmH2O)',
-    'Battery (%)',
-    'Pressure (MPa)',
-    'Temp (°C)',
-    'Depress',
-    'Press_Before (MPa)',
-    'Press_After (MPa)',
-    'Remarks',
-  ];
-
-  const rows = records.map((r) => [
-    `"${r.reportDate || ''}"`,
-    `"${r.serialNo || ''}"`,
-    `"${r.tankNo || ''}"`,
-    `"${r.shipment || ''}"`,
-    `"${r.position || ''}"`,
-    r.level ?? '',
-    r.levelM3 ?? '',
-    r.levelMmH2O ?? '',
-    r.battery ?? '',
-    r.pressureMPa ?? '',
-    r.tempC ?? '',
-    `"${r.depress || ''}"`,
-    r.pressBeforeMPa ?? '',
-    r.pressAfterMPa ?? '',
-    `"${(r.remarks || '').replace(/"/g, '""')}"`,
-  ].join(','));
-
-  const csvContent = [headers.join(','), ...rows].join('\n');
-  downloadCsv(filename, csvContent);
 }
 
 /**
