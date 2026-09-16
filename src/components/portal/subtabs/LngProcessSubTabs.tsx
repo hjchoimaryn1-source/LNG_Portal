@@ -10,12 +10,15 @@ interface LngProcessSubTabsProps {
   handleSelectSubProcess: (key: SubProcessKey) => void;
 }
 
-// Nias sub-tab flattening (2026-09-16) — group membership for the two Nias
-// LNG-Process tabs that now cover multiple SubProcessKey leaves (see
-// LngProcessRoutes.tsx for the matching content routes). PLTMG Power has a
-// single leaf so it's compared directly, no group needed.
-// Exported so SidebarNav.tsx (the other nav surface with the same 3-way
-// Nias split) stays consistent with this grouping — single source of truth.
+// Nias sub-tab flattening (2026-09-16) — group membership for the Nias
+// LNG-Process tabs that cover multiple SubProcessKey leaves (see
+// LngProcessRoutes.tsx for the matching content routes).
+// Exported so SidebarNav.tsx (the other nav surface with the same Nias
+// split) stays consistent with this grouping — single source of truth.
+// PLTMG Power fold-back (2026-09-16): NIAS_PLTMG_POWER_OUTPUT no longer has
+// its own second-row tab — it's a first-level sub-tab inside "Regas & Gas
+// Process" now (see NiasRegasGasProcessView.tsx), so it joins this group for
+// second-row highlighting/routing purposes.
 export const NIAS_TANK_YARD_KEYS: SubProcessKey[] = [
   'NIAS_TANK_OVERVIEW',
   'NIAS_LAYDOWN_1_2_LOG',
@@ -26,6 +29,7 @@ export const NIAS_GAS_PROCESS_KEYS: SubProcessKey[] = [
   'NIAS_GAS_PROCESS_TELEMETRY',
   'NIAS_GC_GAS_QUALITY',
   'NIAS_GAS_METERING_LEDGER',
+  'NIAS_PLTMG_POWER_OUTPUT',
   'NIAS_HEAT_SETTLEMENT',
 ];
 
@@ -73,13 +77,6 @@ export default function LngProcessSubTabs({ activeKey, handleSelectSubProcess }:
         }
       >
         <span>Regas &amp; Gas Process</span>
-      </button>
-
-      <button
-        onClick={() => handleSelectSubProcess('NIAS_PLTMG_POWER_OUTPUT')}
-        className={activeKey === 'NIAS_PLTMG_POWER_OUTPUT' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
-      >
-        <span>PLTMG Power</span>
       </button>
 
       <button

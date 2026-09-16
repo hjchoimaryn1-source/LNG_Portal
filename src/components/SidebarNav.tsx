@@ -175,12 +175,6 @@ export default function SidebarNav({
               undefined,
               NIAS_GAS_PROCESS_KEYS.includes(activeKey)
             )}
-            {renderNavItem(
-              'NIAS_PLTMG_POWER_OUTPUT',
-              'PLTMG Power',
-              undefined,
-              activeKey === 'NIAS_PLTMG_POWER_OUTPUT'
-            )}
             {renderNavItem('MAINTENANCE_MRO_HUB', 'Maintenance & Depot')}
             {SHOW_ISO_TANK_LOGISTICS_TAB && renderNavItem('DAILY_OPS_ISO_TANK_LOGISTICS', 'ISO Tank Logistics')}
             {renderNavItem('DAILY_OPS_LNG_ENERGY_OPERATION', 'LNG & NG Energy Operation')}
