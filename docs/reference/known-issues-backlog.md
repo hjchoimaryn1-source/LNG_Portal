@@ -35,6 +35,18 @@ dev-only in-memory adapters — session state resets on page refresh and neither
 테이블/토큰 발급을 대체하지 않는다"). Not a Stage 3 regression — pre-existing, out of scope for this
 pass.
 
+**Session-expiry UX (Stage 3 Step 3, this session)**: `activeSession` can go `null` mid-use without a
+full page remount — `LNGPortalApp.tsx`'s `isAuthenticated` is a separate local `useState`, decoupled
+from `activeSessionStore`, so the only organic trigger for this is something that resets the
+`activeSessionStore` module singleton (e.g. a Next.js dev Fast Refresh) while the already-mounted app
+tree keeps its React state. Before this session, 8 UI entry points had no re-login prompt for that case:
+`OverviewCalibrationRoutes.tsx` silently substituted a `FALLBACK_SESSION` (`DEV_HQ_USER`) identity, and
+`useWorkOrders.ts`/`useCargoHandlingLifecycle.ts`/`useMroInventory.ts`/`PTWStatusActions.tsx`/
+`NiasCustodySettlementTab.tsx`/`SettlementAuditView.tsx`/`useNewPTWPermitForm.ts` all fail-open (skip the
+guardrail check and proceed with the mutation) with zero message. Fixed this session — see the fix
+commit for exact diffs. `usePatrolSaveHandler.ts`, `useAlarmActionLog.ts`, `useDailyReportApproval.ts`,
+and `useHqEditWindow.ts` already showed a clear message and needed no change.
+
 **Role checks that DO exist and ARE server-revalidated** (via
 `getEffectivePermission()` in `src/lib/rbac/rolePermissionService.ts`):
 - `DAILY_OPS_REPORT` (approval/reject/HQ-edit-window flow) —

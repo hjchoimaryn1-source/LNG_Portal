@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../../adapters/guardrailUiAdapter';
+import { SESSION_EXPIRED_MESSAGE } from '../../../lib/rbac/sessionExpiryMessage';
 import {
   AreaChart,
   Area,
@@ -204,7 +205,8 @@ export default function NiasCustodySettlementTab() {
     // action is local-toast-only (no PortalDataContext mutation, see below), but
     // still gated for UX consistency so Auditor Mode never shows a false "saved"
     // confirmation. No fatigueCheck (no work-leader/technician userId here).
-    // Fail-open if no active session exists yet (pre-existing DEV bypass).
+    // Stage 3 Step 3: previously fail-open when no active session existed —
+    // now blocks with a session-expired message instead of proceeding unguarded.
     if (activeSession) {
       const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'UPDATE' });
       if (!guard.allowed) {
@@ -212,6 +214,10 @@ export default function NiasCustodySettlementTab() {
         setTimeout(() => setToastMessage(null), 3500);
         return;
       }
+    } else {
+      setToastMessage(`⚠️ [SAVE BLOCKED] ${SESSION_EXPIRED_MESSAGE}`);
+      setTimeout(() => setToastMessage(null), 3500);
+      return;
     }
     const timestamp = new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
     setToastMessage(`✓ Monthly Custody Settlement Report for ${selectedMonth} saved successfully (${timestamp} WIB)!`);

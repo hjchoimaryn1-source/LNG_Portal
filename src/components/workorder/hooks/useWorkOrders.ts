@@ -19,6 +19,7 @@ import { toNewWorkOrderInput, applyRecordToItem } from '../../../utils/workOrder
 import type { WorkOrderRecord } from '../../../adapters/db/workOrderDao';
 import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../../adapters/guardrailUiAdapter';
+import { SESSION_EXPIRED_MESSAGE } from '../../../lib/rbac/sessionExpiryMessage';
 
 const WORK_ORDERS_API = '/api/v1/cmms/work-orders';
 
@@ -96,13 +97,17 @@ export function useWorkOrders(cmmsAssetRows: CmmsAssetRow[], permits: PTWPermit[
     // Phase 3 MOD_3: Auditor Mode hard block. No fatigueCheck — WOItem.tech is a
     // display-only technician name, not a userId matching daily_shift_assignments
     // (see CMMS_Architecture.md §3.4); fabricating that mapping is out of scope.
-    // Fail-open if no active session exists yet (pre-existing DEV bypass).
+    // Stage 3 Step 3: previously fail-open when no active session existed —
+    // now blocks with a session-expired message instead of proceeding unguarded.
     if (activeSession) {
       const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'UPDATE' });
       if (!guard.allowed) {
         setBlockedMessage(guard.reason ?? 'WORK ORDER UPDATE BLOCKED');
         return;
       }
+    } else {
+      setBlockedMessage(SESSION_EXPIRED_MESSAGE);
+      return;
     }
 
     const res = await fetch(WORK_ORDERS_API, {

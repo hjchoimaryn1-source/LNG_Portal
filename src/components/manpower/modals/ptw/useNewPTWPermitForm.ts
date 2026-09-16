@@ -16,6 +16,7 @@ import {
 import { evaluateSimopsDryRun, SimopsCheckResult } from '../../../../hooks/useSIMOPSCheck';
 import { useActiveSession } from '../../../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../../../adapters/guardrailUiAdapter';
+import { SESSION_EXPIRED_MESSAGE } from '../../../../lib/rbac/sessionExpiryMessage';
 
 export interface UseNewPTWPermitFormArgs {
   personnelList: StaffPersonnel[];
@@ -130,15 +131,17 @@ export function useNewPTWPermitForm({
     // Phase 3 MOD_1: Auditor Mode hard block. No fatigueCheck here — a Work Leader's
     // fatigue is not yet decided at draft-creation time (newWorkLeaderId is still
     // editable below); it belongs on the APPROVE transition (PTWStatusActions.tsx).
-    // Fail-open if no active session exists yet — matches this file's pre-existing
-    // DEV-ONLY bypass (originatorLabel above), same known-gap convention as
-    // checkFatigueBlock's no-data default.
+    // Stage 3 Step 3: previously fail-open when no active session existed —
+    // now blocks with a session-expired message instead of proceeding unguarded.
     if (activeSession) {
       const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'CREATE' });
       if (!guard.allowed) {
         setBlockedMessage(guard.reason ?? 'PERMIT CREATION BLOCKED');
         return;
       }
+    } else {
+      setBlockedMessage(SESSION_EXPIRED_MESSAGE);
+      return;
     }
 
     if (!newPermitTitle.trim()) {

@@ -6,6 +6,7 @@ import { usePortalData } from '../context/PortalDataContext';
 import { exportToCSV } from '../utils/exportCsv';
 import { useActiveSession } from '../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../adapters/guardrailUiAdapter';
+import { SESSION_EXPIRED_MESSAGE } from '../lib/rbac/sessionExpiryMessage';
 import {
   Scale,
   AlertTriangle,
@@ -145,7 +146,8 @@ export default function SettlementAuditView() {
     // Phase 3 MOD_4 (Custody/Settlement, mapped from "Gas Sales & Metering" —
     // see CMMS_Architecture.md §3.4 Phase 3 notes). Auditor Mode hard block only —
     // no fatigueCheck (this form has no work-leader/technician userId field).
-    // Fail-open if no active session exists yet (pre-existing DEV bypass).
+    // Stage 3 Step 3: previously fail-open when no active session existed —
+    // now blocks with a session-expired message instead of proceeding unguarded.
     if (activeSession) {
       const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'CREATE' });
       if (!guard.allowed) {
@@ -153,6 +155,10 @@ export default function SettlementAuditView() {
         setTimeout(() => setToastMessage(null), 3500);
         return;
       }
+    } else {
+      setToastMessage(`⚠️ [GC LOG BLOCKED] ${SESSION_EXPIRED_MESSAGE}`);
+      setTimeout(() => setToastMessage(null), 3500);
+      return;
     }
     if (gcSource === 'Plant Gas GC M-101A/B') {
       addFlobossAndGCLog(

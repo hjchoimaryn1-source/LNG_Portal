@@ -22,6 +22,7 @@ import {
 } from '../../../../data/ptwCargoHandlingTransitions';
 import { useActiveSession } from '../../../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../../../adapters/guardrailUiAdapter';
+import { SESSION_EXPIRED_MESSAGE } from '../../../../lib/rbac/sessionExpiryMessage';
 
 export function useCargoHandlingLifecycle(
   permits: PTWPermit[],
@@ -42,7 +43,8 @@ export function useCargoHandlingLifecycle(
     // never advance any workflow), plus fatigue guardrail specifically on the
     // APPROVED transition (target.workLeaderId is who is being authorized to lead
     // the work) — same convention as MOD_1's PTWStatusActions.handleApprove.
-    // Fail-open if no active session exists yet (pre-existing DEV bypass).
+    // Stage 3 Step 3: previously fail-open when no active session existed —
+    // now blocks with a session-expired message instead of proceeding unguarded.
     if (activeSession) {
       const guard = evaluateMutationGuardrails({
         roleCode: activeSession.roleCode,
@@ -56,6 +58,9 @@ export function useCargoHandlingLifecycle(
         setBlockedMessage(guard.reason ?? 'CARGO HANDLING TRANSITION BLOCKED');
         return;
       }
+    } else {
+      setBlockedMessage(SESSION_EXPIRED_MESSAGE);
+      return;
     }
 
     // Gate 0: SSHQE §4.2 electronic signature completeness — same rule as
