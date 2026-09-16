@@ -42,19 +42,6 @@ export default function PortalTitleBar({
       <div className="bg-[#d4d0c8] border-b border-[#808080] px-2 py-1.5 flex items-center justify-between gap-2 flex-wrap shrink-0">
         {/* Left: Hub + 5 Core CMMS Modules Tabs (Bevel Outset / Inset Effect) */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            onClick={() => {
-              if (onReturnToLauncher) {
-                onReturnToLauncher();
-              } else {
-                handleSelectSubProcess('SECTOR_LAUNCHER');
-              }
-            }}
-            className={currentModuleId === 'MOD_0_LAUNCHER' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
-            title="Return to SCADA Sector Launcher Hub"
-          >
-            <span className="font-mono font-bold">[ HUB ]</span>
-          </button>
           {CMMS_MODULES.map((mod) => {
             const isActive = currentModuleId === mod.id;
             return (
