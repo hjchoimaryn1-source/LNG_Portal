@@ -72,7 +72,7 @@ documented audit-only/non-authoritative writes). LOW = read-only (GET only).
 | Route | Methods | Read-only / Write-capable | Mutates | Priority |
 |---|---|---|---|---|
 | `alarm-action-log/route.ts` | GET, POST | write-capable | `alarm_action_log` (acknowledge/suppress an active alarm) — no role or guardrail check at all in the caller (`useAlarmActionLog.ts`) | HIGH |
-| `alarm-current-state/route.ts` | GET, POST | write-capable | `alarm_current_state` onset enter/clear — no role check found anywhere in its call path | HIGH |
+| `alarm-current-state/route.ts` | GET, POST | write-capable | `alarm_current_state` onset enter/clear — POST payload (`{domain, equipmentTag, columnName, action}`) has no `actorId`/`actorRole` field at all; `alarmCurrentStateCache.ts` fires it automatically the instant a HIGH/CRITICAL threshold is crossed in live telemetry, with no user action or button click involved. There is no "who did this" to gate. | **Reclassified 2026-09-16: N/A — system-generated event, not a role-gated user action.** |
 | `alarm-setpoint-overrides/route.ts` | GET | read-only | — | LOW |
 | `assets/route.ts` | GET | read-only | — | LOW |
 | `bootstrap/route.ts` | POST | write-capable | Full CMMS DB reset + re-seed (`runBootstrap({resetDb:true})`). Only gate is `NODE_ENV!=='development'`, not a role check — the caller (`AdminCmmsResetButton.tsx`, rendered unconditionally in `CmmsEquipmentRegistryView.tsx`) says so in its own header comment. In dev mode any role reaching that view can trigger it. | HIGH |
@@ -90,7 +90,7 @@ documented audit-only/non-authoritative writes). LOW = read-only (GET only).
 | `mro-inventory/requisitions/route.ts` | GET | read-only | — | LOW |
 | `overview/summary/route.ts` | GET | read-only | — | LOW |
 | `permit-metadata/route.ts` | POST | write-capable | `seedPermitMetadataIfAbsent` — idempotent (only writes if `permit_ref_no` absent); feeds the SIMOPS candidate set but can't overwrite existing rows | MEDIUM |
-| `permit-suspensions/route.ts` | GET, PATCH | write-capable | `acknowledgeShiftHandover` lifts a SHIFT_CHANGE PTW suspension — route's own header says this should be Site Manager/HSSE-only, but no role check exists in code | HIGH |
+| `permit-suspensions/route.ts` | GET, PATCH | write-capable (unreachable) | `acknowledgeShiftHandover` lifts a SHIFT_CHANGE PTW suspension. Repo-wide grep (2026-09-16) for `permit-suspensions`, `acknowledgeShiftHandover`, and any `fetch`/hook call site found **no caller anywhere in `src/`** — the PATCH is dead code today. Separately, its own header comment says this should be "Site Manager/HSSE only," but `PTW_PERMITS.canApprove` (the nearest existing field) is also `true` for `ACTING_SITE_MANAGER`/`OPERATION_TEAM_LEADER`/`WORK_LEADER_TECH` — broader than the header's stated intent. Both facts are noted for future cleanup; the route itself was not modified or removed. | **Reclassified 2026-09-16: UNREACHABLE — candidate for removal, not RBAC remediation.** |
 | `pid-tag-aliases/route.ts` | GET | read-only | — | LOW |
 | `pid-tag-coordinates/route.ts` | GET, POST | write-capable | P&ID overlay calibration coordinates — config/cosmetic, not a safety control value | MEDIUM |
 | `ptw-permits/route.ts` | GET, POST, PATCH | write-capable | PATCH drives the 5-stage PTW lifecycle (DRAFT→PREPARED→APPROVED→ACTIVE→CLOSED) + safety-checklist booleans (LOTO/gas detector/PPE/barricade); no server role re-validation. Needs its own dedicated audit of `usePTWPermits.transitionStatus`'s client-side gate — not fully traced this session. | HIGH |
@@ -100,8 +100,21 @@ documented audit-only/non-authoritative writes). LOW = read-only (GET only).
 | `trucking-inspections/route.ts` | GET, POST | write-capable | NP-03 inspection checklist entries — records an inspection result, is not itself a gate/permission decision | MEDIUM |
 | `work-orders/route.ts` | GET, POST, PATCH | write-capable | POST is `seedWorkOrdersIfEmpty` (idempotent); PATCH (`markWorkOrderPerformed`) mutates real WO status + recalculates `next_due_date` — caller (`useWorkOrders.ts`) only checks auditor/fatigue, not role | HIGH |
 
-**Count check**: 28 routes total (11 HIGH, 6 MEDIUM, 11 LOW) — matches the prior session's "28 routes"
-figure exactly; re-verified by direct enumeration this session, not assumed.
+**Count check**: 28 routes total (11 HIGH, 6 MEDIUM, 11 LOW) at original audit time — matches the prior
+session's "28 routes" figure exactly; re-verified by direct enumeration this session, not assumed.
+
+**2026-09-16 reclassification** (RBAC audit follow-up, docs-only pass — no code changed in this pass):
+`permit-suspensions/route.ts` (confirmed dead code, no call site anywhere in `src/`) and
+`alarm-current-state/route.ts` (confirmed system-fired, no actor/role concept in its payload) are pulled
+out of the HIGH RBAC-remediation queue for the reasons noted in their rows above. Updated count:
+**9 HIGH** (RBAC-remediation-relevant), 6 MEDIUM, 11 LOW, 1 UNREACHABLE, 1 N/A. Of the 9 remaining HIGH
+routes, 5 were remediated this same follow-up session (`daily-report-critical-events`,
+`daily-report-safety-notes`, `mro-inventory/adjustments`, `ptw-signatures`, `work-orders` — see their
+individual commits) and `daily-report-signatures` was remediated via a split-by-signature-type gate;
+`ptw-permits/route.ts` PATCH remains confirmed hard-block-adjacent (do not revisit without dedicated
+`usePTWPermits.transitionStatus` review); `alarm-action-log/route.ts` and `bootstrap/route.ts` remain
+open, pending role-mapping/architecture decisions respectively (see HSSE_OFFICER investigation and
+`bootstrap`'s own header comment).
 
 This table was built from each route's actual POST/PATCH/DELETE handler body and its real UI caller
 (hook/component), not from a keyword search alone — but "reachable by non-admin roles" reflects what
