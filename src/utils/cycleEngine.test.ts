@@ -177,6 +177,26 @@ describe('generateMonthlyRoster', () => {
     expect(augRoster[12]).toBe('D'); // Aug 13 — on-site day 12
     expect(augRoster[13]).toBe('R'); // Aug 14 — on-site day 13 -> (13+1)%14===0
   });
+
+  // Phase 13 Target B Sub-stage C: coverage gap flagged during the cycleEngine.ts split —
+  // the Acting SM (Shadiq) branch and Team B/C anchors had no prior test coverage.
+  it('Acting SM (EMP-002/Shadiq) is forced to D whenever the Site Manager (Edi) is in the OFF window', () => {
+    const staff = makeStaff({ id: 'EMP-002', name: 'Shadiq', department: 'OP_ALPHA' });
+    const roster = generateMonthlyRoster(staff, 2026, 11); // Nov 2026 — Edi's OFF window (cycle day 90..119)
+    expect(roster.every((s) => s === 'D')).toBe(true);
+  });
+
+  it('Team B (OP_BRAVO) starts its 10-day block on Night per its anchor', () => {
+    const staff = makeStaff({ department: 'OP_BRAVO', onSiteDate: '-' }); // default anchor 2026-07-06
+    const julRoster = generateMonthlyRoster(staff, 2026, 7);
+    expect(julRoster[5]).toBe('N'); // Jul 6 — cycle day 0, Team B starts with Night
+  });
+
+  it('Team C (OP_CHARLIE) starts its 10-day block on Day per its anchor', () => {
+    const staff = makeStaff({ department: 'OP_CHARLIE', onSiteDate: '-' }); // default anchor 2026-09-24
+    const sepRoster = generateMonthlyRoster(staff, 2026, 9);
+    expect(sepRoster[23]).toBe('D'); // Sep 24 — cycle day 0, Team C starts with Day
+  });
 });
 
 describe('resolveStaffMonthlyRoster', () => {
