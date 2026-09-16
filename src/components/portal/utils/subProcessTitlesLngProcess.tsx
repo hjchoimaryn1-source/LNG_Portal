@@ -107,8 +107,8 @@ export const SUBPROCESS_TITLES_LNG_PROCESS: Record<string, SubProcessTitleEntry>
     color: 'text-black font-bold',
   },
   MAINTENANCE_MRO_HUB: {
-    location: 'LNG-Process',
-    process: 'Maintenance & Depot',
+    location: 'Work Order & Maintenance',
+    process: 'MRO Depot',
     icon: <Wrench className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
