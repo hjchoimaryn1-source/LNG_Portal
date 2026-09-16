@@ -8,6 +8,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { __resetDailyOpsPatrolStoreForTests } from '../../../cmms-daily-ops/state/useDailyOpsPatrolStore';
+import { DailyOpsDataProvider } from '../../../context/DailyOpsDataContext';
 
 const { default: LngProcessRoutes } = await import('./LngProcessRoutes');
 
@@ -34,7 +35,9 @@ async function mount(activeKey: 'DAILY_OPS_HMI_OVERVIEW' | 'DAILY_OPS_LIVE_PID_M
   root = createRoot(container);
   await act(async () => {
     root!.render(
-      <LngProcessRoutes activeKey={activeKey} activeSubTab="" handleSelectSubProcess={() => {}} />
+      <DailyOpsDataProvider>
+        <LngProcessRoutes activeKey={activeKey} activeSubTab="" handleSelectSubProcess={() => {}} />
+      </DailyOpsDataProvider>
     );
     await Promise.resolve();
     await Promise.resolve();

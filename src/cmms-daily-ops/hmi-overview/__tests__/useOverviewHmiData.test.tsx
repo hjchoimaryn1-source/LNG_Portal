@@ -4,10 +4,11 @@
 // rather than mocking useDailyOpsPatrolValue — same convention PidTagBadge.test.tsx
 // already uses for this exact store.
 
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useOverviewHmiData } from '../useOverviewHmiData';
+import { DailyOpsDataProvider } from '../../../context/DailyOpsDataContext';
 import { OVERVIEW_UNIT_SLOTS } from '../overviewUnitSlots';
 import {
   AAV_NORMAL_MIN_BAR,
@@ -50,11 +51,28 @@ async function readHookResult(): Promise<OverviewHmiData> {
   document.body.appendChild(container);
   root = createRoot(container);
   await act(async () => {
-    root!.render(<Probe />);
+    root!.render(
+      <DailyOpsDataProvider>
+        <Probe />
+      </DailyOpsDataProvider>
+    );
     await Promise.resolve();
   });
   return captured!;
 }
+
+beforeEach(() => {
+  // useOverviewHmiData now requires DailyOpsDataProvider (Stage 3 Step 2 —
+  // 20s cross-device poll reuses its refresh()). Stub fetch so the
+  // provider's mount-time hydration effects resolve harmlessly.
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, records: [], acknowledgements: [] }),
+    })
+  );
+});
 
 afterEach(() => {
   act(() => {
@@ -64,6 +82,7 @@ afterEach(() => {
   container = null;
   root = null;
   __resetDailyOpsPatrolStoreForTests();
+  vi.unstubAllGlobals();
 });
 
 describe('useOverviewHmiData', () => {

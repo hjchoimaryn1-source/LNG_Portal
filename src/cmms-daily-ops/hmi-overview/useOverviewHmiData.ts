@@ -4,9 +4,17 @@
 //   Client-side hook composing existing useDailyOpsPatrolValue(domain,
 //   equipmentTag, columnName) subscriptions (useDailyOpsPatrolStore.ts,
 //   unmodified) into the Sub-stage A OverviewHmiData contract
-//   (hmiOverviewTypes.ts). No fetch, no new store, no writes — pure
-//   composition over the same B2 store PIDOverlayView/PidTagBadge already
-//   read.
+//   (hmiOverviewTypes.ts). No new store, no direct writes — pure composition
+//   over the same B2 store PIDOverlayView/PidTagBadge already read.
+//
+//   Stage 3 Step 2 (HJ decision 2026-09-15) — cross-device polling: the B2
+//   store is in-memory per browser tab, so a tablet's patrol POST never
+//   reaches a control-room PC's tab on its own; the tab-local B2 subscription
+//   above is a fast path only. DailyOpsDataContext.tsx's refresh() is the
+//   actual server round-trip (GET daily-ops-patrol-entries -> B2 upsert),
+//   today only called once on mount. Re-invoking that same refresh() on a
+//   20s interval closes the cross-device gap without duplicating its
+//   fetch/parse logic here.
 //
 //   Rules-of-Hooks: OVERVIEW_UNIT_SLOTS (overviewUnitSlots.ts) has a fixed
 //   length (25 today, derived from static imports only) — hand-unrolled
@@ -38,7 +46,9 @@
 
 'use client';
 
+import { useEffect } from 'react';
 import { useDailyOpsPatrolValue } from '../state/useDailyOpsPatrolStore';
+import { useDailyOpsData } from '../../context/DailyOpsDataContext';
 import type { HmiOverviewUnitStatus, OverviewHmiData, OverviewHmiUnit } from './hmiOverviewTypes';
 import { OVERVIEW_UNIT_SLOTS } from './overviewUnitSlots';
 import {
@@ -124,6 +134,8 @@ const DOMAIN_BANDS: Partial<Record<string, DomainBand>> = {
 
 const THRESHOLD_VALIDATED_DOMAINS = new Set<string>(['ng_buffer_tank']);
 
+const CROSS_DEVICE_POLL_INTERVAL_MS = 20_000;
+
 function deriveStatus(domain: string, primaryValue: number | null): HmiOverviewUnitStatus {
   if (primaryValue === null) return 'OFFLINE';
   const band = DOMAIN_BANDS[domain];
@@ -141,6 +153,12 @@ function toNumber(value: number | string | null | undefined): number | null {
 
 export function useOverviewHmiData(reportDate: string): OverviewHmiData {
   void reportDate; // see header note — the B2 store has no date-scoped query.
+
+  const { refresh } = useDailyOpsData();
+  useEffect(() => {
+    const intervalId = setInterval(refresh, CROSS_DEVICE_POLL_INTERVAL_MS);
+    return () => clearInterval(intervalId);
+  }, [refresh]);
 
   const s = OVERVIEW_UNIT_SLOTS;
   const p0 = useDailyOpsPatrolValue(s[0].domain, s[0].equipmentTag, s[0].primaryColumn);
