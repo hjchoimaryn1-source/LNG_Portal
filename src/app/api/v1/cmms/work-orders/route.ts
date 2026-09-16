@@ -18,6 +18,8 @@ import {
   EMPTY_SAFETY_GATE_INPUT,
   type SafetyGateWorkOrderInput,
 } from '../../../../../cmms-mro-bridge/safetyGate/evaluateSafetyGateRules';
+import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
@@ -52,11 +54,15 @@ function applySafetyGate(items: SeedInputWithSafetyGate[]): NewWorkOrderInput[] 
   });
 }
 
-function isValidPerformanceUpdate(body: unknown): body is { workOrderId: string; lastPerformedAt: string; status?: WorkOrderStatus } {
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+function isValidPerformanceUpdate(
+  body: unknown
+): body is { workOrderId: string; lastPerformedAt: string; status?: WorkOrderStatus; roleCode: RoleCode } {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
   return typeof r.workOrderId === 'string' && r.workOrderId.length > 0 &&
     typeof r.lastPerformedAt === 'string' && r.lastPerformedAt.length > 0 &&
+    typeof r.roleCode === 'string' &&
     (r.status === undefined || VALID_STATUSES.includes(r.status as WorkOrderStatus));
 }
 
@@ -93,6 +99,12 @@ export async function PATCH(request: NextRequest) {
 
   if (!isValidPerformanceUpdate(body)) {
     return NextResponse.json({ success: false, error: 'Invalid performance update payload.' }, { status: 400 });
+  }
+  if (getEffectivePermission(body.roleCode, 'WORK_ORDER_DIRECTORY')?.canUpdate !== true) {
+    return NextResponse.json(
+      { success: false, error: `Role ${body.roleCode} is not permitted to update work orders.` },
+      { status: 403 }
+    );
   }
 
   const record = markWorkOrderPerformed(body.workOrderId, body.lastPerformedAt, body.status);
