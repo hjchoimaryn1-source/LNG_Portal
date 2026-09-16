@@ -72,13 +72,6 @@ export default function PortalTitleBar({
 
         {/* Right: Overview Return Refresh Button and Launcher Shortcut */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            onClick={handleRefreshCurrentModuleOverview}
-            className="win-btn text-xs px-2.5 py-1 cursor-pointer"
-            title="Return to Section Overview"
-          >
-            To Overview
-          </button>
           {onReturnToLauncher && (
             <button
               onClick={onReturnToLauncher}
