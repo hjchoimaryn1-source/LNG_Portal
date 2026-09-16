@@ -33,32 +33,32 @@ afterEach(() => {
   root = null;
 });
 
-function overlayVisible(): boolean {
-  return document.body.querySelector('[data-testid="capture-guard-overlay"]') !== null;
+function dispatchKey(key: string, opts: Partial<KeyboardEventInit> = {}) {
+  const event = new KeyboardEvent('keydown', { key, cancelable: true, ...opts });
+  act(() => {
+    window.dispatchEvent(event);
+  });
+  return event;
 }
 
 describe('CaptureGuard', () => {
-  it('shows the blackout overlay on blur and hides it on focus when isField is true', () => {
+  it('prevents PrintScreen default behavior when isField is true', () => {
     mount('FIELD_CLIENT');
-    expect(overlayVisible()).toBe(false);
-
-    act(() => {
-      window.dispatchEvent(new Event('blur'));
-    });
-    expect(overlayVisible()).toBe(true);
-
-    act(() => {
-      window.dispatchEvent(new Event('focus'));
-    });
-    expect(overlayVisible()).toBe(false);
+    expect(dispatchKey('PrintScreen').defaultPrevented).toBe(true);
   });
 
-  it('never shows the overlay when isField is false', () => {
+  it('does not prevent PrintScreen when isField is false', () => {
     mount('DEV');
+    expect(dispatchKey('PrintScreen').defaultPrevented).toBe(false);
+  });
+
+  it('renders no visible output (blur/focus blackout removed)', () => {
+    mount('FIELD_CLIENT');
+    expect(container?.innerHTML).toBe('');
 
     act(() => {
       window.dispatchEvent(new Event('blur'));
     });
-    expect(overlayVisible()).toBe(false);
+    expect(container?.innerHTML).toBe('');
   });
 });

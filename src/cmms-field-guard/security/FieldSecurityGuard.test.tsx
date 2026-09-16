@@ -10,6 +10,7 @@ import { FieldSecurityGuard } from './FieldSecurityGuard';
 
 let container: HTMLDivElement | null = null;
 let root: Root | null = null;
+const REAL_LOCAL_STORAGE = window.localStorage;
 
 function mount(mode: 'DEV' | 'FIELD_CLIENT') {
   container = document.createElement('div');
@@ -31,6 +32,12 @@ afterEach(() => {
   container?.remove();
   container = null;
   root = null;
+  // installFieldStorageGuard() permanently overrides window.localStorage via
+  // defineProperty — restore the jsdom original so later tests/files aren't polluted.
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    get: () => REAL_LOCAL_STORAGE,
+  });
 });
 
 describe('FieldSecurityGuard', () => {
@@ -42,5 +49,22 @@ describe('FieldSecurityGuard', () => {
   it('renders nothing in DEV mode', () => {
     mount('DEV');
     expect(container?.innerHTML).toBe('');
+  });
+
+  it('installs the in-memory storage guard in FIELD_CLIENT mode', () => {
+    mount('FIELD_CLIENT');
+
+    window.localStorage.setItem('probe', 'value');
+    expect(window.localStorage.getItem('probe')).toBe('value');
+    expect(REAL_LOCAL_STORAGE.getItem('probe')).toBeNull();
+  });
+
+  it('leaves real localStorage untouched in DEV mode', () => {
+    mount('DEV');
+
+    window.localStorage.setItem('probe', 'value');
+    expect(REAL_LOCAL_STORAGE.getItem('probe')).toBe('value');
+
+    window.localStorage.removeItem('probe');
   });
 });

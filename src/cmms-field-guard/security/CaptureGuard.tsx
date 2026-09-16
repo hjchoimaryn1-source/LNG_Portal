@@ -1,13 +1,15 @@
 // src/cmms-field-guard/security/CaptureGuard.tsx
 "use client";
 
-import { useEffect, useState } from 'react';
-import type { ReactElement } from 'react';
+import { useEffect } from 'react';
 import { useFieldGuard } from '../core/FieldGuardContext';
 
-export function CaptureGuard(): ReactElement | null {
+// UI-layer deterrent only, not a real security boundary — trivially
+// bypassed via browser extensions, alternate browsers, or OS-level tools.
+// blur/focus blackout removed (Sub-stage D): it interfered with normal
+// worker window/tab switching, so this deterrent is PrintScreen-only now.
+export function CaptureGuard(): null {
   const { isField } = useFieldGuard();
-  const [isBlacked, setIsBlacked] = useState(false);
 
   useEffect(() => {
     if (!isField) {
@@ -23,34 +25,12 @@ export function CaptureGuard(): ReactElement | null {
       }
     };
 
-    const handleBlur = () => setIsBlacked(true);
-    const handleFocus = () => setIsBlacked(false);
-    const handleVisibilityChange = () => {
-      setIsBlacked(document.visibilityState !== 'visible');
-    };
-
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('blur', handleBlur);
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('blur', handleBlur);
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isField]);
 
-  if (!isField || !isBlacked) {
-    return null;
-  }
-
-  return (
-    <div
-      data-testid="capture-guard-overlay"
-      className="fixed inset-0 z-[9998] bg-black backdrop-blur-2xl"
-      aria-hidden="true"
-    />
-  );
+  return null;
 }
