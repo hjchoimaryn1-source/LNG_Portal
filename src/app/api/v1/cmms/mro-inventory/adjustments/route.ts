@@ -8,18 +8,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adjustStock, getStockTransactions } from '../../../../../../adapters/mroInventoryDbAdapter';
 import type { StockAdjustmentInput, StockTxType } from '../../../../../../adapters/db/mroInventoryDao';
+import { getEffectivePermission } from '../../../../../../lib/rbac/rolePermissionService';
+import type { RoleCode } from '../../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
 const VALID_TX_TYPES: StockTxType[] = ['RECEIPT', 'ISSUE', 'ADJUSTMENT', 'RETURN', 'SCRAP'];
 
-function isValidAdjustmentInput(body: unknown): body is StockAdjustmentInput {
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+type StockAdjustmentInputWithRole = StockAdjustmentInput & { roleCode: RoleCode };
+
+function isValidAdjustmentInput(body: unknown): body is StockAdjustmentInputWithRole {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
   return typeof r.partNo === 'string' && r.partNo.length > 0 &&
     typeof r.txType === 'string' && VALID_TX_TYPES.includes(r.txType as StockTxType) &&
     typeof r.quantity === 'number' && r.quantity > 0 &&
     typeof r.performedBy === 'string' && r.performedBy.length > 0 &&
+    typeof r.roleCode === 'string' &&
     (r.reason === undefined || r.reason === null || typeof r.reason === 'string') &&
     (r.workOrderId === undefined || r.workOrderId === null || typeof r.workOrderId === 'string');
 }
@@ -41,8 +47,15 @@ export async function POST(request: NextRequest) {
   if (!isValidAdjustmentInput(body)) {
     return NextResponse.json({ success: false, error: 'Invalid StockAdjustmentInput payload.' }, { status: 400 });
   }
+  if (getEffectivePermission(body.roleCode, 'MAINTENANCE_MRO_HUB')?.canCreate !== true) {
+    return NextResponse.json(
+      { success: false, error: `Role ${body.roleCode} is not permitted to adjust MRO stock.` },
+      { status: 403 }
+    );
+  }
 
-  const result = adjustStock(body);
+  const { roleCode: _roleCode, ...adjustmentInput } = body;
+  const result = adjustStock(adjustmentInput);
   if (!result) {
     return NextResponse.json(
       { success: false, error: `Adjustment rejected: part not found or resulting stock would be negative (partNo=${body.partNo}).` },
