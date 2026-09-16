@@ -7,13 +7,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDailyOpsDb } from '../../../../../cmms-daily-ops/db/dailyOpsDbSingleton';
 import { upsertSafetyNotes, getSafetyNotes, type SafetyNotesInput } from '../../../../../cmms-daily-ops/dao/dailyReportChildDao';
+import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
-function isValidInput(body: unknown): body is SafetyNotesInput {
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+type SafetyNotesInputWithRole = SafetyNotesInput & { roleCode: RoleCode };
+
+function isValidInput(body: unknown): body is SafetyNotesInputWithRole {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
-  return typeof r.snapshotId === 'number';
+  return typeof r.snapshotId === 'number' && typeof r.roleCode === 'string';
 }
 
 export async function GET(request: NextRequest) {
@@ -35,7 +40,14 @@ export async function POST(request: NextRequest) {
   if (!isValidInput(body)) {
     return NextResponse.json({ success: false, error: 'Invalid safety notes payload.' }, { status: 400 });
   }
+  if (getEffectivePermission(body.roleCode, 'DAILY_OPS_REPORT')?.canCreate !== true) {
+    return NextResponse.json(
+      { success: false, error: `Role ${body.roleCode} is not permitted to save safety notes.` },
+      { status: 403 }
+    );
+  }
+  const { roleCode: _roleCode, ...input } = body;
   const db = getDailyOpsDb();
-  upsertSafetyNotes(db, body);
+  upsertSafetyNotes(db, input);
   return NextResponse.json({ success: true });
 }

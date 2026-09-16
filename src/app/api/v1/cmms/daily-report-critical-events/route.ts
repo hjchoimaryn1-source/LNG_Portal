@@ -12,13 +12,22 @@ import {
   deleteCriticalEvent,
   type CriticalEventInput,
 } from '../../../../../cmms-daily-ops/dao/dailyReportChildDao';
+import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
-function isValidInput(body: unknown): body is CriticalEventInput {
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+type CriticalEventInputWithRole = CriticalEventInput & { roleCode: RoleCode };
+
+function isValidInput(body: unknown): body is CriticalEventInputWithRole {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
-  return typeof r.snapshotId === 'number';
+  return typeof r.snapshotId === 'number' && typeof r.roleCode === 'string';
+}
+
+function isPermitted(roleCode: RoleCode): boolean {
+  return getEffectivePermission(roleCode, 'DAILY_OPS_REPORT')?.canCreate === true;
 }
 
 export async function GET(request: NextRequest) {
@@ -40,15 +49,29 @@ export async function POST(request: NextRequest) {
   if (!isValidInput(body)) {
     return NextResponse.json({ success: false, error: 'Invalid critical event payload.' }, { status: 400 });
   }
+  if (!isPermitted(body.roleCode)) {
+    return NextResponse.json(
+      { success: false, error: `Role ${body.roleCode} is not permitted to record critical events.` },
+      { status: 403 }
+    );
+  }
+  const { roleCode: _roleCode, ...input } = body;
   const db = getDailyOpsDb();
-  const id = insertCriticalEvent(db, body);
+  const id = insertCriticalEvent(db, input);
   return NextResponse.json({ success: true, id });
 }
 
 export async function DELETE(request: NextRequest) {
   const id = Number(request.nextUrl.searchParams.get('id'));
+  const roleCode = request.nextUrl.searchParams.get('roleCode') as RoleCode | null;
   if (!id) {
     return NextResponse.json({ success: false, error: 'id required.' }, { status: 400 });
+  }
+  if (!roleCode || !isPermitted(roleCode)) {
+    return NextResponse.json(
+      { success: false, error: `Role ${roleCode ?? '(none)'} is not permitted to delete critical events.` },
+      { status: 403 }
+    );
   }
   const db = getDailyOpsDb();
   deleteCriticalEvent(db, id);

@@ -11,6 +11,8 @@
 import { useEffect, useState } from 'react';
 import { SUNKEN_INPUT, BEVEL_BUTTON, RAISED_PANEL, TITLE_BAR } from '../../../components/cmms/scadaStyles';
 import { DRAFT_FIELDS, emptyDraft, type SavedEvent, type DraftRow } from './criticalEventFields';
+import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
 
 const CRITICAL_EVENTS_API = '/api/v1/cmms/daily-report-critical-events';
 const MIN_DRAFT_ROWS = 3;
@@ -24,6 +26,8 @@ export function CriticalEventsEditor({ snapshotId }: CriticalEventsEditorProps) 
   const [drafts, setDrafts] = useState<DraftRow[]>(
     Array.from({ length: MIN_DRAFT_ROWS }, () => emptyDraft())
   );
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
+  const activeSession = useActiveSession();
 
   useEffect(() => {
     fetch(`${CRITICAL_EVENTS_API}?snapshotId=${snapshotId}`, { cache: 'no-store' })
@@ -39,6 +43,16 @@ export function CriticalEventsEditor({ snapshotId }: CriticalEventsEditorProps) 
   }
 
   async function handleSaveDraft(index: number) {
+    setBlockedMessage(null);
+    if (!activeSession) {
+      setBlockedMessage('로그인 세션이 없습니다.');
+      return;
+    }
+    if (getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT')?.canCreate !== true) {
+      setBlockedMessage(`역할 ${activeSession.roleCode}은(는) Critical Events 입력 권한이 없습니다.`);
+      return;
+    }
+
     const row = drafts[index];
     const payload = {
       snapshotId,
@@ -53,10 +67,13 @@ export function CriticalEventsEditor({ snapshotId }: CriticalEventsEditorProps) 
     const res = await fetch(CRITICAL_EVENTS_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, roleCode: activeSession.roleCode }),
     });
     const json = await res.json();
-    if (!json.success) return;
+    if (!json.success) {
+      setBlockedMessage(json.error ?? '저장 실패');
+      return;
+    }
 
     setSavedEvents((prev) => [...prev, { id: json.id, ...payload }]);
     setDrafts((prev) => {
@@ -66,13 +83,28 @@ export function CriticalEventsEditor({ snapshotId }: CriticalEventsEditorProps) 
   }
 
   async function handleDelete(id: number) {
-    await fetch(`${CRITICAL_EVENTS_API}?id=${id}`, { method: 'DELETE' });
+    setBlockedMessage(null);
+    if (!activeSession) {
+      setBlockedMessage('로그인 세션이 없습니다.');
+      return;
+    }
+    if (getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT')?.canCreate !== true) {
+      setBlockedMessage(`역할 ${activeSession.roleCode}은(는) Critical Events 삭제 권한이 없습니다.`);
+      return;
+    }
+    const res = await fetch(`${CRITICAL_EVENTS_API}?id=${id}&roleCode=${activeSession.roleCode}`, { method: 'DELETE' });
+    const json = await res.json();
+    if (!json.success) {
+      setBlockedMessage(json.error ?? '삭제 실패');
+      return;
+    }
     setSavedEvents((prev) => prev.filter((e) => e.id !== id));
   }
 
   return (
     <div className={`${RAISED_PANEL} p-2 space-y-2`}>
       <div className={TITLE_BAR}>CRITICAL EVENTS</div>
+      {blockedMessage && <div className="text-[11px] text-red-600 font-bold">{blockedMessage}</div>}
       <table className="w-full text-[11px] border-collapse">
         <thead>
           <tr>

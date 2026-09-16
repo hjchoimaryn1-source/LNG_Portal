@@ -8,6 +8,8 @@
 
 import { useEffect, useState } from 'react';
 import { SUNKEN_INPUT, BEVEL_BUTTON, RAISED_PANEL, TITLE_BAR } from '../../../components/cmms/scadaStyles';
+import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
 
 const SAFETY_NOTES_API = '/api/v1/cmms/daily-report-safety-notes';
 
@@ -35,6 +37,8 @@ export interface SafetyNotesEditorProps {
 
 export function SafetyNotesEditor({ snapshotId }: SafetyNotesEditorProps) {
   const [notes, setNotes] = useState<SafetyNotesState>(emptyNotes());
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
+  const activeSession = useActiveSession();
 
   useEffect(() => {
     fetch(`${SAFETY_NOTES_API}?snapshotId=${snapshotId}`, { cache: 'no-store' })
@@ -53,22 +57,38 @@ export function SafetyNotesEditor({ snapshotId }: SafetyNotesEditorProps) {
   }, [snapshotId]);
 
   function handleSave() {
+    setBlockedMessage(null);
+    if (!activeSession) {
+      setBlockedMessage('로그인 세션이 없습니다.');
+      return;
+    }
+    if (getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT')?.canCreate !== true) {
+      setBlockedMessage(`역할 ${activeSession.roleCode}은(는) Safety Information 저장 권한이 없습니다.`);
+      return;
+    }
     fetch(SAFETY_NOTES_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         snapshotId,
+        roleCode: activeSession.roleCode,
         unsafeActionText: notes.unsafeActionText || null,
         unsafeConditionText: notes.unsafeConditionText || null,
         incidentText: notes.incidentText || null,
         remarksText: notes.remarksText || null,
       }),
-    });
+    })
+      .then((res) => res.json())
+      .then((json: { success: boolean; error?: string }) => {
+        if (!json.success) setBlockedMessage(json.error ?? '저장 실패');
+      })
+      .catch(() => {});
   }
 
   return (
     <div className={`${RAISED_PANEL} p-2 space-y-2`}>
       <div className={TITLE_BAR}>SAFETY INFORMATION</div>
+      {blockedMessage && <div className="text-[11px] text-red-600 font-bold">{blockedMessage}</div>}
       {FIELDS.map(({ key, label }) => (
         <div key={key} className="flex flex-col gap-1">
           <label className="text-[10px] font-bold text-slate-700 uppercase">{label}</label>

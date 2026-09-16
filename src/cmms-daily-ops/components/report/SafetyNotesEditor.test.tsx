@@ -3,6 +3,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { SafetyNotesEditor } from './SafetyNotesEditor';
+import { setActiveSession, clearActiveSession } from '../../../lib/rbac/activeSessionStore';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -16,6 +17,7 @@ afterEach(() => {
   container?.remove();
   container = null;
   root = null;
+  clearActiveSession();
   vi.unstubAllGlobals();
 });
 
@@ -54,6 +56,7 @@ describe('SafetyNotesEditor', () => {
   });
 
   it('saves all 4 fields, converting blanks to null', async () => {
+    setActiveSession({ userId: 'u1', roleCode: 'HSSE_OFFICER', homeLocation: 'SITE' });
     const postCalls = stubFetch(null);
     await mountAndFlush();
 
@@ -72,10 +75,33 @@ describe('SafetyNotesEditor', () => {
     expect(postCalls).toHaveLength(1);
     expect(postCalls[0]).toMatchObject({
       snapshotId: 1,
+      roleCode: 'HSSE_OFFICER',
       unsafeActionText: 'Loose valve handle',
       unsafeConditionText: null,
       incidentText: null,
       remarksText: null,
     });
+  });
+
+  it('blocks the save and does not fetch when the active role has no canCreate on DAILY_OPS_REPORT', async () => {
+    // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+    setActiveSession({ userId: 'u1', roleCode: 'WORK_LEADER_TECH', homeLocation: 'SITE' });
+    const postCalls = stubFetch(null);
+    await mountAndFlush();
+
+    const textareas = container!.querySelectorAll('textarea');
+    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')!.set!;
+    act(() => {
+      nativeSetter.call(textareas[0], 'Loose valve handle');
+      textareas[0].dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    const saveButton = Array.from(container!.querySelectorAll('button')).find((b) => b.textContent === '저장')!;
+    act(() => {
+      saveButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(postCalls).toHaveLength(0);
+    expect(container!.textContent).toContain('권한이 없습니다');
   });
 });
