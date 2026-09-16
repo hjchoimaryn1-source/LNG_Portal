@@ -15,16 +15,20 @@ import {
   type SignatureRole,
 } from '../../../../../cmms-daily-ops/dao/dailyReportChildDao';
 import { finalizeSnapshot } from '../../../../../cmms-daily-ops/dao/dailyReportSnapshotDao';
+import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
 const VALID_ROLES: SignatureRole[] = ['prepared_by', 'acknowledged_by'];
 
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16 (split by signature type).
 interface SignaturePayload {
   snapshotId: number;
   role: SignatureRole;
   signerName: string;
   signerTitle: string | null;
+  roleCode: RoleCode;
 }
 
 function isValidPayload(body: unknown): body is SignaturePayload {
@@ -34,8 +38,22 @@ function isValidPayload(body: unknown): body is SignaturePayload {
     typeof r.snapshotId === 'number' &&
     typeof r.role === 'string' &&
     VALID_ROLES.includes(r.role as SignatureRole) &&
-    typeof r.signerName === 'string'
+    typeof r.signerName === 'string' &&
+    typeof r.roleCode === 'string'
   );
+}
+
+/**
+ * prepared_by reuses the DAILY_OPS_REPORT.canCreate allow-list (same as the
+ * sibling child editors). acknowledged_by is an approval-adjacent action —
+ * SITE_MANAGER has canCreate:false on this module (report generation is not
+ * their job) but canApprove:true, which is exactly the semantics an
+ * "acknowledgement" needs. No new moduleCode/field required.
+ */
+function isPermitted(roleCode: RoleCode, signatureRole: SignatureRole): boolean {
+  const permission = getEffectivePermission(roleCode, 'DAILY_OPS_REPORT');
+  if (!permission) return false;
+  return signatureRole === 'prepared_by' ? permission.canCreate : permission.canApprove;
 }
 
 export async function GET(request: NextRequest) {
@@ -56,6 +74,12 @@ export async function POST(request: NextRequest) {
   }
   if (!isValidPayload(body)) {
     return NextResponse.json({ success: false, error: 'Invalid signature payload.' }, { status: 400 });
+  }
+  if (!isPermitted(body.roleCode, body.role)) {
+    return NextResponse.json(
+      { success: false, error: `Role ${body.roleCode} is not permitted to sign as ${body.role}.` },
+      { status: 403 }
+    );
   }
 
   const db = getDailyOpsDb();

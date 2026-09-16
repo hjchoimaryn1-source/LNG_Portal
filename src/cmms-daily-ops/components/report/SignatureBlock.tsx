@@ -12,6 +12,8 @@
 import { useEffect, useState } from 'react';
 import { SUNKEN_INPUT, BEVEL_BUTTON, RAISED_PANEL } from '../../../components/cmms/scadaStyles';
 import type { SignatureRole } from '../../dao/dailyReportChildDao';
+import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
 
 const SIGNATURES_API = '/api/v1/cmms/daily-report-signatures';
 
@@ -36,6 +38,8 @@ export function SignatureBlock({ snapshotId, role }: SignatureBlockProps) {
   const [signed, setSigned] = useState<SignatureDto | null>(null);
   const [signerName, setSignerName] = useState('');
   const [signerTitle, setSignerTitle] = useState('');
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
+  const activeSession = useActiveSession();
 
   useEffect(() => {
     fetch(`${SIGNATURES_API}?snapshotId=${snapshotId}`, { cache: 'no-store' })
@@ -50,14 +54,32 @@ export function SignatureBlock({ snapshotId, role }: SignatureBlockProps) {
   }, [snapshotId, role]);
 
   async function handleSign() {
+    setBlockedMessage(null);
     if (!signerName.trim()) return;
+    if (!activeSession) {
+      setBlockedMessage('로그인 세션이 없습니다.');
+      return;
+    }
+    // RBAC audit remediation — Phase 13 follow-up, 2026-09-16. prepared_by
+    // reuses DAILY_OPS_REPORT.canCreate; acknowledged_by reuses canApprove
+    // (SITE_MANAGER has canCreate:false but canApprove:true on this module).
+    const permission = getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT');
+    const permitted = role === 'prepared_by' ? permission?.canCreate : permission?.canApprove;
+    if (!permitted) {
+      setBlockedMessage(`역할 ${activeSession.roleCode}은(는) ${ROLE_LABEL[role]} 서명 권한이 없습니다.`);
+      return;
+    }
+
     const res = await fetch(SIGNATURES_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ snapshotId, role, signerName, signerTitle: signerTitle || null }),
+      body: JSON.stringify({ snapshotId, role, signerName, signerTitle: signerTitle || null, roleCode: activeSession.roleCode }),
     });
     const json = await res.json();
-    if (!json.success) return;
+    if (!json.success) {
+      setBlockedMessage(json.error ?? '서명 실패');
+      return;
+    }
     const mine = (json.records as SignatureDto[]).find((r) => r.role === role);
     if (mine) setSigned(mine);
   }
@@ -65,6 +87,7 @@ export function SignatureBlock({ snapshotId, role }: SignatureBlockProps) {
   return (
     <div className={`${RAISED_PANEL} p-2 space-y-1`}>
       <div className="text-[10px] font-bold text-slate-700 uppercase">{ROLE_LABEL[role]}</div>
+      {blockedMessage && <div className="text-[11px] text-red-600 font-bold">{blockedMessage}</div>}
       {signed ? (
         <div className="text-[11px] font-mono">
           <div>
