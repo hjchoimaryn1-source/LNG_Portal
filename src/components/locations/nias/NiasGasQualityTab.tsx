@@ -213,7 +213,6 @@ export default function NiasGasQualityTab() {
     }
 
     showToast('✓ Daily Gas Metering manual entries have been reset (Feed Tank preserved).');
-    console.log('Daily Gas Metering manual entries reset (Feed Tank preserved).');
   }, []);
 
   // Expose reset handler globally for external/DOM invocation
