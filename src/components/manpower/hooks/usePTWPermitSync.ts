@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { PTWPermit, PTWSignatureEntry, PTWWorkflowStatus } from '../../../types/lng';
 import type { PTWPermitLifecycleDraft } from '../../../adapters/db/ptwPermitDao';
 import type { PermitSuspensionRow } from '../../../adapters/db/permitSuspensionDao';
+import type { RoleCode } from '../../../types/rbac';
 import { toPermitLifecycleSeed } from '../../../utils/ptwPermitRecordMapper';
 
 const PTW_PERMITS_API = '/api/v1/cmms/ptw-permits';
@@ -90,13 +91,13 @@ export function usePTWPermitSync(permits: PTWPermit[]) {
   }, []);
 
   /** addSignature() 로컬 갱신 직후 호출되는 fire-and-forget 영속화 — 게이트 판정에 영향 없음. */
-  const persistSignature = useCallback((permitId: string, entry: PTWSignatureEntry) => {
+  const persistSignature = useCallback((permitId: string, entry: PTWSignatureEntry, roleCode: RoleCode) => {
     (async () => {
       try {
         const res = await fetch(PTW_SIGNATURES_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ permitId, ...entry }),
+          body: JSON.stringify({ permitId, roleCode, ...entry }),
         });
         const json = (await res.json()) as { success: boolean; records?: PTWSignatureEntry[] };
         if (res.ok && json.success && json.records) {

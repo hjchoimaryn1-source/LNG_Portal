@@ -11,17 +11,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { persistPermitSignature, getPermitSignatures } from '../../../../../adapters/permitPersistenceAdapter';
 import type { PTWSignatureEntry, PTWSignatureRole } from '../../../../../types/lng';
+import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
-function isValidSignaturePost(body: unknown): body is { permitId: string } & PTWSignatureEntry {
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+function isValidSignaturePost(body: unknown): body is { permitId: string; roleCode: RoleCode } & PTWSignatureEntry {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
   return typeof r.permitId === 'string' && r.permitId.length > 0 &&
+    typeof r.roleCode === 'string' &&
     typeof r.role === 'string' && (r.role as string).length > 0 &&
     typeof r.staffId === 'string' && r.staffId.length > 0 &&
     typeof r.staffName === 'string' && r.staffName.length > 0 &&
     typeof r.signedAt === 'string' && r.signedAt.length > 0;
+}
+
+/** Any role with real (non-forced-read-only) PTW_PERMITS access may sign. */
+function isPermitted(roleCode: RoleCode): boolean {
+  const permission = getEffectivePermission(roleCode, 'PTW_PERMITS');
+  return permission !== null && permission.isReadOnlyForced !== true;
 }
 
 export async function GET(request: NextRequest) {
@@ -45,8 +55,14 @@ export async function POST(request: NextRequest) {
   if (!isValidSignaturePost(body)) {
     return NextResponse.json({ success: false, error: 'Invalid signature payload.' }, { status: 400 });
   }
+  if (!isPermitted(body.roleCode)) {
+    return NextResponse.json(
+      { success: false, error: `Role ${body.roleCode} is not permitted to sign PTW permits.` },
+      { status: 403 }
+    );
+  }
 
-  const { permitId, ...entry } = body;
+  const { permitId, roleCode: _roleCode, ...entry } = body;
   persistPermitSignature(permitId, { ...entry, role: entry.role as PTWSignatureRole });
   const records = getPermitSignatures(permitId);
   return NextResponse.json({ success: true, records });
