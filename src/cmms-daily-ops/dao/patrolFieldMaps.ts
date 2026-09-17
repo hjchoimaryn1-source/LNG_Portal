@@ -74,6 +74,15 @@ export const PATROL_FIELD_MAP: Record<PatrolDomain, PatrolFieldSpec[]> = {
     { columnName: 'mol_nitrogen', label: 'Nitrogen', unit: '% mol', type: 'number' },
     { columnName: 'mol_h2o_ppm', label: 'H2O', unit: 'ppm', type: 'number' },
     { columnName: 'mol_h2s_ppm', label: 'H2S', unit: 'ppm', type: 'number' },
+    // Stage E-5 — Calibration Gas(GASCAL) + Carrier Gas(Helium), 순수 append.
+    { columnName: 'gascal_pressure_bar', label: 'GASCAL 압력 (Current)', unit: 'bar', type: 'number' },
+    { columnName: 'gascal_consumption_bar_day', label: 'GASCAL 소비량 (Daily)', unit: 'bar/day', type: 'number' },
+    { columnName: 'gascal_cylinder_online', label: 'GASCAL 실린더 #1 (Online)', unit: '', type: 'text' },
+    { columnName: 'gascal_cylinder_spare', label: 'GASCAL 실린더 (Spare)', unit: '', type: 'text' },
+    { columnName: 'helium_pressure_bar', label: 'Helium 압력 (Current)', unit: 'bar', type: 'number' },
+    { columnName: 'helium_consumption_bar_day', label: 'Helium 소비량 (Daily)', unit: 'bar/day', type: 'number' },
+    { columnName: 'helium_cylinder_online', label: 'Helium 실린더 (Online)', unit: '', type: 'text' },
+    { columnName: 'helium_cylinder_spare', label: 'Helium 실린더 (Spare)', unit: '', type: 'text' },
   ],
   electrical: [
     { columnName: 'status_text', label: '상태', unit: '', type: 'text' },

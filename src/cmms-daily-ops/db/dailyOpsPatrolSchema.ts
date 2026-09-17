@@ -133,6 +133,17 @@ const ADD_PRESSURE_TRANSMITTER_BARG_SQL = `ALTER TABLE daily_ops_patrol_entries 
 // (Inlet Vaporizer DP, High-only alarm).
 const ADD_DIFFERENTIAL_PRESSURE_US_BARG_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN differential_pressure_us_barg REAL`;
 
+// Calibration Gas (GASCAL) + Carrier Gas (Helium) (Stage E-5) — gc 도메인에 귀속.
+// N2 & Bottles 서브탭 재편(2026-09-17, HJ 승인) 대상 8컬럼, 전부 nullable.
+const ADD_GASCAL_PRESSURE_BAR_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN gascal_pressure_bar REAL`;
+const ADD_GASCAL_CONSUMPTION_BAR_DAY_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN gascal_consumption_bar_day REAL`;
+const ADD_GASCAL_CYLINDER_ONLINE_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN gascal_cylinder_online TEXT`;
+const ADD_GASCAL_CYLINDER_SPARE_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN gascal_cylinder_spare TEXT`;
+const ADD_HELIUM_PRESSURE_BAR_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN helium_pressure_bar REAL`;
+const ADD_HELIUM_CONSUMPTION_BAR_DAY_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN helium_consumption_bar_day REAL`;
+const ADD_HELIUM_CYLINDER_ONLINE_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN helium_cylinder_online TEXT`;
+const ADD_HELIUM_CYLINDER_SPARE_SQL = `ALTER TABLE daily_ops_patrol_entries ADD COLUMN helium_cylinder_spare TEXT`;
+
 /** daily_ops_patrol_entries 테이블을 멱등(idempotent)하게 보강한다. */
 export function ensureDailyOpsPatrolSchema(raw: DatabaseSync): void {
   raw.exec(DAILY_OPS_PATROL_ENTRIES_DDL);
@@ -144,4 +155,12 @@ export function ensureDailyOpsPatrolSchema(raw: DatabaseSync): void {
     'differential_pressure_us_barg',
     ADD_DIFFERENTIAL_PRESSURE_US_BARG_SQL
   );
+  ensureColumn(raw, 'daily_ops_patrol_entries', 'gascal_pressure_bar', ADD_GASCAL_PRESSURE_BAR_SQL);
+  ensureColumn(raw, 'daily_ops_patrol_entries', 'gascal_consumption_bar_day', ADD_GASCAL_CONSUMPTION_BAR_DAY_SQL);
+  ensureColumn(raw, 'daily_ops_patrol_entries', 'gascal_cylinder_online', ADD_GASCAL_CYLINDER_ONLINE_SQL);
+  ensureColumn(raw, 'daily_ops_patrol_entries', 'gascal_cylinder_spare', ADD_GASCAL_CYLINDER_SPARE_SQL);
+  ensureColumn(raw, 'daily_ops_patrol_entries', 'helium_pressure_bar', ADD_HELIUM_PRESSURE_BAR_SQL);
+  ensureColumn(raw, 'daily_ops_patrol_entries', 'helium_consumption_bar_day', ADD_HELIUM_CONSUMPTION_BAR_DAY_SQL);
+  ensureColumn(raw, 'daily_ops_patrol_entries', 'helium_cylinder_online', ADD_HELIUM_CYLINDER_ONLINE_SQL);
+  ensureColumn(raw, 'daily_ops_patrol_entries', 'helium_cylinder_spare', ADD_HELIUM_CYLINDER_SPARE_SQL);
 }

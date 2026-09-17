@@ -20,8 +20,13 @@ import { emptyPatrolValues, type PatrolSaveHandler } from './patrolFormTypes';
 export { GC_EQUIPMENT_TAG };
 
 const GC_FIELDS = PATROL_FIELD_MAP.gc;
-const GC_STATUS_FIELDS = GC_FIELDS.filter((f) => f.type === 'text');
-const GC_COMPOSITION_FIELDS = GC_FIELDS.filter((f) => f.type === 'number');
+// Stage E-5 — GASCAL/Helium 컬럼은 gc 필드맵에 append되어 있어 type만으로
+// 걸러내면 기존 상태/조성 블록에 섞인다. 접두사로 별도 그룹핑한다.
+const isGascalOrHelium = (columnName: string) => columnName.startsWith('gascal_') || columnName.startsWith('helium_');
+const GC_STATUS_FIELDS = GC_FIELDS.filter((f) => f.type === 'text' && !isGascalOrHelium(f.columnName));
+const GC_COMPOSITION_FIELDS = GC_FIELDS.filter((f) => f.type === 'number' && !isGascalOrHelium(f.columnName));
+const GASCAL_FIELDS = GC_FIELDS.filter((f) => f.columnName.startsWith('gascal_'));
+const HELIUM_FIELDS = GC_FIELDS.filter((f) => f.columnName.startsWith('helium_'));
 
 export interface GcPatrolFormProps {
   onSave: PatrolSaveHandler;
@@ -64,6 +69,34 @@ export function GcPatrolForm({ onSave }: GcPatrolFormProps) {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
           {GC_COMPOSITION_FIELDS.map((spec) => (
+            <PatrolFieldInput
+              key={spec.columnName}
+              spec={spec}
+              value={values[spec.columnName]}
+              onChange={handleFieldChange}
+            />
+          ))}
+        </div>
+
+        <div className="text-[11px] font-black uppercase tracking-wider text-[#002b4d] border-b border-[#c8c2b5] pb-1">
+          Calibration Gas (GASCAL)
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {GASCAL_FIELDS.map((spec) => (
+            <PatrolFieldInput
+              key={spec.columnName}
+              spec={spec}
+              value={values[spec.columnName]}
+              onChange={handleFieldChange}
+            />
+          ))}
+        </div>
+
+        <div className="text-[11px] font-black uppercase tracking-wider text-[#002b4d] border-b border-[#c8c2b5] pb-1">
+          Carrier Gas (Helium)
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {HELIUM_FIELDS.map((spec) => (
             <PatrolFieldInput
               key={spec.columnName}
               spec={spec}

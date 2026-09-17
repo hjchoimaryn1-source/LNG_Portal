@@ -28,10 +28,12 @@ function mount(onSave: (input: unknown) => void) {
 }
 
 describe('GcPatrolForm', () => {
-  it('renders the 4 status fields and 11 composition fields', () => {
+  it('renders the 4 status fields, 11 composition fields, and 8 GASCAL/Helium fields', () => {
     mount(() => {});
-    expect(container!.querySelectorAll('input[type="text"]')).toHaveLength(4);
-    expect(container!.querySelectorAll('input[type="number"]')).toHaveLength(11);
+    // Stage E-5: GASCAL/Helium 추가로 text 4→8(+cylinder online/spare x2),
+    // number 11→15(+pressure/consumption x2).
+    expect(container!.querySelectorAll('input[type="text"]')).toHaveLength(8);
+    expect(container!.querySelectorAll('input[type="number"]')).toHaveLength(15);
   });
 
   it('saves under the GC-01 equipment tag', () => {
