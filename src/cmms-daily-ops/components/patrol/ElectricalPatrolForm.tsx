@@ -35,7 +35,7 @@ const ELECTRICAL_SUB_BLOCKS: ElectricalSubBlock[] = [
   { tag: MV_SWGR_TAG, label: 'MV SWGR', columns: ['status_text', 'bus_voltage', 'total_load_current_a', 'room_temperature_c'] },
   { tag: LV_SWGR_TAG, label: 'LV SWGR', columns: ['status_text', 'bus_voltage', 'total_load_current_a', 'room_temperature_c'] },
   { tag: TRAFO_TAG, label: 'TRAFO', columns: ['status_text', 'oil_temperature_c', 'winding_temperature_c', 'oil_level_text'] },
-  { tag: UPS_TAG, label: 'UPS', columns: ['status_text', 'battery_capacity_pct', 'ups_load_pct'] },
+  { tag: UPS_TAG, label: 'UPS', columns: ['status_text', 'battery_capacity_pct', 'ups_load_pct', 'room_temperature_c'] },
 ];
 
 function fieldsFor(columns: string[]): PatrolFieldSpec[] {
