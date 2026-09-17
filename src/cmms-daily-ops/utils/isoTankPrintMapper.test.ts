@@ -101,3 +101,41 @@ describe('buildIsoTankCargoSummary', () => {
     expect(summary.empty).toEqual({ count: 0, totalStockM3: 0, avgPressureMPa: 0, avgTempC: 0 });
   });
 });
+
+describe('incomplete-day record count (regression guard)', () => {
+  // NiasLaydownLogTab.tsx:130-132 uses an `ld1Count||9 + skidCount||1 + ld2Count||1`
+  // fallback-mock idiom (same shape as NiasCustodySettlementTab.tsx's `||14`/`||10`)
+  // that substitutes a hardcoded 11 whenever the real filtered count is 0. This
+  // bridge must NOT reproduce that idiom — a day with fewer than 11 saved records
+  // (e.g. an incomplete/partial patrol day) must render exactly that many tanks,
+  // never padded up to 11. Masking a real input gap in a safety-relevant daily
+  // report is the bug this test exists to catch.
+  it('an 8-record day yields exactly 8 cargo entries and Laden/Empty counts summing to 8, never 11', () => {
+    const records = Array.from({ length: 8 }, (_, i) =>
+      record({
+        tankNo: `ISOT-${100 + i}`,
+        position: i === 7 ? 'Laydown 2' : 'Laydown 1', // 1 empty, 7 laden
+        levelM3: 10,
+        pressureMPa: 0.7,
+        tempC: -126,
+      })
+    );
+
+    const domain = buildIsoTankCargoDomain(records, REPORT_DATE);
+    expect(Object.keys(domain)).toHaveLength(8);
+
+    const summary = buildIsoTankCargoSummary(records, REPORT_DATE);
+    expect(summary.laden.count).toBe(7);
+    expect(summary.empty.count).toBe(1);
+    expect(summary.laden.count + summary.empty.count).toBe(8);
+    expect(summary.laden.count + summary.empty.count).not.toBe(11);
+  });
+
+  it('a single-record day yields exactly 1 entry, not a padded fallback count', () => {
+    const records = [record({ tankNo: 'ISOT-200', position: 'Laydown 1' })];
+    expect(Object.keys(buildIsoTankCargoDomain(records, REPORT_DATE))).toHaveLength(1);
+    const summary = buildIsoTankCargoSummary(records, REPORT_DATE);
+    expect(summary.laden.count).toBe(1);
+    expect(summary.empty.count).toBe(0);
+  });
+});
