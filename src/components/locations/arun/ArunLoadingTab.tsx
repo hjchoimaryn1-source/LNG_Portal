@@ -11,7 +11,7 @@ import {
   Truck,
   Gauge,
 } from 'lucide-react';
-import { usePortalData } from '../../../context/PortalDataContext';
+import { useFleetTankFacade, useSettlementFacade } from '../../../hooks/portalDataFacade';
 import { NodeState } from '../../../types/lng';
 import { getTankPhysicalMetrics } from '../../../data/mockTankData';
 
@@ -66,9 +66,10 @@ export default function ArunLoadingTab({
   onSuccessToast,
   onNavigateToLedger,
 }: ArunLoadingTabProps) {
-  const portalData = usePortalData() || {};
-  const batchTransitionTanks = portalData.batchTransitionTanks || (() => {});
-  const addDeliveredMeasurement = portalData.addDeliveredMeasurement || (() => {});
+  const { batchTransitionTanks: rawBatchTransitionTanks } = useFleetTankFacade();
+  const { addDeliveredMeasurement: rawAddDeliveredMeasurement } = useSettlementFacade();
+  const batchTransitionTanks = rawBatchTransitionTanks || (() => {});
+  const addDeliveredMeasurement = rawAddDeliveredMeasurement || (() => {});
 
   const certifiedTanks = useMemo(() => {
     return Array.isArray(activeBatchRecords) ? activeBatchRecords : [];
