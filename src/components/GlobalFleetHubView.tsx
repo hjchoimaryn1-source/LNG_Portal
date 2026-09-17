@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { usePortalData } from '../context/PortalDataContext';
+import { useFleetTankFacade } from '../hooks/portalDataFacade/useFleetTankFacade';
 import { NodeState, FleetTankItem } from '../types/lng';
 import {
   Search,
@@ -55,7 +55,7 @@ const BUCKET_CONFIG: Record<BucketKey, { title: string; node: NodeState; icon: R
 };
 
 export default function GlobalFleetHubView() {
-  const { fleetTanks, batchTransitionTanks } = usePortalData();
+  const { fleetTanks, batchTransitionTanks } = useFleetTankFacade();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'ARUN' | 'SAVIOUR' | 'NIAS'>('ALL');
