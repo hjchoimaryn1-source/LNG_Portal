@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   RotateCcw,
 } from 'lucide-react';
-import { usePortalData } from '@/context/PortalDataContext';
+import { useSettlementFacade } from '@/hooks/portalDataFacade/useSettlementFacade';
 
 export interface TankMassBalanceRow {
   tankNo: string;
@@ -203,7 +203,7 @@ const DEFAULT_MASS_BALANCE_DATA: TankMassBalanceRow[] = [
 ];
 
 export default function NiasTankMassBalanceTab() {
-  const { settlementRecords } = usePortalData();
+  const { settlementRecords } = useSettlementFacade();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'DEPRESSURIZED' | 'OVERPRESSURE_VENT_REQUIRED'>('ALL');
