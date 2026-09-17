@@ -4,11 +4,17 @@
 //   FORM-NP-08-33-N p4: N2 Skid (10 cylinders + 3 skid areas), Electrical
 //   (MV SWGR / LV SWGR / TRAFO / UPS).
 
-import { PATROL_FIELD_MAP } from '../dao/patrolFieldMaps';
-import { N2_ALL_TAGS, ELECTRICAL_EQUIPMENT_TAGS } from '../dao/patrolEquipmentTags';
+import { PATROL_FIELD_MAP, type PatrolFieldSpec } from '../dao/patrolFieldMaps';
+import { N2_ALL_TAGS, ELECTRICAL_SUB_BLOCKS } from '../dao/patrolEquipmentTags';
 import { PrintSectionHeader } from './PrintSectionHeader';
 import { PrintFieldGrid } from './PrintFieldGrid';
 import type { PrintPageProps } from './PrintPage1';
+
+const ELECTRICAL_FIELDS = PATROL_FIELD_MAP.electrical;
+
+function electricalFieldsFor(columns: string[]): PatrolFieldSpec[] {
+  return columns.map((c) => ELECTRICAL_FIELDS.find((f) => f.columnName === c)!);
+}
 
 export function PrintPage4({ payload }: PrintPageProps) {
   return (
@@ -19,12 +25,12 @@ export function PrintPage4({ payload }: PrintPageProps) {
       ))}
 
       <PrintSectionHeader>F. ELECTRICAL (MV/LV SWGR, TRAFO, UPS)</PrintSectionHeader>
-      {ELECTRICAL_EQUIPMENT_TAGS.map((tag) => (
+      {ELECTRICAL_SUB_BLOCKS.map((block) => (
         <PrintFieldGrid
-          key={tag}
-          title={tag}
-          fields={PATROL_FIELD_MAP.electrical}
-          values={payload.domains.electrical?.[tag]}
+          key={block.tag}
+          title={block.tag}
+          fields={electricalFieldsFor(block.columns)}
+          values={payload.domains.electrical?.[block.tag]}
         />
       ))}
     </div>

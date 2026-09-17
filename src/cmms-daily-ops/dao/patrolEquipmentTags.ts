@@ -22,6 +22,26 @@ export const N2_ALL_TAGS = [...N2_CYLINDER_TAGS, ...N2_SKID_AREA_TAGS];
 export const GC_EQUIPMENT_TAG = 'GC-01';
 export const ELECTRICAL_EQUIPMENT_TAGS = ['MV-SWGR-01', 'LV-SWGR-01', 'TRAFO-01', 'UPS-01'];
 
+export interface ElectricalSubBlock {
+  tag: string;
+  label: string;
+  columns: string[];
+}
+
+const [MV_SWGR_TAG, LV_SWGR_TAG, TRAFO_TAG, UPS_TAG] = ELECTRICAL_EQUIPMENT_TAGS;
+
+// B1 폼(ElectricalPatrolForm.tsx)과 인쇄본(PrintPage4.tsx)이 공유하는 태그별
+// 컬럼 부분집합. PATROL_FIELD_MAP.electrical(9개 와이드 컬럼)을 서브블록
+// 성격에 맞게 나눠 쓴다 — 원래 ElectricalPatrolForm.tsx 로컬 정의였으나,
+// print 레이어가 재사용하려면 'use client' 컴포넌트 파일에 의존하는 역방향
+// 레이어링이 생기므로(본 파일 상단 주석과 동일한 문제) 여기로 이전.
+export const ELECTRICAL_SUB_BLOCKS: ElectricalSubBlock[] = [
+  { tag: MV_SWGR_TAG, label: 'MV SWGR', columns: ['status_text', 'bus_voltage', 'total_load_current_a', 'room_temperature_c'] },
+  { tag: LV_SWGR_TAG, label: 'LV SWGR', columns: ['status_text', 'bus_voltage', 'total_load_current_a', 'room_temperature_c'] },
+  { tag: TRAFO_TAG, label: 'TRAFO', columns: ['status_text', 'oil_temperature_c', 'winding_temperature_c', 'oil_level_text'] },
+  { tag: UPS_TAG, label: 'UPS', columns: ['status_text', 'battery_capacity_pct', 'ups_load_pct', 'room_temperature_c'] },
+];
+
 // FORM-NP-08-33-N p2 Section C(UNLOADING SKID) 대상 4기.
 export const ISO_TANK_UNLOADING_SKID_TAGS = ['T-201', 'T-202', 'T-203', 'T-204'];
 

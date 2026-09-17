@@ -11,7 +11,7 @@
 import { useState } from 'react';
 import { RAISED_PANEL, BEVEL_BUTTON, SUNKEN_PANEL } from '../../../components/cmms/scadaStyles';
 import { PATROL_FIELD_MAP, type PatrolFieldSpec } from '../../dao/patrolFieldMaps';
-import { ELECTRICAL_EQUIPMENT_TAGS } from '../../dao/patrolEquipmentTags';
+import { ELECTRICAL_EQUIPMENT_TAGS, ELECTRICAL_SUB_BLOCKS } from '../../dao/patrolEquipmentTags';
 import type { PatrolValues, PatrolFieldValue } from '../../dao/dailyOpsPatrolDao';
 import type { ReadingStatus, ShiftTimeSlot } from '../../types/patrolLog';
 import { ShiftSlotSelector } from './ShiftSlotSelector';
@@ -22,21 +22,6 @@ import { emptyPatrolValues, type PatrolSaveHandler } from './patrolFormTypes';
 export { ELECTRICAL_EQUIPMENT_TAGS };
 
 const ELECTRICAL_FIELDS = PATROL_FIELD_MAP.electrical;
-
-interface ElectricalSubBlock {
-  tag: string;
-  label: string;
-  columns: string[];
-}
-
-const [MV_SWGR_TAG, LV_SWGR_TAG, TRAFO_TAG, UPS_TAG] = ELECTRICAL_EQUIPMENT_TAGS;
-
-const ELECTRICAL_SUB_BLOCKS: ElectricalSubBlock[] = [
-  { tag: MV_SWGR_TAG, label: 'MV SWGR', columns: ['status_text', 'bus_voltage', 'total_load_current_a', 'room_temperature_c'] },
-  { tag: LV_SWGR_TAG, label: 'LV SWGR', columns: ['status_text', 'bus_voltage', 'total_load_current_a', 'room_temperature_c'] },
-  { tag: TRAFO_TAG, label: 'TRAFO', columns: ['status_text', 'oil_temperature_c', 'winding_temperature_c', 'oil_level_text'] },
-  { tag: UPS_TAG, label: 'UPS', columns: ['status_text', 'battery_capacity_pct', 'ups_load_pct', 'room_temperature_c'] },
-];
 
 function fieldsFor(columns: string[]): PatrolFieldSpec[] {
   return columns.map((c) => ELECTRICAL_FIELDS.find((f) => f.columnName === c)!);
