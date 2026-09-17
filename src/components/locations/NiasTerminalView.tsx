@@ -2,7 +2,9 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { usePortalData } from '../../context/PortalDataContext';
+import { useFleetTankFacade } from '../../hooks/portalDataFacade/useFleetTankFacade';
+import { useDailyMasterFacade } from '../../hooks/portalDataFacade/useDailyMasterFacade';
+import { useSettlementFacade } from '../../hooks/portalDataFacade/useSettlementFacade';
 import { useTheme } from '../../context/ThemeContext';
 import SettlementAuditView from '../SettlementAuditView';
 import NiasOperationalOverviewTab from './nias/NiasOperationalOverviewTab';
@@ -163,22 +165,24 @@ export default function NiasTerminalView({
   const { theme, isDark } = useTheme();
   const {
     fleetTanks,
-    dailyMasterRecords,
     activeBays,
     updateTankLog,
     moveTankLocation,
-    saveDailyInspectionRecord,
-    batchUpdateDailyMasterRecords,
     batchTransitionTanks,
     mountTankToBay,
     unmountBay,
     toggleBayRunning,
     markTankForMaintenance,
-    settlementRecords,
-    addDepressurizationLog,
     recordPostRegasOffload,
     authorizeBackhaulClearance,
-  } = usePortalData();
+  } = useFleetTankFacade();
+  const {
+    dailyMasterRecords,
+    saveDailyInspectionRecord,
+    batchUpdateDailyMasterRecords,
+    addDepressurizationLog,
+  } = useDailyMasterFacade();
+  const { settlementRecords } = useSettlementFacade();
 
   // Determine initial active domain / tank sub-tab / regas sub-tab —
   // extracted to resolveNiasInitialView.ts (pure, unit-tested).
