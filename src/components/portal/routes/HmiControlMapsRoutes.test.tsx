@@ -9,6 +9,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { __resetDailyOpsPatrolStoreForTests } from '../../../cmms-daily-ops/state/useDailyOpsPatrolStore';
 import { DailyOpsDataProvider } from '../../../context/DailyOpsDataContext';
+import type { SubProcessKey } from '../../../types/lng';
 
 const { default: HmiControlMapsRoutes } = await import('./HmiControlMapsRoutes');
 
@@ -29,7 +30,7 @@ function stubFetch() {
   );
 }
 
-async function mount(activeKey: 'DAILY_OPS_HMI_OVERVIEW' | 'DAILY_OPS_LIVE_PID_MAP') {
+async function mount(activeKey: SubProcessKey) {
   container = document.createElement('div');
   document.body.appendChild(container);
   root = createRoot(container);
@@ -70,5 +71,20 @@ describe('HmiControlMapsRoutes — HMI CONTROL MAPS 섹터', () => {
     const text = container!.textContent ?? '';
     expect(text).toContain('P&ID LIVE OVERLAY');
     expect(text).not.toContain('HMI OVERVIEW');
+  });
+
+  it('renders Metering placeholder for HMI_METERING_MAP', async () => {
+    await mount('HMI_METERING_MAP');
+    expect(container!.textContent ?? '').toContain('Metering HMI Map');
+  });
+
+  it('renders Buffering placeholder for HMI_BUFFERING_MAP', async () => {
+    await mount('HMI_BUFFERING_MAP');
+    expect(container!.textContent ?? '').toContain('Buffering HMI Map');
+  });
+
+  it('renders Vapor placeholder for HMI_VAPOR_MAP', async () => {
+    await mount('HMI_VAPOR_MAP');
+    expect(container!.textContent ?? '').toContain('Vapor HMI Map');
   });
 });

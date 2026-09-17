@@ -9,6 +9,9 @@ import { SubProcessKey } from '../types/lng';
 import { PIDOverlayView } from '../cmms-daily-ops/pid/PIDOverlayView';
 import { HmiOverviewContainer } from '../cmms-daily-ops/hmi-overview/HmiOverviewContainer';
 import { today } from '../cmms-daily-ops/utils/dailyOpsDateHelpers';
+import { MeteringHmiPlaceholderView } from '../cmms-hmi-control-maps/MeteringHmiPlaceholderView';
+import { BufferingHmiPlaceholderView } from '../cmms-hmi-control-maps/BufferingHmiPlaceholderView';
+import { VaporHmiPlaceholderView } from '../cmms-hmi-control-maps/VaporHmiPlaceholderView';
 
 export interface HmiControlMapEntry {
   key: SubProcessKey;
@@ -32,5 +35,20 @@ export const HMI_CONTROL_MAPS_REGISTRY: HmiControlMapEntry[] = [
     key: 'DAILY_OPS_HMI_OVERVIEW',
     label: 'HMI Overview',
     component: () => <HmiOverviewContainer reportDate={today()} />,
+  },
+  {
+    key: 'HMI_METERING_MAP',
+    label: 'Metering',
+    component: MeteringHmiPlaceholderView,
+  },
+  {
+    key: 'HMI_BUFFERING_MAP',
+    label: 'Buffering',
+    component: BufferingHmiPlaceholderView,
+  },
+  {
+    key: 'HMI_VAPOR_MAP',
+    label: 'Vapor',
+    component: VaporHmiPlaceholderView,
   },
 ];

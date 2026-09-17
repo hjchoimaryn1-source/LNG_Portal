@@ -102,7 +102,11 @@ export type SubProcessKey =
   | 'DAILY_OPS_OVERVIEW'
   // HMI Overview — Phase 12 Daily Ops Sub-stage C. Parallel to DAILY_OPS_LIVE_PID_MAP
   // (raster-overlay), not a replacement — HJ decision 2026-09-15, see HmiOverviewContainer.tsx.
-  | 'DAILY_OPS_HMI_OVERVIEW';
+  | 'DAILY_OPS_HMI_OVERVIEW'
+  // --- HMI Control Maps (own sector, not Daily Ops — see hmiControlMapsRegistry.tsx) ---
+  | 'HMI_METERING_MAP'
+  | 'HMI_BUFFERING_MAP'
+  | 'HMI_VAPOR_MAP';
 
 export interface OffloadHeelMetrics {
   offloadDate: string;
