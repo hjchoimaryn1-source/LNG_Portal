@@ -15,7 +15,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { DailyReportSnapshotPayload } from '../dao/dailyReportSnapshotDao';
 import type { CriticalEvent, SafetyNotes, Signature } from '../dao/dailyReportChildDao';
 import { PRINT_STYLES } from './printStyles';
@@ -24,6 +24,7 @@ import { PrintPage2 } from './PrintPage2';
 import { PrintPage3 } from './PrintPage3';
 import { PrintPage4 } from './PrintPage4';
 import { PrintPage5 } from './PrintPage5';
+import { useIsoTankPrintBridge } from '../hooks/useIsoTankPrintBridge';
 
 const SNAPSHOTS_API = '/api/v1/cmms/daily-report-snapshots';
 const CRITICAL_EVENTS_API = '/api/v1/cmms/daily-report-critical-events';
@@ -45,6 +46,7 @@ interface LoadedReport {
 export function DailyReportPrintView({ reportDate }: DailyReportPrintViewProps) {
   const [report, setReport] = useState<LoadedReport | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { isoTankUnloadingSkid, isoTankCargo, isoTankCargoSummary } = useIsoTankPrintBridge(reportDate);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,20 +91,37 @@ export function DailyReportPrintView({ reportDate }: DailyReportPrintViewProps) 
     };
   }, [reportDate]);
 
+  // Section C(iso_tank_unloading_skid)/D(iso_tank_cargo) 도메인을 실데이터로 덮어쓴다.
+  // 서버 스냅샷(daily_report_snapshots)은 두 도메인 모두 순찰 폼이 없어 항상 null을
+  // 반환하므로(dailyReportSnapshotDao.ts 주석 참고), NiasActiveBayWorkspace.tsx /
+  // NiasLaydownLogTab.tsx가 쓰는 dailyMasterRecords(PortalDataContext, 브라우저 전용)를
+  // 클라이언트 측에서 병합한다 — 두 소스 파일과 스냅샷 DAO는 무수정.
+  const bridgedPayload: DailyReportSnapshotPayload | null = useMemo(() => {
+    if (!report) return null;
+    return {
+      ...report.payload,
+      domains: {
+        ...report.payload.domains,
+        iso_tank_unloading_skid: isoTankUnloadingSkid,
+        iso_tank_cargo: isoTankCargo,
+      },
+    };
+  }, [report, isoTankUnloadingSkid, isoTankCargo]);
+
   if (error) {
     return <div className="print-gap-notice">{error}</div>;
   }
-  if (!report) {
+  if (!report || !bridgedPayload) {
     return <div>Loading...</div>;
   }
 
   return (
     <div>
       <style>{PRINT_STYLES}</style>
-      <PrintPage1 payload={report.payload} />
-      <PrintPage2 payload={report.payload} />
-      <PrintPage3 payload={report.payload} />
-      <PrintPage4 payload={report.payload} />
+      <PrintPage1 payload={bridgedPayload} />
+      <PrintPage2 payload={bridgedPayload} />
+      <PrintPage3 payload={bridgedPayload} cargoSummary={isoTankCargoSummary} />
+      <PrintPage4 payload={bridgedPayload} />
       <PrintPage5
         criticalEvents={report.criticalEvents}
         safetyNotes={report.safetyNotes}

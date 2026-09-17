@@ -3,6 +3,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { DailyReportPrintView } from './DailyReportPrintView';
+import { PortalDataProvider } from '../../context/PortalDataContext';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -68,7 +69,11 @@ async function mountAndFlush() {
   document.body.appendChild(container);
   root = createRoot(container);
   await act(async () => {
-    root!.render(<DailyReportPrintView reportDate="2026-09-14" />);
+    root!.render(
+      <PortalDataProvider>
+        <DailyReportPrintView reportDate="2026-09-14" />
+      </PortalDataProvider>
+    );
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
