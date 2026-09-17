@@ -103,15 +103,18 @@ export const PATROL_FIELD_MAP: Record<PatrolDomain, PatrolFieldSpec[]> = {
     { columnName: 'helium_cylinder_spare', label: 'Helium Cylinder (Spare)', shortLabel: 'He 실린더(Spare)', unit: '', type: 'text' },
   ],
   electrical: [
-    { columnName: 'status_text', label: '상태', unit: '', type: 'text' },
-    { columnName: 'bus_voltage', label: '모선 전압', unit: 'V', type: 'number' },
-    { columnName: 'total_load_current_a', label: '전체 부하 전류', unit: 'A', type: 'number' },
-    { columnName: 'room_temperature_c', label: '실내 온도', unit: '°C', type: 'number' },
-    { columnName: 'oil_temperature_c', label: '유온', unit: '°C', type: 'number' },
-    { columnName: 'winding_temperature_c', label: '권선 온도', unit: '°C', type: 'number' },
-    { columnName: 'oil_level_text', label: '유면', unit: '', type: 'text' },
-    { columnName: 'battery_capacity_pct', label: '배터리 용량', unit: '%', type: 'number' },
-    { columnName: 'ups_load_pct', label: 'UPS 부하율', unit: '%', type: 'number' },
+    { columnName: 'status_text', label: 'Status', shortLabel: '상태', unit: '', type: 'text' },
+    // Bus Voltage: 원문엔 MV SWGR "kV" / LV SWGR "V"로 태그별 단위가 다르게 적혀 있으나,
+    // label 자체엔 단위를 박지 않는다 — Stage 3(PrintPage4.tsx forMvBusVoltageDisplay)가
+    // 인쇄 시점에 태그별로 올바른 unit을 이미 붙여준다.
+    { columnName: 'bus_voltage', label: 'Bus Voltage', shortLabel: '모선 전압', unit: 'V', type: 'number' },
+    { columnName: 'total_load_current_a', label: 'Total Load Current', shortLabel: '전체 부하 전류', unit: 'A', type: 'number' },
+    { columnName: 'room_temperature_c', label: 'Room Temperature', shortLabel: '실내 온도', unit: '°C', type: 'number' },
+    { columnName: 'oil_temperature_c', label: 'Oil Temperature', shortLabel: '유온', unit: '°C', type: 'number' },
+    { columnName: 'winding_temperature_c', label: 'Winding Temperature', shortLabel: '권선 온도', unit: '°C', type: 'number' },
+    { columnName: 'oil_level_text', label: 'Oil Level', shortLabel: '유면', unit: '', type: 'text' },
+    { columnName: 'battery_capacity_pct', label: 'Battery Capacity', shortLabel: '배터리 용량', unit: '%', type: 'number' },
+    { columnName: 'ups_load_pct', label: 'UPS Load', shortLabel: 'UPS 부하율', unit: '%', type: 'number' },
   ],
   // Unloading Skid(T-201~204)는 IsoTankUnloadingSkidPatrolForm.tsx(4-HR PATROL LOG
   // 4번째 서브탭)로 라이브 저장 연결됨 — NiasActiveBayWorkspace.tsx는 별개

@@ -52,14 +52,14 @@ const BASE_PAYLOAD: DailyReportSnapshotPayload = {
 describe('PrintPage4 electrical section', () => {
   it('converts MV-SWGR-01 bus_voltage to kV for display, leaving the raw payload untouched', () => {
     mount(BASE_PAYLOAD);
-    expect(container!.textContent).toContain('모선 전압 (kV)');
+    expect(container!.textContent).toContain('Bus Voltage (kV)');
     expect(container!.textContent).toContain('20');
     expect(BASE_PAYLOAD.domains.electrical!['MV-SWGR-01']!.bus_voltage).toBe(20000);
   });
 
   it('keeps LV-SWGR-01 bus_voltage in V, unconverted', () => {
     mount(BASE_PAYLOAD);
-    expect(container!.textContent).toContain('모선 전압 (V)');
+    expect(container!.textContent).toContain('Bus Voltage (V)');
     expect(container!.textContent).toContain('400');
   });
 
@@ -68,13 +68,13 @@ describe('PrintPage4 electrical section', () => {
     const tables = Array.from(container!.querySelectorAll('table.print-field-grid'));
 
     const trafoTable = tables.find((t) => t.querySelector('caption')?.textContent === 'TRAFO-01')!;
-    expect(trafoTable.textContent).not.toContain('모선 전압');
-    expect(trafoTable.textContent).toContain('권선 온도');
+    expect(trafoTable.textContent).not.toContain('Bus Voltage');
+    expect(trafoTable.textContent).toContain('Winding Temperature');
 
     const upsTable = tables.find((t) => t.querySelector('caption')?.textContent === 'UPS-01')!;
-    expect(upsTable.textContent).not.toContain('모선 전압');
-    expect(upsTable.textContent).not.toContain('유온');
+    expect(upsTable.textContent).not.toContain('Bus Voltage');
+    expect(upsTable.textContent).not.toContain('Oil Temperature');
     // Defect (2): UPS should now include room temperature.
-    expect(upsTable.textContent).toContain('실내 온도');
+    expect(upsTable.textContent).toContain('Room Temperature');
   });
 });
