@@ -6,6 +6,7 @@ import { useFleetTankFacade } from '../hooks/portalDataFacade/useFleetTankFacade
 import { NodeState, SubProcessKey } from '../types/lng';
 import { COMPANY_CONFIG } from '../config/siteConfig';
 import { NIAS_TANK_YARD_KEYS, NIAS_GAS_PROCESS_KEYS } from './portal/subtabs/LngProcessSubTabs';
+import { HMI_CONTROL_MAPS_REGISTRY } from '../config/hmiControlMapsRegistry';
 
 interface SidebarNavProps {
   activeKey: SubProcessKey;
@@ -177,9 +178,19 @@ export default function SidebarNav({
             )}
             {SHOW_ISO_TANK_LOGISTICS_TAB && renderNavItem('DAILY_OPS_ISO_TANK_LOGISTICS', 'ISO Tank Logistics')}
             {renderNavItem('DAILY_OPS_ELECTRICAL_SYSTEM', 'Electrical System')}
-            {renderNavItem('DAILY_OPS_LIVE_PID_MAP', 'Live P&ID Map')}
-            {renderNavItem('DAILY_OPS_HMI_OVERVIEW', 'HMI Overview')}
             {renderNavItem('DAILY_OPS_OVERVIEW', 'Daily Ops Overview')}
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* 1B. HMI CONTROL MAPS (레지스트리 기반 — 신규 화면은 항목 추가만으로 반영)   */}
+        {/* ========================================================================= */}
+        <div>
+          <div className={SECTION_HEADER_BEVEL}>
+            <span>HMI Control Maps</span>
+          </div>
+          <div className="bg-[#d4d0c8]">
+            {HMI_CONTROL_MAPS_REGISTRY.map((entry) => renderNavItem(entry.key, entry.label))}
           </div>
         </div>
 

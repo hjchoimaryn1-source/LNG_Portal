@@ -1,7 +1,11 @@
 // src/components/portal/utils/getInitialNav.ts
 import { SubProcessKey } from '../../../types/lng';
+import { HMI_CONTROL_MAPS_REGISTRY, HMI_CONTROL_MAPS_MENU } from '../../../config/hmiControlMapsRegistry';
 
 export function getInitialNav(key: SubProcessKey): { menu: string; subTab: string } {
+  if (HMI_CONTROL_MAPS_REGISTRY.some((entry) => entry.key === key)) {
+    return { menu: HMI_CONTROL_MAPS_MENU, subTab: key };
+  }
   if (key === 'LNG_PROCESS_OVERVIEW' || key === 'NIAS_TERMINAL_OVERVIEW') {
     return { menu: 'lng-process', subTab: 'LNG_PROCESS_OVERVIEW' };
   }

@@ -11,10 +11,7 @@ import NiasRegasGasProcessView from '../../locations/NiasRegasGasProcessView';
 import NiasOperationalOverviewTab from '../../locations/nias/NiasOperationalOverviewTab';
 import { IsoTankLogisticsPlaceholderView } from '../../../cmms-daily-ops/views/IsoTankLogisticsPlaceholderView';
 import { ElectricalSystemView } from '../../../cmms-daily-ops/views/ElectricalSystemView';
-import { PIDOverlayView } from '../../../cmms-daily-ops/pid/PIDOverlayView';
 import { DailyOpsOverviewView } from '../../../cmms-daily-ops/views/DailyOpsOverviewView';
-import { HmiOverviewContainer } from '../../../cmms-daily-ops/hmi-overview/HmiOverviewContainer';
-import { today } from '../../../cmms-daily-ops/utils/dailyOpsDateHelpers';
 
 interface LngProcessRoutesProps {
   activeKey: SubProcessKey;
@@ -108,15 +105,11 @@ export default function LngProcessRoutes({ activeKey, activeSubTab, handleSelect
       )}
 
       {/* ========================================================= */}
-      {/* Daily Ops — Phase 12 Stage C4 (4 new LNG-Process tabs)    */}
+      {/* Daily Ops — Phase 12 Stage C4 (Live P&ID Map / HMI Overview는
+          HMI CONTROL MAPS 섹터로 이전 — HmiControlMapsRoutes.tsx 참고)    */}
       {/* ========================================================= */}
       {activeKey === 'DAILY_OPS_ISO_TANK_LOGISTICS' && <IsoTankLogisticsPlaceholderView />}
       {activeKey === 'DAILY_OPS_ELECTRICAL_SYSTEM' && <ElectricalSystemView />}
-      {activeKey === 'DAILY_OPS_LIVE_PID_MAP' && <PIDOverlayView />}
-
-      {/* HMI Overview — Sub-stage C. Parallel to Live P&ID Map (raster-overlay),
-          not a replacement — HJ decision 2026-09-15. */}
-      {activeKey === 'DAILY_OPS_HMI_OVERVIEW' && <HmiOverviewContainer reportDate={today()} />}
 
       {/* Phase 12 Pre-Flight III — 승인 상태 머신 + RBAC 편입 */}
       {activeKey === 'DAILY_OPS_OVERVIEW' && <DailyOpsOverviewView />}

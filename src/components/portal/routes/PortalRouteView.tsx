@@ -5,6 +5,7 @@ import React from 'react';
 import { SubProcessKey } from '../../../types/lng';
 import { ManpowerTabKey } from '../utils/manpowerTabConstants';
 import LngProcessRoutes from './LngProcessRoutes';
+import HmiControlMapsRoutes from './HmiControlMapsRoutes';
 import EquipmentRoutes from './EquipmentRoutes';
 import WorkOrderRoutes from './WorkOrderRoutes';
 import ManpowerSafetyRoutes from './ManpowerSafetyRoutes';
@@ -49,6 +50,7 @@ export default function PortalRouteView({
         activeSubTab={activeSubTab}
         handleSelectSubProcess={handleSelectSubProcess}
       />
+      <HmiControlMapsRoutes activeKey={activeKey} />
       <EquipmentRoutes
         activeKey={activeKey}
         equipmentFilter={equipmentFilter}

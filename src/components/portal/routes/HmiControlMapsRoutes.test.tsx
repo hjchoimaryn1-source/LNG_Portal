@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 //
-// Sub-stage C regression guard — confirms the new DAILY_OPS_HMI_OVERVIEW tab
-// renders HmiOverviewContainer, and (more importantly) that adding it did not
-// disturb the existing DAILY_OPS_LIVE_PID_MAP -> PIDOverlayView branch.
+// HMI CONTROL MAPS 섹터 이전 회귀 가드 — DAILY_OPS_LIVE_PID_MAP / DAILY_OPS_HMI_OVERVIEW가
+// LngProcessRoutes.tsx에서 HmiControlMapsRoutes.tsx로 이전된 뒤에도 각자 올바른 컴포넌트를
+// 렌더링하는지 확인한다(구 LngProcessRoutes.test.tsx의 Sub-stage C 회귀 가드를 대체).
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
@@ -10,7 +10,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { __resetDailyOpsPatrolStoreForTests } from '../../../cmms-daily-ops/state/useDailyOpsPatrolStore';
 import { DailyOpsDataProvider } from '../../../context/DailyOpsDataContext';
 
-const { default: LngProcessRoutes } = await import('./LngProcessRoutes');
+const { default: HmiControlMapsRoutes } = await import('./HmiControlMapsRoutes');
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -36,7 +36,7 @@ async function mount(activeKey: 'DAILY_OPS_HMI_OVERVIEW' | 'DAILY_OPS_LIVE_PID_M
   await act(async () => {
     root!.render(
       <DailyOpsDataProvider>
-        <LngProcessRoutes activeKey={activeKey} activeSubTab="" handleSelectSubProcess={() => {}} />
+        <HmiControlMapsRoutes activeKey={activeKey} />
       </DailyOpsDataProvider>
     );
     await Promise.resolve();
@@ -55,7 +55,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('LngProcessRoutes — DAILY_OPS_HMI_OVERVIEW (Sub-stage C)', () => {
+describe('HmiControlMapsRoutes — HMI CONTROL MAPS 섹터', () => {
   it('renders HmiOverviewContainer when active, not PIDOverlayView', async () => {
     stubFetch();
     await mount('DAILY_OPS_HMI_OVERVIEW');
