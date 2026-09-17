@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ActiveBayState, DailyMasterRecord } from '@/types/lng';
 import { NiasTankAsset } from '../NiasTerminalView';
-import { usePortalData } from '@/context/PortalDataContext';
+import { useFleetTankFacade } from '@/hooks/portalDataFacade/useFleetTankFacade';
+import { useDailyMasterFacade } from '@/hooks/portalDataFacade/useDailyMasterFacade';
 import { XCircle } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -30,7 +31,8 @@ export function NiasActiveBayWorkspace({
   linkedArunBaseline,
   zoneStats,
 }: NiasActiveBayWorkspaceProps) {
-  const { activeBays, toggleBayRunning, unmountBay, batchUpdateDailyMasterRecords } = usePortalData();
+  const { activeBays, toggleBayRunning, unmountBay } = useFleetTankFacade();
+  const { batchUpdateDailyMasterRecords } = useDailyMasterFacade();
 
   const [activeDrawerBayId, setActiveDrawerBayId] = useState<string | null>(null);
   const [activeDrawerType, setActiveDrawerType] = useState<'PATROL' | 'DISCONNECT' | null>(null);
