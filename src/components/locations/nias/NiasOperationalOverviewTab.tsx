@@ -29,7 +29,8 @@ import {
   Radio,
   Boxes,
 } from 'lucide-react';
-import { usePortalData } from '@/context/PortalDataContext';
+import { useFleetTankFacade } from '@/hooks/portalDataFacade/useFleetTankFacade';
+import { useSettlementFacade } from '@/hooks/portalDataFacade/useSettlementFacade';
 import { NodeState } from '@/types/lng';
 import {
   PLTMG_OVERVIEW_BASELINE_DISPATCH,
@@ -45,7 +46,8 @@ interface NiasOperationalOverviewTabProps {
 type ProcessBlockId = 'BLOCK_1_ARUN' | 'BLOCK_2_SAVIOUR' | 'BLOCK_3_NIAS_YARD' | 'BLOCK_4_REGAS_PRSS' | 'BLOCK_5_NIAS_LAYDOWN_2' | 'BLOCK_5_PLTMG_PLANT';
 
 export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOperationalOverviewTabProps) {
-  const { fleetTanks, gasCompositions, activeBays, settlementRecords } = usePortalData();
+  const { fleetTanks, activeBays } = useFleetTankFacade();
+  const { gasCompositions, settlementRecords } = useSettlementFacade();
 
   const [activeModalBlock, setActiveModalBlock] = useState<ProcessBlockId | null>(null);
 
