@@ -27,6 +27,7 @@ import {
   NG_BUFFER_TANK_TYPICAL_MAX_BARG,
 } from '../hmiOverviewConstants';
 import { setLatestPatrolEntry, __resetDailyOpsPatrolStoreForTests } from '../../state/useDailyOpsPatrolStore';
+import { FALLBACK_PRIMARY_COLUMN_BY_DOMAIN, FALLBACK_SECONDARY_COLUMN_BY_DOMAIN } from '../hmiOverviewColumnMap';
 import type { OverviewHmiData } from '../hmiOverviewTypes';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -291,5 +292,74 @@ describe('useOverviewHmiData', () => {
     const data = await readHookResult();
     const unit = data.units.find((u) => u.equipmentTag === ISO_TANK_SLOT.equipmentTag)!;
     expect(unit.status).toBe('WARNING');
+  });
+});
+
+// 2026-09-17 (HJ-approved) — AAV U/S -> D/S fallback. The 2026-09-15 Daily
+// Operation Report backfill (dailyOpsPatrolPdfSeed.ts) only ever supplies D/S
+// (pressure_transmitter_ds_bar/temperature_transmitter_ds_c) values for AAV,
+// never the U/S columns AAV_SLOT.primaryColumn/secondaryColumn point at — so
+// this covers the fallback path directly, seeding the store the same way
+// DailyOpsDataContext.refresh() would from the real seeded rows.
+describe('useOverviewHmiData — AAV D/S fallback', () => {
+  const AAV_FALLBACK_PRIMARY_COLUMN = FALLBACK_PRIMARY_COLUMN_BY_DOMAIN.aav!;
+  const AAV_FALLBACK_SECONDARY_COLUMN = FALLBACK_SECONDARY_COLUMN_BY_DOMAIN.aav!;
+  const AAV_SLOTS = OVERVIEW_UNIT_SLOTS.filter((s) => s.domain === 'aav');
+
+  // Mirrors the 4 seeded rows (dailyOpsPatrolPdfSeed.ts): AAV-102/103/105/106.
+  const SEEDED_DS_VALUES: Record<string, { pressure: number; temp: number }> = {
+    'AAV-102': { pressure: 5.1, temp: 26.87 },
+    'AAV-103': { pressure: 5.05, temp: 26.81 },
+    'AAV-105': { pressure: 6.65, temp: 26.87 },
+    'AAV-106': { pressure: 5.11, temp: 26.73 },
+  };
+
+  it('resolves each seeded AAV tag to its D/S value when the U/S column is absent', async () => {
+    act(() => {
+      for (const slot of AAV_SLOTS) {
+        const seeded = SEEDED_DS_VALUES[slot.equipmentTag];
+        setLatestPatrolEntry(slot.domain, slot.equipmentTag, {
+          [AAV_FALLBACK_PRIMARY_COLUMN]: seeded.pressure,
+          [AAV_FALLBACK_SECONDARY_COLUMN]: seeded.temp,
+        });
+      }
+    });
+    const data = await readHookResult();
+    for (const slot of AAV_SLOTS) {
+      const seeded = SEEDED_DS_VALUES[slot.equipmentTag];
+      const unit = data.units.find((u) => u.equipmentTag === slot.equipmentTag)!;
+      expect(unit.primaryValue).toBe(seeded.pressure);
+      expect(unit.secondaryValue).toBe(seeded.temp);
+      expect(unit.status).not.toBe('OFFLINE');
+    }
+  });
+
+  it('prefers the U/S value over the D/S fallback when both are present', async () => {
+    act(() => {
+      setLatestPatrolEntry(AAV_SLOT.domain, AAV_SLOT.equipmentTag, {
+        [AAV_SLOT.primaryColumn]: 3.2,
+        [AAV_SLOT.secondaryColumn]: -162.1,
+        [AAV_FALLBACK_PRIMARY_COLUMN]: 5.1,
+        [AAV_FALLBACK_SECONDARY_COLUMN]: 26.87,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === AAV_SLOT.equipmentTag)!;
+    expect(unit.primaryValue).toBe(3.2);
+    expect(unit.secondaryValue).toBe(-162.1);
+  });
+
+  it('does not apply the D/S fallback to non-AAV domains (metering_train_a has no fallback column)', async () => {
+    act(() => {
+      setLatestPatrolEntry(METERING_A_SLOT.domain, METERING_A_SLOT.equipmentTag, {
+        // Same column name AAV's fallback uses, but under a domain with no
+        // FALLBACK_PRIMARY_COLUMN_BY_DOMAIN entry — must be ignored.
+        [AAV_FALLBACK_PRIMARY_COLUMN]: 999,
+      });
+    });
+    const data = await readHookResult();
+    const unit = data.units.find((u) => u.equipmentTag === METERING_A_SLOT.equipmentTag)!;
+    expect(unit.primaryValue).toBeNull();
+    expect(unit.status).toBe('OFFLINE');
   });
 });

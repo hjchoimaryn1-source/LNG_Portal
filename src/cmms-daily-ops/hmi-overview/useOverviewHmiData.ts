@@ -49,107 +49,13 @@
 import { useEffect } from 'react';
 import { useDailyOpsPatrolValue } from '../state/useDailyOpsPatrolStore';
 import { useDailyOpsData } from '../../context/DailyOpsDataContext';
-import type { HmiOverviewUnitStatus, OverviewHmiData, OverviewHmiUnit } from './hmiOverviewTypes';
+import type { OverviewHmiData, OverviewHmiUnit } from './hmiOverviewTypes';
 import { OVERVIEW_UNIT_SLOTS } from './overviewUnitSlots';
-import {
-  AAV_NORMAL_MAX_BAR,
-  AAV_NORMAL_MIN_BAR,
-  AAV_TYPICAL_MAX_BAR,
-  AAV_TYPICAL_MIN_BAR,
-  GC_METHANE_NORMAL_MAX_PCT,
-  GC_METHANE_NORMAL_MIN_PCT,
-  GC_METHANE_TYPICAL_MAX_PCT,
-  GC_METHANE_TYPICAL_MIN_PCT,
-  ISO_TANK_UNLOADING_SKID_NORMAL_MAX_PCT,
-  ISO_TANK_UNLOADING_SKID_NORMAL_MIN_PCT,
-  ISO_TANK_UNLOADING_SKID_TYPICAL_MAX_PCT,
-  ISO_TANK_UNLOADING_SKID_TYPICAL_MIN_PCT,
-  METERING_TRAIN_NORMAL_MAX_BARG,
-  METERING_TRAIN_NORMAL_MIN_BARG,
-  METERING_TRAIN_TYPICAL_MAX_BARG,
-  METERING_TRAIN_TYPICAL_MIN_BARG,
-  N2_SKID_NORMAL_MAX_BAR,
-  N2_SKID_NORMAL_MIN_BAR,
-  N2_SKID_TYPICAL_MAX_BAR,
-  N2_SKID_TYPICAL_MIN_BAR,
-  NG_BUFFER_TANK_NORMAL_MAX_BARG,
-  NG_BUFFER_TANK_NORMAL_MIN_BARG,
-  NG_BUFFER_TANK_TYPICAL_MAX_BARG,
-  NG_BUFFER_TANK_TYPICAL_MIN_BARG,
-} from './hmiOverviewConstants';
-
-interface DomainBand {
-  normalMin: number;
-  normalMax: number;
-  typicalMin: number;
-  typicalMax: number;
-}
-
-// isThresholdValidated: true only for ng_buffer_tank (HJ-confirmed band). Every other
-// entry here is a Stage 1 PLACEHOLDER — see hmiOverviewConstants.ts header.
-const DOMAIN_BANDS: Partial<Record<string, DomainBand>> = {
-  ng_buffer_tank: {
-    normalMin: NG_BUFFER_TANK_NORMAL_MIN_BARG,
-    normalMax: NG_BUFFER_TANK_NORMAL_MAX_BARG,
-    typicalMin: NG_BUFFER_TANK_TYPICAL_MIN_BARG,
-    typicalMax: NG_BUFFER_TANK_TYPICAL_MAX_BARG,
-  },
-  aav: {
-    normalMin: AAV_NORMAL_MIN_BAR,
-    normalMax: AAV_NORMAL_MAX_BAR,
-    typicalMin: AAV_TYPICAL_MIN_BAR,
-    typicalMax: AAV_TYPICAL_MAX_BAR,
-  },
-  metering_train_a: {
-    normalMin: METERING_TRAIN_NORMAL_MIN_BARG,
-    normalMax: METERING_TRAIN_NORMAL_MAX_BARG,
-    typicalMin: METERING_TRAIN_TYPICAL_MIN_BARG,
-    typicalMax: METERING_TRAIN_TYPICAL_MAX_BARG,
-  },
-  metering_train_b: {
-    normalMin: METERING_TRAIN_NORMAL_MIN_BARG,
-    normalMax: METERING_TRAIN_NORMAL_MAX_BARG,
-    typicalMin: METERING_TRAIN_TYPICAL_MIN_BARG,
-    typicalMax: METERING_TRAIN_TYPICAL_MAX_BARG,
-  },
-  n2_skid: {
-    normalMin: N2_SKID_NORMAL_MIN_BAR,
-    normalMax: N2_SKID_NORMAL_MAX_BAR,
-    typicalMin: N2_SKID_TYPICAL_MIN_BAR,
-    typicalMax: N2_SKID_TYPICAL_MAX_BAR,
-  },
-  gc: {
-    normalMin: GC_METHANE_NORMAL_MIN_PCT,
-    normalMax: GC_METHANE_NORMAL_MAX_PCT,
-    typicalMin: GC_METHANE_TYPICAL_MIN_PCT,
-    typicalMax: GC_METHANE_TYPICAL_MAX_PCT,
-  },
-  iso_tank_unloading_skid: {
-    normalMin: ISO_TANK_UNLOADING_SKID_NORMAL_MIN_PCT,
-    normalMax: ISO_TANK_UNLOADING_SKID_NORMAL_MAX_PCT,
-    typicalMin: ISO_TANK_UNLOADING_SKID_TYPICAL_MIN_PCT,
-    typicalMax: ISO_TANK_UNLOADING_SKID_TYPICAL_MAX_PCT,
-  },
-};
-
-const THRESHOLD_VALIDATED_DOMAINS = new Set<string>(['ng_buffer_tank']);
+import { useAavDsFallbackValues } from './useAavDsFallbackValues';
+import { resolveWithFallback } from './hmiOverviewColumnMap';
+import { deriveStatus, toNumber, THRESHOLD_VALIDATED_DOMAINS } from './hmiOverviewStatusUtils';
 
 const CROSS_DEVICE_POLL_INTERVAL_MS = 20_000;
-
-function deriveStatus(domain: string, primaryValue: number | null): HmiOverviewUnitStatus {
-  if (primaryValue === null) return 'OFFLINE';
-  const band = DOMAIN_BANDS[domain];
-  if (!band) return 'NORMAL';
-  if (primaryValue < band.normalMin || primaryValue > band.normalMax) return 'ALARM';
-  if (primaryValue < band.typicalMin || primaryValue > band.typicalMax) return 'WARNING';
-  return 'NORMAL';
-}
-
-function toNumber(value: number | string | null | undefined): number | null {
-  if (value === undefined || value === null || value === '') return null;
-  const n = typeof value === 'number' ? value : Number(value);
-  return Number.isNaN(n) ? null : n;
-}
 
 export function useOverviewHmiData(reportDate: string): OverviewHmiData {
   // see header note — the B2 store has no date-scoped query. When date-scoping
@@ -162,6 +68,8 @@ export function useOverviewHmiData(reportDate: string): OverviewHmiData {
     const intervalId = setInterval(refresh, CROSS_DEVICE_POLL_INTERVAL_MS);
     return () => clearInterval(intervalId);
   }, [refresh]);
+
+  const aavFallback = useAavDsFallbackValues();
 
   const s = OVERVIEW_UNIT_SLOTS;
   const p0 = useDailyOpsPatrolValue(s[0].domain, s[0].equipmentTag, s[0].primaryColumn);
@@ -226,7 +134,15 @@ export function useOverviewHmiData(reportDate: string): OverviewHmiData {
   ];
 
   const units: OverviewHmiUnit[] = s.map((slot, i) => {
-    const primaryValue = toNumber(primaryValues[i]);
+    const isAav = slot.domain === 'aav';
+    const primaryValue = isAav
+      ? resolveWithFallback(toNumber(primaryValues[i]), toNumber(aavFallback.primaryByTag[slot.equipmentTag]))
+      : toNumber(primaryValues[i]);
+    const secondaryValue = slot.secondaryColumn
+      ? isAav
+        ? resolveWithFallback(toNumber(secondaryValues[i]), toNumber(aavFallback.secondaryByTag[slot.equipmentTag]))
+        : toNumber(secondaryValues[i])
+      : undefined;
     return {
       equipmentTag: slot.equipmentTag,
       label: slot.equipmentTag,
@@ -234,7 +150,7 @@ export function useOverviewHmiData(reportDate: string): OverviewHmiData {
       status: deriveStatus(slot.domain, primaryValue),
       primaryValue,
       primaryUnit: slot.primaryUnit,
-      secondaryValue: slot.secondaryColumn ? toNumber(secondaryValues[i]) : undefined,
+      secondaryValue,
       secondaryUnit: slot.secondaryColumn ? slot.secondaryUnit : undefined,
       isThresholdValidated: THRESHOLD_VALIDATED_DOMAINS.has(slot.domain),
     };

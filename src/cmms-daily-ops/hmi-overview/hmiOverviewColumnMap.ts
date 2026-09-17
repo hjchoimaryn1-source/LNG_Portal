@@ -11,6 +11,18 @@
 //   PidTagBadge.tsx/useHmiEquipment.ts use for "no column at this slot".
 //   Units are derived from PATROL_FIELD_MAP, never duplicated by hand, so
 //   they cannot drift from the DDL/label source of truth.
+//
+//   FALLBACK_*_COLUMN_BY_DOMAIN (2026-09-17, HJ-approved): AAV-only D/S
+//   fallback. The 2026-09-15 Daily Operation Report backfill
+//   (dailyOpsPatrolPdfSeed.ts) only ever supplies D/S (downstream) AAV
+//   readings, never U/S — so PRIMARY/SECONDARY_COLUMN_BY_DOMAIN.aav (U/S
+//   gauge) stayed permanently null for those rows, showing "no reading" on
+//   HMI Overview tiles. This map is consumed ONLY by
+//   useAavDsFallbackValues.ts -> useOverviewHmiData.ts (HMI Overview), not
+//   by pidCandidateTags.ts / PidTagBadge.tsx — PIDOverlayView's P&ID badges
+//   import PRIMARY_COLUMN_BY_DOMAIN directly from pidCandidateTags.ts and
+//   never touch this file, so they are unaffected by this fallback (confirmed
+//   via import-graph check, not by design intent alone).
 
 import type { PatrolDomain } from '../types/patrolLog';
 import { PATROL_FIELD_MAP } from '../dao/patrolFieldMaps';
@@ -29,7 +41,20 @@ export const SECONDARY_COLUMN_BY_DOMAIN: Partial<Record<PatrolDomain, string>> =
   iso_tank_unloading_skid: 'pressure_mpa',
 };
 
+export const FALLBACK_PRIMARY_COLUMN_BY_DOMAIN: Partial<Record<PatrolDomain, string>> = {
+  aav: 'pressure_transmitter_ds_bar',
+};
+
+export const FALLBACK_SECONDARY_COLUMN_BY_DOMAIN: Partial<Record<PatrolDomain, string>> = {
+  aav: 'temperature_transmitter_ds_c',
+};
+
 export function columnUnit(domain: PatrolDomain, columnName: string): string {
   if (!columnName) return '';
   return PATROL_FIELD_MAP[domain].find((f) => f.columnName === columnName)?.unit ?? '';
+}
+
+/** primary가 null/undefined면 fallback을, 아니면 primary를 그대로 쓴다 (AAV U/S→D/S 전용). */
+export function resolveWithFallback(primary: number | null, fallback: number | null): number | null {
+  return primary !== null ? primary : fallback;
 }
