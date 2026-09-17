@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useMemo } from 'react';
-import { usePortalData } from '../context/PortalDataContext';
+import { useFleetTankFacade } from '../hooks/portalDataFacade/useFleetTankFacade';
 import { NodeState, SubProcessKey } from '../types/lng';
 import { COMPANY_CONFIG } from '../config/siteConfig';
 import { NIAS_TANK_YARD_KEYS, NIAS_GAS_PROCESS_KEYS } from './portal/subtabs/LngProcessSubTabs';
@@ -31,7 +31,7 @@ export default function SidebarNav({
   isOpenMobile = false,
   onCloseMobile,
 }: SidebarNavProps) {
-  const { fleetTanks } = usePortalData();
+  const { fleetTanks } = useFleetTankFacade();
 
   // Compute live tank distribution for LNG-Process only
   const counts = useMemo(() => {
