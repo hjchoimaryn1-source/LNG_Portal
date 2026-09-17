@@ -31,7 +31,7 @@ import {
   ShieldCheck,
   Container,
 } from 'lucide-react';
-import { usePortalData } from '@/context/PortalDataContext';
+import { useFleetTankFacade } from '@/hooks/portalDataFacade/useFleetTankFacade';
 import { NodeState } from '@/types/lng';
 import {
   PLTMG_MAN_ENGINE_SPEC,
@@ -47,7 +47,7 @@ import { useNiasPowerThermalStorage } from './hooks/useNiasPowerThermalStorage';
 export type { GeneratorEngineState };
 
 export default function NiasPowerThermalTab() {
-  const { fleetTanks, activeBays } = usePortalData();
+  const { fleetTanks, activeBays } = useFleetTankFacade();
   const { loadEngineSpecConfig, saveEngineSpecConfig, loadEngineFleet, saveEngineFleet } =
     useNiasPowerThermalStorage();
 
