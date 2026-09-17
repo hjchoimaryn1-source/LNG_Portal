@@ -48,7 +48,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { usePortalData } from '@/context/PortalDataContext';
+import { useSettlementFacade } from '@/hooks/portalDataFacade/useSettlementFacade';
+import { useFleetTankFacade } from '@/hooks/portalDataFacade/useFleetTankFacade';
+import { usePortalSystemFacade } from '@/hooks/portalDataFacade/usePortalSystemFacade';
 import { NodeState } from '@/types/lng';
 
 interface MonthlySettlementDayPoint {
@@ -112,7 +114,9 @@ function generateMonthlyTrendData(baseFlowMscf: number = 950): MonthlySettlement
 
 export default function NiasCustodySettlementTab() {
   const activeSession = useActiveSession();
-  const { settlementRecords, fleetTanks, exportAllLogsToExcel } = usePortalData();
+  const { settlementRecords } = useSettlementFacade();
+  const { fleetTanks } = useFleetTankFacade();
+  const { exportAllLogsToExcel } = usePortalSystemFacade();
 
   // Selected Month State
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-07');
