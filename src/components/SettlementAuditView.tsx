@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { usePortalData } from '../context/PortalDataContext';
+import { useSettlementFacade } from '../hooks/portalDataFacade';
 import { exportToCSV } from '../utils/exportCsv';
 import { useActiveSession } from '../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../adapters/guardrailUiAdapter';
@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 
 export default function SettlementAuditView() {
-  const { settlementRecords, gasCompositions, addFlobossAndGCLog } = usePortalData();
+  const { settlementRecords, gasCompositions, addFlobossAndGCLog } = useSettlementFacade();
   const activeSession = useActiveSession();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'VERIFIED' | 'DISPUTE_ALERT'>('ALL');
