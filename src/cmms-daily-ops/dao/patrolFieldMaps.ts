@@ -21,16 +21,21 @@ export interface PatrolFieldSpec {
   unit: string;
   /** DDL 컬럼 타입(REAL→'number', TEXT→'text') — B1 폼의 입력 컨트롤 선택에 사용 */
   type: 'number' | 'text';
+  /** true면 인쇄본(PrintFieldGrid)에서만 제외 — B1 폼 입력은 그대로 유지.
+   *  스캔 원문에 대응 행이 없는 필드(예: metering line_dens_kg_m3/ghv)에 사용. */
+  printExclude?: boolean;
 }
 
 export const PATROL_FIELD_MAP: Record<PatrolDomain, PatrolFieldSpec[]> = {
   metering_train_a: [
     { columnName: 'press_barg', label: 'Pressure Gauge U/S Metering', shortLabel: '압력', unit: 'barg', type: 'number' },
     { columnName: 'temp_c', label: 'Temperature Gauge', shortLabel: '온도', unit: '°C', type: 'number' },
-    // GAP: FORM-NP-08-33-N Metering Train A/B 섹션 스캔 원문에 Line Density 행 없음 — 한국어 유지.
-    { columnName: 'line_dens_kg_m3', label: '라인 밀도', shortLabel: '밀도', unit: 'kg/m³', type: 'number' },
-    // GAP: 동일 스캔 섹션에 GHV 행 없음(NP-08 SOP 텍스트에는 개념 언급 있으나 이 서식엔 없음) — 한국어 유지.
-    { columnName: 'ghv', label: 'GHV', unit: 'BTU/SCF', type: 'number' },
+    // GAP: FORM-NP-08-33-N Metering Train A/B 섹션 스캔 원문에 Line Density 행 없음 — 한국어
+    // 라벨 유지 + printExclude(HJ 승인, 인쇄 제외/폼 입력은 그대로 유지).
+    { columnName: 'line_dens_kg_m3', label: '라인 밀도', shortLabel: '밀도', unit: 'kg/m³', type: 'number', printExclude: true },
+    // GAP: 동일 스캔 섹션에 GHV 행 없음(NP-08 SOP 텍스트에는 개념 언급 있으나 이 서식엔 없음)
+    // — 한국어 라벨 유지 + printExclude(HJ 승인, 인쇄 제외/폼 입력은 그대로 유지).
+    { columnName: 'ghv', label: 'GHV', unit: 'BTU/SCF', type: 'number', printExclude: true },
     { columnName: 'diff_pressure_transmitter_inh2o', label: 'Diff. Pressure Transmitter', shortLabel: '차압', unit: 'inH2O', type: 'number' },
     { columnName: 'volume_flowrate_mmscfd', label: 'Volume Flowrate', shortLabel: '체적 유량', unit: 'MMSCFD', type: 'number' },
     { columnName: 'energy_flowrate_mmbtud', label: 'Energy Flowrate', shortLabel: '에너지 유량', unit: 'MMBTUD', type: 'number' },
@@ -40,10 +45,12 @@ export const PATROL_FIELD_MAP: Record<PatrolDomain, PatrolFieldSpec[]> = {
   metering_train_b: [
     { columnName: 'press_barg', label: 'Pressure Gauge U/S Metering', shortLabel: '압력', unit: 'barg', type: 'number' },
     { columnName: 'temp_c', label: 'Temperature Gauge', shortLabel: '온도', unit: '°C', type: 'number' },
-    // GAP: FORM-NP-08-33-N Metering Train A/B 섹션 스캔 원문에 Line Density 행 없음 — 한국어 유지.
-    { columnName: 'line_dens_kg_m3', label: '라인 밀도', shortLabel: '밀도', unit: 'kg/m³', type: 'number' },
-    // GAP: 동일 스캔 섹션에 GHV 행 없음(NP-08 SOP 텍스트에는 개념 언급 있으나 이 서식엔 없음) — 한국어 유지.
-    { columnName: 'ghv', label: 'GHV', unit: 'BTU/SCF', type: 'number' },
+    // GAP: FORM-NP-08-33-N Metering Train A/B 섹션 스캔 원문에 Line Density 행 없음 — 한국어
+    // 라벨 유지 + printExclude(HJ 승인, 인쇄 제외/폼 입력은 그대로 유지).
+    { columnName: 'line_dens_kg_m3', label: '라인 밀도', shortLabel: '밀도', unit: 'kg/m³', type: 'number', printExclude: true },
+    // GAP: 동일 스캔 섹션에 GHV 행 없음(NP-08 SOP 텍스트에는 개념 언급 있으나 이 서식엔 없음)
+    // — 한국어 라벨 유지 + printExclude(HJ 승인, 인쇄 제외/폼 입력은 그대로 유지).
+    { columnName: 'ghv', label: 'GHV', unit: 'BTU/SCF', type: 'number', printExclude: true },
     { columnName: 'diff_pressure_transmitter_inh2o', label: 'Diff. Pressure Transmitter', shortLabel: '차압', unit: 'inH2O', type: 'number' },
     { columnName: 'volume_flowrate_mmscfd', label: 'Volume Flowrate', shortLabel: '체적 유량', unit: 'MMSCFD', type: 'number' },
     { columnName: 'energy_flowrate_mmbtud', label: 'Energy Flowrate', shortLabel: '에너지 유량', unit: 'MMBTUD', type: 'number' },
@@ -60,9 +67,10 @@ export const PATROL_FIELD_MAP: Record<PatrolDomain, PatrolFieldSpec[]> = {
     { columnName: 'temperature_gauge_ds_c', label: 'Temperature Gauge D/S', shortLabel: 'DS 온도', unit: '°C', type: 'number' },
     { columnName: 'temperature_transmitter_ds_c', label: 'Temperature Transmitter D/S', shortLabel: 'DS 온도(TX)', unit: '°C', type: 'number' },
     // Stage E-4 — Inlet Vaporizer DP (DPIA-01C/D, DPI-01E/F), 순수 append.
-    // GAP: FORM-NP-08-33-N 스캔 원문 AAV 섹션에 이 필드 자체가 없음(원본 8필드 밖의
-    // 신규 추가) — 영문 라벨을 지어내지 않고 한국어 유지, 인쇄 포함 여부는 HJ 결정 대기.
-    { columnName: 'differential_pressure_us_barg', label: '차압 (Inlet)', shortLabel: '차압', unit: 'barg', type: 'number' },
+    // FORM-NP-08-33-N 스캔 원문 AAV 섹션엔 없는 필드(원본 8필드 밖 추가)이나, HJ 승인으로
+    // 인쇄에 포함한다 — label은 원문 대응 없어 주변 AAV 8필드 명명 규칙("Pressure/Temperature
+    // Gauge|Transmitter U/S|D/S")에 맞춰 제안한 표기.
+    { columnName: 'differential_pressure_us_barg', label: 'Differential Pressure U/S', shortLabel: '차압', unit: 'barg', type: 'number' },
   ],
   n2_skid: [
     { columnName: 'cylinder_pressure_bar', label: 'Pressure Cylinder', shortLabel: '압력', unit: 'bar', type: 'number' },
@@ -128,8 +136,10 @@ export const PATROL_FIELD_MAP: Record<PatrolDomain, PatrolFieldSpec[]> = {
   // NG Buffer Tank V-101 (2 fields, FORM-NP-08-40 NP08-40-3 매핑) — 현장 게이지(PI-07A)와
   // 제어실 트랜스미터(PT-07A) 1페어. pms-master-specification.md §NG Buffer Tank가 두
   // 계기를 상호 대조 검증 대상으로 명시 — PT-07B 등 2번째 트랜스미터는 근거자료에 없다.
+  // 스캔 원문엔 "Pressure" 1행만 있으나(HJ 승인) 현장 게이지 판독값(PI-07A)에 매핑하고,
+  // 두 번째 계기(PT-07A)는 AAV/Metering의 "Pressure Transmitter" 명명 규칙을 따라 확장.
   ng_buffer_tank: [
-    { columnName: 'pressure_gauge_barg', label: '압력계 (PI-07A)', unit: 'barg', type: 'number' },
-    { columnName: 'pressure_transmitter_barg', label: '압력 트랜스미터 (PT-07A)', unit: 'barg', type: 'number' },
+    { columnName: 'pressure_gauge_barg', label: 'Pressure', shortLabel: '압력계 (PI-07A)', unit: 'barg', type: 'number' },
+    { columnName: 'pressure_transmitter_barg', label: 'Pressure Transmitter', shortLabel: '압력 트랜스미터 (PT-07A)', unit: 'barg', type: 'number' },
   ],
 };

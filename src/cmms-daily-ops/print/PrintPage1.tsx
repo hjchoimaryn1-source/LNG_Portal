@@ -22,6 +22,11 @@ const GC_FIELDS = PATROL_FIELD_MAP.gc;
 const GC_STATUS_FIELDS = GC_FIELDS.filter((f) => f.type === 'text');
 const GC_COMPOSITION_FIELDS = GC_FIELDS.filter((f) => f.type === 'number');
 
+// line_dens_kg_m3/ghv: 스캔 원문에 대응 행 없음(HJ 승인 인쇄 제외) — B1 폼은 전체
+// PATROL_FIELD_MAP.metering_train_a/b를 그대로 쓰므로 입력에는 영향 없음.
+const METERING_TRAIN_A_PRINT_FIELDS = PATROL_FIELD_MAP.metering_train_a.filter((f) => !f.printExclude);
+const METERING_TRAIN_B_PRINT_FIELDS = PATROL_FIELD_MAP.metering_train_b.filter((f) => !f.printExclude);
+
 export interface PrintPageProps {
   payload: DailyReportSnapshotPayload;
 }
@@ -41,10 +46,10 @@ export function PrintPage1({ payload }: PrintPageProps) {
       />
 
       <PrintSectionHeader>METERING TRAIN A</PrintSectionHeader>
-      <PrintFieldGrid title={METERING_EQUIPMENT_TAGS[0]} fields={PATROL_FIELD_MAP.metering_train_a} values={payload.domains.metering_train_a?.[METERING_EQUIPMENT_TAGS[0]]} />
+      <PrintFieldGrid title={METERING_EQUIPMENT_TAGS[0]} fields={METERING_TRAIN_A_PRINT_FIELDS} values={payload.domains.metering_train_a?.[METERING_EQUIPMENT_TAGS[0]]} />
 
       <PrintSectionHeader>METERING TRAIN B</PrintSectionHeader>
-      <PrintFieldGrid title={METERING_EQUIPMENT_TAGS[1]} fields={PATROL_FIELD_MAP.metering_train_b} values={payload.domains.metering_train_b?.[METERING_EQUIPMENT_TAGS[1]]} />
+      <PrintFieldGrid title={METERING_EQUIPMENT_TAGS[1]} fields={METERING_TRAIN_B_PRINT_FIELDS} values={payload.domains.metering_train_b?.[METERING_EQUIPMENT_TAGS[1]]} />
 
       <PrintSectionHeader>STATION TOTAL</PrintSectionHeader>
       <table className="print-field-grid">
