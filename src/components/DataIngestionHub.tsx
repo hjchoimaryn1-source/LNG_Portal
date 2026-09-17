@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { usePortalData } from '../context/PortalDataContext';
+import { usePortalSystemFacade } from '../hooks/portalDataFacade/usePortalSystemFacade';
 import {
   Database,
   FileSpreadsheet,
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export default function DataIngestionHub() {
-  const { ingestionStatuses, uploadCustomCSV, reloadAllData, exportAllLogsToExcel, isLoading } = usePortalData();
+  const { ingestionStatuses, uploadCustomCSV, reloadAllData, exportAllLogsToExcel, isLoading } = usePortalSystemFacade();
   const [, setIsUploading] = useState<boolean>(false);
 
   const handleFileUpload = (fileKey: string, e: React.ChangeEvent<HTMLInputElement>) => {
