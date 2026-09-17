@@ -19,7 +19,8 @@ export interface PatrolFieldInputProps {
 }
 
 export function PatrolFieldInput({ spec, value, onChange }: PatrolFieldInputProps) {
-  const label = spec.unit ? `${spec.label} (${spec.unit})` : spec.label;
+  const baseLabel = spec.shortLabel ?? spec.label;
+  const label = spec.unit ? `${baseLabel} (${spec.unit})` : baseLabel;
 
   return (
     <div className="flex flex-col">
