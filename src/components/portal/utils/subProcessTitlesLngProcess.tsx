@@ -106,6 +106,12 @@ export const SUBPROCESS_TITLES_LNG_PROCESS: Record<string, SubProcessTitleEntry>
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
+  DAILY_OPS_ISO_TANK_LOGISTICS: {
+    location: 'LNG-Process',
+    process: 'ISO Tank Logistics',
+    icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
   DAILY_OPS_ELECTRICAL_SYSTEM: {
     location: 'LNG-Process',
     process: 'Electrical System',
