@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from 'react';
-import { usePortalData } from '../context/PortalDataContext';
+import { useFleetTankFacade, useSettlementFacade } from './portalDataFacade';
 import { NodeState } from '../types/lng';
 import { ArunSubTab } from '../components/HeaderNavigation';
 import { FleetTankItem, getTankPhysicalMetrics } from '../data/mockTankData';
@@ -15,7 +15,7 @@ interface ArunCertificateRecord {
 }
 
 export function useArunLogistics(initialSubTab: ArunSubTab = 'OPERATIONS_YARD') {
-  const portalData = usePortalData() || {};
+  const portalData = { ...useFleetTankFacade(), ...useSettlementFacade() };
   const fleetTanks: FleetTankItem[] = sortTanksNaturally(portalData.fleetTanks || []);
   const batchTransitionTanks = useMemo(
     () => portalData.batchTransitionTanks || (() => {}),
