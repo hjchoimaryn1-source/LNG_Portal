@@ -79,6 +79,13 @@ export default function LngProcessSubTabs({ activeKey, handleSelectSubProcess }:
         <span>Regas &amp; Gas Process</span>
       </button>
 
+      <button
+        onClick={() => handleSelectSubProcess('DAILY_OPS_ELECTRICAL_SYSTEM')}
+        className={activeKey === 'DAILY_OPS_ELECTRICAL_SYSTEM' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+      >
+        <span>Electrical System</span>
+      </button>
+
     </>
   );
 }
