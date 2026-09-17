@@ -46,7 +46,7 @@ interface LoadedReport {
 export function DailyReportPrintView({ reportDate }: DailyReportPrintViewProps) {
   const [report, setReport] = useState<LoadedReport | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { isoTankUnloadingSkid, isoTankCargo, isoTankCargoSummary } = useIsoTankPrintBridge(reportDate);
+  const { isoTankCargo, isoTankCargoSummary } = useIsoTankPrintBridge(reportDate);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,22 +91,27 @@ export function DailyReportPrintView({ reportDate }: DailyReportPrintViewProps) 
     };
   }, [reportDate]);
 
-  // Section C(iso_tank_unloading_skid)/D(iso_tank_cargo) 도메인을 실데이터로 덮어쓴다.
-  // 서버 스냅샷(daily_report_snapshots)은 두 도메인 모두 순찰 폼이 없어 항상 null을
-  // 반환하므로(dailyReportSnapshotDao.ts 주석 참고), NiasActiveBayWorkspace.tsx /
+  // Section C(iso_tank_unloading_skid)는 IsoTankUnloadingSkidPatrolForm.tsx가
+  // daily_ops_patrol_entries(SQLite)에 라이브 저장하고, 그 값이 이미 서버
+  // 스냅샷(dailyReportSnapshotDao.ts generateSnapshot → PATROL_EQUIPMENT_TAGS_BY_DOMAIN)에
+  // 포함되어 report.payload.domains.iso_tank_unloading_skid로 내려오므로 여기서
+  // 덮어쓰지 않는다(과거엔 이 도메인도 순찰 폼이 없어 레거시 브릿지로 덮어썼으나,
+  // 신규 폼 도입 후 그 전제가 깨져 있었음 — Section C는 이제 서버 스냅샷 단일 소스).
+  //
+  // Section D(iso_tank_cargo)는 여전히 순찰 폼이 없어(PATROL_EQUIPMENT_TAGS_BY_DOMAIN에
+  // 미등록) 서버 스냅샷이 항상 이 도메인을 비워 두므로, NiasActiveBayWorkspace.tsx /
   // NiasLaydownLogTab.tsx가 쓰는 dailyMasterRecords(PortalDataContext, 브라우저 전용)를
-  // 클라이언트 측에서 병합한다 — 두 소스 파일과 스냅샷 DAO는 무수정.
+  // 클라이언트 측에서 계속 병합한다 — 두 소스 파일과 스냅샷 DAO는 무수정.
   const bridgedPayload: DailyReportSnapshotPayload | null = useMemo(() => {
     if (!report) return null;
     return {
       ...report.payload,
       domains: {
         ...report.payload.domains,
-        iso_tank_unloading_skid: isoTankUnloadingSkid,
         iso_tank_cargo: isoTankCargo,
       },
     };
-  }, [report, isoTankUnloadingSkid, isoTankCargo]);
+  }, [report, isoTankCargo]);
 
   if (error) {
     return <div className="print-gap-notice">{error}</div>;
