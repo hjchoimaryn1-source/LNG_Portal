@@ -22,8 +22,7 @@ export const N2_ALL_TAGS = [...N2_CYLINDER_TAGS, ...N2_SKID_AREA_TAGS];
 export const GC_EQUIPMENT_TAG = 'GC-01';
 export const ELECTRICAL_EQUIPMENT_TAGS = ['MV-SWGR-01', 'LV-SWGR-01', 'TRAFO-01', 'UPS-01'];
 
-// Phase 12 Addendum 2 자리표시자 — 실제 순찰 폼이 아직 없는 유일한 도메인이라
-// 지시에 명시된 값을 그대로 쓴다.
+// FORM-NP-08-33-N p2 Section C(UNLOADING SKID) 대상 4기.
 export const ISO_TANK_UNLOADING_SKID_TAGS = ['T-201', 'T-202', 'T-203', 'T-204'];
 
 // Phase 12 Stage E-1 — NG Buffer Tank는 단일 용기(P&ID/계기 index와 일치,
