@@ -38,12 +38,37 @@ async function mountAndFlush() {
   });
 }
 
+function clickSubTab(label: string) {
+  const button = Array.from(container!.querySelectorAll('button')).find((b) => b.textContent === label)!;
+  act(() => {
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
+}
+
 describe('NiasPatrolLogTab', () => {
-  it('renders Metering Train A/B and NG Buffer Tank patrol forms (relocated from LngEnergyOperationView)', async () => {
+  it('defaults to the AAV & Buffer Tank sub-tab (AAV-102 + V-101)', async () => {
     stubFetch();
     await mountAndFlush();
+    expect(container!.textContent).toContain('4-HR PATROL LOG');
+    expect(container!.textContent).toContain('AAV-102');
+    expect(container!.textContent).toContain('V-101');
+    expect(container!.textContent).not.toContain('METERING-TRAIN-A');
+  });
+
+  it('renders Metering Train A/B, GC-01 under the Metering sub-tab (relocated from LngEnergyOperationView)', async () => {
+    stubFetch();
+    await mountAndFlush();
+    clickSubTab('Metering');
     expect(container!.textContent).toContain('METERING-TRAIN-A');
     expect(container!.textContent).toContain('METERING-TRAIN-B');
-    expect(container!.textContent).toContain('4-HR PATROL LOG');
+    expect(container!.textContent).toContain('GC-01');
+  });
+
+  it('renders N2 Skid cylinders under the N2 & Bottles sub-tab', async () => {
+    stubFetch();
+    await mountAndFlush();
+    clickSubTab('N2 & Bottles');
+    expect(container!.textContent).toContain('N2-CYL-01');
+    expect(container!.textContent).toContain('N2-SKID-SUPPLY-1');
   });
 });
