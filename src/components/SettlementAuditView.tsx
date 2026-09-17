@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { useSettlementFacade } from '../hooks/portalDataFacade';
+import { useSettlementFacade } from '../hooks/portalDataFacade/useSettlementFacade';
 import { exportToCSV } from '../utils/exportCsv';
 import { useActiveSession } from '../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../adapters/guardrailUiAdapter';

@@ -2,7 +2,8 @@
 "use client";
 
 import { useState, useMemo, useCallback } from 'react';
-import { useFleetTankFacade, useSettlementFacade } from './portalDataFacade';
+import { useFleetTankFacade } from './portalDataFacade/useFleetTankFacade';
+import { useSettlementFacade } from './portalDataFacade/useSettlementFacade';
 import { NodeState } from '../types/lng';
 import { ArunSubTab } from '../components/HeaderNavigation';
 import { FleetTankItem, getTankPhysicalMetrics } from '../data/mockTankData';

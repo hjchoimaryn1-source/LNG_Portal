@@ -11,7 +11,8 @@ import {
   Truck,
   Gauge,
 } from 'lucide-react';
-import { useFleetTankFacade, useSettlementFacade } from '../../../hooks/portalDataFacade';
+import { useFleetTankFacade } from '../../../hooks/portalDataFacade/useFleetTankFacade';
+import { useSettlementFacade } from '../../../hooks/portalDataFacade/useSettlementFacade';
 import { NodeState } from '../../../types/lng';
 import { getTankPhysicalMetrics } from '../../../data/mockTankData';
 

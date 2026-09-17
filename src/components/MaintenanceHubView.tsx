@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { useFleetTankFacade } from '../hooks/portalDataFacade';
+import { useFleetTankFacade } from '../hooks/portalDataFacade/useFleetTankFacade';
 import { DefectCategory, MaintenanceLocation, NodeState } from '../types/lng';
 import {
   Wrench,
