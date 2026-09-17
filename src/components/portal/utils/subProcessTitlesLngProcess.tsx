@@ -106,6 +106,18 @@ export const SUBPROCESS_TITLES_LNG_PROCESS: Record<string, SubProcessTitleEntry>
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
+  DAILY_OPS_ELECTRICAL_SYSTEM: {
+    location: 'LNG-Process',
+    process: 'Electrical System',
+    icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  DAILY_OPS_OVERVIEW: {
+    location: 'LNG-Process',
+    process: 'Daily Ops Overview',
+    icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
   MAINTENANCE_MRO_HUB: {
     location: 'Work Order & Maintenance',
     process: 'MRO Depot',
