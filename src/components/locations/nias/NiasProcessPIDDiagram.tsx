@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { usePortalData } from '@/context/PortalDataContext';
+import { useSettlementFacade } from '@/hooks/portalDataFacade/useSettlementFacade';
 import { PLTMG_PID_SUMMARY_SNAPSHOT, PLTMG_PID_GENERATOR_ROWS } from '@/data/pltmgPowerDisplayMocks';
 
 interface NiasProcessPIDDiagramProps {
@@ -9,7 +9,7 @@ interface NiasProcessPIDDiagramProps {
 }
 
 export default function NiasProcessPIDDiagram({ onSelectEquipment }: NiasProcessPIDDiagramProps) {
-  const { gasCompositions } = usePortalData();
+  const { gasCompositions } = useSettlementFacade();
 
   return (
     <div className="w-full bg-[#dcd8cf] border border-[#b0aaa0] rounded-none overflow-hidden text-slate-900 space-y-0 mb-0 pb-0">
