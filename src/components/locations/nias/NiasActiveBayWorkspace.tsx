@@ -95,9 +95,8 @@ export function NiasActiveBayWorkspace({
   const [patrolInspector, setPatrolInspector] = useState<string>('FIELD OP-1');
   const [patrolRemarks, setPatrolRemarks] = useState<string>('Routine 4-hr shift inspection normal');
 
-  // Auto-calculated fields based on 950 mmH2O = 44.0 m3 max volume & 441.0 kg/m3 density
+  // Auto-calculated field based on 950 mmH2O = 44.0 m3 max volume
   const patrolCalcVol = parseFloat(((patrolLevelMmH2O / 950) * 44.0).toFixed(1));
-  const patrolCalcMass = parseFloat(((patrolCalcVol * 441.0) / 1000).toFixed(2));
 
   // Disconnect SOP Form State
   const [stage1Date, setStage1Date] = useState<string>(() => new Date().toISOString().slice(0, 16).replace('T', ' '));
@@ -542,7 +541,7 @@ export function NiasActiveBayWorkspace({
                 <div className="text-[11px] font-black uppercase tracking-wider text-[#002b4d] flex items-center gap-1.5 border-b border-[#c8c2b5] pb-1">
                   <span>[1] ISO TANK MEASUREMENTS (PRIMARY GAUGES &amp; TELEMETRY)</span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
                   {/* ANALOG LEVEL */}
                   <div className="flex flex-col">
                     <label className="text-[10px] font-bold text-slate-700 uppercase mb-1 truncate text-center">
@@ -578,16 +577,6 @@ export function NiasActiveBayWorkspace({
                     </label>
                     <div className="h-[30px] bg-[#f0f7ff] border border-[#7ba4cc] rounded-xs px-2 py-1 text-[#004a99] font-black font-mono text-center text-sm shadow-inner flex items-center justify-center select-all">
                       {patrolCalcVol.toFixed(1)}
-                    </div>
-                  </div>
-
-                  {/* CALC MASS (READONLY) */}
-                  <div className="flex flex-col">
-                    <label className="text-[10px] font-bold text-[#004a99] uppercase mb-1 truncate text-center">
-                      CALC MASS (TON)
-                    </label>
-                    <div className="h-[30px] bg-[#f0f7ff] border border-[#7ba4cc] rounded-xs px-2 py-1 text-[#004a99] font-black font-mono text-center text-sm shadow-inner flex items-center justify-center select-all">
-                      {patrolCalcMass.toFixed(2)}
                     </div>
                   </div>
 
