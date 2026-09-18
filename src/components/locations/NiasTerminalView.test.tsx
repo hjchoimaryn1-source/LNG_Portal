@@ -89,9 +89,10 @@ describe('NiasTerminalView — render-level smoke baseline (Sub-stage E)', () =>
   // reachable via in-component nav-tab click) but is included here too since it's still
   // part of NiasTerminalView's own supported prop contract. LAYDOWN_1_2_LOG and
   // TANK_MASS_BALANCE moved from ISO_TANK_MGMT to REGAS_SYSTEM (ISO Tank & Mass
-  // Balance relocation, 2026-09-18). PLTMG_POWER_OUTPUT removed (2026-09-18):
-  // PLTMG Power relocated out of REGAS_SYSTEM into ElectricalSystemView.tsx —
-  // see ElectricalSystemView.test.tsx for its coverage now.
+  // Balance relocation, 2026-09-18). PLTMG_POWER_OUTPUT remains absent from
+  // REGAS_SYSTEM (2026-09-18 correction): PLTMG Power is now its own
+  // independent top-level tab, outside NiasTerminalView entirely — see
+  // LngProcessRoutes.test.tsx for its coverage.
   const knownSubTabs: Array<{
     label: string;
     initialDomain: 'ISO_TANK_MGMT' | 'REGAS_SYSTEM';

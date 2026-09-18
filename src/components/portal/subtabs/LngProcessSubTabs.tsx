@@ -15,10 +15,10 @@ interface LngProcessSubTabsProps {
 // LngProcessRoutes.tsx for the matching content routes).
 // Exported so SidebarNav.tsx (the other nav surface with the same Nias
 // split) stays consistent with this grouping — single source of truth.
-// PLTMG Power relocation (2026-09-18): NIAS_PLTMG_POWER_OUTPUT / the SubProcessKey
-// itself is retired — PLTMG Power is now a stacked section inside the
-// "Electrical System" tab's view (see ElectricalSystemView.tsx), not a
-// Regas & Gas Process sub-tab.
+// PLTMG Power correction (2026-09-18): PLTMG Power is a fuel-gas draw/
+// generation domain, not part of Electrical System (ORU internal
+// distribution) — NIAS_PLTMG_POWER_OUTPUT is restored as its own
+// independent top-level tab (see NiasPowerThermalTab.tsx via LngProcessRoutes.tsx).
 export const NIAS_TANK_YARD_KEYS: SubProcessKey[] = [
   'NIAS_TANK_OVERVIEW',
   'NIAS_LAYDOWN_1_2_LOG',
@@ -76,6 +76,13 @@ export default function LngProcessSubTabs({ activeKey, handleSelectSubProcess }:
         }
       >
         <span>Regas &amp; Gas Process</span>
+      </button>
+
+      <button
+        onClick={() => handleSelectSubProcess('NIAS_PLTMG_POWER_OUTPUT')}
+        className={activeKey === 'NIAS_PLTMG_POWER_OUTPUT' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
+      >
+        <span>PLTMG POWER</span>
       </button>
 
       <button

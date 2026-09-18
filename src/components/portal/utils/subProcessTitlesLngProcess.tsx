@@ -117,10 +117,14 @@ export const SUBPROCESS_TITLES_LNG_PROCESS: Record<string, SubProcessTitleEntry>
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
+  NIAS_PLTMG_POWER_OUTPUT: {
+    location: 'LNG-Process',
+    process: 'PLTMG Power',
+    icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
   DAILY_OPS_ELECTRICAL_SYSTEM: {
     location: 'LNG-Process',
-    // PLTMG Power relocation (2026-09-18): now a stacked section inside this
-    // same view (see ElectricalSystemView.tsx) — no separate SubProcessKey.
     process: 'Electrical System',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',

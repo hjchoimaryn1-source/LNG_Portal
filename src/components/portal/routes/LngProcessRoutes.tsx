@@ -9,6 +9,7 @@ import MvSaviourView from '../../locations/MvSaviourView';
 import NiasTankYardView from '../../locations/NiasTankYardView';
 import NiasRegasGasProcessView from '../../locations/NiasRegasGasProcessView';
 import NiasOperationalOverviewTab from '../../locations/nias/NiasOperationalOverviewTab';
+import NiasPowerThermalTab from '../../locations/nias/NiasPowerThermalTab';
 import { IsoTankLogisticsPlaceholderView } from '../../../cmms-daily-ops/views/IsoTankLogisticsPlaceholderView';
 import { ElectricalSystemView } from '../../../cmms-daily-ops/views/ElectricalSystemView';
 import { DailyOpsOverviewView } from '../../../cmms-daily-ops/views/DailyOpsOverviewView';
@@ -69,6 +70,15 @@ export default function LngProcessRoutes({ activeKey, activeSubTab, handleSelect
       )}
       {(activeKey === 'NIAS_HEAT_SETTLEMENT' || activeSubTab === 'NIAS_HEAT_SETTLEMENT') && (
         <NiasRegasGasProcessView initialSubTab="CUSTODY_HEAT_SETTLEMENT" />
+      )}
+
+      {/* PLTMG Power — independent top-level tab (2026-09-18 correction). Fuel-gas
+          draw/generation domain, distinct from Regas & Gas Process and Electrical
+          System. NiasPowerThermalTab reused as-is (no internal changes). */}
+      {(activeKey === 'NIAS_PLTMG_POWER_OUTPUT' || activeSubTab === 'NIAS_PLTMG_POWER_OUTPUT') && (
+        <div className="p-4">
+          <NiasPowerThermalTab />
+        </div>
       )}
 
       {/* Arun PAG Terminal */}

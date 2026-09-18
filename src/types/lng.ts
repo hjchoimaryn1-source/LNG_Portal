@@ -41,6 +41,10 @@ export type SubProcessKey =
   | 'NIAS_PATROL_LOG'
   | 'NIAS_GAS_METERING_DAILY'
   | 'NIAS_HEAT_SETTLEMENT'
+  // PLTMG POWER — independent top-level tab (2026-09-18 correction). Fuel-gas
+  // draw/generation domain, distinct from both Regas & Gas Process and
+  // Electrical System (ORU internal distribution) — see NiasPowerThermalTab.tsx.
+  | 'NIAS_PLTMG_POWER_OUTPUT'
   // Legacy Aliases for Backwards Compatibility
   | 'NIAS_OPERATIONS_OVERVIEW'
   | 'NIAS_DAILY_CONDITION_BOG'

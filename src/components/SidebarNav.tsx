@@ -177,6 +177,7 @@ export default function SidebarNav({
               NIAS_GAS_PROCESS_KEYS.includes(activeKey)
             )}
             {SHOW_ISO_TANK_LOGISTICS_TAB && renderNavItem('DAILY_OPS_ISO_TANK_LOGISTICS', 'ISO Tank Logistics')}
+            {renderNavItem('NIAS_PLTMG_POWER_OUTPUT', 'PLTMG Power')}
             {renderNavItem('DAILY_OPS_ELECTRICAL_SYSTEM', 'Electrical System')}
             {renderNavItem('DAILY_OPS_OVERVIEW', 'Daily Ops Overview')}
           </div>
