@@ -106,3 +106,18 @@ export function getIsoTankDailyReadingsForMonth(db: SqlExecutor, reportMonth: st
   );
   return rows.map(rowFromSql);
 }
+
+const SELECT_ALL_LATEST_SQL = `
+  SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (
+      PARTITION BY iso_tank_no
+      ORDER BY report_date DESC
+    ) AS rn
+    FROM iso_tank_daily_readings
+  ) WHERE rn = 1
+`;
+
+/** (iso_tank_no)별 최신 1건씩, 테이블 전체 — Yard Map KPI 스트립(라이브 대시보드)이 사용. */
+export function getLatestIsoTankDailyReadings(db: SqlExecutor): IsoTankDailyReadingRow[] {
+  return db.all<IsoTankDailyReadingSqlRow>(SELECT_ALL_LATEST_SQL).map(rowFromSql);
+}
