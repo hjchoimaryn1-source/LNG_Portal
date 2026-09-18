@@ -8,9 +8,11 @@
 //   않고 동일한 값을 참조하기 위함(서버 DAO가 UI 레이어에 의존하는 역방향
 //   레이어링을 피함). B1 폼들은 이제 이 파일에서 import해서 쓴다.
 //
-//   iso_tank_cargo는 여기 없다 — 해당 순찰 폼이 Stage B에 존재하지 않고
-//   (ISO Tank UI는 NiasActiveBayWorkspace.tsx 소관, 범위 밖), 임의의 태그를
-//   지어내지 않기 위해 의도적으로 제외했다(Stage C1 deviation note 참고).
+//   iso_tank_cargo는 여기 없다 — Stage C1 당시엔 순찰 폼 자체가 없어 정적
+//   등록을 보류했고(ISO Tank UI는 NiasActiveBayWorkspace.tsx 소관, 범위 밖),
+//   지금은 SIMU 탱크 모집단이 Nias↔Saviour 선적 사이클로 교체되어 정적
+//   배열이 원천적으로 부적합하다 — 대신 deriveIsoTankCargoTags.ts가
+//   fleetTanks에서 Laydown 1/2 소재 탱크만 매 렌더마다 동적으로 도출한다.
 
 import type { PatrolDomain } from '../types/patrolLog';
 
