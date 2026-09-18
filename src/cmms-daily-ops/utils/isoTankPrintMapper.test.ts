@@ -104,8 +104,9 @@ describe('buildIsoTankCargoSummary', () => {
 
 describe('incomplete-day record count (regression guard)', () => {
   // NiasLaydownLogTab.tsx:130-132 uses an `ld1Count||9 + skidCount||1 + ld2Count||1`
-  // fallback-mock idiom (same shape as NiasCustodySettlementTab.tsx's `||14`/`||10`)
-  // that substitutes a hardcoded 11 whenever the real filtered count is 0. This
+  // fallback-mock idiom (same `||N` hardcoded-fallback shape once seen in the
+  // now-removed legacy PLN EPI mock tab) that substitutes a hardcoded 11
+  // whenever the real filtered count is 0. This
   // bridge must NOT reproduce that idiom — a day with fewer than 11 saved records
   // (e.g. an incomplete/partial patrol day) must render exactly that many tanks,
   // never padded up to 11. Masking a real input gap in a safety-relevant daily

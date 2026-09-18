@@ -103,7 +103,7 @@ describe('NiasTerminalView — render-level smoke baseline (Sub-stage E)', () =>
     { label: 'PATROL_LOG', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'PATROL_LOG', marker: 'PATROL LOG' },
     { label: 'GAS_METERING_DAILY', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'GAS_METERING_DAILY', marker: 'GAS METERING (DAILY)' },
     { label: 'PLTMG_POWER_OUTPUT', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'PLTMG_POWER_OUTPUT', marker: 'PLTMG MONITOR' },
-    { label: 'CUSTODY_HEAT_SETTLEMENT', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'CUSTODY_HEAT_SETTLEMENT', marker: 'Matrix 2: Unloading ISO Tank' },
+    { label: 'CUSTODY_HEAT_SETTLEMENT', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'CUSTODY_HEAT_SETTLEMENT', marker: 'MONTHLY REPORT (PLN EPI)' },
   ];
 
   for (const { label, initialDomain, initialSubTab, marker } of knownSubTabs) {
