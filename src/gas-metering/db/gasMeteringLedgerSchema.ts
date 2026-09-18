@@ -10,6 +10,31 @@
 
 import type { DatabaseSync } from 'node:sqlite';
 
+// Monthly Report (PLN EPI) Stage 2 — 6 nullable columns added to cover P3
+// (Net Sales), P4 (manual-sample GHV), P8 (station composition/specific
+// gravity) fields with no existing home in this table. ALTER-ADD only, no
+// rebuild (CLAUDE.md §5). All 6 stay NULL until a future seed/form actually
+// supplies values — no source data exists for them yet (verified July 2026
+// P3/P4/P8 source files, Monthly Report Stage 1/2 investigation).
+const GAS_METERING_LEDGER_ADDITIVE_COLUMNS: Array<[string, string]> = [
+  ['net_sales_vol_mmscf', 'ALTER TABLE gas_metering_ledger_daily ADD COLUMN net_sales_vol_mmscf REAL'],
+  ['net_sales_energy_mmbtu', 'ALTER TABLE gas_metering_ledger_daily ADD COLUMN net_sales_energy_mmbtu REAL'],
+  ['ghv_station', 'ALTER TABLE gas_metering_ledger_daily ADD COLUMN ghv_station REAL'],
+  ['mol_co2_station', 'ALTER TABLE gas_metering_ledger_daily ADD COLUMN mol_co2_station REAL'],
+  ['specific_gravity_station', 'ALTER TABLE gas_metering_ledger_daily ADD COLUMN specific_gravity_station REAL'],
+  ['ghv_manual_sample', 'ALTER TABLE gas_metering_ledger_daily ADD COLUMN ghv_manual_sample REAL'],
+];
+
+// SQLite has no `ADD COLUMN IF NOT EXISTS` — guard via PRAGMA table_info(),
+// same convention as dailyReportSchema.ts's ensureColumn().
+function ensureColumn(raw: DatabaseSync, table: string, columnName: string, addColumnSql: string): void {
+  const columns = raw.prepare(`PRAGMA table_info(${table})`).all();
+  const hasColumn = columns.some((c) => (c as { name: string }).name === columnName);
+  if (!hasColumn) {
+    raw.exec(addColumnSql);
+  }
+}
+
 export const GAS_METERING_LEDGER_DAILY_DDL = `
   CREATE TABLE IF NOT EXISTS gas_metering_ledger_daily (
       id                          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,4 +87,7 @@ export const GAS_METERING_LEDGER_DAILY_DDL = `
 
 export function ensureGasMeteringLedgerSchema(raw: DatabaseSync): void {
   raw.exec(GAS_METERING_LEDGER_DAILY_DDL);
+  for (const [columnName, addColumnSql] of GAS_METERING_LEDGER_ADDITIVE_COLUMNS) {
+    ensureColumn(raw, 'gas_metering_ledger_daily', columnName, addColumnSql);
+  }
 }
