@@ -31,9 +31,9 @@ export default function IsoTankConsumptionView({ reportMonth }: IsoTankConsumpti
             <tr>
               <th className="p-2 text-left">Tank</th>
               <th className="p-2 text-left">Shipment</th>
-              <th className="p-2 text-right">Weight Awal (Kg)</th>
-              <th className="p-2 text-right">Stock Awal (m³)</th>
-              <th className="p-2 text-right">Stock Akhir (m³)</th>
+              <th className="p-2 text-right">Opening Weight (Kg)</th>
+              <th className="p-2 text-right">Opening Stock (m³)</th>
+              <th className="p-2 text-right">Closing Stock (m³)</th>
               <th className="p-2 text-right">Net Consumed (m³)</th>
               <th className="p-2 text-right">Consumed (MMBTU)</th>
               <th className="p-2 text-right">Density (Kg/m³)</th>
