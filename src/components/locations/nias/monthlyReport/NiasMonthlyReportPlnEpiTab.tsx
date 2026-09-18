@@ -16,6 +16,7 @@ import GasAnalysisPanel from './GasAnalysisPanel';
 import GasDeliverySummaryForm from './GasDeliverySummaryForm';
 import IsoTankConsumptionView from './IsoTankConsumptionView';
 import IsoTankDailyReadingsView from './IsoTankDailyReadingsView';
+import { MonthlyReportPrintView } from '../../../../cmms-monthly-report/print/MonthlyReportPrintView';
 
 type SubView = 'FLOBOSS' | 'GAS_ANALYSIS' | 'GAS_DELIVERY' | 'ISO_TANK_CONSUMPTION' | 'ISO_TANK_DAILY';
 
@@ -30,6 +31,7 @@ const SUB_VIEWS: Array<{ key: SubView; label: string }> = [
 export default function NiasMonthlyReportPlnEpiTab() {
   const [reportMonth, setReportMonth] = useState('2026-07');
   const [subView, setSubView] = useState<SubView>('FLOBOSS');
+  const [showPrintView, setShowPrintView] = useState(false);
 
   return (
     <div className="w-full space-y-3 font-sans pb-10">
@@ -65,6 +67,15 @@ export default function NiasMonthlyReportPlnEpiTab() {
       {subView === 'GAS_DELIVERY' && <GasDeliverySummaryForm reportMonth={reportMonth} />}
       {subView === 'ISO_TANK_CONSUMPTION' && <IsoTankConsumptionView reportMonth={reportMonth} />}
       {subView === 'ISO_TANK_DAILY' && <IsoTankDailyReadingsView reportMonth={reportMonth} />}
+
+      <button
+        type="button"
+        onClick={() => setShowPrintView((v) => !v)}
+        className="text-[11px] font-mono text-blue-800 underline"
+      >
+        {showPrintView ? 'Hide' : 'Show'} Monthly Report Print Preview
+      </button>
+      {showPrintView && <MonthlyReportPrintView reportMonth={reportMonth} />}
     </div>
   );
 }
