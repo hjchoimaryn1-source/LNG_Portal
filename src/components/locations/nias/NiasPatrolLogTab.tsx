@@ -24,6 +24,7 @@ import { NgBufferTankPatrolForm } from '../../../cmms-daily-ops/components/patro
 import { GcPatrolForm } from '../../../cmms-daily-ops/components/patrol/GcPatrolForm';
 import { N2SkidPatrolForm } from '../../../cmms-daily-ops/components/patrol/N2SkidPatrolForm';
 import { IsoTankUnloadingSkidPatrolForm } from '../../../cmms-daily-ops/components/patrol/IsoTankUnloadingSkidPatrolForm';
+import { IsoTankCargoPatrolForm } from '../../../cmms-daily-ops/components/patrol/IsoTankCargoPatrolForm';
 import { usePatrolSaveHandler } from '../../../cmms-daily-ops/hooks/usePatrolSaveHandler';
 import { TITLE_BAR } from '../../cmms/scadaStyles';
 
@@ -31,7 +32,7 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-type PatrolLogSubTab = 'AAV_BUFFER' | 'METERING' | 'N2_BOTTLES' | 'ISO_TANK_SKID';
+type PatrolLogSubTab = 'AAV_BUFFER' | 'METERING' | 'N2_BOTTLES' | 'ISO_TANK_SKID' | 'ISO_TANK_CARGO';
 
 const SUB_TAB_BUTTON = 'px-2.5 py-1 text-xs font-bold font-mono cursor-pointer';
 
@@ -47,6 +48,7 @@ export default function NiasPatrolLogTab() {
   const onSaveGc = usePatrolSaveHandler('gc', reportDate, 'FIELD OP-1', setBlockedReason);
   const onSaveN2Skid = usePatrolSaveHandler('n2_skid', reportDate, 'FIELD OP-1', setBlockedReason);
   const onSaveIsoTankSkid = usePatrolSaveHandler('iso_tank_unloading_skid', reportDate, 'FIELD OP-1', setBlockedReason);
+  const onSaveIsoTankCargo = usePatrolSaveHandler('iso_tank_cargo', reportDate, 'FIELD OP-1', setBlockedReason);
 
   return (
     <div className="p-4 space-y-4">
@@ -84,6 +86,13 @@ export default function NiasPatrolLogTab() {
         >
           ISO Tank Unloading Skid
         </button>
+        <button
+          type="button"
+          onClick={() => setSubTab('ISO_TANK_CARGO')}
+          className={`${SUB_TAB_BUTTON} ${subTab === 'ISO_TANK_CARGO' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'}`}
+        >
+          ISO Tank Cargo (Laydown)
+        </button>
       </div>
 
       {subTab === 'AAV_BUFFER' && (
@@ -101,6 +110,7 @@ export default function NiasPatrolLogTab() {
       )}
       {subTab === 'N2_BOTTLES' && <N2SkidPatrolForm onSave={onSaveN2Skid} />}
       {subTab === 'ISO_TANK_SKID' && <IsoTankUnloadingSkidPatrolForm onSave={onSaveIsoTankSkid} />}
+      {subTab === 'ISO_TANK_CARGO' && <IsoTankCargoPatrolForm onSave={onSaveIsoTankCargo} />}
     </div>
   );
 }
