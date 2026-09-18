@@ -5,8 +5,8 @@
 //   (massBalanceCalculations.ts): Total Yard BOG Loss, Net Usable Stock
 //   (= Arun Latest Batch Inbound − Total Gas Consumed − Total Yard BOG
 //   Loss, Arun cert. seed stage), Tanks Tracked. Total Gas Consumed is
-//   currently 0 in the live data (source CSV itself has consumed_kg=0 for
-//   every row this period — flagged in the card, not hidden).
+//   currently 0 in the live data — correct for the pre-commercial-
+//   operation period (zero draw-off since batch arrival), not a gap.
 
 import type { MassBalanceMetrics } from './utils/massBalanceCalculations';
 
@@ -67,7 +67,7 @@ export function MassBalanceKpiCards({ metrics }: MassBalanceKpiCardsProps) {
           </div>
           <div className="text-[11px] font-bold text-slate-600">
             Consumed: {metrics.totalConsumedKg.toLocaleString()} kg
-            {metrics.totalConsumedKg === 0 && <span className="text-amber-700"> (source data is 0 this period)</span>}
+            {metrics.totalConsumedKg === 0 && <span className="text-slate-500"> (pre-commercial-operation, no draw-off yet)</span>}
           </div>
         </div>
       </div>

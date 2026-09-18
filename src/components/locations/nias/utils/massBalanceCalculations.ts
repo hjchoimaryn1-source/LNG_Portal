@@ -18,14 +18,13 @@
 //     this data).
 //   - Total Gas Consumed: SUM(consumedKg) from iso_tank_consumption_monthly
 //     for the selected report month — confirmed this is the only
-//     "consumed" source in the schema. KNOWN GAP: this table is a single
-//     snapshot per (report_date, iso_tank_no), not a cumulative-since-
-//     batch-arrival total, and the batch arrived December 2025 while this
-//     snapshot is dated July 2026 — any consumption in that ~7-month gap
-//     is not captured. Currently the source CSV itself has consumed_kg=0
-//     for every row (verified directly, not a parser bug), so this term
-//     is 0 in practice today; report this explicitly rather than treating
-//     the formula's output as authoritative.
+//     "consumed" source in the schema. This is correctly 0 today: Nias is
+//     pre-commercial-operation, and the Batch N-1 tanks (Arun, Dec 2025)
+//     have had zero gas draw-off since arrival — the only real stock
+//     reduction so far is daily BOG venting loss. 0 is the expected
+//     operational value, not missing data. No formula change is needed
+//     once consumption begins — consumedKg will simply become nonzero as
+//     real patrol/consumption data accumulates.
 
 import type { IsoTankDailyReadingRow } from '../../../../cmms-monthly-report/dao/isoTankDailyReadingsDao';
 import type { IsoTankConsumptionRow } from '../../../../cmms-monthly-report/dao/isoTankConsumptionDao';
