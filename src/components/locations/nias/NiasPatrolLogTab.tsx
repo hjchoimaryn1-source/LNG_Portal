@@ -14,6 +14,15 @@
 //   The old "Generate Daily Report" trigger is NOT relocated here — it was
 //   a duplicate of DailyOpsOverviewView.tsx's ApprovalPanel, which remains
 //   the single canonical entry point for report generation.
+//
+//   ISO Tank & Mass Balance relocation (2026-09-18): the "ISO Tank Cargo
+//   (Laydown)" sub-tab (IsoTankCargoPatrolForm.tsx, iso_tank_cargo domain)
+//   is retired — HJ's final decision is that NiasLaydownLogTab.tsx
+//   ("ISO TK - LOG", now under Regas & Gas Process) is the sole master
+//   input for Laydown tank data. Only this file's mount is removed; the
+//   SQLite schema/DAO/patrolFieldMaps entries for iso_tank_cargo are left
+//   in place (dead but harmless) per this session's "don't delete schema"
+//   discipline.
 
 'use client';
 
@@ -24,7 +33,6 @@ import { NgBufferTankPatrolForm } from '../../../cmms-daily-ops/components/patro
 import { GcPatrolForm } from '../../../cmms-daily-ops/components/patrol/GcPatrolForm';
 import { N2SkidPatrolForm } from '../../../cmms-daily-ops/components/patrol/N2SkidPatrolForm';
 import { IsoTankUnloadingSkidPatrolForm } from '../../../cmms-daily-ops/components/patrol/IsoTankUnloadingSkidPatrolForm';
-import { IsoTankCargoPatrolForm } from '../../../cmms-daily-ops/components/patrol/IsoTankCargoPatrolForm';
 import { usePatrolSaveHandler } from '../../../cmms-daily-ops/hooks/usePatrolSaveHandler';
 import { TITLE_BAR } from '../../cmms/scadaStyles';
 
@@ -32,7 +40,7 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-type PatrolLogSubTab = 'AAV_BUFFER' | 'METERING' | 'N2_BOTTLES' | 'ISO_TANK_SKID' | 'ISO_TANK_CARGO';
+type PatrolLogSubTab = 'AAV_BUFFER' | 'METERING' | 'N2_BOTTLES' | 'ISO_TANK_SKID';
 
 const SUB_TAB_BUTTON = 'px-2.5 py-1 text-xs font-bold font-mono cursor-pointer';
 
@@ -48,7 +56,6 @@ export default function NiasPatrolLogTab() {
   const onSaveGc = usePatrolSaveHandler('gc', reportDate, 'FIELD OP-1', setBlockedReason);
   const onSaveN2Skid = usePatrolSaveHandler('n2_skid', reportDate, 'FIELD OP-1', setBlockedReason);
   const onSaveIsoTankSkid = usePatrolSaveHandler('iso_tank_unloading_skid', reportDate, 'FIELD OP-1', setBlockedReason);
-  const onSaveIsoTankCargo = usePatrolSaveHandler('iso_tank_cargo', reportDate, 'FIELD OP-1', setBlockedReason);
 
   return (
     <div className="p-4 space-y-4">
@@ -86,13 +93,6 @@ export default function NiasPatrolLogTab() {
         >
           ISO Tank Unloading Skid
         </button>
-        <button
-          type="button"
-          onClick={() => setSubTab('ISO_TANK_CARGO')}
-          className={`${SUB_TAB_BUTTON} ${subTab === 'ISO_TANK_CARGO' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'}`}
-        >
-          ISO Tank Cargo (Laydown)
-        </button>
       </div>
 
       {subTab === 'AAV_BUFFER' && (
@@ -110,7 +110,6 @@ export default function NiasPatrolLogTab() {
       )}
       {subTab === 'N2_BOTTLES' && <N2SkidPatrolForm onSave={onSaveN2Skid} />}
       {subTab === 'ISO_TANK_SKID' && <IsoTankUnloadingSkidPatrolForm onSave={onSaveIsoTankSkid} />}
-      {subTab === 'ISO_TANK_CARGO' && <IsoTankCargoPatrolForm onSave={onSaveIsoTankCargo} />}
     </div>
   );
 }
