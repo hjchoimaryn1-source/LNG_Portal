@@ -1,13 +1,16 @@
 // src/components/locations/nias/GasMeteringDailyTab.tsx
 //
 // PURPOSE
-//   "GAS METERING (DAILY)" — Phase 12 Stage 2. Replaces NiasGasQualityTab.tsx
-//   (manual entry form) + NiasGasQualityLedgerTab.tsx (localStorage ledger)
-//   with a single read-only ledger backed by gas_metering_ledger_daily
-//   (GC_REPORT + GC_COMPOSITION, ingested via the CSV pipeline — HJ decision
-//   2026-09-16: no manual entry / no recurring PDF workflow going forward).
-//   Every field is rendered defensively (station/meter values may be null —
-//   future CSV/report revisions are not guaranteed to populate every column).
+//   "GAS METERING (DAILY)" — Phase 12 Stage 2 originally built this as a
+//   read-only ledger (HJ decision 2026-09-16: "no manual entry / no
+//   recurring PDF workflow going forward"). That decision reflected an
+//   incorrect assumption (that Floboss data would only ever arrive via
+//   file upload) — the system is not SCADA-integrated, and Floboss/GC
+//   readings must be read off the device display and keyed in daily.
+//   Reversed this session: the live entry form (FlobossDailyEntryForm,
+//   writing to the same gas_metering_ledger_daily the CSV seed runner
+//   populated — no separate live table) now sits above the historical
+//   ledger table, which stays for browsing/export.
 
 'use client';
 
@@ -15,6 +18,7 @@ import { useState } from 'react';
 import { RAISED_PANEL, SUNKEN_PANEL, TITLE_BAR, BEVEL_BUTTON, SUNKEN_INPUT } from '../../cmms/scadaStyles';
 import { exportToCSV } from '../../../utils/exportCsv';
 import { useGasMeteringLedger } from '../../../gas-metering/hooks/useGasMeteringLedger';
+import { FlobossDailyEntryForm } from '../../../gas-metering/entry/FlobossDailyEntryForm';
 import type { GasMeteringLedgerDailyRow } from '../../../gas-metering/dao/gasMeteringLedgerDao';
 
 function fmt(value: number | null, digits = 2): string {
@@ -47,7 +51,9 @@ export default function GasMeteringDailyTab() {
 
   return (
     <div className="space-y-3">
-      <div className={TITLE_BAR}>GAS METERING (DAILY) — gas_metering_ledger_daily</div>
+      <FlobossDailyEntryForm />
+
+      <div className={TITLE_BAR}>GAS METERING (DAILY) — History — gas_metering_ledger_daily</div>
 
       <div className={`${RAISED_PANEL} p-2 flex flex-wrap items-center gap-2`}>
         <input
