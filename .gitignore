@@ -42,3 +42,19 @@ next-env.d.ts
 
 # third-party copyrighted assets (local-only — see PIDOverlayView.tsx header)
 /public/images/P&ID.png
+
+# Monthly Report Step 0 extraction artifacts (untracked, not deleted; not
+# consumed by any code path — see monthlyReportSeedRunner.ts, which reads
+# from public/data/ instead)
+data/Monthly Report Operation Regas - July 2026.xlsx
+data/Monthly Report _Grafik.csv
+data/Monthly Report_Berita_Acara_Validasi.csv
+data/Monthly Report_Calculation_Delivery_Gas_P6.csv
+data/Monthly Report_Floboss_Meter(A)_P1.csv
+data/Monthly Report_Floboss_Meter(B)_P2.csv
+data/Monthly Report_Gas_Analysis_P8.csv
+data/Monthly Report_Gas_Consumption_P3.csv
+data/Monthly Report_Gas_Correction_Energy_P4.csv
+data/Monthly Report_Sheet_Monthly Report Ops.csv
+data/Monthly Report_Statement_of_Delivery_P7.csv
+data/Monthly Report_Summary_Gas_Deliery_P5.csv
