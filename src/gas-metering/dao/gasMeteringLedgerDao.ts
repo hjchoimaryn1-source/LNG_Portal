@@ -150,3 +150,39 @@ export function getLatestGasMeteringSnapshot(db: SqlExecutor): GasMeteringSnapsh
       : null,
   };
 }
+
+// Monthly Report (PLN EPI) Stage 3 — Floboss P1-P4 daily view.
+export interface FlobossDailyRow {
+  reportDate: string;
+  dailyUvolMmcfA: number | null; dailyCvolMmcfA: number | null; dailyMmbtuA: number | null;
+  dailyUvolMmcfB: number | null; dailyCvolMmcfB: number | null; dailyMmbtuB: number | null;
+  dailyUvolMmcfStation: number | null; dailyCvolMmcfStation: number | null; dailyMmbtuStation: number | null;
+  ghvA: number | null; ghvB: number | null; ghvStation: number | null; ghvManualSample: number | null;
+  netSalesVolMmscf: number | null; netSalesEnergyMmbtu: number | null;
+}
+
+const SELECT_FLOBOSS_MONTH_SQL = `
+  SELECT
+    report_date,
+    daily_uvol_mmcf_a, daily_cvol_mmcf_a, daily_mmbtu_a,
+    daily_uvol_mmcf_b, daily_cvol_mmcf_b, daily_mmbtu_b,
+    daily_uvol_mmcf_station, daily_cvol_mmcf_station, daily_mmbtu_station,
+    ghv_a, ghv_b, ghv_station, ghv_manual_sample,
+    net_sales_vol_mmscf, net_sales_energy_mmbtu
+  FROM gas_metering_ledger_daily
+  WHERE meter_source = 'GC_REPORT' AND report_date LIKE @monthPrefix
+  ORDER BY report_date
+`;
+
+/** Floboss P1-P4 daily rows (GC_REPORT source) for a given report month ('YYYY-MM'). */
+export function getFlobossLedgerForMonth(db: SqlExecutor, reportMonth: string): FlobossDailyRow[] {
+  const rows = db.all<Record<string, number | string | null>>(SELECT_FLOBOSS_MONTH_SQL, { monthPrefix: `${reportMonth}%` });
+  return rows.map((r) => ({
+    reportDate: r.report_date as string,
+    dailyUvolMmcfA: r.daily_uvol_mmcf_a as number | null, dailyCvolMmcfA: r.daily_cvol_mmcf_a as number | null, dailyMmbtuA: r.daily_mmbtu_a as number | null,
+    dailyUvolMmcfB: r.daily_uvol_mmcf_b as number | null, dailyCvolMmcfB: r.daily_cvol_mmcf_b as number | null, dailyMmbtuB: r.daily_mmbtu_b as number | null,
+    dailyUvolMmcfStation: r.daily_uvol_mmcf_station as number | null, dailyCvolMmcfStation: r.daily_cvol_mmcf_station as number | null, dailyMmbtuStation: r.daily_mmbtu_station as number | null,
+    ghvA: r.ghv_a as number | null, ghvB: r.ghv_b as number | null, ghvStation: r.ghv_station as number | null, ghvManualSample: r.ghv_manual_sample as number | null,
+    netSalesVolMmscf: r.net_sales_vol_mmscf as number | null, netSalesEnergyMmbtu: r.net_sales_energy_mmbtu as number | null,
+  }));
+}

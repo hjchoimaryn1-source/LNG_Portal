@@ -11,6 +11,7 @@ import NiasProcessPIDDiagram from '../NiasProcessPIDDiagram';
 import NiasPatrolLogTab from '../NiasPatrolLogTab';
 import GasMeteringDailyTab from '../GasMeteringDailyTab';
 import NiasPowerThermalTab from '../NiasPowerThermalTab';
+import NiasMonthlyReportPlnEpiTab from '../monthlyReport/NiasMonthlyReportPlnEpiTab';
 import type { NiasDomainContentRouterProps } from '../types/niasDomainContentRouter.types';
 
 export default function NiasDomainContentRouter(props: NiasDomainContentRouterProps) {
@@ -169,13 +170,11 @@ export default function NiasDomainContentRouter(props: NiasDomainContentRouterPr
 
       {/* ==================================================================== */}
       {/* DOMAIN 2 - SUB-TAB 4: ⚖️ MONTHLY REPORT (PLN EPI)                    */}
-      {/* Legacy mock (NiasCustodySettlementTab.tsx) removed — real 13-sheet   */}
-      {/* schema rebuild in progress, see monthly-report Stage 3.             */}
+      {/* Legacy mock (NiasCustodySettlementTab.tsx) removed — rebuilt from    */}
+      {/* the real 13-sheet workbook (Floboss P1-P8 + ISO Tank monthly).      */}
       {/* ==================================================================== */}
       {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' && (
-        <div className="p-6 text-xs font-mono text-slate-500 border-2 border-dashed border-slate-400">
-          MONTHLY REPORT (PLN EPI) — under reconstruction (Stage 3 pending)
-        </div>
+        <NiasMonthlyReportPlnEpiTab />
       )}
     </>
   );
