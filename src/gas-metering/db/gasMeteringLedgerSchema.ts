@@ -19,6 +19,8 @@ import type { DatabaseSync } from 'node:sqlite';
 const GAS_METERING_LEDGER_ADDITIVE_COLUMNS: Array<[string, string]> = [
   ['net_sales_vol_mmscf', 'ALTER TABLE gas_metering_ledger_daily ADD COLUMN net_sales_vol_mmscf REAL'],
   ['net_sales_energy_mmbtu', 'ALTER TABLE gas_metering_ledger_daily ADD COLUMN net_sales_energy_mmbtu REAL'],
+  // Reserved for a future form revision — no P8 source field maps to these yet;
+  // stays NULL until PLN EPI confirms the station GHV/CO2/specific-gravity layout.
   ['ghv_station', 'ALTER TABLE gas_metering_ledger_daily ADD COLUMN ghv_station REAL'],
   ['mol_co2_station', 'ALTER TABLE gas_metering_ledger_daily ADD COLUMN mol_co2_station REAL'],
   ['specific_gravity_station', 'ALTER TABLE gas_metering_ledger_daily ADD COLUMN specific_gravity_station REAL'],
