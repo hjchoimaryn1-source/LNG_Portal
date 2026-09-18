@@ -100,7 +100,7 @@ describe('NiasTerminalView — render-level smoke baseline (Sub-stage E)', () =>
     { label: 'LAYDOWN_3_HEEL', initialDomain: 'ISO_TANK_MGMT', initialSubTab: 'LAYDOWN_3_HEEL', marker: 'HEEL STAGING & BACKHAUL CLEARANCE' },
     { label: 'TANK_MASS_BALANCE', initialDomain: 'ISO_TANK_MGMT', initialSubTab: 'TANK_MASS_BALANCE', marker: 'ISO TANK MASS BALANCE' },
     { label: 'GAS_PROCESS_TELEMETRY', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'GAS_PROCESS_TELEMETRY', marker: 'DAILY LNG SENDOUT' },
-    { label: 'PATROL_LOG', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'PATROL_LOG', marker: '4-HR PATROL LOG' },
+    { label: 'PATROL_LOG', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'PATROL_LOG', marker: 'PATROL LOG' },
     { label: 'GAS_METERING_DAILY', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'GAS_METERING_DAILY', marker: 'GAS METERING (DAILY)' },
     { label: 'PLTMG_POWER_OUTPUT', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'PLTMG_POWER_OUTPUT', marker: 'PLTMG MONITOR' },
     { label: 'CUSTODY_HEAT_SETTLEMENT', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'CUSTODY_HEAT_SETTLEMENT', marker: 'Matrix 2: Unloading ISO Tank' },

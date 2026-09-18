@@ -49,7 +49,7 @@ describe('NiasPatrolLogTab', () => {
   it('defaults to the AAV & Buffer Tank sub-tab (AAV-102 + V-101)', async () => {
     stubFetch();
     await mountAndFlush();
-    expect(container!.textContent).toContain('4-HR PATROL LOG');
+    expect(container!.textContent).toContain('PATROL LOG');
     expect(container!.textContent).toContain('AAV-102');
     expect(container!.textContent).toContain('V-101');
     expect(container!.textContent).not.toContain('METERING-TRAIN-A');

@@ -52,7 +52,7 @@ export default function NiasPatrolLogTab() {
 
   return (
     <div className="p-4 space-y-4">
-      <div className={TITLE_BAR}>4-HR PATROL LOG — {reportDate}</div>
+      <div className={TITLE_BAR}>PATROL LOG — {reportDate}</div>
       {blockedReason && (
         <div className="text-[11px] text-red-700 font-bold">{blockedReason}</div>
       )}

@@ -100,7 +100,7 @@ export default function NiasSubTabsNavPanel({
                 className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'PATROL_LOG' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
                   }`}
               >
-                4-HR PATROL LOG
+                PATROL LOG
               </button>
 
               <button

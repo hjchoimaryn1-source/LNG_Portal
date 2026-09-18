@@ -84,7 +84,7 @@ export const SUBPROCESS_TITLES_LNG_PROCESS: Record<string, SubProcessTitleEntry>
   },
   NIAS_PATROL_LOG: {
     location: 'LNG-Process',
-    process: 'Regas & Gas Process > 4-HR Patrol Log',
+    process: 'Regas & Gas Process > Patrol Log',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
