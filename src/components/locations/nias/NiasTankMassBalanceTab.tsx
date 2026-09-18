@@ -23,10 +23,13 @@ function currentMonth(): string {
 export default function NiasTankMassBalanceTab() {
   const [reportMonth, setReportMonth] = useState(currentMonth);
   const [searchQuery, setSearchQuery] = useState('');
-  const { readings, isLoading, error } = useMassBalanceData(reportMonth);
+  const { readings, consumption, certificates, isLoading, error } = useMassBalanceData(reportMonth);
 
   const rows = useMemo(() => aggregateMassBalanceRows(readings), [readings]);
-  const metrics = useMemo(() => computeMassBalanceMetrics(rows), [rows]);
+  const metrics = useMemo(
+    () => computeMassBalanceMetrics(rows, consumption, certificates),
+    [rows, consumption, certificates]
+  );
 
   const filteredRows = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();

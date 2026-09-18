@@ -2,45 +2,58 @@
 //
 // PURPOSE
 //   Live data fetch for the rebuilt Mass Balance tab — reads
-//   iso_tank_daily_readings (same table NiasLaydownLogTab now writes to,
-//   ISO Tank & Mass Balance relocation stage) for the given report month,
-//   replacing the old DEFAULT_MASS_BALANCE_DATA mock + settlementRecords
-//   overlay. State/fetch layer only — aggregation logic lives in
-//   massBalanceCalculations.ts (AGENTS.md §3 separation).
+//   iso_tank_daily_readings (Total Yard BOG Loss source),
+//   iso_tank_consumption_monthly (Total Gas Consumed source) for the given
+//   report month, and arun_lng_delivery_certificate (Arun Inbound Stock
+//   source, batch-based not month-scoped, so fetched independent of
+//   reportMonth) — the three inputs to Net Usable Stock. State/fetch layer
+//   only — aggregation logic lives in massBalanceCalculations.ts
+//   (AGENTS.md §3 separation).
 
 'use client';
 
 import { useEffect, useState } from 'react';
 import type { IsoTankDailyReadingRow } from '../../../../cmms-monthly-report/dao/isoTankDailyReadingsDao';
+import type { IsoTankConsumptionRow } from '../../../../cmms-monthly-report/dao/isoTankConsumptionDao';
+import type { ArunLngDeliveryCertificateRow } from '../../../../cmms-monthly-report/dao/arunLngDeliveryCertificateDao';
 
 export function useMassBalanceData(reportMonth: string) {
   const [readings, setReadings] = useState<IsoTankDailyReadingRow[]>([]);
+  const [consumption, setConsumption] = useState<IsoTankConsumptionRow[]>([]);
+  const [certificates, setCertificates] = useState<ArunLngDeliveryCertificateRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    fetch(`/api/v1/cmms/monthly-report/iso-tank?month=${reportMonth}&kind=daily`, { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((json: { success: boolean; records?: IsoTankDailyReadingRow[]; error?: string }) => {
+
+    Promise.all([
+      fetch(`/api/v1/cmms/monthly-report/iso-tank?month=${reportMonth}&kind=daily`, { cache: 'no-store' }).then((r) => r.json()),
+      fetch(`/api/v1/cmms/monthly-report/iso-tank?month=${reportMonth}&kind=consumption`, { cache: 'no-store' }).then((r) => r.json()),
+      fetch(`/api/v1/cmms/monthly-report/arun-delivery-certificate`, { cache: 'no-store' }).then((r) => r.json()),
+    ])
+      .then(([readingsJson, consumptionJson, certJson]) => {
         if (cancelled) return;
-        if (json.success) {
-          setReadings(json.records ?? []);
+        if (readingsJson.success && consumptionJson.success && certJson.success) {
+          setReadings(readingsJson.records ?? []);
+          setConsumption(consumptionJson.records ?? []);
+          setCertificates(certJson.records ?? []);
         } else {
-          setError(json.error ?? 'Failed to load ISO tank daily readings.');
+          setError(readingsJson.error || consumptionJson.error || certJson.error || 'Failed to load Mass Balance data.');
         }
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load ISO tank daily readings.');
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load Mass Balance data.');
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
       });
+
     return () => {
       cancelled = true;
     };
   }, [reportMonth]);
 
-  return { readings, isLoading, error };
+  return { readings, consumption, certificates, isLoading, error };
 }
