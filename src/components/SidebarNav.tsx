@@ -1,14 +1,11 @@
 // src/components/SidebarNav.tsx
 "use client";
 
-import React, { useMemo } from 'react';
-import { useFleetTankFacade } from '../hooks/portalDataFacade/useFleetTankFacade';
-import { NodeState, SubProcessKey } from '../types/lng';
+import React from 'react';
+import { SubProcessKey } from '../types/lng';
 import { COMPANY_CONFIG } from '../config/siteConfig';
-import { NIAS_TANK_YARD_KEYS, NIAS_GAS_PROCESS_KEYS } from './portal/subtabs/LngProcessSubTabs';
-import { HMI_CONTROL_MAPS_REGISTRY } from '../config/hmiControlMapsRegistry';
-import { useActiveSession } from '../lib/rbac/activeSessionStore';
-import { isNavItemVisible } from '../lib/rbac/navPermissionMap';
+import SidebarSectorListView from './portal/sidebar/SidebarSectorListView';
+import SidebarSectionMenu from './portal/sidebar/SidebarSectionMenu';
 
 interface SidebarNavProps {
   activeKey: SubProcessKey;
@@ -18,15 +15,10 @@ interface SidebarNavProps {
   onCloseMobile?: () => void;
 }
 
-// Stage 2 (site launch readiness, 2026-09-15) — hides the tab from the sidebar without
-// deleting the SubProcessKey/route/component (lng.ts, LngProcessRoutes.tsx unchanged).
-// Flip back to true to restore.
-const SHOW_ISO_TANK_LOGISTICS_TAB = false;
-
-// Windows Classic 3D Raised Bevel Section Header Style
-const SECTION_HEADER_BEVEL =
-  "bg-[#d4d0c8] text-slate-900 font-extrabold text-xs px-2.5 py-1.5 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] tracking-wider uppercase flex items-center justify-between cursor-default select-none shadow-xs";
-
+// Stage 1 (contextual sidebar, 2026-09-18): Dashboard shows a flat sector-picker
+// list (SidebarSectorListView); inside any sector, that sector's own leaf
+// sub-menu fully replaces the list (SidebarSectionMenu) — see sidebarSections.ts
+// for the shared section data both views render from.
 export default function SidebarNav({
   activeKey,
   activeSubTab,
@@ -34,106 +26,11 @@ export default function SidebarNav({
   isOpenMobile = false,
   onCloseMobile,
 }: SidebarNavProps) {
-  const { fleetTanks } = useFleetTankFacade();
-  const activeSession = useActiveSession();
-  const visible = (key: SubProcessKey) => isNavItemVisible(key, activeSession);
-
-  // Role-based tab hiding (Stage 2, 2026-09-18) — one boolean per section,
-  // computed once here so both the section header and its items reuse it
-  // without repeating the same key list twice.
-  const lngProcessVisible =
-    visible('LNG_PROCESS_OVERVIEW') ||
-    visible('ARUN_LOADING_COQ') ||
-    visible('SAVIOUR_VOYAGE_MONITORING') ||
-    visible('NIAS_TANK_OVERVIEW') ||
-    visible('NIAS_GAS_PROCESS_TELEMETRY') ||
-    visible('NIAS_PLTMG_POWER_OUTPUT') ||
-    (SHOW_ISO_TANK_LOGISTICS_TAB && visible('DAILY_OPS_ISO_TANK_LOGISTICS'));
-  const hmiControlMapsVisible = HMI_CONTROL_MAPS_REGISTRY.some((entry) => visible(entry.key));
-  const equipmentVisible = visible('EQUIPMENT_ASSET_REGISTRY') || visible('GLOBAL_FLEET_HUB') || visible('DATA_INGESTION_HUB');
-  const workOrderVisible = visible('WORK_ORDER_DIRECTORY') || visible('PM_SCHEDULES') || visible('MAINTENANCE_MRO_HUB');
-  const manpowerVisible =
-    visible('MANPOWER_DAILY_SHIFT') ||
-    visible('MANPOWER_SHIFT_ROSTER') ||
-    visible('MANPOWER_MONTHLY_GRID') ||
-    visible('MANPOWER_ROTATION_TRACKER') ||
-    visible('MANPOWER_TRAINING_MATRIX');
-  const safetyVisible =
-    visible('SAFETY_OVERVIEW') ||
-    visible('PTW_PERMITS') ||
-    visible('SAFETY_GAS_TESTING') ||
-    visible('SAFETY_ERT_READINESS') ||
-    visible('SAFETY_SOP_REFERENCE');
-  const truckingVisible = visible('TRUCKING_HUB');
-  const environmentVisible = visible('ENVIRONMENT_HUB');
-  const mocVisible = visible('MOC_HUB');
-
-  // Compute live tank distribution for LNG-Process only
-  const counts = useMemo(() => {
-    let arunCount = 0;
-    let sailingCount = 0;
-    let laydownCount = 0;
-    let regasBayCount = 0;
-    let emptyReturnCount = 0;
-
-    fleetTanks.forEach((t) => {
-      if (t.node === NodeState.NODE_1_ARUN_PAG_TERMINAL) arunCount++;
-      else if (t.node === NodeState.NODE_2_MV_SAVIOUR_TRANSIT) sailingCount++;
-      else if (t.node === NodeState.NODE_3_NIAS_LAYDOWN_YARD) laydownCount++;
-      else if (t.node === NodeState.NODE_4_REGAS_ACTIVE_BAY) regasBayCount++;
-      else if (t.node === NodeState.NODE_5_EMPTY_RETURN_CYCLE) emptyReturnCount++;
-    });
-
-    return {
-      arunCount,
-      sailingCount,
-      niasTotal: laydownCount + regasBayCount + emptyReturnCount,
-      totalFleet: fleetTanks.length,
-    };
-  }, [fleetTanks]);
+  const isDashboardActive = activeKey === 'CMMS_OVERVIEW_DASHBOARD';
 
   const handleItemClick = (key: SubProcessKey) => {
     onSelectKey(key);
     if (onCloseMobile) onCloseMobile();
-  };
-
-  // Helper to render Sunken/Pressed classic item on Active
-  const renderNavItem = (
-    key: SubProcessKey,
-    label: string,
-    badgeValue?: string | number,
-    isSelectedCustom?: boolean
-  ) => {
-    const isSelected = isSelectedCustom !== undefined ? isSelectedCustom : activeKey === key;
-    return (
-      <button
-        key={key + label}
-        onClick={() => handleItemClick(key)}
-        className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left cursor-pointer transition-none select-none ${
-          isSelected
-            ? 'bg-slate-100 text-slate-950 font-extrabold border-t border-l border-b border-r border-t-slate-500 border-l-slate-500 border-b-white border-r-white shadow-[inset_1px_1px_2px_rgba(0,0,0,0.12)]'
-            : 'bg-transparent text-slate-700 font-normal border-b border-slate-300 hover:bg-slate-200 hover:text-slate-900'
-        }`}
-      >
-        <span className="flex items-center">
-          {isSelected && (
-            <span className="text-[9px] text-slate-950 font-black mr-1.5 leading-none select-none">
-              ▶
-            </span>
-          )}
-          <span>{label}</span>
-        </span>
-        {badgeValue !== undefined && (
-          <span
-            className={`font-mono text-xs ${
-              isSelected ? 'text-slate-950 font-bold' : 'text-slate-600'
-            }`}
-          >
-            {badgeValue}
-          </span>
-        )}
-      </button>
-    );
   };
 
   return (
@@ -163,230 +60,13 @@ export default function SidebarNav({
         </div>
       </div>
 
-      {/* 3. 메뉴 리스트 (3D 베벨 대메뉴 블록 + 클래식 오목 서브 버튼 목록) */}
+      {/* 3. 메뉴 리스트 — Dashboard: 섹터 목록 / 섹터 진입 시: 그 섹터의 서브메뉴만 (전체 교체) */}
       <div className="win-well m-1.5 p-0 flex-1 overflow-y-auto font-sans text-xs bg-[#d4d0c8] border border-[#808080] space-y-1">
-        {/* SECTOR LAUNCHER SECTION HEADER (non-interactive; entry point consolidated to "To Main") */}
-        <div className="p-1 border-b border-[#808080] bg-[#e0dcd4]">
-          <div className="w-full py-1.5 px-2 text-xs font-mono font-bold flex items-center gap-1.5 text-slate-900">
-            <span className="text-emerald-700 font-black text-xs">■</span>
-            <span>SECTOR LAUNCHER</span>
-          </div>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* 1. LNG-PROCESS                                                            */}
-        {/* ========================================================================= */}
-        {lngProcessVisible && (
-        <div>
-          {/* 3D Classic Raised Bevel Header */}
-          <div className={SECTION_HEADER_BEVEL}>
-            <span>LNG-Process</span>
-            <span className="font-mono text-xs font-bold text-slate-900">
-              {counts.totalFleet}
-            </span>
-          </div>
-          <div className="bg-[#d4d0c8]">
-            {visible('LNG_PROCESS_OVERVIEW') && renderNavItem(
-              'LNG_PROCESS_OVERVIEW',
-              'Overview',
-              counts.totalFleet,
-              activeKey === 'LNG_PROCESS_OVERVIEW' || activeKey === 'NIAS_TERMINAL_OVERVIEW'
-            )}
-            {visible('ARUN_LOADING_COQ') && renderNavItem('ARUN_LOADING_COQ', 'PAGT (Arun)', counts.arunCount, activeKey.startsWith('ARUN'))}
-            {visible('SAVIOUR_VOYAGE_MONITORING') && renderNavItem(
-              'SAVIOUR_VOYAGE_MONITORING',
-              'Marine Transit',
-              counts.sailingCount,
-              activeKey.startsWith('SAVIOUR')
-            )}
-            {visible('NIAS_TANK_OVERVIEW') && renderNavItem(
-              'NIAS_TANK_OVERVIEW',
-              'Nias Tank Yard',
-              counts.niasTotal,
-              NIAS_TANK_YARD_KEYS.includes(activeKey)
-            )}
-            {visible('NIAS_GAS_PROCESS_TELEMETRY') && renderNavItem(
-              'NIAS_GAS_PROCESS_TELEMETRY',
-              'Regas & Gas Process',
-              undefined,
-              NIAS_GAS_PROCESS_KEYS.includes(activeKey)
-            )}
-            {SHOW_ISO_TANK_LOGISTICS_TAB && visible('DAILY_OPS_ISO_TANK_LOGISTICS') && renderNavItem('DAILY_OPS_ISO_TANK_LOGISTICS', 'ISO Tank Logistics')}
-            {visible('NIAS_PLTMG_POWER_OUTPUT') && renderNavItem('NIAS_PLTMG_POWER_OUTPUT', 'PLTMG Power')}
-            {/* Electrical System / Daily Ops Overview both relocated into Regas & Gas
-                Process sub-tabs (2026-09-18 correction) — standalone sidebar entries
-                removed, reachable via that tab now. Daily Ops Overview's prior
-                dual-access exception is explicitly rescinded as of this pass. */}
-          </div>
-        </div>
+        {isDashboardActive ? (
+          <SidebarSectorListView onSelectKey={handleItemClick} />
+        ) : (
+          <SidebarSectionMenu activeKey={activeKey} activeSubTab={activeSubTab} onSelectKey={handleItemClick} />
         )}
-
-        {/* ========================================================================= */}
-        {/* 1B. HMI CONTROL MAPS (레지스트리 기반 — 신규 화면은 항목 추가만으로 반영)   */}
-        {/* ========================================================================= */}
-        {hmiControlMapsVisible && (
-        <div>
-          <div className={SECTION_HEADER_BEVEL}>
-            <span>HMI Control Maps</span>
-          </div>
-          <div className="bg-[#d4d0c8]">
-            {HMI_CONTROL_MAPS_REGISTRY.filter((entry) => visible(entry.key)).map((entry) => renderNavItem(entry.key, entry.label))}
-          </div>
-        </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* 2. EQUIPMENT & ASSET                                                      */}
-        {/* ========================================================================= */}
-        {equipmentVisible && (
-        <div>
-          {/* 3D Classic Raised Bevel Header */}
-          <div className={SECTION_HEADER_BEVEL}>
-            <span>Equipment &amp; Asset</span>
-          </div>
-          <div className="bg-[#d4d0c8]">
-            {visible('EQUIPMENT_ASSET_REGISTRY') && renderNavItem('EQUIPMENT_ASSET_REGISTRY', 'All Assets Directory')}
-            {visible('GLOBAL_FLEET_HUB') && renderNavItem('GLOBAL_FLEET_HUB', '120-Fleet Hub')}
-            {visible('DATA_INGESTION_HUB') && renderNavItem('DATA_INGESTION_HUB', 'CSV Ingestion')}
-          </div>
-        </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* 3. MAINTENANCE & WORK ORDERS                                              */}
-        {/* ========================================================================= */}
-        {workOrderVisible && (
-        <div>
-          {/* 3D Classic Raised Bevel Header */}
-          <div className={SECTION_HEADER_BEVEL}>
-            <span>Maintenance &amp; Work Orders</span>
-          </div>
-          <div className="bg-[#d4d0c8]">
-            {visible('WORK_ORDER_DIRECTORY') && renderNavItem(
-              'WORK_ORDER_DIRECTORY',
-              'Work Orders',
-              undefined,
-              activeKey === 'WORK_ORDER_DIRECTORY' || activeKey === 'WORK_ORDER_MAINTENANCE'
-            )}
-            {visible('PM_SCHEDULES') && renderNavItem('PM_SCHEDULES', 'Preventive Maintenance')}
-            {visible('MAINTENANCE_MRO_HUB') && renderNavItem('MAINTENANCE_MRO_HUB', 'MRO Depot')}
-          </div>
-        </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* 4. SITE MANNING & ROSTER                                                  */}
-        {/* ========================================================================= */}
-        {manpowerVisible && (
-        <div>
-          {/* 3D Classic Raised Bevel Header */}
-          <div className={SECTION_HEADER_BEVEL}>
-            <span>Site Manning &amp; Roster</span>
-          </div>
-          <div className="bg-[#d4d0c8]">
-            {visible('MANPOWER_DAILY_SHIFT') && renderNavItem(
-              'MANPOWER_DAILY_SHIFT',
-              'Overview',
-              19,
-              activeKey === 'MANPOWER_DAILY_SHIFT' && (activeSubTab === 'OVERVIEW' || !activeSubTab)
-            )}
-            {visible('MANPOWER_SHIFT_ROSTER') && renderNavItem(
-              'MANPOWER_SHIFT_ROSTER',
-              'Daily Board',
-              undefined,
-              activeKey === 'MANPOWER_SHIFT_ROSTER' && activeSubTab === 'DAILY_SHIFT_BOARD'
-            )}
-            {visible('MANPOWER_MONTHLY_GRID') && renderNavItem(
-              'MANPOWER_MONTHLY_GRID',
-              'Monthly Plan',
-              undefined,
-              activeKey === 'MANPOWER_MONTHLY_GRID' && activeSubTab === 'MONTHLY_GRID'
-            )}
-            {visible('MANPOWER_ROTATION_TRACKER') && renderNavItem(
-              'MANPOWER_ROTATION_TRACKER',
-              'Rotation',
-              undefined,
-              activeKey === 'MANPOWER_ROTATION_TRACKER' && activeSubTab === 'ROTATION_TRACKER'
-            )}
-            {visible('MANPOWER_TRAINING_MATRIX') && renderNavItem(
-              'MANPOWER_TRAINING_MATRIX',
-              'Training Matrix',
-              undefined,
-              activeKey === 'MANPOWER_TRAINING_MATRIX' && activeSubTab === 'TRAINING_MATRIX'
-            )}
-          </div>
-        </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* 5. SAFETY & PTW                                                           */}
-        {/* ========================================================================= */}
-        {safetyVisible && (
-        <div>
-          {/* 3D Classic Raised Bevel Header */}
-          <div className={SECTION_HEADER_BEVEL}>
-            <span>Safety &amp; PTW</span>
-          </div>
-          <div className="bg-[#d4d0c8]">
-            {visible('SAFETY_OVERVIEW') && renderNavItem('SAFETY_OVERVIEW', 'Overview')}
-            {visible('PTW_PERMITS') && renderNavItem(
-              'PTW_PERMITS',
-              'Permits',
-              undefined,
-              activeKey === 'PTW_PERMITS' || activeKey === 'MANPOWER_PTW'
-            )}
-            {visible('SAFETY_GAS_TESTING') && renderNavItem('SAFETY_GAS_TESTING', 'Gas Logs')}
-            {visible('SAFETY_ERT_READINESS') && renderNavItem('SAFETY_ERT_READINESS', 'ERT')}
-            {visible('SAFETY_SOP_REFERENCE') && renderNavItem('SAFETY_SOP_REFERENCE', 'SOP Reference')}
-          </div>
-        </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* 6. TRUCKING & LOGISTICS (NP-03)                                           */}
-        {/* ========================================================================= */}
-        {truckingVisible && (
-        <div>
-          {/* 3D Classic Raised Bevel Header */}
-          <div className={SECTION_HEADER_BEVEL}>
-            <span>Trucking &amp; Logistics</span>
-          </div>
-          <div className="bg-[#d4d0c8]">
-            {renderNavItem('TRUCKING_HUB', 'NP-03 Hub', undefined, activeKey.startsWith('TRUCKING'))}
-          </div>
-        </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* 7. ENVIRONMENT & WASTE (NP-10)                                            */}
-        {/* ========================================================================= */}
-        {environmentVisible && (
-        <div>
-          {/* 3D Classic Raised Bevel Header */}
-          <div className={SECTION_HEADER_BEVEL}>
-            <span>Environment &amp; Waste</span>
-          </div>
-          <div className="bg-[#d4d0c8]">
-            {renderNavItem('ENVIRONMENT_HUB', 'NP-10 Hub', undefined, activeKey.startsWith('ENVIRONMENT'))}
-          </div>
-        </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* 8. MANAGEMENT OF CHANGE (NP-12)                                           */}
-        {/* ========================================================================= */}
-        {mocVisible && (
-        <div>
-          {/* 3D Classic Raised Bevel Header */}
-          <div className={SECTION_HEADER_BEVEL}>
-            <span>Management of Change</span>
-          </div>
-          <div className="bg-[#d4d0c8]">
-            {renderNavItem('MOC_HUB', 'NP-12 Hub', undefined, activeKey.startsWith('MOC'))}
-          </div>
-        </div>
-        )}
-
       </div>
 
       {/* 4. Windows Statusbar Footer */}
