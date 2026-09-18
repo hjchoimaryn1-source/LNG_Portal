@@ -169,6 +169,38 @@ export const GAS_COMPOSITION_MONTHLY_SNAPSHOT_DDL = `
   );
 `;
 
+// arun_lng_delivery_certificate: Mass Balance Net Usable Stock formula
+// stage — Arun terminal's per-tank loading certificate, one row per
+// (shipment, iso_tank_no) delivery event. Source: "NIAS - Cert. of LNG
+// Delivered Measuremen.csv" (cp949-encoded — see
+// arunLngDeliveryCertificateCsvParser.ts). HJ decision: seed only, no
+// input UI, no COQ/GC-composition pipeline this stage.
+export const ARUN_LNG_DELIVERY_CERTIFICATE_DDL = `
+  CREATE TABLE IF NOT EXISTS arun_lng_delivery_certificate (
+      shipment                       TEXT NOT NULL,
+      iso_tank_no                    TEXT NOT NULL,
+      serial_no                      TEXT,
+      cert_date                      TEXT,
+      weight_before_kg                REAL,
+      weight_after_kg                 REAL,
+      loaded_lng_weight_kg            REAL,
+      density_kg_m3                   REAL,
+      liquid_temp_c                   REAL,
+      ghv_btu_kg                      REAL,
+      gassing_up_vol_m3                REAL,
+      gassing_up_energy_mmbtu          REAL,
+      cooling_down_temp_c              REAL,
+      cooling_down_vol_m3              REAL,
+      cooling_down_energy_mmbtu        REAL,
+      btu_loaded_btu                   REAL,
+      btu_loaded_mmbtu                 REAL,
+      volume_loaded_m3                 REAL,
+      total_delivered_vol_m3           REAL,
+      total_energy_delivered_mmbtu     REAL,
+      PRIMARY KEY (shipment, iso_tank_no)
+  );
+`;
+
 export function ensureMonthlyReportSchema(raw: DatabaseSync): void {
   raw.exec(ISO_TANK_DAILY_READINGS_DDL);
   for (const [columnName, addColumnSql] of ISO_TANK_DAILY_READINGS_ADDITIVE_COLUMNS) {
@@ -179,4 +211,5 @@ export function ensureMonthlyReportSchema(raw: DatabaseSync): void {
   raw.exec(GAS_DELIVERY_MONTHLY_MANUAL_DDL);
   raw.exec(GAS_DELIVERY_CONTRACT_REFERENCE_DDL);
   raw.exec(GAS_COMPOSITION_MONTHLY_SNAPSHOT_DDL);
+  raw.exec(ARUN_LNG_DELIVERY_CERTIFICATE_DDL);
 }
