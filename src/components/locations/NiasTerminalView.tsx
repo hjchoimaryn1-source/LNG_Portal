@@ -1,7 +1,9 @@
 // src/components/locations/NiasTerminalView.tsx
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { saveIsoTankDailyReading } from './nias/monthlyReport/hooks/useMonthlyReportData';
+import { mapDailyMasterRecordToIsoTankReading } from '../../cmms-monthly-report/dao/isoTankDailyReadingsMapper';
 import { useFleetTankFacade } from '../../hooks/portalDataFacade/useFleetTankFacade';
 import { useDailyMasterFacade } from '../../hooks/portalDataFacade/useDailyMasterFacade';
 import { useSettlementFacade } from '../../hooks/portalDataFacade/useSettlementFacade';
@@ -183,6 +185,20 @@ export default function NiasTerminalView({
     addDepressurizationLog,
   } = useDailyMasterFacade();
   const { settlementRecords } = useSettlementFacade();
+
+  // ISO Tank & Mass Balance relocation stage: "ISO TK - LOG"'s Save action
+  // must additionally persist to SQLite (iso_tank_daily_readings) going
+  // forward. saveDailyInspectionRecord (PortalDataContext) is left exactly
+  // as-is — Daily Report Section D's print bridge still reads
+  // dailyMasterRecords from it — this adds a parallel SQLite write, not a
+  // replacement.
+  const saveDailyInspectionRecordAndSqlite = useCallback(
+    (record: Parameters<typeof saveDailyInspectionRecord>[0]) => {
+      saveDailyInspectionRecord(record);
+      saveIsoTankDailyReading(mapDailyMasterRecordToIsoTankReading(record)).catch(() => {});
+    },
+    [saveDailyInspectionRecord]
+  );
 
   // Determine initial active domain / tank sub-tab / regas sub-tab —
   // extracted to resolveNiasInitialView.ts (pure, unit-tested).
@@ -428,7 +444,7 @@ export default function NiasTerminalView({
     tankInventory,
     settlementRecords,
     setTankInventory,
-    saveDailyInspectionRecord,
+    saveDailyInspectionRecord: saveDailyInspectionRecordAndSqlite,
     setToastMessage,
     setSelectedTanks,
   });

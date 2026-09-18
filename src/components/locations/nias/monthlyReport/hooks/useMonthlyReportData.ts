@@ -83,6 +83,17 @@ export function useIsoTankDailyReadings(reportMonth: string) {
   return { records: data, isLoading, error };
 }
 
+/** Live write for iso_tank_daily_readings — imperative (not a hook) so non-Monthly-Report callers (e.g. NiasLaydownLogTab's save path) can call it directly. */
+export async function saveIsoTankDailyReading(row: IsoTankDailyReadingRow): Promise<boolean> {
+  const res = await fetch('/api/v1/cmms/monthly-report/iso-tank', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind: 'daily', row }),
+  });
+  const json = await res.json();
+  return Boolean(json.success);
+}
+
 export function useIsoTankConsumption(reportMonth: string) {
   const { data, isLoading, error } = useMonthlyFetch<IsoTankConsumptionRow[]>(
     `/api/v1/cmms/monthly-report/iso-tank?month=${reportMonth}&kind=consumption`,
