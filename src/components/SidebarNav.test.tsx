@@ -9,7 +9,7 @@
 // live tank counts and mounting a real PortalDataProvider is slow/flaky here.
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { act } from 'react';
+import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import SidebarNav from './SidebarNav';
 import { setActiveSession, clearActiveSession } from '../lib/rbac/activeSessionStore';
@@ -31,6 +31,25 @@ async function mount(activeKey: SubProcessKey, onSelectKey: (key: SubProcessKey)
   root = createRoot(container);
   await act(async () => {
     root!.render(<SidebarNav activeKey={activeKey} onSelectKey={onSelectKey} />);
+  });
+}
+
+// Real parent components (LNGPortalInner/usePortalNavigation) own activeKey as
+// state and re-render SidebarNav when onSelectKey fires — SidebarNav itself is
+// a controlled/dumb component. This wrapper reproduces that so the DASHBOARD
+// header's "switches the sidebar back to sector-list mode" behavior can be
+// verified end-to-end rather than just asserting the callback argument.
+function StatefulSidebar({ initialKey }: { initialKey: SubProcessKey }) {
+  const [activeKey, setActiveKey] = useState<SubProcessKey>(initialKey);
+  return <SidebarNav activeKey={activeKey} onSelectKey={setActiveKey} />;
+}
+
+async function mountStateful(initialKey: SubProcessKey) {
+  container = document.createElement('div');
+  document.body.appendChild(container);
+  root = createRoot(container);
+  await act(async () => {
+    root!.render(<StatefulSidebar initialKey={initialKey} />);
   });
 }
 
@@ -80,6 +99,9 @@ describe('SidebarNav — Dashboard mode (sector list)', () => {
     expect(text).not.toContain('PAGT (Arun)');
     expect(text).not.toContain('120-Fleet Hub');
     expect(text).not.toContain('Permits');
+
+    // Stage 2: DASHBOARD master-container header is always present.
+    expect(text).toContain('DASHBOARD');
   });
 
   it('SITE_MANAGER sees only LNG-Process + HMI Control Maps headers, no HQ Overview entry, no leaf items', async () => {
@@ -87,6 +109,7 @@ describe('SidebarNav — Dashboard mode (sector list)', () => {
     await mount('CMMS_OVERVIEW_DASHBOARD');
     const text = container!.textContent ?? '';
 
+    expect(text).toContain('DASHBOARD');
     expect(text).toContain('LNG-Process');
     expect(text).toContain('HMI Control Maps');
     expect(text).not.toContain('Equipment & Asset');
@@ -121,6 +144,18 @@ describe('SidebarNav — Dashboard mode (sector list)', () => {
 
     expect(onSelectKey).toHaveBeenCalledWith('EQUIPMENT_ASSET_REGISTRY');
   });
+
+  it('clicking the DASHBOARD header while already on Dashboard harmlessly re-navigates to the same key', async () => {
+    setActiveSession({ userId: 'DEV-HQ-001', roleCode: 'SYSTEM_ADMIN', homeLocation: 'HQ' });
+    const onSelectKey = vi.fn();
+    await mount('CMMS_OVERVIEW_DASHBOARD', onSelectKey);
+
+    await act(async () => {
+      clickButtonWithText('DASHBOARD');
+    });
+
+    expect(onSelectKey).toHaveBeenCalledWith('CMMS_OVERVIEW_DASHBOARD');
+  });
 });
 
 describe('SidebarNav — in-sector mode (section menu, full replace)', () => {
@@ -146,10 +181,13 @@ describe('SidebarNav — in-sector mode (section menu, full replace)', () => {
       'Environment & Waste',
       'Management of Change',
       'Jakarta HQ Overview',
-      'SECTOR LAUNCHER',
     ]) {
       expect(text).not.toContain(otherLabel);
     }
+
+    // Stage 2: DASHBOARD master-container header survives the full-replace —
+    // it's global chrome in SidebarNav.tsx, not part of either child view.
+    expect(text).toContain('DASHBOARD');
   });
 
   it('shows ONLY the LNG-Process leaf list for SITE_MANAGER too (same tier, same role rule)', async () => {
@@ -160,7 +198,7 @@ describe('SidebarNav — in-sector mode (section menu, full replace)', () => {
     expect(text).toContain('LNG-Process');
     expect(text).toContain('Nias Tank Yard');
     expect(text).not.toContain('HMI Control Maps');
-    expect(text).not.toContain('SECTOR LAUNCHER');
+    expect(text).toContain('DASHBOARD');
   });
 
   it('a drill-down leaf not directly on the sidebar (NIAS_LAYDOWN_1_2_LOG) still resolves to the LNG-Process menu', async () => {
@@ -170,7 +208,7 @@ describe('SidebarNav — in-sector mode (section menu, full replace)', () => {
 
     expect(text).toContain('LNG-Process');
     expect(text).toContain('Nias Tank Yard');
-    expect(text).not.toContain('SECTOR LAUNCHER');
+    expect(text).toContain('DASHBOARD');
   });
 
   it('falls back to the sector list for a leaf-only entry with no submenu (HQ_OVERVIEW_DASHBOARD)', async () => {
@@ -178,8 +216,27 @@ describe('SidebarNav — in-sector mode (section menu, full replace)', () => {
     await mount('HQ_OVERVIEW_DASHBOARD');
     const text = container!.textContent ?? '';
 
-    expect(text).toContain('SECTOR LAUNCHER');
+    expect(text).toContain('DASHBOARD');
     expect(text).toContain('LNG-Process');
     expect(text).toContain('Jakarta HQ Overview');
+  });
+
+  it('clicking the DASHBOARD header from inside a sector navigates to CMMS_OVERVIEW_DASHBOARD and switches the sidebar back to the sector-list view', async () => {
+    setActiveSession({ userId: 'DEV-HQ-001', roleCode: 'SYSTEM_ADMIN', homeLocation: 'HQ' });
+    await mountStateful('NIAS_TANK_OVERVIEW');
+
+    // Sanity check: starts in-sector (full replace — no other section headers).
+    expect(container!.textContent ?? '').not.toContain('Equipment & Asset');
+
+    await act(async () => {
+      clickButtonWithText('DASHBOARD');
+    });
+
+    const text = container!.textContent ?? '';
+    // Back to the flat sector list: other sections' headers reappear...
+    expect(text).toContain('Equipment & Asset');
+    expect(text).toContain('Safety & PTW');
+    // ...and the LNG-Process leaf items (e.g. "Nias Tank Yard") are gone.
+    expect(text).not.toContain('Nias Tank Yard');
   });
 });

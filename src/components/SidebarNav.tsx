@@ -2,6 +2,7 @@
 "use client";
 
 import React from 'react';
+import { LayoutDashboard } from 'lucide-react';
 import { SubProcessKey } from '../types/lng';
 import { COMPANY_CONFIG } from '../config/siteConfig';
 import SidebarSectorListView from './portal/sidebar/SidebarSectorListView';
@@ -60,13 +61,24 @@ export default function SidebarNav({
         </div>
       </div>
 
-      {/* 3. 메뉴 리스트 — Dashboard: 섹터 목록 / 섹터 진입 시: 그 섹터의 서브메뉴만 (전체 교체) */}
-      <div className="win-well m-1.5 p-0 flex-1 overflow-y-auto font-sans text-xs bg-[#d4d0c8] border border-[#808080] space-y-1">
-        {isDashboardActive ? (
-          <SidebarSectorListView onSelectKey={handleItemClick} />
-        ) : (
-          <SidebarSectionMenu activeKey={activeKey} activeSubTab={activeSubTab} onSelectKey={handleItemClick} />
-        )}
+      {/* 3. DASHBOARD master container — 헤더가 그 아래 섹터 목록/서브메뉴 전체를 지배 (Stage 2, 2026-09-18) */}
+      <div className="win-panel m-1.5 p-0 flex-1 overflow-hidden flex flex-col">
+        <button
+          onClick={() => handleItemClick('CMMS_OVERVIEW_DASHBOARD')}
+          className="win-titlebar w-full text-left cursor-pointer"
+        >
+          <span className="flex items-center gap-1.5">
+            <LayoutDashboard className="w-3.5 h-3.5 text-white" />
+            <span className="text-xs font-bold text-white">DASHBOARD</span>
+          </span>
+        </button>
+        <div className="win-well p-0 flex-1 overflow-y-auto font-sans text-xs bg-[#d4d0c8] border border-[#808080] space-y-1">
+          {isDashboardActive ? (
+            <SidebarSectorListView onSelectKey={handleItemClick} />
+          ) : (
+            <SidebarSectionMenu activeKey={activeKey} activeSubTab={activeSubTab} onSelectKey={handleItemClick} />
+          )}
+        </div>
       </div>
 
       {/* 4. Windows Statusbar Footer */}

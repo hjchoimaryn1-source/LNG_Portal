@@ -25,12 +25,6 @@ export default function SidebarSectorListView({ onSelectKey }: SidebarSectorList
 
   return (
     <div>
-      <div className="p-1 border-b border-[#808080] bg-[#e0dcd4]">
-        <div className="w-full py-1.5 px-2 text-xs font-mono font-bold flex items-center gap-1.5 text-slate-900">
-          <span className="text-emerald-700 font-black text-xs">■</span>
-          <span>SECTOR LAUNCHER</span>
-        </div>
-      </div>
       {visibleSections.map((sec) => (
         <button key={sec.id} onClick={() => onSelectKey(sec.entryKey)} className={SECTOR_HEADER_BUTTON}>
           <span>{sec.label}</span>
