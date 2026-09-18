@@ -119,7 +119,8 @@ export const PATROL_FIELD_MAP: Record<PatrolDomain, PatrolFieldSpec[]> = {
   // Unloading Skid(T-201~204)는 IsoTankUnloadingSkidPatrolForm.tsx(4-HR PATROL LOG
   // 4번째 서브탭)로 라이브 저장 연결됨 — NiasActiveBayWorkspace.tsx는 별개
   // PortalDataContext/DailyMasterRecord 기반 탱크야드 워크플로우라 이 도메인과 무관.
-  // iso_tank_cargo(하기 항목)는 여전히 폼 미구현 상태.
+  // iso_tank_cargo(하기 항목)는 IsoTankCargoPatrolForm.tsx로 구현됐으나 탭 배치
+  // 확정 전까지 네비게이션 미연결 상태(HJ 확인 대기, deriveIsoTankCargoTags.ts 참고).
   iso_tank_unloading_skid: [
     { columnName: 'level_iot_pct', label: 'Level IOT', shortLabel: 'IoT 레벨', unit: '%', type: 'number' },
     { columnName: 'level_gauge_mmh2o', label: 'Level Gauge', shortLabel: '게이지 레벨', unit: 'mmH2O', type: 'number' },
