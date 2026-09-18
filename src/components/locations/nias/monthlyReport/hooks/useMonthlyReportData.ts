@@ -15,6 +15,11 @@ import type {
   GasDeliveryDailyManualRow,
   GasDeliveryMonthlyManualRow,
 } from '../../../../../cmms-monthly-report/dao/gasDeliveryManualDao';
+import type { CalculationDeliveryRow } from '../../../../../cmms-monthly-report/dao/calculationDeliveryDao';
+import type {
+  OpsMeteringDayRow,
+  OpsMeteringSummary,
+} from '../../../../../cmms-monthly-report/dao/opsDashboardDao';
 
 function useMonthlyFetch<T>(url: string, extractRecords: (json: Record<string, unknown>) => T, initial: T) {
   const [data, setData] = useState<T>(initial);
@@ -122,4 +127,30 @@ export function useGasDeliveryManual(reportMonth: string) {
   }
 
   return { daily: data.daily, monthly: data.monthly, isLoading, error, saveDaily, saveMonthly };
+}
+
+export function useCalculationDelivery(reportMonth: string) {
+  const { data, isLoading, error } = useMonthlyFetch<CalculationDeliveryRow | null>(
+    `/api/v1/cmms/monthly-report/calculation-delivery?month=${reportMonth}`,
+    (json) => (json.record as CalculationDeliveryRow | null) ?? null,
+    null
+  );
+  return { record: data, isLoading, error };
+}
+
+interface OpsDashboardData {
+  days: OpsMeteringDayRow[];
+  summary: { meterA: OpsMeteringSummary; meterB: OpsMeteringSummary } | null;
+}
+
+export function useOpsMeteringDashboard(reportMonth: string) {
+  const { data, isLoading, error } = useMonthlyFetch<OpsDashboardData>(
+    `/api/v1/cmms/monthly-report/ops-dashboard?month=${reportMonth}`,
+    (json) => ({
+      days: (json.days as OpsMeteringDayRow[]) ?? [],
+      summary: (json.summary as OpsDashboardData['summary']) ?? null,
+    }),
+    { days: [], summary: null }
+  );
+  return { days: data.days, summary: data.summary, isLoading, error };
 }
