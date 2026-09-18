@@ -108,6 +108,10 @@ describe('NiasTerminalView — render-level smoke baseline (Sub-stage E)', () =>
     { label: 'LAYDOWN_1_2_LOG', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'LAYDOWN_1_2_LOG', marker: 'DAILY INSPECTION & BOG LOG' },
     { label: 'TANK_MASS_BALANCE', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'TANK_MASS_BALANCE', marker: 'ISO TANK MASS BALANCE' },
     { label: 'CUSTODY_HEAT_SETTLEMENT', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'CUSTODY_HEAT_SETTLEMENT', marker: 'MONTHLY REPORT (PLN EPI)' },
+    // Electrical System / Daily Ops Overview relocation (2026-09-18 correction):
+    // moved from top-level tabs into Regas & Gas Process sub-tabs.
+    { label: 'ELECTRICAL_SYSTEM', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'ELECTRICAL_SYSTEM', marker: 'Electrical System — Patrol Log' },
+    { label: 'DAILY_OPS_OVERVIEW', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'DAILY_OPS_OVERVIEW', marker: 'Daily Ops Overview — FORM-NP-08-33-N' },
   ];
 
   for (const { label, initialDomain, initialSubTab, marker } of knownSubTabs) {

@@ -11,6 +11,8 @@ import NiasProcessPIDDiagram from '../NiasProcessPIDDiagram';
 import NiasPatrolLogTab from '../NiasPatrolLogTab';
 import GasMeteringDailyTab from '../GasMeteringDailyTab';
 import NiasMonthlyReportPlnEpiTab from '../monthlyReport/NiasMonthlyReportPlnEpiTab';
+import { ElectricalSystemView } from '../../../../cmms-daily-ops/views/ElectricalSystemView';
+import { DailyOpsOverviewView } from '../../../../cmms-daily-ops/views/DailyOpsOverviewView';
 import type { NiasDomainContentRouterProps } from '../types/niasDomainContentRouter.types';
 
 export default function NiasDomainContentRouter(props: NiasDomainContentRouterProps) {
@@ -170,6 +172,23 @@ export default function NiasDomainContentRouter(props: NiasDomainContentRouterPr
       {/* ==================================================================== */}
       {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' && (
         <NiasMonthlyReportPlnEpiTab />
+      )}
+
+      {/* ==================================================================== */}
+      {/* DOMAIN 2 - SUB-TAB 5: ⚡ ELECTRICAL SYSTEM — relocated from top-level */}
+      {/* tab bar into Regas & Gas Process (2026-09-18 correction).            */}
+      {/* ==================================================================== */}
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'ELECTRICAL_SYSTEM' && (
+        <ElectricalSystemView />
+      )}
+
+      {/* ==================================================================== */}
+      {/* DOMAIN 2 - SUB-TAB 6: 📋 DAILY OPS OVERVIEW — relocated from         */}
+      {/* top-level tab bar into Regas & Gas Process (2026-09-18 correction);  */}
+      {/* sidebar dual-access entry is unaffected by this move.                */}
+      {/* ==================================================================== */}
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'DAILY_OPS_OVERVIEW' && (
+        <DailyOpsOverviewView />
       )}
     </>
   );

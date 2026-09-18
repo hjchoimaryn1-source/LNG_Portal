@@ -25,11 +25,16 @@ export const NIAS_TANK_YARD_KEYS: SubProcessKey[] = [
   'NIAS_ACTIVE_BAY_TANKS',
   'NIAS_LAYDOWN_3_HEEL',
 ];
+// Electrical System / Daily Ops Overview relocation (2026-09-18 correction):
+// moved from standalone top-level tabs into this group — see
+// NiasSubTabsNavPanel.tsx for the matching sub-tab row buttons.
 export const NIAS_GAS_PROCESS_KEYS: SubProcessKey[] = [
   'NIAS_GAS_PROCESS_TELEMETRY',
   'NIAS_PATROL_LOG',
   'NIAS_GAS_METERING_DAILY',
   'NIAS_HEAT_SETTLEMENT',
+  'DAILY_OPS_ELECTRICAL_SYSTEM',
+  'DAILY_OPS_OVERVIEW',
 ];
 
 export default function LngProcessSubTabs({ activeKey, handleSelectSubProcess }: LngProcessSubTabsProps) {
@@ -84,21 +89,6 @@ export default function LngProcessSubTabs({ activeKey, handleSelectSubProcess }:
       >
         <span>PLTMG POWER</span>
       </button>
-
-      <button
-        onClick={() => handleSelectSubProcess('DAILY_OPS_ELECTRICAL_SYSTEM')}
-        className={activeKey === 'DAILY_OPS_ELECTRICAL_SYSTEM' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
-      >
-        <span>Electrical System</span>
-      </button>
-
-      <button
-        onClick={() => handleSelectSubProcess('DAILY_OPS_OVERVIEW')}
-        className={activeKey === 'DAILY_OPS_OVERVIEW' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
-      >
-        <span>Daily Ops Overview</span>
-      </button>
-
     </>
   );
 }

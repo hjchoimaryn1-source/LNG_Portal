@@ -129,6 +129,28 @@ export default function NiasSubTabsNavPanel({
               )}
             </button>
           )}
+
+          {showGasProcessButtons && (
+            <>
+              <button
+                type="button"
+                onClick={() => setRegasSubTab('ELECTRICAL_SYSTEM')}
+                className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'ELECTRICAL_SYSTEM' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                  }`}
+              >
+                ELECTRICAL SYSTEM
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRegasSubTab('DAILY_OPS_OVERVIEW')}
+                className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'DAILY_OPS_OVERVIEW' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                  }`}
+              >
+                DAILY OPS OVERVIEW
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

@@ -130,7 +130,11 @@ export type NiasRegasSubTab =
   | 'GAS_METERING_DAILY'
   | 'LAYDOWN_1_2_LOG'
   | 'TANK_MASS_BALANCE'
-  | 'CUSTODY_HEAT_SETTLEMENT';
+  | 'CUSTODY_HEAT_SETTLEMENT'
+  // Electrical System / Daily Ops Overview relocation (2026-09-18 correction):
+  // moved from top-level tabs into Regas & Gas Process sub-tabs.
+  | 'ELECTRICAL_SYSTEM'
+  | 'DAILY_OPS_OVERVIEW';
 
 export type NiasSubTab = NiasTankSubTab | NiasRegasSubTab | string;
 

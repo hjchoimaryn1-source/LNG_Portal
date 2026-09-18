@@ -47,7 +47,12 @@ function resolveInitialDomain(initialDomain: NiasDomain | undefined, initialSubT
     initialSubTab === 'LAYDOWN_DEPRESS' ||
     initialSubTab === 'TANK_MASS_BALANCE' ||
     initialSubTab === 'MASS_BALANCE_LOG' ||
-    initialSubTab === 'MASS_BALANCE'
+    initialSubTab === 'MASS_BALANCE' ||
+    // Electrical System / Daily Ops Overview relocation (2026-09-18 correction):
+    // moved from top-level tabs into Regas & Gas Process sub-tabs.
+    initialSubTab === 'ELECTRICAL_SYSTEM' ||
+    initialSubTab === 'DAILY_OPS_ELECTRICAL_SYSTEM' ||
+    initialSubTab === 'DAILY_OPS_OVERVIEW'
   ) {
     return 'REGAS_SYSTEM';
   }
@@ -90,6 +95,14 @@ function resolveInitialRegasTab(initialSubTab: string | undefined): NiasRegasSub
   }
   if (initialSubTab === 'CUSTODY_HEAT_SETTLEMENT' || initialSubTab === 'HEAT_SETTLEMENT') {
     return 'CUSTODY_HEAT_SETTLEMENT';
+  }
+  // Electrical System / Daily Ops Overview relocation (2026-09-18 correction):
+  // moved from top-level tabs into Regas & Gas Process sub-tabs.
+  if (initialSubTab === 'ELECTRICAL_SYSTEM' || initialSubTab === 'DAILY_OPS_ELECTRICAL_SYSTEM') {
+    return 'ELECTRICAL_SYSTEM';
+  }
+  if (initialSubTab === 'DAILY_OPS_OVERVIEW') {
+    return 'DAILY_OPS_OVERVIEW';
   }
   return 'GAS_PROCESS_TELEMETRY';
 }

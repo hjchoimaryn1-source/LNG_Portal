@@ -178,7 +178,9 @@ export default function SidebarNav({
             )}
             {SHOW_ISO_TANK_LOGISTICS_TAB && renderNavItem('DAILY_OPS_ISO_TANK_LOGISTICS', 'ISO Tank Logistics')}
             {renderNavItem('NIAS_PLTMG_POWER_OUTPUT', 'PLTMG Power')}
-            {renderNavItem('DAILY_OPS_ELECTRICAL_SYSTEM', 'Electrical System')}
+            {/* Electrical System relocated into Regas & Gas Process sub-tabs (2026-09-18
+                correction) — standalone sidebar entry removed, reachable via that tab now.
+                Daily Ops Overview's dual-access sidebar entry is unaffected (unchanged below). */}
             {renderNavItem('DAILY_OPS_OVERVIEW', 'Daily Ops Overview')}
           </div>
         </div>

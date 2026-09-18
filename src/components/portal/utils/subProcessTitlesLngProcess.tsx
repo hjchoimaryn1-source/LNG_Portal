@@ -125,13 +125,18 @@ export const SUBPROCESS_TITLES_LNG_PROCESS: Record<string, SubProcessTitleEntry>
   },
   DAILY_OPS_ELECTRICAL_SYSTEM: {
     location: 'LNG-Process',
-    process: 'Electrical System',
+    // Electrical System relocation (2026-09-18 correction): moved from a
+    // top-level tab into a Regas & Gas Process sub-tab.
+    process: 'Regas & Gas Process > Electrical System',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   DAILY_OPS_OVERVIEW: {
     location: 'LNG-Process',
-    process: 'Daily Ops Overview',
+    // Daily Ops Overview relocation (2026-09-18 correction): moved from a
+    // top-level tab into a Regas & Gas Process sub-tab; sidebar dual-access
+    // entry is unaffected.
+    process: 'Regas & Gas Process > Daily Ops Overview',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },

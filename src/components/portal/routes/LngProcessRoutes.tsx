@@ -11,8 +11,6 @@ import NiasRegasGasProcessView from '../../locations/NiasRegasGasProcessView';
 import NiasOperationalOverviewTab from '../../locations/nias/NiasOperationalOverviewTab';
 import NiasPowerThermalTab from '../../locations/nias/NiasPowerThermalTab';
 import { IsoTankLogisticsPlaceholderView } from '../../../cmms-daily-ops/views/IsoTankLogisticsPlaceholderView';
-import { ElectricalSystemView } from '../../../cmms-daily-ops/views/ElectricalSystemView';
-import { DailyOpsOverviewView } from '../../../cmms-daily-ops/views/DailyOpsOverviewView';
 
 interface LngProcessRoutesProps {
   activeKey: SubProcessKey;
@@ -72,6 +70,17 @@ export default function LngProcessRoutes({ activeKey, activeSubTab, handleSelect
         <NiasRegasGasProcessView initialSubTab="CUSTODY_HEAT_SETTLEMENT" />
       )}
 
+      {/* Electrical System / Daily Ops Overview — relocated from top-level tabs
+          into Regas & Gas Process sub-tabs (2026-09-18 correction). Daily Ops
+          Overview's sidebar dual-access entry is unaffected — it still resolves
+          this same SubProcessKey. */}
+      {(activeKey === 'DAILY_OPS_ELECTRICAL_SYSTEM' || activeSubTab === 'DAILY_OPS_ELECTRICAL_SYSTEM') && (
+        <NiasRegasGasProcessView initialSubTab="ELECTRICAL_SYSTEM" />
+      )}
+      {(activeKey === 'DAILY_OPS_OVERVIEW' || activeSubTab === 'DAILY_OPS_OVERVIEW') && (
+        <NiasRegasGasProcessView initialSubTab="DAILY_OPS_OVERVIEW" />
+      )}
+
       {/* PLTMG Power — independent top-level tab (2026-09-18 correction). Fuel-gas
           draw/generation domain, distinct from Regas & Gas Process and Electrical
           System. NiasPowerThermalTab reused as-is (no internal changes). */}
@@ -111,10 +120,6 @@ export default function LngProcessRoutes({ activeKey, activeSubTab, handleSelect
           HMI CONTROL MAPS 섹터로 이전 — HmiControlMapsRoutes.tsx 참고)    */}
       {/* ========================================================= */}
       {activeKey === 'DAILY_OPS_ISO_TANK_LOGISTICS' && <IsoTankLogisticsPlaceholderView />}
-      {activeKey === 'DAILY_OPS_ELECTRICAL_SYSTEM' && <ElectricalSystemView />}
-
-      {/* Phase 12 Pre-Flight III — 승인 상태 머신 + RBAC 편입 */}
-      {activeKey === 'DAILY_OPS_OVERVIEW' && <DailyOpsOverviewView />}
     </>
   );
 }
