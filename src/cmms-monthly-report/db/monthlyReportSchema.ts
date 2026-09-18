@@ -27,6 +27,29 @@
 
 import type { DatabaseSync } from 'node:sqlite';
 
+// ISO Tank & Mass Balance relocation stage — 3 nullable columns added to
+// iso_tank_daily_readings to cover NiasLaydownLogTab.tsx's ("ISO TK - LOG")
+// [ISO TANK CONDITION LOG]/[BOG VENTING] fields that had no home in the
+// Monthly Report schema: Yard Position, BOG Loss (kg/%). ALTER-ADD only,
+// no rebuild (CLAUDE.md §5). ΔP/venting status are NOT stored — always
+// re-derivable from press_before_mpa/press_after_mpa (same
+// compute-don't-persist precedent as this session's P5/P6/Floboss stages).
+const ISO_TANK_DAILY_READINGS_ADDITIVE_COLUMNS: Array<[string, string]> = [
+  ['position', 'ALTER TABLE iso_tank_daily_readings ADD COLUMN position TEXT'],
+  ['losses_kg', 'ALTER TABLE iso_tank_daily_readings ADD COLUMN losses_kg REAL'],
+  ['losses_pct', 'ALTER TABLE iso_tank_daily_readings ADD COLUMN losses_pct REAL'],
+];
+
+// SQLite has no `ADD COLUMN IF NOT EXISTS` — guard via PRAGMA table_info(),
+// same convention as gasMeteringLedgerSchema.ts's ensureColumn().
+function ensureColumn(raw: DatabaseSync, table: string, columnName: string, addColumnSql: string): void {
+  const columns = raw.prepare(`PRAGMA table_info(${table})`).all();
+  const hasColumn = columns.some((c) => (c as { name: string }).name === columnName);
+  if (!hasColumn) {
+    raw.exec(addColumnSql);
+  }
+}
+
 export const ISO_TANK_DAILY_READINGS_DDL = `
   CREATE TABLE IF NOT EXISTS iso_tank_daily_readings (
       report_date       TEXT NOT NULL,
@@ -148,6 +171,9 @@ export const GAS_COMPOSITION_MONTHLY_SNAPSHOT_DDL = `
 
 export function ensureMonthlyReportSchema(raw: DatabaseSync): void {
   raw.exec(ISO_TANK_DAILY_READINGS_DDL);
+  for (const [columnName, addColumnSql] of ISO_TANK_DAILY_READINGS_ADDITIVE_COLUMNS) {
+    ensureColumn(raw, 'iso_tank_daily_readings', columnName, addColumnSql);
+  }
   raw.exec(ISO_TANK_CONSUMPTION_MONTHLY_DDL);
   raw.exec(GAS_DELIVERY_DAILY_MANUAL_DDL);
   raw.exec(GAS_DELIVERY_MONTHLY_MANUAL_DDL);

@@ -2,16 +2,24 @@
 //
 // PURPOSE
 //   Client/server boundary for the two ISO Tank monthly-report tables.
-//   Read-only — seeded via monthlyReportSeedRunner.ts. HJ-confirmed: the
-//   two sources' tank rosters are NOT reconciled (ISOT-064 present only
-//   in `kind=daily`).
+//   GET is read-only for both kinds. POST (kind=daily only) is the live
+//   write path for NiasLaydownLogTab.tsx ("ISO TK - LOG", ISO Tank & Mass
+//   Balance relocation stage) — iso_tank_daily_readings is no longer
+//   CSV-seed-only, live entry extends the same table going forward.
+//   HJ-confirmed: the two sources' tank rosters are NOT reconciled
+//   (ISOT-064 present only in `kind=daily`).
 //
-//   GET ?month=YYYY-MM&kind=daily       -> iso_tank_daily_readings rows
-//   GET ?month=YYYY-MM&kind=consumption -> iso_tank_consumption_monthly rows
+//   GET  ?month=YYYY-MM&kind=daily       -> iso_tank_daily_readings rows
+//   GET  ?month=YYYY-MM&kind=consumption -> iso_tank_consumption_monthly rows
+//   POST { kind: 'daily', row } -> upsert one iso_tank_daily_readings row
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getMonthlyReportDb } from '../../../../../../cmms-monthly-report/db/monthlyReportDbSingleton';
-import { getIsoTankDailyReadingsForMonth } from '../../../../../../cmms-monthly-report/dao/isoTankDailyReadingsDao';
+import {
+  getIsoTankDailyReadingsForMonth,
+  upsertIsoTankDailyReading,
+  type IsoTankDailyReadingRow,
+} from '../../../../../../cmms-monthly-report/dao/isoTankDailyReadingsDao';
 import { getIsoTankConsumptionForMonth } from '../../../../../../cmms-monthly-report/dao/isoTankConsumptionDao';
 
 export const runtime = 'nodejs';
@@ -29,4 +37,22 @@ export async function GET(request: NextRequest) {
   const db = getMonthlyReportDb();
   const records = kind === 'daily' ? getIsoTankDailyReadingsForMonth(db, month) : getIsoTankConsumptionForMonth(db, month);
   return NextResponse.json({ success: true, records });
+}
+
+interface PostBody {
+  kind: 'daily';
+  row: IsoTankDailyReadingRow;
+}
+
+export async function POST(request: NextRequest) {
+  const body = (await request.json()) as PostBody;
+  if (body.kind !== 'daily') {
+    return NextResponse.json({ success: false, error: '"kind" must be "daily".' }, { status: 400 });
+  }
+  if (!body.row?.reportDate || !body.row?.isoTankNo) {
+    return NextResponse.json({ success: false, error: 'row.reportDate and row.isoTankNo are required.' }, { status: 400 });
+  }
+  const db = getMonthlyReportDb();
+  upsertIsoTankDailyReading(db, body.row);
+  return NextResponse.json({ success: true });
 }

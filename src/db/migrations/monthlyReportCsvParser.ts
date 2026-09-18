@@ -39,6 +39,7 @@ export function mapIsoTankMasterDbRow(cells: string[]): IsoTankDailyReadingRow |
     isoTankNo,
     serialNo: cleanText(cells[1]),
     shipment: cleanText(cells[3]),
+    position: null,
     levelPct: cleanNumber(cells[4]),
     levelM3: cleanNumber(cells[5]),
     levelMmh2o: cleanNumber(cells[6]),
@@ -48,6 +49,8 @@ export function mapIsoTankMasterDbRow(cells: string[]): IsoTankDailyReadingRow |
     depressFlag: cleanText(cells[10]),
     pressBeforeMpa: cleanNumber(cells[11]),
     pressAfterMpa: cleanNumber(cells[12]),
+    lossesKg: null,
+    lossesPct: null,
     remarks: cleanText(cells[13]),
   };
 }
