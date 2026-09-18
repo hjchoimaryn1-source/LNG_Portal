@@ -87,7 +87,9 @@ describe('NiasTerminalView — render-level smoke baseline (Sub-stage E)', () =>
   // (always passing both initialDomain and initialSubTab together) for the 9 sub-tabs it
   // currently wires up as routes; TANK_MASS_BALANCE has no external route today (only
   // reachable via in-component nav-tab click) but is included here too since it's still
-  // part of NiasTerminalView's own supported prop contract.
+  // part of NiasTerminalView's own supported prop contract. LAYDOWN_1_2_LOG and
+  // TANK_MASS_BALANCE moved from ISO_TANK_MGMT to REGAS_SYSTEM (ISO Tank & Mass
+  // Balance relocation, 2026-09-18).
   const knownSubTabs: Array<{
     label: string;
     initialDomain: 'ISO_TANK_MGMT' | 'REGAS_SYSTEM';
@@ -95,13 +97,13 @@ describe('NiasTerminalView — render-level smoke baseline (Sub-stage E)', () =>
     marker: string;
   }> = [
     { label: 'TANK_OVERVIEW', initialDomain: 'ISO_TANK_MGMT', initialSubTab: 'TANK_OVERVIEW', marker: 'ISO TK - Skid' },
-    { label: 'LAYDOWN_1_2_LOG', initialDomain: 'ISO_TANK_MGMT', initialSubTab: 'LAYDOWN_1_2_LOG', marker: 'DAILY INSPECTION & BOG LOG' },
     { label: 'ACTIVE_BAY_TANKS', initialDomain: 'ISO_TANK_MGMT', initialSubTab: 'ACTIVE_BAY_TANKS', marker: 'SKIDS OCCUPIED' },
     { label: 'LAYDOWN_3_HEEL', initialDomain: 'ISO_TANK_MGMT', initialSubTab: 'LAYDOWN_3_HEEL', marker: 'HEEL STAGING & BACKHAUL CLEARANCE' },
-    { label: 'TANK_MASS_BALANCE', initialDomain: 'ISO_TANK_MGMT', initialSubTab: 'TANK_MASS_BALANCE', marker: 'ISO TANK MASS BALANCE' },
     { label: 'GAS_PROCESS_TELEMETRY', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'GAS_PROCESS_TELEMETRY', marker: 'DAILY LNG SENDOUT' },
     { label: 'PATROL_LOG', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'PATROL_LOG', marker: 'PATROL LOG' },
     { label: 'GAS_METERING_DAILY', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'GAS_METERING_DAILY', marker: 'GAS METERING (DAILY)' },
+    { label: 'LAYDOWN_1_2_LOG', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'LAYDOWN_1_2_LOG', marker: 'DAILY INSPECTION & BOG LOG' },
+    { label: 'TANK_MASS_BALANCE', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'TANK_MASS_BALANCE', marker: 'ISO TANK MASS BALANCE' },
     { label: 'PLTMG_POWER_OUTPUT', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'PLTMG_POWER_OUTPUT', marker: 'PLTMG MONITOR' },
     { label: 'CUSTODY_HEAT_SETTLEMENT', initialDomain: 'REGAS_SYSTEM', initialSubTab: 'CUSTODY_HEAT_SETTLEMENT', marker: 'MONTHLY REPORT (PLN EPI)' },
   ];
@@ -118,7 +120,7 @@ describe('NiasTerminalView — render-level smoke baseline (Sub-stage E)', () =>
     stubFetch();
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    await mount({ initialDomain: 'ISO_TANK_MGMT', initialSubTab: 'LAYDOWN_1_2_LOG' });
+    await mount({ initialDomain: 'REGAS_SYSTEM', initialSubTab: 'LAYDOWN_1_2_LOG' });
     expect(errorSpy).not.toHaveBeenCalled();
     expect(warnSpy).not.toHaveBeenCalled();
   });

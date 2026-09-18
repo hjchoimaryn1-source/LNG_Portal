@@ -47,15 +47,6 @@ export default function NiasSubTabsNavPanel({
 
           <button
             type="button"
-            onClick={() => setTankSubTab('LAYDOWN_1_2_LOG')}
-            className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${tankSubTab === 'LAYDOWN_1_2_LOG' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
-          >
-            ISO TK - LOG
-          </button>
-
-          <button
-            type="button"
             onClick={() => setTankSubTab('ACTIVE_BAY_TANKS')}
             className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${tankSubTab === 'ACTIVE_BAY_TANKS' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
               }`}
@@ -70,15 +61,6 @@ export default function NiasSubTabsNavPanel({
               }`}
           >
             ORU ( LD - 2 )
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setTankSubTab('TANK_MASS_BALANCE')}
-            className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${tankSubTab === 'TANK_MASS_BALANCE' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-              }`}
-          >
-            Mass Balance
           </button>
         </div>
       ) : (
@@ -110,6 +92,24 @@ export default function NiasSubTabsNavPanel({
                   }`}
               >
                 GAS METERING (DAILY)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRegasSubTab('LAYDOWN_1_2_LOG')}
+                className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'LAYDOWN_1_2_LOG' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                  }`}
+              >
+                ISO TK - LOG
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRegasSubTab('TANK_MASS_BALANCE')}
+                className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'TANK_MASS_BALANCE' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
+                  }`}
+              >
+                Mass Balance
               </button>
             </>
           )}

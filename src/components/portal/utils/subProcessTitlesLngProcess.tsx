@@ -60,7 +60,10 @@ export const SUBPROCESS_TITLES_LNG_PROCESS: Record<string, SubProcessTitleEntry>
   },
   NIAS_LAYDOWN_1_2_LOG: {
     location: 'LNG-Process',
-    process: 'Nias Tank Yard > Laydown 1 Log & BOG',
+    // ISO Tank & Mass Balance relocation (2026-09-18): moved from Nias Tank
+    // Yard to Regas & Gas Process — text updated to avoid a stale-location
+    // fallback (same class of bug as the earlier 4-HR PATROL LOG rename).
+    process: 'Regas & Gas Process > ISO TK - LOG',
     icon: <MapPin className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
@@ -91,6 +94,14 @@ export const SUBPROCESS_TITLES_LNG_PROCESS: Record<string, SubProcessTitleEntry>
   NIAS_GAS_METERING_DAILY: {
     location: 'LNG-Process',
     process: 'Regas & Gas Process > Gas Metering (Daily)',
+    icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  // No entry previously existed for Mass Balance (pre-existing gap, not
+  // caused by this relocation) — added now since it's moving here.
+  NIAS_TANK_MASS_BALANCE: {
+    location: 'LNG-Process',
+    process: 'Regas & Gas Process > Mass Balance',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },

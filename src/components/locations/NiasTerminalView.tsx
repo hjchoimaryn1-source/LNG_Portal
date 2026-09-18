@@ -121,15 +121,15 @@ export type NiasDomain = 'TERMINAL_OVERVIEW' | 'ISO_TANK_MGMT' | 'REGAS_SYSTEM';
 
 export type NiasTankSubTab =
   | 'TANK_OVERVIEW'
-  | 'LAYDOWN_1_2_LOG'
   | 'ACTIVE_BAY_TANKS'
-  | 'LAYDOWN_3_HEEL'
-  | 'TANK_MASS_BALANCE';
+  | 'LAYDOWN_3_HEEL';
 
 export type NiasRegasSubTab =
   | 'GAS_PROCESS_TELEMETRY'
   | 'PATROL_LOG'
   | 'GAS_METERING_DAILY'
+  | 'LAYDOWN_1_2_LOG'
+  | 'TANK_MASS_BALANCE'
   | 'PLTMG_POWER_OUTPUT'
   | 'CUSTODY_HEAT_SETTLEMENT';
 

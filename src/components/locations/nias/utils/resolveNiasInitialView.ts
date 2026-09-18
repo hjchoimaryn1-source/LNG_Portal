@@ -39,7 +39,16 @@ function resolveInitialDomain(initialDomain: NiasDomain | undefined, initialSubT
     initialSubTab === 'FOUR_BAY_REGAS_GC' ||
     initialSubTab === 'ACTIVE_REGAS_TELEMETRY' ||
     initialSubTab === 'ACTIVE_REGAS' ||
-    initialSubTab === 'HEAT_SETTLEMENT'
+    initialSubTab === 'HEAT_SETTLEMENT' ||
+    // ISO Tank & Mass Balance relocation (2026-09-18): LAYDOWN_1_2_LOG /
+    // TANK_MASS_BALANCE moved from ISO_TANK_MGMT to REGAS_SYSTEM.
+    initialSubTab === 'LAYDOWN_1_2_LOG' ||
+    initialSubTab === 'DAILY_CONDITION_BOG' ||
+    initialSubTab === 'DAILY_LOG_DEPRESS' ||
+    initialSubTab === 'LAYDOWN_DEPRESS' ||
+    initialSubTab === 'TANK_MASS_BALANCE' ||
+    initialSubTab === 'MASS_BALANCE_LOG' ||
+    initialSubTab === 'MASS_BALANCE'
   ) {
     return 'REGAS_SYSTEM';
   }
@@ -47,14 +56,6 @@ function resolveInitialDomain(initialDomain: NiasDomain | undefined, initialSubT
 }
 
 function resolveInitialTankTab(initialSubTab: string | undefined): NiasTankSubTab {
-  if (
-    initialSubTab === 'LAYDOWN_1_2_LOG' ||
-    initialSubTab === 'DAILY_CONDITION_BOG' ||
-    initialSubTab === 'DAILY_LOG_DEPRESS' ||
-    initialSubTab === 'LAYDOWN_DEPRESS'
-  ) {
-    return 'LAYDOWN_1_2_LOG';
-  }
   if (initialSubTab === 'ACTIVE_BAY_TANKS' || initialSubTab === 'BAY_MOUNTED_TANKS') {
     return 'ACTIVE_BAY_TANKS';
   }
@@ -65,6 +66,22 @@ function resolveInitialTankTab(initialSubTab: string | undefined): NiasTankSubTa
   ) {
     return 'LAYDOWN_3_HEEL';
   }
+  return 'TANK_OVERVIEW';
+}
+
+function resolveInitialRegasTab(initialSubTab: string | undefined): NiasRegasSubTab {
+  if (initialSubTab === 'PATROL_LOG' || initialSubTab === 'NIAS_PATROL_LOG') return 'PATROL_LOG';
+  if (initialSubTab === 'GAS_METERING_DAILY' || initialSubTab === 'NIAS_GAS_METERING_DAILY') return 'GAS_METERING_DAILY';
+  // ISO Tank & Mass Balance relocation (2026-09-18): these two moved here
+  // from resolveInitialTankTab, same accepted alias strings as before.
+  if (
+    initialSubTab === 'LAYDOWN_1_2_LOG' ||
+    initialSubTab === 'DAILY_CONDITION_BOG' ||
+    initialSubTab === 'DAILY_LOG_DEPRESS' ||
+    initialSubTab === 'LAYDOWN_DEPRESS'
+  ) {
+    return 'LAYDOWN_1_2_LOG';
+  }
   if (
     initialSubTab === 'TANK_MASS_BALANCE' ||
     initialSubTab === 'MASS_BALANCE_LOG' ||
@@ -72,12 +89,6 @@ function resolveInitialTankTab(initialSubTab: string | undefined): NiasTankSubTa
   ) {
     return 'TANK_MASS_BALANCE';
   }
-  return 'TANK_OVERVIEW';
-}
-
-function resolveInitialRegasTab(initialSubTab: string | undefined): NiasRegasSubTab {
-  if (initialSubTab === 'PATROL_LOG' || initialSubTab === 'NIAS_PATROL_LOG') return 'PATROL_LOG';
-  if (initialSubTab === 'GAS_METERING_DAILY' || initialSubTab === 'NIAS_GAS_METERING_DAILY') return 'GAS_METERING_DAILY';
   if (initialSubTab === 'PLTMG_POWER_OUTPUT') return 'PLTMG_POWER_OUTPUT';
   if (initialSubTab === 'CUSTODY_HEAT_SETTLEMENT' || initialSubTab === 'HEAT_SETTLEMENT') {
     return 'CUSTODY_HEAT_SETTLEMENT';

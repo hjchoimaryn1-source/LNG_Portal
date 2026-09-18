@@ -41,9 +41,11 @@ export default function NiasDomainContentRouter(props: NiasDomainContentRouterPr
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 2: 📥 DAILY INSPECTION & BOG LOG (WORKSHEET)      */}
+      {/* DOMAIN 2 - SUB-TAB: 📥 DAILY INSPECTION & BOG LOG (WORKSHEET) —      */}
+      {/* relocated from ISO_TANK_MGMT to REGAS_SYSTEM ("ISO TK - LOG",       */}
+      {/* ISO Tank & Mass Balance relocation, 2026-09-18).                    */}
       {/* ==================================================================== */}
-      {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'LAYDOWN_1_2_LOG' && (
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'LAYDOWN_1_2_LOG' && (
         <NiasLaydownLogTab
           tankInventory={props.tankInventory}
           dailyMasterRecords={props.dailyMasterRecords}
@@ -132,13 +134,6 @@ export default function NiasDomainContentRouter(props: NiasDomainContentRouterPr
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 5: ISO TANK MASS BALANCE & DEPRESSURIZATION LOG   */}
-      {/* ==================================================================== */}
-      {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'TANK_MASS_BALANCE' && (
-        <NiasTankMassBalanceTab />
-      )}
-
-      {/* ==================================================================== */}
       {/* DOMAIN 2 - SUB-TAB 1: 1. PROCESS TELEMETRY                            */}
       {/* ==================================================================== */}
       {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_PROCESS_TELEMETRY' && (
@@ -159,6 +154,14 @@ export default function NiasDomainContentRouter(props: NiasDomainContentRouterPr
       {/* ==================================================================== */}
       {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_METERING_DAILY' && (
         <GasMeteringDailyTab />
+      )}
+
+      {/* ==================================================================== */}
+      {/* DOMAIN 2 - SUB-TAB: ⚖️ ISO TANK MASS BALANCE — relocated from        */}
+      {/* ISO_TANK_MGMT (ISO Tank & Mass Balance relocation, 2026-09-18).      */}
+      {/* ==================================================================== */}
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'TANK_MASS_BALANCE' && (
+        <NiasTankMassBalanceTab />
       )}
 
       {/* ==================================================================== */}

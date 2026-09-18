@@ -24,10 +24,8 @@ describe('resolveNiasInitialView', () => {
   });
 
   it('resolves each tank sub-tab alias group to its canonical tankSubTab', () => {
-    expect(resolveNiasInitialView({ initialSubTab: 'DAILY_LOG_DEPRESS' }).tankSubTab).toBe('LAYDOWN_1_2_LOG');
     expect(resolveNiasInitialView({ initialSubTab: 'BAY_MOUNTED_TANKS' }).tankSubTab).toBe('ACTIVE_BAY_TANKS');
     expect(resolveNiasInitialView({ initialSubTab: 'EMPTY_RETURN' }).tankSubTab).toBe('LAYDOWN_3_HEEL');
-    expect(resolveNiasInitialView({ initialSubTab: 'MASS_BALANCE' }).tankSubTab).toBe('TANK_MASS_BALANCE');
   });
 
   it('falls back to TANK_OVERVIEW tankSubTab for an unrecognized subTab', () => {
@@ -39,6 +37,16 @@ describe('resolveNiasInitialView', () => {
     expect(resolveNiasInitialView({ initialSubTab: 'NIAS_GAS_METERING_DAILY' }).regasSubTab).toBe('GAS_METERING_DAILY');
     expect(resolveNiasInitialView({ initialSubTab: 'PLTMG_POWER_OUTPUT' }).regasSubTab).toBe('PLTMG_POWER_OUTPUT');
     expect(resolveNiasInitialView({ initialSubTab: 'HEAT_SETTLEMENT' }).regasSubTab).toBe('CUSTODY_HEAT_SETTLEMENT');
+  });
+
+  it('ISO Tank & Mass Balance relocation: LAYDOWN_1_2_LOG/TANK_MASS_BALANCE now resolve into REGAS_SYSTEM/regasSubTab, not ISO_TANK_MGMT/tankSubTab', () => {
+    const laydown = resolveNiasInitialView({ initialSubTab: 'DAILY_LOG_DEPRESS' });
+    expect(laydown.domain).toBe('REGAS_SYSTEM');
+    expect(laydown.regasSubTab).toBe('LAYDOWN_1_2_LOG');
+
+    const massBalance = resolveNiasInitialView({ initialSubTab: 'MASS_BALANCE' });
+    expect(massBalance.domain).toBe('REGAS_SYSTEM');
+    expect(massBalance.regasSubTab).toBe('TANK_MASS_BALANCE');
   });
 
   it('falls back to GAS_PROCESS_TELEMETRY regasSubTab for an unrecognized subTab', () => {
