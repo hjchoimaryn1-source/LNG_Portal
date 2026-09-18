@@ -21,7 +21,9 @@ describe('isNavItemVisible', () => {
 
   it('allowlisted items are always visible, overriding a canRead:false row', () => {
     // OPERATION_TEAM_LEADER's LNG_PROCESS_OVERVIEW row is canRead:false in
-    // ROLE_PERMISSIONS, but LNG-Process is allowlisted per HJ decision (Stage 2).
+    // ROLE_PERMISSIONS, but the whole LNG-Process group is allowlisted per HJ
+    // correction (Stage 2 follow-up, 2026-09-18) — field roles need the actual
+    // process/tank-yard screens, not just the Overview summary.
     expect(isNavItemVisible('LNG_PROCESS_OVERVIEW', asOperationTeamLeader)).toBe(true);
     expect(isNavItemVisible('CMMS_OVERVIEW_DASHBOARD', asOperationTeamLeader)).toBe(true);
     expect(isNavItemVisible('DAILY_OPS_LIVE_PID_MAP', asOperationTeamLeader)).toBe(true);
@@ -29,6 +31,20 @@ describe('isNavItemVisible', () => {
     expect(isNavItemVisible('HMI_METERING_MAP', asOperationTeamLeader)).toBe(true);
     expect(isNavItemVisible('HMI_BUFFERING_MAP', asOperationTeamLeader)).toBe(true);
     expect(isNavItemVisible('HMI_VAPOR_MAP', asOperationTeamLeader)).toBe(true);
+  });
+
+  it('the rest of the LNG-Process group is visible too, not just the Overview key, for a role whose LNG_PROCESS_OVERVIEW canRead is false', () => {
+    // These sub-items are no longer routed through NAV_ITEM_MODULE_MAP's
+    // LNG_PROCESS_OVERVIEW lookup — they're allowlisted by name directly, so
+    // OPERATION_TEAM_LEADER's canRead:false on that ModuleCode never applies.
+    expect(NAV_ITEM_MODULE_MAP.ARUN_LOADING_COQ).toBeUndefined();
+    expect(NAV_ITEM_MODULE_MAP.NIAS_TANK_OVERVIEW).toBeUndefined();
+    expect(isNavItemVisible('ARUN_LOADING_COQ', asOperationTeamLeader)).toBe(true);
+    expect(isNavItemVisible('SAVIOUR_VOYAGE_MONITORING', asOperationTeamLeader)).toBe(true);
+    expect(isNavItemVisible('NIAS_TANK_OVERVIEW', asOperationTeamLeader)).toBe(true);
+    expect(isNavItemVisible('NIAS_GAS_PROCESS_TELEMETRY', asOperationTeamLeader)).toBe(true);
+    expect(isNavItemVisible('NIAS_PLTMG_POWER_OUTPUT', asOperationTeamLeader)).toBe(true);
+    expect(isNavItemVisible('DAILY_OPS_ISO_TANK_LOGISTICS', asOperationTeamLeader)).toBe(true);
   });
 
   it('an item with no ModuleCode mapping anywhere defaults to hidden for a non-admin, even one with broad canRead access', () => {

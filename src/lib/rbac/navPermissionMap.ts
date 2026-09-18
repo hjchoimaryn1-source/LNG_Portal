@@ -15,13 +15,24 @@ import type { ActiveSession } from './activeSessionStore';
 
 // Always visible for every authenticated role, regardless of role_permissions.
 // CMMS_OVERVIEW_DASHBOARD and the 5 HMI Control Maps screens have no ModuleCode
-// row at all (nothing to look up). LNG_PROCESS_OVERVIEW does have a ModuleCode
-// row, but is allowlisted here per HJ decision (Stage 2) so it stays visible
-// even where the seed data says canRead:false (e.g. OPERATION_TEAM_LEADER) —
-// see PORTAL_RESTRUCTURE_NOTES for the flagged inconsistency this overrides.
+// row at all (nothing to look up). The entire LNG-Process sidebar group
+// (Overview + every sub-screen under it) is allowlisted here too, per HJ
+// correction (Stage 2 follow-up, 2026-09-18): field roles like
+// OPERATION_TEAM_LEADER need the actual process/tank-yard screens, not just
+// the Overview summary, so the whole group overrides LNG_PROCESS_OVERVIEW's
+// canRead:false rather than being routed through it. The ModuleCode/
+// ROLE_PERMISSIONS row itself is untouched — this override is nav-visibility
+// only, and doesn't affect any leaf-level getEffectivePermission('LNG_PROCESS_OVERVIEW', ...)
+// check that might exist inside those screens.
 const ALWAYS_VISIBLE_NAV_KEYS: ReadonlySet<string> = new Set([
   'CMMS_OVERVIEW_DASHBOARD',
   'LNG_PROCESS_OVERVIEW',
+  'ARUN_LOADING_COQ',
+  'SAVIOUR_VOYAGE_MONITORING',
+  'NIAS_TANK_OVERVIEW',
+  'NIAS_GAS_PROCESS_TELEMETRY',
+  'NIAS_PLTMG_POWER_OUTPUT',
+  'DAILY_OPS_ISO_TANK_LOGISTICS',
   'DAILY_OPS_LIVE_PID_MAP',
   'DAILY_OPS_HMI_OVERVIEW',
   'HMI_METERING_MAP',
@@ -39,16 +50,6 @@ const ALWAYS_VISIBLE_NAV_KEYS: ReadonlySet<string> = new Set([
 // PM_SCHEDULES, TRUCKING_HUB, ENVIRONMENT_HUB, MOC_HUB — none of these have a
 // ModuleCode defined anywhere in types/rbac.ts.
 export const NAV_ITEM_MODULE_MAP: Partial<Record<SubProcessKey, ModuleCode[]>> = {
-  // LNG-Process sidebar sub-screens share the section's one ModuleCode — it's
-  // the only permission key this domain has (LNG_PROCESS_OVERVIEW itself is
-  // allowlisted above, not looked up here).
-  ARUN_LOADING_COQ: ['LNG_PROCESS_OVERVIEW'],
-  SAVIOUR_VOYAGE_MONITORING: ['LNG_PROCESS_OVERVIEW'],
-  NIAS_TANK_OVERVIEW: ['LNG_PROCESS_OVERVIEW'],
-  NIAS_GAS_PROCESS_TELEMETRY: ['LNG_PROCESS_OVERVIEW'],
-  NIAS_PLTMG_POWER_OUTPUT: ['LNG_PROCESS_OVERVIEW'],
-  DAILY_OPS_ISO_TANK_LOGISTICS: ['LNG_PROCESS_OVERVIEW'],
-
   EQUIPMENT_ASSET_REGISTRY: ['EQUIPMENT_ASSET_REGISTRY'],
 
   WORK_ORDER_DIRECTORY: ['WORK_ORDER_DIRECTORY'],
