@@ -34,7 +34,6 @@ function resolveInitialDomain(initialDomain: NiasDomain | undefined, initialSubT
     initialSubTab === 'PATROL_LOG' ||
     initialSubTab === 'GAS_METERING_DAILY' ||
     initialSubTab === 'NIAS_GAS_METERING_DAILY' ||
-    initialSubTab === 'PLTMG_POWER_OUTPUT' ||
     initialSubTab === 'CUSTODY_HEAT_SETTLEMENT' ||
     initialSubTab === 'FOUR_BAY_REGAS_GC' ||
     initialSubTab === 'ACTIVE_REGAS_TELEMETRY' ||
@@ -89,7 +88,6 @@ function resolveInitialRegasTab(initialSubTab: string | undefined): NiasRegasSub
   ) {
     return 'TANK_MASS_BALANCE';
   }
-  if (initialSubTab === 'PLTMG_POWER_OUTPUT') return 'PLTMG_POWER_OUTPUT';
   if (initialSubTab === 'CUSTODY_HEAT_SETTLEMENT' || initialSubTab === 'HEAT_SETTLEMENT') {
     return 'CUSTODY_HEAT_SETTLEMENT';
   }

@@ -130,7 +130,6 @@ export type NiasRegasSubTab =
   | 'GAS_METERING_DAILY'
   | 'LAYDOWN_1_2_LOG'
   | 'TANK_MASS_BALANCE'
-  | 'PLTMG_POWER_OUTPUT'
   | 'CUSTODY_HEAT_SETTLEMENT';
 
 export type NiasSubTab = NiasTankSubTab | NiasRegasSubTab | string;

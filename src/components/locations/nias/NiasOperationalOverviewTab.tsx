@@ -573,10 +573,15 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
               </span>
               <button
                 type="button"
-                onClick={() => handleNavigate('NIAS_PLTMG_POWER_OUTPUT', 'REGAS_SYSTEM')}
+                onClick={() => {
+                  // PLTMG Power relocation (2026-09-18): now lives inside
+                  // Electrical System, not REGAS_SYSTEM — bypass
+                  // handleNavigate's REGAS_SYSTEM-defaulted signature.
+                  if (onNavigateSubTab) onNavigateSubTab('DAILY_OPS_ELECTRICAL_SYSTEM');
+                }}
                 className="text-xs font-bold win-tab-inactive flex items-center gap-1 cursor-pointer"
               >
-                <span>Power Tab 3</span>
+                <span>Electrical System</span>
                 <ExternalLink className="w-3 h-3" />
               </button>
             </div>

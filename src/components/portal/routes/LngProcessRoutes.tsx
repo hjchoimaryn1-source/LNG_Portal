@@ -71,14 +71,6 @@ export default function LngProcessRoutes({ activeKey, activeSubTab, handleSelect
         <NiasRegasGasProcessView initialSubTab="CUSTODY_HEAT_SETTLEMENT" />
       )}
 
-      {/* PLTMG Power (folded into "Regas & Gas Process" 2026-09-16 — see commit
-          ffab121; previously its own standalone route via NiasPltmgPowerView,
-          now shares NiasRegasGasProcessView with the other 4 grouped keys,
-          landing directly on the PLTMG_POWER_OUTPUT first-level sub-tab). */}
-      {(activeKey === 'NIAS_PLTMG_POWER_OUTPUT' || activeSubTab === 'NIAS_PLTMG_POWER_OUTPUT') && (
-        <NiasRegasGasProcessView initialSubTab="PLTMG_POWER_OUTPUT" />
-      )}
-
       {/* Arun PAG Terminal */}
       {activeKey === 'ARUN_LOADING_COQ' && (
         <ArunTerminalView

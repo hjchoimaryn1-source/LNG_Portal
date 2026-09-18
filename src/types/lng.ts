@@ -40,7 +40,6 @@ export type SubProcessKey =
   | 'NIAS_GAS_PROCESS_TELEMETRY'
   | 'NIAS_PATROL_LOG'
   | 'NIAS_GAS_METERING_DAILY'
-  | 'NIAS_PLTMG_POWER_OUTPUT'
   | 'NIAS_HEAT_SETTLEMENT'
   // Legacy Aliases for Backwards Compatibility
   | 'NIAS_OPERATIONS_OVERVIEW'

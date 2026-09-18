@@ -10,10 +10,11 @@ export interface NiasSubTabsNavPanelProps {
   setRegasSubTab: React.Dispatch<React.SetStateAction<NiasRegasSubTab>>;
   disputeCount: number;
   // Nias sub-tab flattening (2026-09-16): REGAS_SYSTEM used to be one domain
-  // with a single 5-item row; it is now reached via two separate top-nav
-  // tabs (Regas & Gas Process / PLTMG Power), so the row must show only the
-  // items that belong to whichever tab routed here. Omitted = legacy
-  // behavior (all 5 items), unchanged for existing callers.
+  // with a single 5-item row. The 'POWER' scope value is now unused — PLTMG
+  // POWER relocated out of REGAS_SYSTEM entirely (2026-09-18, see
+  // ElectricalSystemView.tsx) — but kept for prop-contract stability with
+  // any external caller still passing it. Omitted = legacy behavior (all
+  // items shown), unchanged for existing callers.
   regasScope?: 'GAS_PROCESS' | 'POWER';
 }
 
@@ -31,7 +32,6 @@ export default function NiasSubTabsNavPanel({
   regasScope,
 }: NiasSubTabsNavPanelProps) {
   const showGasProcessButtons = regasScope !== 'POWER';
-  const showPowerButton = regasScope !== 'GAS_PROCESS';
   return (
     <div className="shrink-0 win-panel px-2 py-1 flex items-center justify-between border-t-0 border-[#808080] overflow-x-auto">
       {activeDomain === 'ISO_TANK_MGMT' ? (
@@ -127,17 +127,6 @@ export default function NiasSubTabsNavPanel({
                   {disputeCount} Alert
                 </span>
               )}
-            </button>
-          )}
-
-          {showPowerButton && (
-            <button
-              type="button"
-              onClick={() => setRegasSubTab('PLTMG_POWER_OUTPUT')}
-              className={`px-2.5 py-1 text-xs font-bold font-mono cursor-pointer ${regasSubTab === 'PLTMG_POWER_OUTPUT' ? 'win-tab-active text-blue-950' : 'win-tab-inactive'
-                }`}
-            >
-              PLTMG POWER
             </button>
           )}
         </div>

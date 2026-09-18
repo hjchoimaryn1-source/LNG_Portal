@@ -15,10 +15,10 @@ interface LngProcessSubTabsProps {
 // LngProcessRoutes.tsx for the matching content routes).
 // Exported so SidebarNav.tsx (the other nav surface with the same Nias
 // split) stays consistent with this grouping — single source of truth.
-// PLTMG Power fold-back (2026-09-16): NIAS_PLTMG_POWER_OUTPUT no longer has
-// its own second-row tab — it's a first-level sub-tab inside "Regas & Gas
-// Process" now (see NiasRegasGasProcessView.tsx), so it joins this group for
-// second-row highlighting/routing purposes.
+// PLTMG Power relocation (2026-09-18): NIAS_PLTMG_POWER_OUTPUT / the SubProcessKey
+// itself is retired — PLTMG Power is now a stacked section inside the
+// "Electrical System" tab's view (see ElectricalSystemView.tsx), not a
+// Regas & Gas Process sub-tab.
 export const NIAS_TANK_YARD_KEYS: SubProcessKey[] = [
   'NIAS_TANK_OVERVIEW',
   'NIAS_LAYDOWN_1_2_LOG',
@@ -29,7 +29,6 @@ export const NIAS_GAS_PROCESS_KEYS: SubProcessKey[] = [
   'NIAS_GAS_PROCESS_TELEMETRY',
   'NIAS_PATROL_LOG',
   'NIAS_GAS_METERING_DAILY',
-  'NIAS_PLTMG_POWER_OUTPUT',
   'NIAS_HEAT_SETTLEMENT',
 ];
 

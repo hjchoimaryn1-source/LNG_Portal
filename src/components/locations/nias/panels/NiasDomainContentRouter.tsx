@@ -10,7 +10,6 @@ import NiasTankMassBalanceTab from '../NiasTankMassBalanceTab';
 import NiasProcessPIDDiagram from '../NiasProcessPIDDiagram';
 import NiasPatrolLogTab from '../NiasPatrolLogTab';
 import GasMeteringDailyTab from '../GasMeteringDailyTab';
-import NiasPowerThermalTab from '../NiasPowerThermalTab';
 import NiasMonthlyReportPlnEpiTab from '../monthlyReport/NiasMonthlyReportPlnEpiTab';
 import type { NiasDomainContentRouterProps } from '../types/niasDomainContentRouter.types';
 
@@ -162,13 +161,6 @@ export default function NiasDomainContentRouter(props: NiasDomainContentRouterPr
       {/* ==================================================================== */}
       {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'TANK_MASS_BALANCE' && (
         <NiasTankMassBalanceTab />
-      )}
-
-      {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 3: ⚡ PLTMG POWER & THERMAL OUTPUT                 */}
-      {/* ==================================================================== */}
-      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'PLTMG_POWER_OUTPUT' && (
-        <NiasPowerThermalTab />
       )}
 
       {/* ==================================================================== */}

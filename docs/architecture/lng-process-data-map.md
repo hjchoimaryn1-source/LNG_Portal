@@ -44,7 +44,7 @@ points during this audit (never edited): `ptwStatusMapper.ts`, `gasSafetyAdapter
 | GAS PROCESS | `GAS_PROCESS_TELEMETRY` | `NiasProcessPIDDiagram.tsx` | 655 | read-only P&ID display | live |
 | GAS METERING - LOG | `GC_GAS_QUALITY` | `NiasGasQualityTab.tsx` | 1134 | `saveGasQualityRecord` → `gasQualityRecords: GasQualityMasterRecord[]` (ZERO-TOUCH, `src/types/gasQuality.ts`) | **one record per `date`** — daily only, no 4-hr-slot dimension |
 | GAS METERING (LEDGER) | `GAS_METERING_LEDGER` | `NiasGasQualityLedgerTab.tsx` | 766 | read-only, same `gasQualityRecords` | daily |
-| PLTMG POWER | `PLTMG_POWER_OUTPUT` | `NiasPowerThermalTab.tsx` | 927 | local `useState` only (engines/engineSpec, likely localStorage-seeded); reads `fleetTanks`/`activeBays` from ZERO-TOUCH, writes nothing centrally | n/a (local only) |
+| ~~PLTMG POWER~~ | ~~`PLTMG_POWER_OUTPUT`~~ | `NiasPowerThermalTab.tsx` | 808 | **Relocated 2026-09-18**: no longer a REGAS_SYSTEM sub-tab — now mounted as a stacked section inside `ElectricalSystemView.tsx` ("Electrical System" tab, `DAILY_OPS_ELECTRICAL_SYSTEM`). Data source unchanged: local `useState` only (engines/engineSpec, localStorage-seeded via `useNiasPowerThermalStorage.ts`); reads `fleetTanks`/`activeBays` from ZERO-TOUCH, writes nothing centrally | n/a (local only) |
 | MONTHLY REPORT | `CUSTODY_HEAT_SETTLEMENT` | `NiasCustodySettlementTab.tsx` | 751 | read-only `useMemo` aggregation over `settlementRecords`/`fleetTanks` (ZERO-TOUCH) — **not** a separately maintained monthly table/xlsx. Caveat: trend-chart panel uses a synthetic `generateMonthlyTrendData()` generator, not real records | computed monthly from underlying per-event records |
 
 ### Equipment & Asset cross-reference

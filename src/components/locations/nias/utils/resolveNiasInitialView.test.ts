@@ -35,7 +35,6 @@ describe('resolveNiasInitialView', () => {
   it('resolves each regas sub-tab alias group to its canonical regasSubTab', () => {
     expect(resolveNiasInitialView({ initialSubTab: 'NIAS_PATROL_LOG' }).regasSubTab).toBe('PATROL_LOG');
     expect(resolveNiasInitialView({ initialSubTab: 'NIAS_GAS_METERING_DAILY' }).regasSubTab).toBe('GAS_METERING_DAILY');
-    expect(resolveNiasInitialView({ initialSubTab: 'PLTMG_POWER_OUTPUT' }).regasSubTab).toBe('PLTMG_POWER_OUTPUT');
     expect(resolveNiasInitialView({ initialSubTab: 'HEAT_SETTLEMENT' }).regasSubTab).toBe('CUSTODY_HEAT_SETTLEMENT');
   });
 
