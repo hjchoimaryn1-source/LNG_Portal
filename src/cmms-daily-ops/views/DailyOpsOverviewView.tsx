@@ -14,6 +14,7 @@
 
 import { useState } from 'react';
 import { RAISED_PANEL, SUNKEN_INPUT } from '../../components/cmms/scadaStyles';
+import { useActiveSession } from '../../lib/rbac/activeSessionStore';
 import { useDailyReportApproval } from '../hooks/useDailyReportApproval';
 import { useHqEditWindow } from '../hooks/useHqEditWindow';
 import { useSignatureValidity } from '../hooks/useSignatureValidity';
@@ -32,6 +33,7 @@ function today(): string {
 export function DailyOpsOverviewView() {
   const [reportDate, setReportDate] = useState(today);
   const [showPrintView, setShowPrintView] = useState(false);
+  const activeSession = useActiveSession();
   const { snapshot, loading, message, canApprove, generate, approve, reject, reload } = useDailyReportApproval(reportDate);
   const { canUnlockApproved, canAcknowledge, message: hqEditMessage, openWindow, closeWindow, acknowledge } =
     useHqEditWindow(snapshot, reload);
@@ -66,6 +68,7 @@ export function DailyOpsOverviewView() {
         onOpenHqEdit={openWindow}
         onCloseHqEdit={closeWindow}
         showSignatureWarning={showSignatureWarning}
+        activeSession={activeSession}
       />
 
       {snapshot && (

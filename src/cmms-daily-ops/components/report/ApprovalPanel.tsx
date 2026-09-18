@@ -11,6 +11,16 @@ import { useState } from 'react';
 import { BEVEL_BUTTON, SUNKEN_INPUT, RAISED_PANEL } from '../../../components/cmms/scadaStyles';
 import GuardrailBlockedBanner from '../../../components/shared/GuardrailBlockedBanner';
 import type { DailyReportSnapshotSummary } from '../../hooks/useDailyReportApproval';
+import type { ActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { USER_ACCOUNTS } from '../../../lib/rbac/userAccountsSeed';
+
+// 로그인 계정 기반 기본값 — 자유 텍스트 입력의 편의 프리필일 뿐 신원 검증이
+// 아니다(SignatureBlock.tsx의 defaultSignerName과 동일한 근거, 25493de 선례).
+// Rule of Three 미충족으로 공용 유틸 추출은 보류하고 로컬 복제한다.
+function defaultGeneratedByName(session: ActiveSession | null): string {
+  if (!session) return '';
+  return USER_ACCOUNTS.find((a) => a.userId === session.userId)?.displayName ?? '';
+}
 
 const STATUS_LABEL: Record<DailyReportSnapshotSummary['status'], string> = {
   DRAFT: 'DRAFT',
@@ -39,6 +49,7 @@ export interface ApprovalPanelProps {
   onCloseHqEdit: (summaryText: string) => void;
   /** D-ADD-4 — true when lastRegeneratedAt is later than any signature's signed_at, regardless of status. */
   showSignatureWarning: boolean;
+  activeSession: ActiveSession | null;
 }
 
 export function ApprovalPanel({
@@ -55,8 +66,9 @@ export function ApprovalPanel({
   onOpenHqEdit,
   onCloseHqEdit,
   showSignatureWarning,
+  activeSession,
 }: ApprovalPanelProps) {
-  const [generatedBy, setGeneratedBy] = useState('');
+  const [generatedBy, setGeneratedBy] = useState(() => defaultGeneratedByName(activeSession));
   const [rejectReason, setRejectReason] = useState('');
   const [hqUnlockReason, setHqUnlockReason] = useState('');
   const [hqCloseSummary, setHqCloseSummary] = useState('');
