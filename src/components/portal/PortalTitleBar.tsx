@@ -64,11 +64,11 @@ export default function PortalTitleBar({
         <div className="flex items-center gap-1.5 shrink-0">
           {onReturnToLauncher && (
             <button
-              onClick={onReturnToLauncher}
+              onClick={() => handleSelectSubProcess('CMMS_OVERVIEW_DASHBOARD')}
               className="win-btn text-xs px-2.5 py-1 cursor-pointer font-bold text-blue-950"
-              title="Return to 5 Sector Launcher Hub"
+              title="Return to CMMS Overview Dashboard"
             >
-              To Main
+              Dashboard
             </button>
           )}
           {onLogout && (

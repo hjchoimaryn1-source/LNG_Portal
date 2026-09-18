@@ -52,8 +52,14 @@ export default function LNGPortalApp() {
             /* State 1: Compact classic SCADA login box centered directly on photo background */
             <div className="flex-1 flex items-center justify-center p-4">
               <LoginGateway
-                onLogin={() => setIsAuthenticated(true)}
-                onEnter={() => setIsAuthenticated(true)}
+                onLogin={() => {
+                  setIsAuthenticated(true);
+                  setActiveSector('CMMS_OVERVIEW_DASHBOARD');
+                }}
+                onEnter={() => {
+                  setIsAuthenticated(true);
+                  setActiveSector('CMMS_OVERVIEW_DASHBOARD');
+                }}
               />
             </div>
           ) : (
