@@ -15,6 +15,8 @@ import type {
   GasDeliveryDailyManualRow,
   GasDeliveryMonthlyManualRow,
 } from '../../../../../cmms-monthly-report/dao/gasDeliveryManualDao';
+import type { GasDeliveryContractReferenceRow } from '../../../../../cmms-monthly-report/dao/gasDeliveryContractReferenceDao';
+import type { DeliveryComputedRow } from '../../../../../cmms-monthly-report/dao/gasDeliveryComputedDao';
 import type { CalculationDeliveryRow } from '../../../../../cmms-monthly-report/dao/calculationDeliveryDao';
 import type {
   OpsMeteringDayRow,
@@ -93,6 +95,8 @@ export function useIsoTankConsumption(reportMonth: string) {
 interface GasDeliveryManualData {
   daily: GasDeliveryDailyManualRow[];
   monthly: GasDeliveryMonthlyManualRow | null;
+  contractReference: GasDeliveryContractReferenceRow | null;
+  computed: DeliveryComputedRow[];
 }
 
 export function useGasDeliveryManual(reportMonth: string) {
@@ -102,8 +106,10 @@ export function useGasDeliveryManual(reportMonth: string) {
     (json) => ({
       daily: (json.daily as GasDeliveryDailyManualRow[]) ?? [],
       monthly: (json.monthly as GasDeliveryMonthlyManualRow | null) ?? null,
+      contractReference: (json.contractReference as GasDeliveryContractReferenceRow | null) ?? null,
+      computed: (json.computed as DeliveryComputedRow[]) ?? [],
     }),
-    { daily: [], monthly: null }
+    { daily: [], monthly: null, contractReference: null, computed: [] }
   );
 
   async function saveDaily(row: GasDeliveryDailyManualRow): Promise<boolean> {
@@ -126,7 +132,16 @@ export function useGasDeliveryManual(reportMonth: string) {
     return Boolean(json.success);
   }
 
-  return { daily: data.daily, monthly: data.monthly, isLoading, error, saveDaily, saveMonthly };
+  return {
+    daily: data.daily,
+    monthly: data.monthly,
+    contractReference: data.contractReference,
+    computed: data.computed,
+    isLoading,
+    error,
+    saveDaily,
+    saveMonthly,
+  };
 }
 
 export function useCalculationDelivery(reportMonth: string) {

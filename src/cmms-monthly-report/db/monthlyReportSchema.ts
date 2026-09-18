@@ -111,6 +111,21 @@ export const GAS_DELIVERY_MONTHLY_MANUAL_DDL = `
   );
 `;
 
+// gas_delivery_contract_reference: P5 Stage 2 — DCQ/Nom./Prod. Plan auto-
+// populate source, monthly grain (no documentation settled the granularity —
+// NIAS_Portal_Full_Context.md and the NP-01~12 SOPs have zero DCQ/nomination
+// mentions — monthly chosen as the safest minimal assumption, correctable
+// later if HJ confirms a different grain). Starts empty; no admin input UI
+// this stage (DB-only via upsertGasDeliveryContractReference, follow-up).
+export const GAS_DELIVERY_CONTRACT_REFERENCE_DDL = `
+  CREATE TABLE IF NOT EXISTS gas_delivery_contract_reference (
+      report_month      TEXT PRIMARY KEY,
+      dcq_mmscfd        REAL,
+      nom_mmscfd        REAL,
+      prod_plan_mmscfd  REAL
+  );
+`;
+
 export const GAS_COMPOSITION_MONTHLY_SNAPSHOT_DDL = `
   CREATE TABLE IF NOT EXISTS gas_composition_monthly_snapshot (
       report_month     TEXT PRIMARY KEY,
@@ -136,5 +151,6 @@ export function ensureMonthlyReportSchema(raw: DatabaseSync): void {
   raw.exec(ISO_TANK_CONSUMPTION_MONTHLY_DDL);
   raw.exec(GAS_DELIVERY_DAILY_MANUAL_DDL);
   raw.exec(GAS_DELIVERY_MONTHLY_MANUAL_DDL);
+  raw.exec(GAS_DELIVERY_CONTRACT_REFERENCE_DDL);
   raw.exec(GAS_COMPOSITION_MONTHLY_SNAPSHOT_DDL);
 }

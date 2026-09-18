@@ -3,9 +3,16 @@
 // PURPOSE
 //   Client/server boundary for the "Summary Gas Delivery P5" manual-entry
 //   fields (gas_delivery_daily_manual + gas_delivery_monthly_manual — no
-//   CSV source, contract/operational values entered by hand).
+//   CSV source, contract/operational values entered by hand), enriched at
+//   GET-time with two computed sources (P5 Stage 2, no new manual columns):
+//   `contractReference` (DCQ/Nom./Prod. Plan default, monthly grain) and
+//   `computed` (per-day Delivery Vol/Energy from gas_metering_ledger_daily —
+//   see gasDeliveryComputedDao.ts). Neither is persisted into
+//   gas_delivery_daily_manual; the client applies them as read-time
+//   defaults/display only.
 //
-//   GET  ?month=YYYY-MM -> { daily: [...], monthly: {...} | null }
+//   GET  ?month=YYYY-MM -> { daily: [...], monthly: {...} | null,
+//                             contractReference: {...} | null, computed: [...] }
 //   POST { kind: 'daily', row }   -> upsert one gas_delivery_daily_manual row
 //   POST { kind: 'monthly', row } -> upsert the gas_delivery_monthly_manual row
 
@@ -19,6 +26,8 @@ import {
   type GasDeliveryDailyManualRow,
   type GasDeliveryMonthlyManualRow,
 } from '../../../../../../cmms-monthly-report/dao/gasDeliveryManualDao';
+import { getGasDeliveryContractReference } from '../../../../../../cmms-monthly-report/dao/gasDeliveryContractReferenceDao';
+import { getDeliveryComputedForMonth } from '../../../../../../cmms-monthly-report/dao/gasDeliveryComputedDao';
 
 export const runtime = 'nodejs';
 
@@ -30,7 +39,9 @@ export async function GET(request: NextRequest) {
   const db = getMonthlyReportDb();
   const daily = getGasDeliveryDailyManualForMonth(db, month);
   const monthly = getGasDeliveryMonthlyManual(db, month) ?? null;
-  return NextResponse.json({ success: true, daily, monthly });
+  const contractReference = getGasDeliveryContractReference(db, month) ?? null;
+  const computed = getDeliveryComputedForMonth(db, month);
+  return NextResponse.json({ success: true, daily, monthly, contractReference, computed });
 }
 
 interface PostBody {

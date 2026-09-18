@@ -10,6 +10,7 @@
 
 'use client';
 
+import { mergeGasDeliveryDailyRows } from '../dao/gasDeliveryMergedView';
 import { MONTHLY_REPORT_PRINT_STYLES } from './printStyles';
 import { FlobossPrintSheet } from './sheets/FlobossPrintSheet';
 import { GasDeliverySummaryPrintSheet } from './sheets/GasDeliverySummaryPrintSheet';
@@ -43,12 +44,17 @@ export function MonthlyReportPrintView({ reportMonth }: MonthlyReportPrintViewPr
   const isoTankDaily = useIsoTankDailyReadings(reportMonth);
   const calculationDelivery = useCalculationDelivery(reportMonth);
   const ops = useOpsMeteringDashboard(reportMonth);
+  const gasDeliveryMerged = mergeGasDeliveryDailyRows(
+    gasDelivery.daily,
+    gasDelivery.computed,
+    gasDelivery.contractReference
+  );
 
   return (
     <div>
       <style>{MONTHLY_REPORT_PRINT_STYLES}</style>
       <FlobossPrintSheet records={floboss.records} />
-      <GasDeliverySummaryPrintSheet daily={gasDelivery.daily} monthly={gasDelivery.monthly} />
+      <GasDeliverySummaryPrintSheet daily={gasDeliveryMerged} monthly={gasDelivery.monthly} />
       <CalculationDeliveryPrintSheet record={calculationDelivery.record} />
       <StatementOfDeliveryPrintSheet record={calculationDelivery.record} />
       <BeritaAcaraValidasiPrintSheet />

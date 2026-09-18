@@ -1,19 +1,24 @@
 // src/components/locations/nias/monthlyReport/GasDeliverySummaryForm.tsx
 //
 // PURPOSE
-//   "Summary Gas Delivery P5" manual-entry form — contract/operational
-//   fields with no DB source (DCQ, Nom., Prod. Plan, Delivery, Off-Spec,
-//   Shortfall, Force Majeure, Maintenance Day, Under Take, Excess, Avg
-//   Temp/Press), plus the sheet's separate end-of-month cumulative block.
-//   Two grains, two tables (HJ-confirmed) — see gasDeliveryManualDao.ts.
+//   "Summary Gas Delivery P5" entry form. DCQ/Nom./Prod. Plan auto-fill
+//   from gas_delivery_contract_reference (monthly grain) but stay
+//   editable/overridable; Delivery Vol/Energy auto-compute at read-time
+//   from gas_metering_ledger_daily and are display-only (not part of the
+//   editable draft, not persisted — see gasDeliveryComputedDao.ts). Only
+//   the 6 exception categories (Off-Spec, Shortfall, Force Majeure,
+//   Maintenance Day, Under Take, Excess) plus Avg Temp/Press remain manual
+//   entry, unchanged. Plus the sheet's separate end-of-month cumulative
+//   block. Two grains, two tables (HJ-confirmed) — see gasDeliveryManualDao.ts.
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { RAISED_PANEL, SUNKEN_INPUT, SUNKEN_PANEL, TITLE_BAR, BEVEL_BUTTON } from '../../../cmms/scadaStyles';
 import { useGasDeliveryManual } from './hooks/useMonthlyReportData';
 import { fmtNum } from './utils/monthlyReportFormat';
 import type { GasDeliveryDailyManualRow, GasDeliveryMonthlyManualRow } from '../../../../cmms-monthly-report/dao/gasDeliveryManualDao';
+import { mergeGasDeliveryDailyRows } from '../../../../cmms-monthly-report/dao/gasDeliveryMergedView';
 
 export interface GasDeliverySummaryFormProps {
   reportMonth: string;
@@ -23,8 +28,6 @@ const DAILY_FIELDS: Array<{ key: keyof Omit<GasDeliveryDailyManualRow, 'reportDa
   { key: 'dcqMmscfd', label: 'DCQ (MMSCFD)' },
   { key: 'nomMmscfd', label: 'Nom. (MMSCFD)' },
   { key: 'prodPlanMmscfd', label: 'Prod. Plan (MMSCFD)' },
-  { key: 'deliveryVolMmscf', label: 'Delivery Vol (MMSCF)' },
-  { key: 'deliveryEnergyMmbtu', label: 'Delivery Energy (MMBTU)' },
   { key: 'offSpecVolMmscf', label: 'Off-Spec Vol (MMSCF)' },
   { key: 'offSpecEnergyMmbtu', label: 'Off-Spec Energy (MMBTU)' },
   { key: 'shortfallVolMmscf', label: 'Shortfall Vol (MMSCF)' },
@@ -67,16 +70,32 @@ function emptyMonthlyRow(reportMonth: string): GasDeliveryMonthlyManualRow {
 }
 
 export default function GasDeliverySummaryForm({ reportMonth }: GasDeliverySummaryFormProps) {
-  const { daily, monthly, isLoading, error, saveDaily, saveMonthly } = useGasDeliveryManual(reportMonth);
+  const { daily, monthly, contractReference, computed, isLoading, error, saveDaily, saveMonthly } =
+    useGasDeliveryManual(reportMonth);
   const [selectedDate, setSelectedDate] = useState(`${reportMonth}-01`);
   const [dailyDraft, setDailyDraft] = useState<GasDeliveryDailyManualRow>(() => emptyDailyRow(selectedDate));
   const [monthlyDraft, setMonthlyDraft] = useState<GasDeliveryMonthlyManualRow>(() => emptyMonthlyRow(reportMonth));
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const computedForDate = computed.find((c) => c.reportDate === selectedDate);
+  const mergedRows = useMemo(
+    () => mergeGasDeliveryDailyRows(daily, computed, contractReference),
+    [daily, computed, contractReference]
+  );
 
   useEffect(() => {
     const existing = daily.find((d) => d.reportDate === selectedDate);
-    setDailyDraft(existing ?? emptyDailyRow(selectedDate));
-  }, [selectedDate, daily]);
+    if (existing) {
+      setDailyDraft(existing);
+    } else {
+      const row = emptyDailyRow(selectedDate);
+      if (contractReference) {
+        row.dcqMmscfd = contractReference.dcqMmscfd;
+        row.nomMmscfd = contractReference.nomMmscfd;
+        row.prodPlanMmscfd = contractReference.prodPlanMmscfd;
+      }
+      setDailyDraft(row);
+    }
+  }, [selectedDate, daily, contractReference]);
 
   useEffect(() => {
     setMonthlyDraft(monthly ?? emptyMonthlyRow(reportMonth));
@@ -112,6 +131,14 @@ export default function GasDeliverySummaryForm({ reportMonth }: GasDeliverySumma
           <button type="button" onClick={handleSaveDaily} className={`${BEVEL_BUTTON} ml-auto`}>
             Save Day
           </button>
+        </div>
+        <div className="flex gap-4 text-[10px] font-mono text-slate-600 bg-slate-100 border border-slate-300 p-2">
+          <span>
+            Delivery Vol (auto, MSCF): <strong>{fmtNum(computedForDate?.deliveryVolMscf)}</strong>
+          </span>
+          <span>
+            Delivery Energy (auto, MMBTU): <strong>{fmtNum(computedForDate?.deliveryEnergyMmbtu)}</strong>
+          </span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {DAILY_FIELDS.map(({ key, label }) => (
@@ -167,7 +194,7 @@ export default function GasDeliverySummaryForm({ reportMonth }: GasDeliverySumma
             </tr>
           </thead>
           <tbody>
-            {daily.map((r) => (
+            {mergedRows.map((r) => (
               <tr key={r.reportDate} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="p-1.5">{r.reportDate}</td>
                 <td className="p-1.5 text-right">{fmtNum(r.dcqMmscfd)}</td>
@@ -177,10 +204,10 @@ export default function GasDeliverySummaryForm({ reportMonth }: GasDeliverySumma
                 <td className="p-1.5 text-right">{fmtNum(r.excessVolMmscf)}</td>
               </tr>
             ))}
-            {!isLoading && daily.length === 0 && (
+            {!isLoading && mergedRows.length === 0 && (
               <tr>
                 <td colSpan={6} className="p-4 text-center text-slate-500">
-                  No manual entries saved yet for {reportMonth}.
+                  No P5 data (manual or auto-computed) for {reportMonth}.
                 </td>
               </tr>
             )}
