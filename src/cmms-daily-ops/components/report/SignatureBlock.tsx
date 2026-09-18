@@ -12,8 +12,10 @@
 import { useEffect, useState } from 'react';
 import { SUNKEN_INPUT, BEVEL_BUTTON, RAISED_PANEL } from '../../../components/cmms/scadaStyles';
 import type { SignatureRole } from '../../dao/dailyReportChildDao';
-import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { useActiveSession, type ActiveSession } from '../../../lib/rbac/activeSessionStore';
 import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
+import { USER_ACCOUNTS } from '../../../lib/rbac/userAccountsSeed';
+import { STAFF_MASTER_DATA } from '../../../data/01_raw_docs/manpowerMasterData';
 
 const SIGNATURES_API = '/api/v1/cmms/daily-report-signatures';
 
@@ -34,12 +36,27 @@ export interface SignatureBlockProps {
   role: SignatureRole;
 }
 
+// 로그인 계정 기반 기본값 — 자유 텍스트 입력의 편의 프리필일 뿐 신원 검증이
+// 아니다(Operation Manpower Roster.csv에 서명 아티팩트 없음, HJ 확인).
+// USER_ACCOUNTS.displayName(이름) + STAFF_MASTER_DATA.position(직함)을
+// userId로 각각 조회한다 — 로스터 미매칭 계정(DEV-HQ-001 등)은 title이 ''로
+// 폴백되며, 두 값 모두 이후 자유롭게 덮어쓸 수 있다.
+function defaultSignerName(session: ActiveSession | null): string {
+  if (!session) return '';
+  return USER_ACCOUNTS.find((a) => a.userId === session.userId)?.displayName ?? '';
+}
+
+function defaultSignerTitle(session: ActiveSession | null): string {
+  if (!session) return '';
+  return STAFF_MASTER_DATA.find((s) => s.id === session.userId)?.position ?? '';
+}
+
 export function SignatureBlock({ snapshotId, role }: SignatureBlockProps) {
-  const [signed, setSigned] = useState<SignatureDto | null>(null);
-  const [signerName, setSignerName] = useState('');
-  const [signerTitle, setSignerTitle] = useState('');
-  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
   const activeSession = useActiveSession();
+  const [signed, setSigned] = useState<SignatureDto | null>(null);
+  const [signerName, setSignerName] = useState(() => defaultSignerName(activeSession));
+  const [signerTitle, setSignerTitle] = useState(() => defaultSignerTitle(activeSession));
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`${SIGNATURES_API}?snapshotId=${snapshotId}`, { cache: 'no-store' })
