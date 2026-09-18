@@ -47,23 +47,46 @@ describe('isNavItemVisible', () => {
     expect(isNavItemVisible('DAILY_OPS_ISO_TANK_LOGISTICS', asOperationTeamLeader)).toBe(true);
   });
 
-  it('an item with no ModuleCode mapping anywhere defaults to hidden for a non-admin, even one with broad canRead access', () => {
+  it('an item with no ModuleCode mapping anywhere is hidden for a non-admin', () => {
     expect(NAV_ITEM_MODULE_MAP.GLOBAL_FLEET_HUB).toBeUndefined();
     expect(isNavItemVisible('GLOBAL_FLEET_HUB', asSiteManager)).toBe(false);
     expect(isNavItemVisible('TRUCKING_HUB', asSiteManager)).toBe(false);
     expect(isNavItemVisible('SAFETY_SOP_REFERENCE', asSiteManager)).toBe(false);
   });
 
-  it('a mapped item respects the role_permissions canRead value', () => {
-    // SITE_MANAGER: canRead true on EQUIPMENT_ASSET_REGISTRY.
-    expect(isNavItemVisible('EQUIPMENT_ASSET_REGISTRY', asSiteManager)).toBe(true);
-    // OPERATION_TEAM_LEADER: canRead false on EQUIPMENT_ASSET_REGISTRY.
+  it('Stage 3: non-admin roles see ONLY the allowlist — a canRead:true row in ROLE_PERMISSIONS no longer grants nav visibility', () => {
+    // NAV_ITEM_MODULE_MAP still has these entries (untouched, real seed data —
+    // see the file header) and their ROLE_PERMISSIONS rows still say
+    // canRead:true, but isNavItemVisible() no longer consults either for a
+    // non-admin: per HJ's development-stage simplification (Stage 3,
+    // 2026-09-18), only the allowlist counts.
+    expect(NAV_ITEM_MODULE_MAP.EQUIPMENT_ASSET_REGISTRY).toEqual(['EQUIPMENT_ASSET_REGISTRY']);
+    expect(NAV_ITEM_MODULE_MAP.WORK_ORDER_DIRECTORY).toEqual(['WORK_ORDER_DIRECTORY']);
+    expect(NAV_ITEM_MODULE_MAP.HQ_OVERVIEW_DASHBOARD).toEqual(['HQ_OVERVIEW']);
+
+    // SITE_MANAGER: canRead:true on all of these in ROLE_PERMISSIONS, yet none
+    // are on the allowlist, so all are now hidden (previously visible pre-Stage 3).
+    expect(isNavItemVisible('EQUIPMENT_ASSET_REGISTRY', asSiteManager)).toBe(false);
+    expect(isNavItemVisible('WORK_ORDER_DIRECTORY', asSiteManager)).toBe(false);
+    expect(isNavItemVisible('MAINTENANCE_MRO_HUB', asSiteManager)).toBe(false);
+    expect(isNavItemVisible('PTW_PERMITS', asSiteManager)).toBe(false);
+    expect(isNavItemVisible('SAFETY_OVERVIEW', asSiteManager)).toBe(false);
+    expect(isNavItemVisible('MANPOWER_DAILY_SHIFT', asSiteManager)).toBe(false);
+    expect(isNavItemVisible('HQ_OVERVIEW_DASHBOARD', asSiteManager)).toBe(false);
+
+    // OPERATION_TEAM_LEADER: same outcome, whether its own canRead row is
+    // true (WORK_ORDER_DIRECTORY, PTW_PERMITS) or false (EQUIPMENT_ASSET_REGISTRY,
+    // HQ_OVERVIEW_DASHBOARD) — the allowlist is the only thing that matters now.
     expect(isNavItemVisible('EQUIPMENT_ASSET_REGISTRY', asOperationTeamLeader)).toBe(false);
-    // OPERATION_TEAM_LEADER: canRead true on WORK_ORDER_DIRECTORY.
-    expect(isNavItemVisible('WORK_ORDER_DIRECTORY', asOperationTeamLeader)).toBe(true);
-    // HQ_OVERVIEW_DASHBOARD nav key maps to the differently-named HQ_OVERVIEW
-    // ModuleCode; OPERATION_TEAM_LEADER's HQ_OVERVIEW row is canRead:false.
+    expect(isNavItemVisible('WORK_ORDER_DIRECTORY', asOperationTeamLeader)).toBe(false);
+    expect(isNavItemVisible('PTW_PERMITS', asOperationTeamLeader)).toBe(false);
     expect(isNavItemVisible('HQ_OVERVIEW_DASHBOARD', asOperationTeamLeader)).toBe(false);
-    expect(isNavItemVisible('HQ_OVERVIEW_DASHBOARD', asSiteManager)).toBe(true);
+
+    // Both non-admin roles still see exactly the allowlist (Dashboard + full
+    // LNG-Process group), unaffected by this restriction.
+    expect(isNavItemVisible('CMMS_OVERVIEW_DASHBOARD', asSiteManager)).toBe(true);
+    expect(isNavItemVisible('LNG_PROCESS_OVERVIEW', asSiteManager)).toBe(true);
+    expect(isNavItemVisible('CMMS_OVERVIEW_DASHBOARD', asOperationTeamLeader)).toBe(true);
+    expect(isNavItemVisible('LNG_PROCESS_OVERVIEW', asOperationTeamLeader)).toBe(true);
   });
 });

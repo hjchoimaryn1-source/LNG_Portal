@@ -1,16 +1,16 @@
 // src/lib/rbac/navPermissionMap.ts
 //
-// Stage 2 (nav-level role-based tab hiding, 2026-09-18). Gates whether a
-// SidebarNav.tsx item or PortalTitleBar.tsx CMMS_MODULES tab is shown at all.
-// Distinct from — and independent of — the 5 existing leaf-level
-// getEffectivePermission() call sites (SignatureBlock.tsx, SafetyNotesEditor.tsx,
-// CriticalEventsEditor.tsx x2, PTWStatusActions.tsx), which gate CRUD actions
-// *inside* a page and are unmodified by this file. Nav visibility and action
-// permission are two separate gates by design.
+// Stage 2 (nav-level role-based tab hiding, 2026-09-18), simplified in Stage 3
+// (same day, see isNavItemVisible() below). Gates whether a SidebarNav.tsx item
+// or PortalTitleBar.tsx CMMS_MODULES tab is shown at all. Distinct from — and
+// independent of — the 5 existing leaf-level getEffectivePermission() call
+// sites (SignatureBlock.tsx, SafetyNotesEditor.tsx, CriticalEventsEditor.tsx x2,
+// PTWStatusActions.tsx), which gate CRUD actions *inside* a page and are
+// unmodified by this file. Nav visibility and action permission are two
+// separate gates by design.
 
 import type { SubProcessKey } from '../../types/lng';
 import type { ModuleCode } from '../../types/rbac';
-import { getEffectivePermission } from './rolePermissionService';
 import type { ActiveSession } from './activeSessionStore';
 
 // Always visible for every authenticated role, regardless of role_permissions.
@@ -40,15 +40,15 @@ const ALWAYS_VISIBLE_NAV_KEYS: ReadonlySet<string> = new Set([
   'HMI_VAPOR_MAP',
 ]);
 
+// Stage 3 (2026-09-18): the permission-derived branch below is temporarily
+// UNUSED by isNavItemVisible() — HJ decided to drop per-module nav visibility
+// for now and hide everything not on the allowlist, for every non-admin role,
+// regardless of what a row here says. Kept in place (not deleted) because it
+// is real seed data derived from 001_role_permissions.sql, expected to be
+// reinstated once more sectors are field-ready.
+//
 // Every SidebarNav.tsx / PortalTitleBar.tsx nav key that has a real ModuleCode
-// correspondence in ROLE_PERMISSIONS. A nav key with no entry here (and not in
-// the allowlist above) defaults to HIDDEN for every role except SYSTEM_ADMIN —
-// fail-safe-default-to-restrictive. As of this pass that hides, for
-// SITE_MANAGER/OPERATION_TEAM_LEADER (the only two non-admin login accounts):
-// GLOBAL_FLEET_HUB, DATA_INGESTION_HUB, MANPOWER_SHIFT_ROSTER,
-// MANPOWER_MONTHLY_GRID, MANPOWER_TRAINING_MATRIX, SAFETY_SOP_REFERENCE,
-// PM_SCHEDULES, TRUCKING_HUB, ENVIRONMENT_HUB, MOC_HUB — none of these have a
-// ModuleCode defined anywhere in types/rbac.ts.
+// correspondence in ROLE_PERMISSIONS.
 export const NAV_ITEM_MODULE_MAP: Partial<Record<SubProcessKey, ModuleCode[]>> = {
   EQUIPMENT_ASSET_REGISTRY: ['EQUIPMENT_ASSET_REGISTRY'],
 
@@ -67,15 +67,16 @@ export const NAV_ITEM_MODULE_MAP: Partial<Record<SubProcessKey, ModuleCode[]>> =
   HQ_OVERVIEW_DASHBOARD: ['HQ_OVERVIEW'],
 };
 
+// Stage 3 (2026-09-18) — development-stage simplification per HJ decision:
+// SYSTEM_ADMIN sees everything; every other role sees ONLY the allowlist
+// (CMMS Overview Dashboard + the full LNG-Process group), full stop. This is
+// intentionally coarser than the ModuleCode/canRead data above allows — e.g.
+// SITE_MANAGER now loses nav visibility into EQUIPMENT_ASSET_REGISTRY,
+// WORK_ORDER_DIRECTORY, PTW_PERMITS, etc. even though its ROLE_PERMISSIONS
+// rows say canRead:true for them. That data is untouched and NAV_ITEM_MODULE_MAP
+// still exists for when this restriction is relaxed sector-by-sector.
 export function isNavItemVisible(navKey: string, session: ActiveSession | null): boolean {
   if (!session) return false;
   if (session.roleCode === 'SYSTEM_ADMIN') return true;
-  if (ALWAYS_VISIBLE_NAV_KEYS.has(navKey)) return true;
-
-  const moduleCodes = NAV_ITEM_MODULE_MAP[navKey as SubProcessKey];
-  if (!moduleCodes || moduleCodes.length === 0) return false;
-
-  return moduleCodes.every(
-    (moduleCode) => getEffectivePermission(session.roleCode, moduleCode)?.canRead === true
-  );
+  return ALWAYS_VISIBLE_NAV_KEYS.has(navKey);
 }
