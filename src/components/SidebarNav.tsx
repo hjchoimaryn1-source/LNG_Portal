@@ -7,6 +7,8 @@ import { NodeState, SubProcessKey } from '../types/lng';
 import { COMPANY_CONFIG } from '../config/siteConfig';
 import { NIAS_TANK_YARD_KEYS, NIAS_GAS_PROCESS_KEYS } from './portal/subtabs/LngProcessSubTabs';
 import { HMI_CONTROL_MAPS_REGISTRY } from '../config/hmiControlMapsRegistry';
+import { useActiveSession } from '../lib/rbac/activeSessionStore';
+import { isNavItemVisible } from '../lib/rbac/navPermissionMap';
 
 interface SidebarNavProps {
   activeKey: SubProcessKey;
@@ -33,6 +35,38 @@ export default function SidebarNav({
   onCloseMobile,
 }: SidebarNavProps) {
   const { fleetTanks } = useFleetTankFacade();
+  const activeSession = useActiveSession();
+  const visible = (key: SubProcessKey) => isNavItemVisible(key, activeSession);
+
+  // Role-based tab hiding (Stage 2, 2026-09-18) — one boolean per section,
+  // computed once here so both the section header and its items reuse it
+  // without repeating the same key list twice.
+  const lngProcessVisible =
+    visible('LNG_PROCESS_OVERVIEW') ||
+    visible('ARUN_LOADING_COQ') ||
+    visible('SAVIOUR_VOYAGE_MONITORING') ||
+    visible('NIAS_TANK_OVERVIEW') ||
+    visible('NIAS_GAS_PROCESS_TELEMETRY') ||
+    visible('NIAS_PLTMG_POWER_OUTPUT') ||
+    (SHOW_ISO_TANK_LOGISTICS_TAB && visible('DAILY_OPS_ISO_TANK_LOGISTICS'));
+  const hmiControlMapsVisible = HMI_CONTROL_MAPS_REGISTRY.some((entry) => visible(entry.key));
+  const equipmentVisible = visible('EQUIPMENT_ASSET_REGISTRY') || visible('GLOBAL_FLEET_HUB') || visible('DATA_INGESTION_HUB');
+  const workOrderVisible = visible('WORK_ORDER_DIRECTORY') || visible('PM_SCHEDULES') || visible('MAINTENANCE_MRO_HUB');
+  const manpowerVisible =
+    visible('MANPOWER_DAILY_SHIFT') ||
+    visible('MANPOWER_SHIFT_ROSTER') ||
+    visible('MANPOWER_MONTHLY_GRID') ||
+    visible('MANPOWER_ROTATION_TRACKER') ||
+    visible('MANPOWER_TRAINING_MATRIX');
+  const safetyVisible =
+    visible('SAFETY_OVERVIEW') ||
+    visible('PTW_PERMITS') ||
+    visible('SAFETY_GAS_TESTING') ||
+    visible('SAFETY_ERT_READINESS') ||
+    visible('SAFETY_SOP_REFERENCE');
+  const truckingVisible = visible('TRUCKING_HUB');
+  const environmentVisible = visible('ENVIRONMENT_HUB');
+  const mocVisible = visible('MOC_HUB');
 
   // Compute live tank distribution for LNG-Process only
   const counts = useMemo(() => {
@@ -142,6 +176,7 @@ export default function SidebarNav({
         {/* ========================================================================= */}
         {/* 1. LNG-PROCESS                                                            */}
         {/* ========================================================================= */}
+        {lngProcessVisible && (
         <div>
           {/* 3D Classic Raised Bevel Header */}
           <div className={SECTION_HEADER_BEVEL}>
@@ -151,121 +186,129 @@ export default function SidebarNav({
             </span>
           </div>
           <div className="bg-[#d4d0c8]">
-            {renderNavItem(
+            {visible('LNG_PROCESS_OVERVIEW') && renderNavItem(
               'LNG_PROCESS_OVERVIEW',
               'Overview',
               counts.totalFleet,
               activeKey === 'LNG_PROCESS_OVERVIEW' || activeKey === 'NIAS_TERMINAL_OVERVIEW'
             )}
-            {renderNavItem('ARUN_LOADING_COQ', 'PAGT (Arun)', counts.arunCount, activeKey.startsWith('ARUN'))}
-            {renderNavItem(
+            {visible('ARUN_LOADING_COQ') && renderNavItem('ARUN_LOADING_COQ', 'PAGT (Arun)', counts.arunCount, activeKey.startsWith('ARUN'))}
+            {visible('SAVIOUR_VOYAGE_MONITORING') && renderNavItem(
               'SAVIOUR_VOYAGE_MONITORING',
               'Marine Transit',
               counts.sailingCount,
               activeKey.startsWith('SAVIOUR')
             )}
-            {renderNavItem(
+            {visible('NIAS_TANK_OVERVIEW') && renderNavItem(
               'NIAS_TANK_OVERVIEW',
               'Nias Tank Yard',
               counts.niasTotal,
               NIAS_TANK_YARD_KEYS.includes(activeKey)
             )}
-            {renderNavItem(
+            {visible('NIAS_GAS_PROCESS_TELEMETRY') && renderNavItem(
               'NIAS_GAS_PROCESS_TELEMETRY',
               'Regas & Gas Process',
               undefined,
               NIAS_GAS_PROCESS_KEYS.includes(activeKey)
             )}
-            {SHOW_ISO_TANK_LOGISTICS_TAB && renderNavItem('DAILY_OPS_ISO_TANK_LOGISTICS', 'ISO Tank Logistics')}
-            {renderNavItem('NIAS_PLTMG_POWER_OUTPUT', 'PLTMG Power')}
+            {SHOW_ISO_TANK_LOGISTICS_TAB && visible('DAILY_OPS_ISO_TANK_LOGISTICS') && renderNavItem('DAILY_OPS_ISO_TANK_LOGISTICS', 'ISO Tank Logistics')}
+            {visible('NIAS_PLTMG_POWER_OUTPUT') && renderNavItem('NIAS_PLTMG_POWER_OUTPUT', 'PLTMG Power')}
             {/* Electrical System / Daily Ops Overview both relocated into Regas & Gas
                 Process sub-tabs (2026-09-18 correction) — standalone sidebar entries
                 removed, reachable via that tab now. Daily Ops Overview's prior
                 dual-access exception is explicitly rescinded as of this pass. */}
           </div>
         </div>
+        )}
 
         {/* ========================================================================= */}
         {/* 1B. HMI CONTROL MAPS (레지스트리 기반 — 신규 화면은 항목 추가만으로 반영)   */}
         {/* ========================================================================= */}
+        {hmiControlMapsVisible && (
         <div>
           <div className={SECTION_HEADER_BEVEL}>
             <span>HMI Control Maps</span>
           </div>
           <div className="bg-[#d4d0c8]">
-            {HMI_CONTROL_MAPS_REGISTRY.map((entry) => renderNavItem(entry.key, entry.label))}
+            {HMI_CONTROL_MAPS_REGISTRY.filter((entry) => visible(entry.key)).map((entry) => renderNavItem(entry.key, entry.label))}
           </div>
         </div>
+        )}
 
         {/* ========================================================================= */}
         {/* 2. EQUIPMENT & ASSET                                                      */}
         {/* ========================================================================= */}
+        {equipmentVisible && (
         <div>
           {/* 3D Classic Raised Bevel Header */}
           <div className={SECTION_HEADER_BEVEL}>
             <span>Equipment &amp; Asset</span>
           </div>
           <div className="bg-[#d4d0c8]">
-            {renderNavItem('EQUIPMENT_ASSET_REGISTRY', 'All Assets Directory')}
-            {renderNavItem('GLOBAL_FLEET_HUB', '120-Fleet Hub')}
-            {renderNavItem('DATA_INGESTION_HUB', 'CSV Ingestion')}
+            {visible('EQUIPMENT_ASSET_REGISTRY') && renderNavItem('EQUIPMENT_ASSET_REGISTRY', 'All Assets Directory')}
+            {visible('GLOBAL_FLEET_HUB') && renderNavItem('GLOBAL_FLEET_HUB', '120-Fleet Hub')}
+            {visible('DATA_INGESTION_HUB') && renderNavItem('DATA_INGESTION_HUB', 'CSV Ingestion')}
           </div>
         </div>
+        )}
 
         {/* ========================================================================= */}
         {/* 3. MAINTENANCE & WORK ORDERS                                              */}
         {/* ========================================================================= */}
+        {workOrderVisible && (
         <div>
           {/* 3D Classic Raised Bevel Header */}
           <div className={SECTION_HEADER_BEVEL}>
             <span>Maintenance &amp; Work Orders</span>
           </div>
           <div className="bg-[#d4d0c8]">
-            {renderNavItem(
+            {visible('WORK_ORDER_DIRECTORY') && renderNavItem(
               'WORK_ORDER_DIRECTORY',
               'Work Orders',
               undefined,
               activeKey === 'WORK_ORDER_DIRECTORY' || activeKey === 'WORK_ORDER_MAINTENANCE'
             )}
-            {renderNavItem('PM_SCHEDULES', 'Preventive Maintenance')}
-            {renderNavItem('MAINTENANCE_MRO_HUB', 'MRO Depot')}
+            {visible('PM_SCHEDULES') && renderNavItem('PM_SCHEDULES', 'Preventive Maintenance')}
+            {visible('MAINTENANCE_MRO_HUB') && renderNavItem('MAINTENANCE_MRO_HUB', 'MRO Depot')}
           </div>
         </div>
+        )}
 
         {/* ========================================================================= */}
         {/* 4. SITE MANNING & ROSTER                                                  */}
         {/* ========================================================================= */}
+        {manpowerVisible && (
         <div>
           {/* 3D Classic Raised Bevel Header */}
           <div className={SECTION_HEADER_BEVEL}>
             <span>Site Manning &amp; Roster</span>
           </div>
           <div className="bg-[#d4d0c8]">
-            {renderNavItem(
+            {visible('MANPOWER_DAILY_SHIFT') && renderNavItem(
               'MANPOWER_DAILY_SHIFT',
               'Overview',
               19,
               activeKey === 'MANPOWER_DAILY_SHIFT' && (activeSubTab === 'OVERVIEW' || !activeSubTab)
             )}
-            {renderNavItem(
+            {visible('MANPOWER_SHIFT_ROSTER') && renderNavItem(
               'MANPOWER_SHIFT_ROSTER',
               'Daily Board',
               undefined,
               activeKey === 'MANPOWER_SHIFT_ROSTER' && activeSubTab === 'DAILY_SHIFT_BOARD'
             )}
-            {renderNavItem(
+            {visible('MANPOWER_MONTHLY_GRID') && renderNavItem(
               'MANPOWER_MONTHLY_GRID',
               'Monthly Plan',
               undefined,
               activeKey === 'MANPOWER_MONTHLY_GRID' && activeSubTab === 'MONTHLY_GRID'
             )}
-            {renderNavItem(
+            {visible('MANPOWER_ROTATION_TRACKER') && renderNavItem(
               'MANPOWER_ROTATION_TRACKER',
               'Rotation',
               undefined,
               activeKey === 'MANPOWER_ROTATION_TRACKER' && activeSubTab === 'ROTATION_TRACKER'
             )}
-            {renderNavItem(
+            {visible('MANPOWER_TRAINING_MATRIX') && renderNavItem(
               'MANPOWER_TRAINING_MATRIX',
               'Training Matrix',
               undefined,
@@ -273,32 +316,36 @@ export default function SidebarNav({
             )}
           </div>
         </div>
+        )}
 
         {/* ========================================================================= */}
         {/* 5. SAFETY & PTW                                                           */}
         {/* ========================================================================= */}
+        {safetyVisible && (
         <div>
           {/* 3D Classic Raised Bevel Header */}
           <div className={SECTION_HEADER_BEVEL}>
             <span>Safety &amp; PTW</span>
           </div>
           <div className="bg-[#d4d0c8]">
-            {renderNavItem('SAFETY_OVERVIEW', 'Overview')}
-            {renderNavItem(
+            {visible('SAFETY_OVERVIEW') && renderNavItem('SAFETY_OVERVIEW', 'Overview')}
+            {visible('PTW_PERMITS') && renderNavItem(
               'PTW_PERMITS',
               'Permits',
               undefined,
               activeKey === 'PTW_PERMITS' || activeKey === 'MANPOWER_PTW'
             )}
-            {renderNavItem('SAFETY_GAS_TESTING', 'Gas Logs')}
-            {renderNavItem('SAFETY_ERT_READINESS', 'ERT')}
-            {renderNavItem('SAFETY_SOP_REFERENCE', 'SOP Reference')}
+            {visible('SAFETY_GAS_TESTING') && renderNavItem('SAFETY_GAS_TESTING', 'Gas Logs')}
+            {visible('SAFETY_ERT_READINESS') && renderNavItem('SAFETY_ERT_READINESS', 'ERT')}
+            {visible('SAFETY_SOP_REFERENCE') && renderNavItem('SAFETY_SOP_REFERENCE', 'SOP Reference')}
           </div>
         </div>
+        )}
 
         {/* ========================================================================= */}
         {/* 6. TRUCKING & LOGISTICS (NP-03)                                           */}
         {/* ========================================================================= */}
+        {truckingVisible && (
         <div>
           {/* 3D Classic Raised Bevel Header */}
           <div className={SECTION_HEADER_BEVEL}>
@@ -308,10 +355,12 @@ export default function SidebarNav({
             {renderNavItem('TRUCKING_HUB', 'NP-03 Hub', undefined, activeKey.startsWith('TRUCKING'))}
           </div>
         </div>
+        )}
 
         {/* ========================================================================= */}
         {/* 7. ENVIRONMENT & WASTE (NP-10)                                            */}
         {/* ========================================================================= */}
+        {environmentVisible && (
         <div>
           {/* 3D Classic Raised Bevel Header */}
           <div className={SECTION_HEADER_BEVEL}>
@@ -321,10 +370,12 @@ export default function SidebarNav({
             {renderNavItem('ENVIRONMENT_HUB', 'NP-10 Hub', undefined, activeKey.startsWith('ENVIRONMENT'))}
           </div>
         </div>
+        )}
 
         {/* ========================================================================= */}
         {/* 8. MANAGEMENT OF CHANGE (NP-12)                                           */}
         {/* ========================================================================= */}
+        {mocVisible && (
         <div>
           {/* 3D Classic Raised Bevel Header */}
           <div className={SECTION_HEADER_BEVEL}>
@@ -334,6 +385,7 @@ export default function SidebarNav({
             {renderNavItem('MOC_HUB', 'NP-12 Hub', undefined, activeKey.startsWith('MOC'))}
           </div>
         </div>
+        )}
 
       </div>
 

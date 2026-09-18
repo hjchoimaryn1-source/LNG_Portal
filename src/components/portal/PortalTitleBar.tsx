@@ -6,6 +6,8 @@ import { Monitor } from 'lucide-react';
 import { SubProcessKey } from '../../types/lng';
 import { COMPANY_CONFIG, CMMS_MODULES } from '../../config/siteConfig';
 import { WIN_TAB_ACTIVE, WIN_TAB_INACTIVE } from './utils/portalTabStyles';
+import { useActiveSession } from '../../lib/rbac/activeSessionStore';
+import { isNavItemVisible } from '../../lib/rbac/navPermissionMap';
 
 interface PortalTitleBarProps {
   currentNav: { location: string; process: string };
@@ -22,6 +24,9 @@ export default function PortalTitleBar({
   handleSelectSubProcess,
   onLogout,
 }: PortalTitleBarProps) {
+  const activeSession = useActiveSession();
+  const visibleModules = CMMS_MODULES.filter((mod) => isNavItemVisible(mod.defaultKey, activeSession));
+
   return (
     <>
       {/* Windows Titlebar */}
@@ -40,7 +45,7 @@ export default function PortalTitleBar({
       <div className="bg-[#d4d0c8] border-b border-[#808080] px-2 py-1.5 flex items-center justify-between gap-2 flex-wrap shrink-0">
         {/* Left: Hub + 5 Core CMMS Modules Tabs (Bevel Outset / Inset Effect) */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          {CMMS_MODULES.map((mod) => {
+          {visibleModules.map((mod) => {
             const isActive = currentModuleId === mod.id;
             return (
               <button
