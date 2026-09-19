@@ -44,6 +44,16 @@ export function useNiasBackhaulInspection({
     'Valves locked and sealed. Ready for backhaul voyage to Arun PAG.'
   );
 
+  // Stage 2: Open Pre-Backhaul Inspection Dialog
+  const handleAuthorizeBackhaul = () => {
+    if (selectedBackhaulTanks.size === 0) {
+      setToastMessage('Please select at least 1 empty heel tank for backhaul clearance');
+      setTimeout(() => setToastMessage(null), 2500);
+      return;
+    }
+    setIsBackhaulModalOpen(true);
+  };
+
   // Stage 2: Submit Pre-Backhaul Inspection Form
   const handleBackhaulModalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +110,8 @@ export function useNiasBackhaulInspection({
     setStage2VacuumIntact,
     setStage2Remarks,
 
-    // Submit handler
+    // Handlers
+    handleAuthorizeBackhaul,
     handleBackhaulModalSubmit,
   };
 }

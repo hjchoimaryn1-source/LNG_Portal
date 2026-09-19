@@ -29,6 +29,22 @@ export function useManagerOverrides() {
       ...prev,
       [key]: record,
     }));
+    // Approval Hub Phase 1 Stage 1c — localStorage 기존 동작은 유지한 채,
+    // 서버 shift_overrides 테이블에도 나란히 기록한다(fire-and-forget, 기존
+    // UX를 막지 않음). 실패해도 localStorage 쓰기는 이미 반영된 상태다.
+    fetch('/api/v1/cmms/shift-overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        staffId: record.staffId,
+        targetDate: record.targetDate,
+        overrideType: record.overrideType,
+        assignedShift: record.assignedShift,
+        reason: record.reason,
+        approvedBy: record.approvedBy,
+        approvedAt: record.approvedAt,
+      }),
+    }).catch((e) => console.error('Failed to persist shift override to server', e));
   }, []);
 
   const revokeOverride = useCallback((staffId: string, targetDate: string) => {

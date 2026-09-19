@@ -29,8 +29,15 @@ import {
   Radio,
   Boxes,
 } from 'lucide-react';
-import { usePortalData } from '@/context/PortalDataContext';
+import { useFleetTankFacade } from '@/hooks/portalDataFacade/useFleetTankFacade';
+import { useSettlementFacade } from '@/hooks/portalDataFacade/useSettlementFacade';
 import { NodeState } from '@/types/lng';
+import {
+  PLTMG_OVERVIEW_BASELINE_DISPATCH,
+  PLTMG_OVERVIEW_STOCK_AUTONOMY,
+  PLTMG_OVERVIEW_SCENARIO_BASIS_LABEL,
+  PLTMG_OVERVIEW_SCENARIOS,
+} from '@/data/pltmgPowerDisplayMocks';
 
 interface NiasOperationalOverviewTabProps {
   onNavigateSubTab?: (targetTab: string, domain?: 'ISO_TANK_MGMT' | 'REGAS_SYSTEM') => void;
@@ -39,7 +46,8 @@ interface NiasOperationalOverviewTabProps {
 type ProcessBlockId = 'BLOCK_1_ARUN' | 'BLOCK_2_SAVIOUR' | 'BLOCK_3_NIAS_YARD' | 'BLOCK_4_REGAS_PRSS' | 'BLOCK_5_NIAS_LAYDOWN_2' | 'BLOCK_5_PLTMG_PLANT';
 
 export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOperationalOverviewTabProps) {
-  const { fleetTanks, gasCompositions, activeBays, settlementRecords } = usePortalData();
+  const { fleetTanks, activeBays } = useFleetTankFacade();
+  const { gasCompositions, settlementRecords } = useSettlementFacade();
 
   const [activeModalBlock, setActiveModalBlock] = useState<ProcessBlockId | null>(null);
 
@@ -565,10 +573,15 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
               </span>
               <button
                 type="button"
-                onClick={() => handleNavigate('PLTMG_POWER_OUTPUT', 'REGAS_SYSTEM')}
+                onClick={() => {
+                  // PLTMG Power relocation (2026-09-18): now lives inside
+                  // Electrical System, not REGAS_SYSTEM — bypass
+                  // handleNavigate's REGAS_SYSTEM-defaulted signature.
+                  if (onNavigateSubTab) onNavigateSubTab('DAILY_OPS_ELECTRICAL_SYSTEM');
+                }}
                 className="text-xs font-bold win-tab-inactive flex items-center gap-1 cursor-pointer"
               >
-                <span>Power Tab 3</span>
+                <span>Electrical System</span>
                 <ExternalLink className="w-3 h-3" />
               </button>
             </div>
@@ -583,21 +596,21 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
                     BASELINE DISPATCH (1 × MAN 7L)
                   </span>
                   <span className="font-mono text-[10px] px-1.5 py-0.2 bg-emerald-700 text-white rounded-xs font-bold">
-                    1/5 RUNNING
+                    {PLTMG_OVERVIEW_BASELINE_DISPATCH.runningBadge}
                   </span>
                 </div>
                 <div className="space-y-0.5 font-mono text-[11px] text-slate-800 pt-0.5">
                   <div className="flex justify-between border-b border-slate-100 pb-0.5">
                     <span className="text-slate-600 font-bold">Active Power Output:</span>
-                    <span className="font-black text-slate-950">4.41 MW (60.0% MCR)</span>
+                    <span className="font-black text-slate-950">{PLTMG_OVERVIEW_BASELINE_DISPATCH.activePowerLabel}</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-100 pb-0.5">
                     <span className="text-slate-600 font-bold">Hourly Gas Burn Rate:</span>
-                    <span className="font-black text-slate-950">1,126 Nm³/h</span>
+                    <span className="font-black text-slate-950">{PLTMG_OVERVIEW_BASELINE_DISPATCH.hourlyBurnLabel}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600 font-bold">Daily Burn / Heat Rate:</span>
-                    <span className="font-black text-slate-950">27.02k Nm³/d (7,150 kJ/kWh)</span>
+                    <span className="font-black text-slate-950">{PLTMG_OVERVIEW_BASELINE_DISPATCH.dailyBurnLabel}</span>
                   </div>
                 </div>
               </div>
@@ -610,21 +623,21 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
                     ONSITE STOCK & AUTONOMY
                   </span>
                   <span className="font-mono text-[10px] px-1.5 py-0.2 bg-emerald-100 text-emerald-950 font-bold border border-emerald-300 rounded-xs">
-                    100% SAFE
+                    {PLTMG_OVERVIEW_STOCK_AUTONOMY.safetyBadge}
                   </span>
                 </div>
                 <div className="flex items-baseline justify-between pt-0.5">
                   <div>
-                    <span className="text-xl font-black font-mono text-emerald-700">8.44</span>
+                    <span className="text-xl font-black font-mono text-emerald-700">{PLTMG_OVERVIEW_STOCK_AUTONOMY.daysBuffer}</span>
                     <span className="text-xs font-bold text-slate-900 ml-1">Days Buffer</span>
                   </div>
                   <span className="text-[11px] font-mono text-slate-700 font-bold">
-                    Stock: <strong className="text-slate-950">228.0k Nm³</strong>
+                    Stock: <strong className="text-slate-950">{PLTMG_OVERVIEW_STOCK_AUTONOMY.stockLabel}</strong>
                   </span>
                 </div>
                 <div className="text-[10px] font-mono text-slate-600 flex justify-between border-t border-slate-100 pt-0.5">
-                  <span>Run-Hours: <strong className="text-slate-950">202.5 Hours</strong></span>
-                  <span>Safety (72h): <strong className="text-slate-950">10 Tanks Target</strong></span>
+                  <span>Run-Hours: <strong className="text-slate-950">{PLTMG_OVERVIEW_STOCK_AUTONOMY.runHoursLabel}</strong></span>
+                  <span>Safety (72h): <strong className="text-slate-950">{PLTMG_OVERVIEW_STOCK_AUTONOMY.safetyTargetLabel}</strong></span>
                 </div>
               </div>
             </div>
@@ -636,24 +649,29 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
                   <TrendingUp className="w-3.5 h-3.5 text-blue-700" />
                   DYNAMIC POWER DEMAND SCENARIOS & AUTONOMY RUN-HOURS
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">228.0k Nm³ Basis</span>
+                <span className="text-[10px] font-mono text-slate-500">{PLTMG_OVERVIEW_SCENARIO_BASIS_LABEL}</span>
               </div>
               <div className="grid grid-cols-3 gap-1 text-center font-mono">
-                <div className="p-1 bg-emerald-50 border-2 border-emerald-500 rounded-xs">
-                  <span className="text-[9px] text-emerald-950 block font-bold">1 Unit @ 60% (4.4 MW)</span>
-                  <span className="text-xs font-black text-emerald-800">8.44 Days (202.5h)</span>
-                  <span className="text-[9px] text-emerald-700 block font-black">● Current Baseline</span>
-                </div>
-                <div className="p-1 bg-white border border-slate-300 rounded-xs">
-                  <span className="text-[9px] text-slate-600 block font-bold">2 Units @ 60% (8.8 MW)</span>
-                  <span className="text-xs font-black text-slate-950">4.22 Days (101.2h)</span>
-                  <span className="text-[9px] text-slate-500 block font-bold">Burn: 2,252 Nm³/h</span>
-                </div>
-                <div className="p-1 bg-white border border-slate-300 rounded-xs">
-                  <span className="text-[9px] text-slate-600 block font-bold">4 Units @ 60% (17.6 MW)</span>
-                  <span className="text-xs font-black text-slate-950">2.11 Days (50.6h)</span>
-                  <span className="text-[9px] text-slate-500 block font-bold">Burn: 4,505 Nm³/h</span>
-                </div>
+                {PLTMG_OVERVIEW_SCENARIOS.map((scenario) => (
+                  <div
+                    key={scenario.label}
+                    className={
+                      scenario.isBaseline
+                        ? 'p-1 bg-emerald-50 border-2 border-emerald-500 rounded-xs'
+                        : 'p-1 bg-white border border-slate-300 rounded-xs'
+                    }
+                  >
+                    <span className={scenario.isBaseline ? 'text-[9px] text-emerald-950 block font-bold' : 'text-[9px] text-slate-600 block font-bold'}>
+                      {scenario.label}
+                    </span>
+                    <span className={scenario.isBaseline ? 'text-xs font-black text-emerald-800' : 'text-xs font-black text-slate-950'}>
+                      {scenario.autonomyLabel}
+                    </span>
+                    <span className={scenario.isBaseline ? 'text-[9px] text-emerald-700 block font-black' : 'text-[9px] text-slate-500 block font-bold'}>
+                      {scenario.note}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -1317,7 +1335,7 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
                   if (activeModalBlock === 'BLOCK_1_ARUN') {
                     if (onNavigateSubTab) onNavigateSubTab('ARUN_LOADING_COQ');
                   } else if (activeModalBlock === 'BLOCK_4_REGAS_PRSS') {
-                    if (onNavigateSubTab) onNavigateSubTab('NIAS_GC_GAS_QUALITY', 'REGAS_SYSTEM');
+                    if (onNavigateSubTab) onNavigateSubTab('NIAS_GAS_METERING_DAILY', 'REGAS_SYSTEM');
                   } else if (activeModalBlock === 'BLOCK_2_SAVIOUR') {
                     if (onNavigateSubTab) onNavigateSubTab('SAVIOUR_VOYAGE_MONITORING');
                   } else if (activeModalBlock === 'BLOCK_3_NIAS_YARD') {

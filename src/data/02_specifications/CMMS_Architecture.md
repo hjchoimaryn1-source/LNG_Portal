@@ -221,6 +221,22 @@ Stage 1 작성 시 PRAC Column 3 "잔여 위험이 ALARP 수준인가?" 질의�
    - **H2S**: `0.0 ppm` ~ `9.9 ppm` -> **PASS** / `>= 10.0 ppm` -> **FAIL**.
    - **CO**: `0.0 ppm` ~ `24.9 ppm` -> **PASS** / `>= 25.0 ppm` -> **FAIL**.
 
+   > **⚠ 문서-코드 갭 (실사 확인, 2026-09-16)**: O2/H2S/CO는 `src/data/ptwGasSafetyRules.ts`의
+   > `checkUniversalGasBands()`가 위 값 그대로 전체 PTW 타입에 균일 적용해 정확히 일치한다.
+   > **LEL은 그렇지 않다.** `validatePTWGasSafety()`(`src/data/ptwMasterData.ts:471`)는 LEL을
+   > 타입별 `gasRestrictions.maxLelPercent` 값과 `lelPercent > maxLelPercent`로 비교하며,
+   > 이 값은 타입마다 다르다: `HOT_WORK`(NP07-14)만 `0`(위 문구와 일치), `CARGO_HANDLING`은
+   > `4.9`(위 "0.0~4.9 PASS" 문구와 일치, 주석에 "Corrected 2026-09-12 (Phase 7 Stage 1,
+   > Discrepancy 1): was 10 — exceeded CMMS_Architecture.md §2.3 universal LEL ceiling"라고
+   > 명시되어 있어 과거 Phase 7에서 이미 본 절 기준으로 정정된 이력이 있음). 그러나
+   > `COLD_WORK`(NP07-10)·`CONFINED_SPACE`(NP07-11)·`ELECTRICAL`(NP07-12)·`EXCAVATION`
+   > (NP07-13)·`RADIOGRAPHY`(NP07-15) 5개 타입은 여전히 `maxLelPercent: 5`이며, 비교 연산이
+   > `>` (초과)이므로 **`LEL = 5.0%`가 이 5개 타입에서는 FAIL이 아니라 PASS로 판정된다** — 위
+   > "≥5.0% FAIL" 문구와 정면으로 불일치한다. Phase 7에서 CARGO_HANDLING 하나만 이 문서 기준으로
+   > 정정되었고, 나머지 5개 타입에는 같은 정정이 적용되지 않은 상태로 남아 있다. 이는 안전
+   > 임계값에 관한 실질적 코드-문서 불일치이므로, 코드를 어느 쪽으로 맞출지는 이 문서화
+   > 작업 범위를 벗어나며 별도 승인 후 결정이 필요하다 (문서는 수정하지 않고 이 갭만 기록).
+
 ---
 
 ### 2.4 e-PTW 마스터, LOTO, AGT 및 TBM 서명 데이터베이스 DDL 명세
@@ -368,17 +384,28 @@ export interface PermitMaster {
 1. **HQ Overview Dashboard (본사/총괄 전용)**: 전체 공정 가동률, MRO 자원 보급, Overhaul 진행률, POB 현황, MTBF/MTTR 거시 지표 수집 및 실시간 관제.
 2. **Site Approval Hub (현장 최종 승인권자 - Site Manager Pak Edi 전용)**: e-PTW Stage 3 최종 발급, 긴급 WO 결재, Shift Override 대행 결재 등 타임 크리티컬 1-Click 승인 센터.
 
-#### 3.1.1 HQ Overview Dashboard 컴포넌트 구조 및 Sector 6 라우팅 (이력 및 현황)
+#### 3.1.1 HQ Overview Dashboard 컴포넌트 구조 및 Sector 7 라우팅 (이력 및 현황)
+
+> **정정 (2026-09-16)**: 아래 표는 과거 "삭제됨/미확정" 상태를 기술했으나, 그 이후 재구현되어
+> 실제로 라우팅에 연결된 상태다. 실사 근거는 커밋 `fe5de17`
+> (`feat(hq-dashboard): implement JakartaHQDashboard & wire Sector 6 Auditor Mode` —
+> 커밋 메시지 자체는 "Sector 6"를 언급하지만, 실제 코드의 Sector/Module 번호 체계는 아래와
+> 같이 **Sector 7 / `MOD_7_HQ_OVERVIEW`**다. 이 번호 불일치는 커밋 메시지 작성 시점의 표기
+> 오류로 보이며, `SectorLauncherHub.tsx`/`usePortalNavigation.tsx`의 실제 상수가 최종 근거다.
 
 | 항목 | 내용 |
 |---|---|
 | 개념 정의 위치 | §3.1 HQ Overview Dashboard (본사/총괄 전용) |
-| 과거 구현 파일 | `src/components/JakartaHQDashboard.tsx` |
-| 현재 상태 | **삭제됨** — 커밋 `73c096c` (`chore: remove confirmed dead code files`)에서 미사용(orphan) 컴포넌트로 확인되어 저장소에서 제거 |
-| 삭제 전 라우팅 연결 | 없음 — 삭제 이전에도 앱 내 어떤 진입점에서도 import되지 않았음 |
-| Sector 6 진입점 | **미확정** — 신규 Sector 버튼으로 재도입할지, 기존 Sector에 흡수할지 결정되지 않음. 재구현 시 별도 승인 절차를 거쳐 본 문서에 반영 예정 |
+| 최초 구현 파일 (삭제됨) | `src/components/JakartaHQDashboard.tsx` — 커밋 `73c096c`에서 orphan 컴포넌트로 제거 |
+| **현재 구현 파일** | `src/components/dashboard/JakartaHQDashboard.tsx` (재구현, 73줄) — 커밋 `fe5de17` |
+| 라우팅 경로 | `SectorLauncherHub.tsx`의 `MOD_7`(`[ Jakarta HQ Overview ]`, `targetKey: HQ_OVERVIEW_DASHBOARD`) → `usePortalNavigation.tsx`의 `MOD_7_HQ_OVERVIEW` → `OverviewCalibrationRoutes.tsx`의 `activeKey === 'HQ_OVERVIEW_DASHBOARD'` 분기 → `JakartaHQDashboard` 렌더 |
+| 구성 | `HqTankFleetStatusPanel` / `HqEnergyReconciliationPanel` / `HqSettlementDisputePanel` 3개 하위 패널 + `computeEnergyReconciliation`(`utils/hqEnergyReconciliation.ts`) 계산 로직. 데이터는 기존 `usePortalData()`(`PortalDataContext`, 무수정)에서 조회 |
+| 세션 만료 처리 | `activeSession`이 `null`이면 `JakartaHQDashboard`를 렌더하지 않고 `SESSION_EXPIRED_MESSAGE` 배너를 대신 표시 (`OverviewCalibrationRoutes.tsx`) |
+| Auditor Mode 연동 | `resolveEffectivePermission`(HQ→SITE 컨텍스트)으로 계산된 `readOnly`를 prop으로 주입 — 실제 뮤테이션 차단(`blockIfAuditorMode`)은 이 컴포넌트가 아니라 하위 `HqSettlementDisputePanel` 내부에서 수행 |
 
-> **Gap Note**: HQ Overview Dashboard는 §3.1에 개념상 정의되어 있으나, 실제 구현체(`JakartaHQDashboard.tsx`)는 dead code 정리 과정에서 이미 제거되었습니다. 따라서 "라우팅 미연결" 상태가 아니라 "구현체 없음" 상태이며, Sector 6 라우팅 여부는 재구현 결정과 함께 별도로 논의되어야 합니다.
+Sector 6은 현재 `[ CMMS Overview Dashboard ]`(`MOD_6`, `targetKey: CMMS_OVERVIEW_DASHBOARD`)이며
+HQ Overview Dashboard와는 다른 모듈이다. §3.3.3의 "Sector 6 진입점" 서술도 이 정정에 맞춰
+갱신되었다 (해당 절 참조).
 
 ---
 
@@ -449,7 +476,18 @@ CREATE INDEX idx_app_hist_app_id ON approval_line_histories(approval_id);
 
 ### 3.3.3 RBAC Session Guard (Auditor Mode) 타입 명세 (`types/rbac.ts`)
 
-> 본 절은 타입 명세만 정의하며, 권한 판정 로직(`resolveEffectivePermission`, `validateApprovalGuardrails`)과 Sector 6 진입점 연동은 별도 승인 후 구현 예정입니다 (§3.1.1 참조).
+> **정정 (2026-09-16)**: 아래 타입 명세는 여전히 유효하나, "구현 예정" 서술은 더 이상 정확하지
+> 않다. `resolveEffectivePermission`은 `src/lib/rbac/guardrails.ts`에 **이미 구현되어 있고**,
+> HQ Overview Dashboard 진입점(Sector 7, §3.1.1 참조 — 원문의 "Sector 6"는 오기)에 실제로
+> 연동되어 있다. `validateApprovalGuardrails` 역시 같은 파일에 **구현체 자체는 존재**한다
+> (self-approval / fatigue / delegate 검증, `approval_documents`/`approval_delegations`를
+> `db.query('...$1...')` 형태의 Postgres 스타일 인터페이스로 조회). 다만 이 두 테이블은
+> `cmmsDbSingleton.ts`의 런타임 SQLite DDL에 존재하지 않고, 저장소 전체에 이 함수를 호출하는
+> 지점이 **단 한 곳도 없다** — 즉 구현은 되어 있으나 실제로 wiring되지 않은 죽은 코드다.
+> `src/lib/rbac/ptwSelfApproval.ts`의 주석이 이를 "cannot be used against real PTW data"로
+> 명시하고 있으며, PTW 도메인의 자기승인/피로도 차단은 대신 `validatePtwSelfApproval`
+> (ptwSelfApproval.ts) + `evaluateMutationGuardrails`/`blockIfAuditorMode`
+> (`src/adapters/guardrailUiAdapter.ts`, §3.4 참조)가 담당한다.
 
 ```typescript
 export type RBACRole =
@@ -486,9 +524,21 @@ boolean 컬럼만으로 표현 불가능한 row-level 제약을 가지므로, �
 - WORK_LEADER_TECH: can_read=TRUE(WORK_ORDER_DIRECTORY)이나 실제로는 본인에게 할당된 WO(row)에
   한함 (e.g. `WHERE assigned_to = :userId` 이중 검증 필요).
 
-Seed 데이터는 7개 역할(RoleCode) × 11개 모듈(ModuleCode) = 77행 전체를 명시적으로 정의하며,
-신규 모듈 추가 시 반드시 7개 역할 전체에 대한 행을 동시에 추가해야 한다
-(UNIQUE(role_code, module_code) 제약 준수).
+> **정정 (2026-09-16)**: 아래 "77행/11모듈 전체 그리드" 서술은 시더 최초 작성 시점 기준이며,
+> `src/lib/rbac/rolePermissionService.ts`의 현재 상태(실사 확인)와는 더 이상 일치하지 않는다.
+> 실제로는 `moduleCode` 14종(원본 11종 + `DAILY_OPS_REPORT`, `DAILY_OPS_PATROL_ENTRY`,
+> `ALARM_ACTION_LOG`가 이후 커밋들로 추가됨) × 7개 역할(RoleCode)이 존재하지만, 총 행 수는
+> `91`행으로 **7×14=98행 전체 그리드가 아니다** — 신규 모듈 3종 중 일부는 전체 역할에
+> 대해 행을 추가하지 않고 특정 역할에만 "forward-provisioning" 형태로 부분 추가되었다
+> (예: `ALARM_ACTION_LOG`는 커밋 `b4b349f`에서 `HSSE_OFFICER`에 대해서만 우선 추가됨).
+> 즉 아래 "신규 모듈 추가 시 7개 역할 전체 동시 추가" 원칙은 최근 커밋들에서 실제로는
+> 지켜지지 않고 있으며, 이는 의도적인 단계적 프로비저닝으로 보이나 원칙 자체와의 불일치는
+> 문서에 명시해 둔다.
+
+Seed 데이터는 최초 작성 시 7개 역할(RoleCode) × 11개 모듈(ModuleCode) = 77행 전체를
+명시적으로 정의했으며, 신규 모듈 추가 시 반드시 7개 역할 전체에 대한 행을 동시에 추가해야
+한다는 것이 원래 원칙이다 (UNIQUE(role_code, module_code) 제약 준수). **현재 실제 행 수는
+91행, 모듈 수는 14종이며 위 정정 사항대로 완전한 그리드는 아니다.**
 
 이 매핑은 원본 벤치마킹 자료의 "모듈군" 단위 설명(예: "안전/PTW 모듈", "현장/운영 모듈")을
 개별 module_code로 풀어낸 해석적 매핑이며, 축자적 추출(verbatim extraction)이 아니다.
@@ -1049,3 +1099,95 @@ CREATE TABLE permit_ppe_mappings (
   }
 }
 ```
+
+---
+
+## 제6장: Field-Guard 클라이언트 보안 억제 계층 (`src/cmms-field-guard/` 모듈)
+
+> **신규 챕터 (2026-09-16 추가, 커밋 `557fa99` 기준)**: 이 챕터는 이전 버전의 본 문서에 존재하지
+> 않았다. Field-guard 모듈은 현재까지 어떤 `.md` 문서에도 기술되지 않은 상태로 구현되어 있었으며,
+> 본 챕터가 코드 실사를 기반으로 작성된 최초의 문서화다. 아래 각 항목은 모두 실제 소스 파일을
+> 직접 읽고 확인한 내용이며, 추정이나 이전 세션 기록의 재인용이 아니다.
+
+### 6.1 설계 원칙 — "클라이언트 측 억제는 마찰이지 보장이 아니다"
+Field-guard 모듈의 모든 컴포넌트는 **보안 경계(security boundary)가 아니라 마찰(friction)
+계층**으로 설계되어 있다. 각 파일 상단 주석에 "브라우저 확장, 대체 브라우저, OS 레벨 도구로
+트리비얼하게 우회 가능"이라는 문구가 반복적으로 명시되어 있으며, 이는 실제 보안 통제를
+대체하지 않는다는 전제를 코드 레벨에서 재확인한 것이다. **이 원칙은 아래 구현 세부사항이
+향후 어떻게 바뀌더라도 유지되어야 한다.**
+
+### 6.2 FieldMode 판정 및 Fail-safe 정책 (`core/fieldModeFlag.ts`)
+- `resolveFieldMode()`: 서버 사이드 전용 순수 함수. 빌드 타임 환경변수
+  `NEXT_PUBLIC_DEPLOY_TARGET`을 읽어 `'FIELD'` → `FIELD_CLIENT`, `'DIRECTOR'` → `DEV`로 매핑.
+  값이 없거나 인식되지 않는 값이면 **`FIELD_CLIENT`로 fail-safe** (더 제한적인 모드로 fail-close,
+  절대 `DEV`로 fail-open하지 않음).
+- `resolveFieldModeFromHost(host)`: 호스트명 기반 분류기. `director.`/`localhost`/`127.0.0.1` →
+  `DEV`, 그 외 → `FIELD_CLIENT`. **현재 어떤 요청 파이프라인(미들웨어 등)에도 연동되어 있지
+  않은 순수 함수**이며, 향후 미들웨어 단계 확장을 위해 노출만 되어 있는 상태.
+
+### 6.3 FieldGuardProvider / useFieldGuard (`core/FieldGuardContext.tsx`)
+서버에서 계산된 `mode`를 prop으로 받아 React Context로 배포하는 Client Component. 이 컴포넌트는
+`resolveFieldMode()`를 직접 호출하지 않으며, `isField = mode === 'FIELD_CLIENT'` 파생값을
+`useFieldGuard()` 훅으로 하위 트리에 제공한다.
+
+### 6.4 Root Layout 연동 (Sub-stage D, 커밋 `557fa99`)
+`src/app/layout.tsx`에서:
+1. `resolveFieldMode()`로 `mode`를 서버에서 계산.
+2. `headers()`의 `x-forwarded-for`에서 클라이언트 IP를 추출 (`WatermarkOverlay`에 전달).
+3. `<FieldGuardProvider mode={mode}>` 로 `children`과 `<FieldSecurityGuard ip={ip} />`를 감쌈.
+
+로컬 개발 환경에서는 gitignore된 `.env.local`에 `NEXT_PUBLIC_DEPLOY_TARGET=DIRECTOR`를 고정하여,
+§6.2의 "미인식 값 → `FIELD_CLIENT` fail-safe" 기본값이 dev/HQ 환경에서 조용히 활성화되는 것을
+방지한다.
+
+### 6.5 FieldSecurityGuard 합성 (`security/FieldSecurityGuard.tsx`)
+`isField`가 `false`면 `null`을 반환(아무 것도 마운트하지 않음). `isField`가 `true`인 경우에만:
+- `useEffect`에서 `installFieldStorageGuard()` 호출 (§6.8).
+- `<DevToolsGuard />`, `<CaptureGuard />`, `<WatermarkOverlay ip={ip} />` 3개를 렌더.
+
+### 6.6 DevToolsGuard (`security/DevToolsGuard.tsx`)
+`isField`일 때만 `keydown`/`contextmenu` 리스너를 등록: `F12`, `Ctrl+Shift+I/J/C`, `Ctrl+U`
+preventDefault, 우클릭 컨텍스트 메뉴 전체 차단. UI 계층 억제일 뿐이며 보안 경계가 아님을
+파일 주석에 명시.
+
+### 6.7 CaptureGuard — Sub-stage D 변경 사항 (커밋 `557fa99`)
+- **변경 전**: `blur`/`focus`/`visibilitychange` 이벤트 기반 화면 블랙아웃이 존재했음.
+- **변경 후 (현재 상태)**: 위 블랙아웃 로직은 **완전히 제거**되었다 — 근무자의 정상적인
+  탭/창 전환을 방해한다는 이유. 현재 `CaptureGuard`는 `PrintScreen` 키 `keydown`에 대해
+  `event.preventDefault()`를 시도하는 것 하나만 남아 있다.
+- PrintScreen 차단은 브라우저 API 한계상 일부 브라우저가 해당 키에 대해 `keydown` 이벤트
+  자체를 발생시키지 않으므로 **best-effort**이며 구현 결함이 아니라 API 표면의 제약임을
+  코드 주석에서 명시.
+- 관련 테스트: `CaptureGuard.test.tsx` (커밋 `557fa99`에서 블랙아웃 제거에 맞춰 갱신됨).
+
+### 6.8 WatermarkOverlay (`security/WatermarkOverlay.tsx`) — 실제 구현
+- `ip`는 서버에서 resolve되어 prop으로 전달됨 (§6.4) — 클라이언트 측 IP 탐지를 시도하지 않음.
+- 화면 우하단에 `{ip} · {timestamp}` 형태의 워터마크를 고정 오버레이로 표시, 타임스탬프는
+  60초(`60_000`ms) 간격으로 갱신.
+- **opacity는 `text-black/10` (10%)으로 하드코딩**되어 있으며, 별도 튜너블 상수로 분리되어
+  있지 않다.
+  > **⚠ 문서-코드 갭 (Documentation Gap Flag)**: 과거 이 문서(또는 이전 세션 기록)는 opacity를
+  > "튜너블 상수, 범위 0.05~0.08"로 서술한 적이 있으나, 실제 소스에는 그런 상수나 범위 제약이
+  > 존재하지 않으며 `10%`(0.10) 고정값 하나뿐이다. 코드가 source of truth라는 본 작업 원칙에
+  > 따라 이 문서는 실제 구현(고정 10%, 비튜너블)을 기술한다. 튜너블화가 필요한지 여부는 별도
+  > 논의 대상이며, 이 문서화 작업 범위에서 코드를 변경하지 않았다.
+
+### 6.9 StorageInterceptor (`storage/StorageInterceptor.ts`)
+- `installFieldStorageGuard()`는 `window.localStorage`/`window.sessionStorage`를
+  `Object.defineProperty`로 재정의하여, `Map` 기반 in-memory `Storage`-호환 객체로 교체한다.
+- 목적: FIELD_CLIENT 세션 중 어떤 데이터도 디스크/IndexedDB/브라우저 영속 API에 닿지 않도록
+  하는 것 ("종료 시 디스크 흔적 0").
+- **트레이드오프 (코드 주석에 명시된 HJ 확인 필요 항목)**: 페이지 새로고침 시 이 in-memory
+  스토어는 리셋된다 — 디스크에 닿지 않는 것이 의도된 동작이므로 이 자체는 예상된 것이지만,
+  진행 중이던 현장 입력 폼 draft가 새로고침 시 유실되는 UX 트레이드오프가 실무에서 문제가
+  되는지는 별도 확인이 필요하다.
+- 호출자는 `isField`가 확정된 시점에 명시적으로 이 함수를 호출해야 하며, 모듈 로드 시
+  자동 설치되지 않는다 (`DEV` 모드는 항상 실제 storage를 유지해야 하므로).
+- 현재 유일한 호출 지점은 §6.5의 `FieldSecurityGuard`의 `useEffect`.
+
+### 6.10 하드-블록 인접 여부
+Field-guard 모듈(`src/cmms-field-guard/**`)은 본 세션 SCOPE LOCK의 하드-블록/ZERO-TOUCH
+파일 목록(`ptwStatusMapper.ts`, `gasSafetyAdapter.ts`, `ptwCargoHandlingRules.ts`,
+`ptwCargoHandlingTransitions.ts`, `ptwCargoHandlingValidators.ts`, `permit_gas_tests` 로직,
+`PortalDataContext.tsx`, `cmmsDbSingleton.ts`)와 **무관한 독립 모듈**이다 — PTW 라이프사이클,
+가스 세이프티, RBAC 권한 판정 어느 것도 import/호출하지 않는다.

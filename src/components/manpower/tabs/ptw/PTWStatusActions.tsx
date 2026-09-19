@@ -9,6 +9,7 @@ import { validatePtwSelfApproval } from '../../../../lib/rbac/ptwSelfApproval';
 import { getCurrentApproverId } from '../../../../lib/rbac/devAuthIdentity';
 import { useActiveSession } from '../../../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../../../adapters/guardrailUiAdapter';
+import { SESSION_EXPIRED_MESSAGE } from '../../../../lib/rbac/sessionExpiryMessage';
 import GuardrailBlockedBanner from '../../../shared/GuardrailBlockedBanner';
 
 export interface PTWStatusActionsProps {
@@ -36,6 +37,22 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
   // GuardrailBlockedBanner(MOD_4 HqSettlementDisputePanel과 동일 컴포넌트)로 표시.
   const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 
+  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16. PREPARE/ACTIVATE/CLOSE
+  // pre-flight — mirrors handleApprove's session/role checks above; APPROVE keeps
+  // its own evaluateMutationGuardrails (self-approval/fatigue) check as-is.
+  const handleGatedTransition = (nextStatus: PTWPermit['status']) => {
+    setBlockedMessage(null);
+    if (!activeSession) {
+      setBlockedMessage(SESSION_EXPIRED_MESSAGE);
+      return;
+    }
+    if (activeSession.permissions.PTW_PERMITS?.canUpdate !== true) {
+      setBlockedMessage(`역할 ${activeSession.roleCode}은(는) 허가서 상태 갱신 권한이 없습니다.`);
+      return;
+    }
+    onTransitionStatus(activePermit.id, nextStatus);
+  };
+
   const handleApprove = () => {
     setBlockedMessage(null);
     const selfApprovalCheck = validatePtwSelfApproval(activePermit, getCurrentApproverId());
@@ -45,8 +62,9 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
     }
     // Phase 3 MOD_1: Auditor Mode + fatigue guardrail, checked against the Work
     // Leader (activePermit.workLeaderId) — same requester-as-subject convention as
-    // validatePtwSelfApproval above. Fail-open if no active session exists yet
-    // (pre-existing DEV bypass — see getCurrentApproverId()).
+    // validatePtwSelfApproval above.
+    // Stage 3 Step 3: previously fail-open when no active session existed —
+    // now blocks with a session-expired message instead of proceeding unguarded.
     if (activeSession) {
       const guard = evaluateMutationGuardrails({
         roleCode: activeSession.roleCode,
@@ -60,6 +78,9 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
         setBlockedMessage(guard.reason ?? 'APPROVAL BLOCKED');
         return;
       }
+    } else {
+      setBlockedMessage(SESSION_EXPIRED_MESSAGE);
+      return;
     }
     onTransitionStatus(activePermit.id, 'APPROVED');
   };
@@ -79,7 +100,7 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
           {/* Step 1: Draft -> Prepared */}
           {activePermit.status === 'DRAFT' && (
             <button
-              onClick={() => onTransitionStatus(activePermit.id, 'PREPARED')}
+              onClick={() => handleGatedTransition('PREPARED')}
               className="px-3 py-1 text-xs font-bold text-black bg-[#d4d0c8] hover:bg-[#dfdbd3] cursor-pointer rounded-none border border-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
             >
               <span>[1. PREPARE & SUBMIT TO HSE]</span>
@@ -106,7 +127,7 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
           {activePermit.status === 'APPROVED' && (
             <button
               disabled={activationBlocked}
-              onClick={() => onTransitionStatus(activePermit.id, 'ACTIVE')}
+              onClick={() => handleGatedTransition('ACTIVE')}
               className={`px-3 py-1 text-xs font-bold rounded-none border ${
                 activationBlocked
                   ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-300'
@@ -122,7 +143,7 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
           {activePermit.status === 'ACTIVE' && (
             <button
               disabled={!!closeMissingSigTitle}
-              onClick={() => onTransitionStatus(activePermit.id, 'CLOSED')}
+              onClick={() => handleGatedTransition('CLOSED')}
               className={`px-3 py-1 text-xs font-bold rounded-none border ${
                 closeMissingSigTitle
                   ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-300'

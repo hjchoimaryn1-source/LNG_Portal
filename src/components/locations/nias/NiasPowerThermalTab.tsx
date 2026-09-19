@@ -31,7 +31,7 @@ import {
   ShieldCheck,
   Container,
 } from 'lucide-react';
-import { usePortalData } from '@/context/PortalDataContext';
+import { useFleetTankFacade } from '@/hooks/portalDataFacade/useFleetTankFacade';
 import { NodeState } from '@/types/lng';
 import {
   PLTMG_MAN_ENGINE_SPEC,
@@ -39,143 +39,27 @@ import {
   DEFAULT_ENGINE_SPEC_CONFIG,
   calcEngineGasFlowNm3h,
   calcAutonomyBufferHours,
+  GeneratorEngineState,
+  PLTMG_GENERATOR_FLEET_MOCK,
 } from '@/data/pltmgEngineSpec';
+import { useNiasPowerThermalStorage } from './hooks/useNiasPowerThermalStorage';
 
-export interface GeneratorEngineState {
-  id: number;
-  name: string;
-  tag: string;
-  status: 'RUN' | 'STOP';
-  fuelMode: 'GAS' | 'DIESEL';
-  activePowerKw: number;       // kW (0 ~ MCR kW)
-  gasPressInletBar: number;     // bar
-  gasTempInletC: number;        // °C
-  rpm: number;                  // RPM (500 RPM for MAN 7L 51/60 DF)
-  exhaustTempC: number;         // °C
-  frequencyHz: number;          // Hz
-  voltageKv: number;            // kV
-}
-
-const STORAGE_KEY_PLTMG_LOGS = 'nias_pltmg_dispatch_logs_v1';
-const STORAGE_KEY_SPEC_CONFIG = 'nias_man_engine_spec_config_v2';
-
-const INITIAL_ENGINES: GeneratorEngineState[] = [
-  {
-    id: 1,
-    name: 'Generator Engine 1',
-    tag: 'GEN-01',
-    status: 'RUN',
-    fuelMode: 'GAS',
-    activePowerKw: 5513, // 75% MCR Load Point
-    gasPressInletBar: 2.18,
-    gasTempInletC: 24.5,
-    rpm: 500,
-    exhaustTempC: 382,
-    frequencyHz: 50.02,
-    voltageKv: 11.0,
-  },
-  {
-    id: 2,
-    name: 'Generator Engine 2',
-    tag: 'GEN-02',
-    status: 'RUN',
-    fuelMode: 'GAS',
-    activePowerKw: 5513, // 75% MCR Load Point
-    gasPressInletBar: 2.16,
-    gasTempInletC: 24.2,
-    rpm: 500,
-    exhaustTempC: 379,
-    frequencyHz: 50.01,
-    voltageKv: 11.0,
-  },
-  {
-    id: 3,
-    name: 'Generator Engine 3',
-    tag: 'GEN-03',
-    status: 'RUN',
-    fuelMode: 'GAS',
-    activePowerKw: 5513, // 75% MCR Load Point
-    gasPressInletBar: 2.20,
-    gasTempInletC: 24.8,
-    rpm: 500,
-    exhaustTempC: 385,
-    frequencyHz: 50.00,
-    voltageKv: 11.0,
-  },
-  {
-    id: 4,
-    name: 'Generator Engine 4',
-    tag: 'GEN-04',
-    status: 'RUN',
-    fuelMode: 'GAS',
-    activePowerKw: 5513, // 75% MCR Load Point
-    gasPressInletBar: 2.17,
-    gasTempInletC: 24.4,
-    rpm: 500,
-    exhaustTempC: 381,
-    frequencyHz: 50.02,
-    voltageKv: 11.0,
-  },
-  {
-    id: 5,
-    name: 'Generator Engine 5',
-    tag: 'GEN-05',
-    status: 'STOP',
-    fuelMode: 'DIESEL',
-    activePowerKw: 0,
-    gasPressInletBar: 0.00,
-    gasTempInletC: 23.0,
-    rpm: 0,
-    exhaustTempC: 32,
-    frequencyHz: 0.00,
-    voltageKv: 0.0,
-  },
-];
+export type { GeneratorEngineState };
 
 export default function NiasPowerThermalTab() {
-  const { fleetTanks, activeBays } = usePortalData();
+  const { fleetTanks, activeBays } = useFleetTankFacade();
+  const { loadEngineSpecConfig, saveEngineSpecConfig, loadEngineFleet, saveEngineFleet } =
+    useNiasPowerThermalStorage();
 
   // MAN 7L 51/60 DF Dynamic Engine Spec Configuration State
-  const [engineSpec, setEngineSpec] = useState<EngineSpecConfig>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = window.localStorage.getItem(STORAGE_KEY_SPEC_CONFIG);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed && parsed.mcrKwPerUnit && parsed.heatRateKjKwh) {
-            return {
-              ...DEFAULT_ENGINE_SPEC_CONFIG,
-              ...parsed,
-              modelName: 'MAN 7L 51/60 DF', // Locked
-            };
-          }
-        }
-      } catch (e) {
-        console.warn('Could not read saved MAN Engine Spec Config:', e);
-      }
-    }
-    return DEFAULT_ENGINE_SPEC_CONFIG;
-  });
+  const [engineSpec, setEngineSpec] = useState<EngineSpecConfig>(() => loadEngineSpecConfig());
 
   // Modal Editing Draft State
   const [isSpecModalOpen, setIsSpecModalOpen] = useState<boolean>(false);
   const [draftSpec, setDraftSpec] = useState<EngineSpecConfig>(engineSpec);
 
   // 5 Engines State
-  const [engines, setEngines] = useState<GeneratorEngineState[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = window.localStorage.getItem(STORAGE_KEY_PLTMG_LOGS);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length === 5) return parsed;
-        }
-      } catch (e) {
-        console.warn('Could not read saved PLTMG dispatch logs:', e);
-      }
-    }
-    return INITIAL_ENGINES;
-  });
+  const [engines, setEngines] = useState<GeneratorEngineState[]>(() => loadEngineFleet());
 
   const [showSpecTable, setShowSpecTable] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -288,9 +172,7 @@ export default function NiasPowerThermalTab() {
 
   // Save current dispatch configuration to localStorage
   const handleSaveDispatchLog = () => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(STORAGE_KEY_PLTMG_LOGS, JSON.stringify(engines));
-    }
+    saveEngineFleet(engines);
     const timestamp = new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' });
     setToastMessage(`✓ PLTMG Generator Dispatch Log saved & synchronized successfully (${timestamp} WIB)!`);
     setTimeout(() => setToastMessage(null), 3500);
@@ -304,9 +186,7 @@ export default function NiasPowerThermalTab() {
       modelName: 'MAN 7L 51/60 DF', // Strictly Locked
     };
     setEngineSpec(cleanDraft);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(STORAGE_KEY_SPEC_CONFIG, JSON.stringify(cleanDraft));
-    }
+    saveEngineSpecConfig(cleanDraft);
     setIsSpecModalOpen(false);
     setToastMessage(`✓ MAN 7L 51/60 DF Specification saved (MCR: ${cleanDraft.mcrKwPerUnit} kW, NCR: ${cleanDraft.ncrKwPerUnit} kW)!`);
     setTimeout(() => setToastMessage(null), 3500);
@@ -437,7 +317,7 @@ export default function NiasPowerThermalTab() {
           {/* Reset Engines Button */}
           <button
             type="button"
-            onClick={() => setEngines(INITIAL_ENGINES)}
+            onClick={() => setEngines(PLTMG_GENERATOR_FLEET_MOCK)}
             title="Reset 5 Engines to Nominal Values"
             className="px-2.5 py-1.5 bg-[#e2e8f0] hover:bg-slate-300 active:bg-slate-400 text-slate-900 border border-slate-400 shadow-xs font-bold rounded cursor-pointer transition-colors"
           >

@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { usePortalData } from '../../context/CmmsAwarePortalProvider';
+import { usePortalSystemFacade } from '../../hooks/portalDataFacade/usePortalSystemFacade';
 import { useTheme } from '../../context/ThemeContext';
 import { SubProcessKey } from '../../types/lng';
 import SidebarNav from '../SidebarNav';
@@ -23,7 +23,7 @@ export default function LNGPortalInner({
   onLogout,
 }: LNGPortalInnerProps) {
   const { theme, setTheme } = useTheme();
-  const { isLoading } = usePortalData();
+  const { isLoading } = usePortalSystemFacade();
 
   const {
     activeSubTab,
@@ -44,7 +44,6 @@ export default function LNGPortalInner({
     currentModuleId,
     handleSelectSubProcess,
     handleManpowerSubTab,
-    handleRefreshCurrentModuleOverview,
   } = usePortalNavigation(initialKey, onReturnToLauncher);
 
   return (
@@ -80,7 +79,6 @@ export default function LNGPortalInner({
           setWorkOrderFilter={setWorkOrderFilter}
           handleSelectSubProcess={handleSelectSubProcess}
           handleManpowerSubTab={handleManpowerSubTab}
-          handleRefreshCurrentModuleOverview={handleRefreshCurrentModuleOverview}
           onReturnToLauncher={onReturnToLauncher}
           onLogout={onLogout}
         />

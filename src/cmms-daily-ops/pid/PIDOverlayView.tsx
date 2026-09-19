@@ -1,0 +1,188 @@
+// src/cmms-daily-ops/pid/PIDOverlayView.tsx
+//
+// PURPOSE
+//   Live P&ID 오버레이(B4) + 2D pan/scroll 컨테이너(B5). JSK concept
+//   diagram을 고정 네이티브 픽셀(1316x924)로 렌더링하고, 이미 calibrated=true인
+//   태그만 배지로 표시한다. Stage A에서 좌표 시딩이 보류돼 좌표 테이블이
+//   비어 있으므로(pidReconciliationSchema.ts 헤더 참고), "Calibrate Tags"
+//   토글로 클릭 위치 → 태그 매핑을 직접 저장할 수 있게 했다.
+//
+//   BACKGROUND_IMAGE_URL: HJ가 제공한 /public/images/P&ID.png를 가리킨다.
+//   파일이 없던 Stage A 당시엔 자리표시자(placeholder rect)를 그렸으나,
+//   이제 자산이 존재해 실제 이미지로 교체했다.
+//
+//   후보 태그 목록(CANDIDATE_TAG_DOMAIN)은 Phase 12 Addendum 2에서 AAV
+//   4개뿐이던 것을 7개 도메인으로 확장했다(pidCandidateTags.ts) — iso_tank_cargo는
+//   NiasActiveBayWorkspace.tsx 소관이라 계속 제외.
+//
+//   모니터링/입력 전용 뷰 — DailyReportPrintView는 이 폴더(src/cmms-daily-ops/pid/*)를
+//   임포트하지 않는다(구조적으로 Stage C 인쇄 산출물과 분리, 이 컴포넌트 자체가
+//   그 보장을 강제하지는 않지만 임포트 그래프상 단방향임을 명시해 둔다).
+//
+//   Stage HMI-1d: 배지 클릭 시 FaceplateDrawer를 연다. 캘리브레이션 모드와의
+//   상호배제(isCalibrating이면 클릭은 좌표 재지정으로 소비돼야 함)는 이 파일이
+//   아니라 PidTagBadge.tsx가 isCalibrating prop을 받아 직접 분기한다 — 이
+//   컴포넌트는 activeFaceplateTag(string|null) state와 FaceplateDrawer 마운트만
+//   담당한다. PIDOverlayView는 전체 장비 스냅샷을 구독하지 않는다 — 배지
+//   색상은 PidTagBadge.tsx가 각자 자신의 equipmentTag로 useHmiEquipment를
+//   호출해 자체 처리한다(HMI-1b deviation 참고, useHmiAllEquipment 없음).
+
+'use client';
+
+import { useEffect, useState, type CSSProperties, type MouseEvent } from 'react';
+import { RAISED_PANEL, BEVEL_BUTTON, BEVEL_BUTTON_PRESSED } from '../../components/cmms/scadaStyles';
+import { CANDIDATE_TAG_DOMAIN, PRIMARY_COLUMN_BY_DOMAIN } from './pidCandidateTags';
+import { PidTagBadge } from './PidTagBadge';
+import { CalibrationTagPicker } from './CalibrationTagPicker';
+import { FaceplateDrawer } from '../../hmi/faceplate/FaceplateDrawer';
+
+const NATIVE_WIDTH = 1316;
+const NATIVE_HEIGHT = 924;
+const PID_COORDINATES_API = '/api/v1/cmms/pid-tag-coordinates';
+const BACKGROUND_IMAGE_URL: string | null = '/images/P&ID.png';
+const ZOOM_LEVELS = [1, 1.5] as const;
+
+/**
+ * HMI-2d-1 — Rockwell/ISA-101 라이트 그레이스케일 팔레트(그대로 채택, 배경 #E0E0E0).
+ * 이 서브트리 루트(아래 최상위 div)에서만 선언 — scadaStyles.ts/전역 globals.css는
+ * 건드리지 않는다(지시 범위: src/hmi/*, src/cmms-daily-ops/pid/*). FaceplateDrawer는
+ * 이 div의 DOM 자손이라 CSS 상속으로 값을 그대로 물려받는다.
+ */
+const HMI_PALETTE_VARS = {
+  '--hmi-bg-normal': '#E0E0E0',
+  '--hmi-line-static': '#A0A0A4',
+  '--hmi-text-primary': '#1e293b', // slate-800, #E0E0E0 대비 11.08:1 (WCAG AAA)
+} as CSSProperties;
+
+interface CoordinateDto {
+  tagId: string;
+  x: number;
+  y: number;
+  calibrated: boolean;
+}
+
+interface PendingPick {
+  x: number;
+  y: number;
+  screenX: number;
+  screenY: number;
+}
+
+export function PIDOverlayView() {
+  const [coordinates, setCoordinates] = useState<CoordinateDto[]>([]);
+  // 진입 시 기본값은 항상 false — [Calibrate Tags] 버튼을 눌러야만 캔버스
+  // 클릭이 편집 박스(CalibrationTagPicker)를 띄운다(handleCanvasClick 가드 참고).
+  const [isCalibrating, setIsCalibrating] = useState(false);
+  const [zoom, setZoom] = useState<(typeof ZOOM_LEVELS)[number]>(1);
+  const [pendingPick, setPendingPick] = useState<PendingPick | null>(null);
+  const [activeFaceplateTag, setActiveFaceplateTag] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(PID_COORDINATES_API, { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((json: { success: boolean; records: CoordinateDto[] }) => {
+        if (json.success) setCoordinates(json.records);
+      })
+      .catch(() => {});
+  }, []);
+
+  const candidateTagIds = Object.keys(CANDIDATE_TAG_DOMAIN);
+  const calibratedTagIds = new Set(coordinates.filter((c) => c.calibrated).map((c) => c.tagId));
+  const uncalibratedTagIds = candidateTagIds.filter((tag) => !calibratedTagIds.has(tag));
+  const visibleBadges = coordinates.filter((c) => c.calibrated);
+
+  function handleCanvasClick(e: MouseEvent<SVGSVGElement>) {
+    if (!isCalibrating) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPendingPick({
+      x: ((e.clientX - rect.left) / rect.width) * NATIVE_WIDTH,
+      y: ((e.clientY - rect.top) / rect.height) * NATIVE_HEIGHT,
+      screenX: e.clientX - rect.left,
+      screenY: e.clientY - rect.top,
+    });
+  }
+
+  async function handlePickTag(tagId: string) {
+    if (!pendingPick) return;
+    const { x, y } = pendingPick;
+    await fetch(PID_COORDINATES_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tagId, x, y, calibrated: true }),
+    });
+    setCoordinates((prev) => [...prev.filter((c) => c.tagId !== tagId), { tagId, x, y, calibrated: true }]);
+    setPendingPick(null);
+  }
+
+  return (
+    <div className="space-y-2" style={HMI_PALETTE_VARS}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold text-slate-700 uppercase">P&ID LIVE OVERLAY</span>
+          <button
+            type="button"
+            onClick={() => setIsCalibrating((v) => !v)}
+            className={isCalibrating ? BEVEL_BUTTON_PRESSED : BEVEL_BUTTON}
+          >
+            Calibrate Tags
+          </button>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] text-slate-600">ZOOM</span>
+          {ZOOM_LEVELS.map((z) => (
+            <button key={z} type="button" onClick={() => setZoom(z)} className={zoom === z ? BEVEL_BUTTON_PRESSED : BEVEL_BUTTON}>
+              {z * 100}%
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className={`${RAISED_PANEL} relative overflow-scroll`} style={{ maxWidth: '100%', maxHeight: 640 }}>
+        <div style={{ position: 'relative', width: NATIVE_WIDTH * zoom, height: NATIVE_HEIGHT * zoom }}>
+          <svg
+            width={NATIVE_WIDTH * zoom}
+            height={NATIVE_HEIGHT * zoom}
+            viewBox={`0 0 ${NATIVE_WIDTH} ${NATIVE_HEIGHT}`}
+            style={{ display: 'block', cursor: isCalibrating ? 'crosshair' : 'default' }}
+            onClick={handleCanvasClick}
+          >
+            {BACKGROUND_IMAGE_URL ? (
+              <image href={BACKGROUND_IMAGE_URL} width={NATIVE_WIDTH} height={NATIVE_HEIGHT} />
+            ) : (
+              <>
+                <rect width={NATIVE_WIDTH} height={NATIVE_HEIGHT} fill="var(--hmi-bg-normal, #E0E0E0)" stroke="var(--hmi-line-static, #A0A0A4)" />
+                <text x={NATIVE_WIDTH / 2} y={NATIVE_HEIGHT / 2} textAnchor="middle" fontSize={16} fill="var(--hmi-text-primary, #1e293b)" fontFamily="monospace">
+                  JSK CONCEPT DIAGRAM — background image not yet provided
+                </text>
+              </>
+            )}
+            {visibleBadges.map((c) => (
+              <PidTagBadge
+                key={c.tagId}
+                tagId={c.tagId}
+                x={c.x}
+                y={c.y}
+                domain={CANDIDATE_TAG_DOMAIN[c.tagId]}
+                primaryColumn={
+                  CANDIDATE_TAG_DOMAIN[c.tagId] ? PRIMARY_COLUMN_BY_DOMAIN[CANDIDATE_TAG_DOMAIN[c.tagId]] : undefined
+                }
+                isCalibrating={isCalibrating}
+                onClick={() => setActiveFaceplateTag(c.tagId)}
+              />
+            ))}
+          </svg>
+          {pendingPick && (
+            <CalibrationTagPicker
+              screenX={pendingPick.screenX}
+              screenY={pendingPick.screenY}
+              candidateTags={uncalibratedTagIds}
+              onPick={handlePickTag}
+              onCancel={() => setPendingPick(null)}
+            />
+          )}
+        </div>
+      </div>
+      <FaceplateDrawer equipmentTag={activeFaceplateTag} onClose={() => setActiveFaceplateTag(null)} />
+    </div>
+  );
+}

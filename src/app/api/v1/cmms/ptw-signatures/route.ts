@@ -11,9 +11,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { persistPermitSignature, getPermitSignatures } from '../../../../../adapters/permitPersistenceAdapter';
 import type { PTWSignatureEntry, PTWSignatureRole } from '../../../../../types/lng';
+import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
+import type { RolePermission } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16. roleCode is no
+// longer read from the body (Stage 3, 2026-09-19) — the Stage 1B session is
+// the sole authorization source now that the client login has been replaced.
 function isValidSignaturePost(body: unknown): body is { permitId: string } & PTWSignatureEntry {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
@@ -22,6 +28,11 @@ function isValidSignaturePost(body: unknown): body is { permitId: string } & PTW
     typeof r.staffId === 'string' && r.staffId.length > 0 &&
     typeof r.staffName === 'string' && r.staffName.length > 0 &&
     typeof r.signedAt === 'string' && r.signedAt.length > 0;
+}
+
+/** Any role with real (non-forced-read-only) PTW_PERMITS access may sign. */
+function isPermitted(permission: RolePermission | null): boolean {
+  return permission !== null && permission.isReadOnlyForced !== true;
 }
 
 export async function GET(request: NextRequest) {
@@ -44,6 +55,19 @@ export async function POST(request: NextRequest) {
 
   if (!isValidSignaturePost(body)) {
     return NextResponse.json({ success: false, error: 'Invalid signature payload.' }, { status: 400 });
+  }
+  // Stage 3 (HJ decision 2026-09-19): full replacement of the PIN-login
+  // fallback — a valid Stage 1B session is now required.
+  const session = verifyUserSecuritySession(request);
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+  }
+  const permission: RolePermission | null = resolveSessionPermission(session.employeeId, 'PTW_PERMITS');
+  if (!isPermitted(permission)) {
+    return NextResponse.json(
+      { success: false, error: `Role ${session.roleCode} is not permitted to sign PTW permits.` },
+      { status: 403 }
+    );
   }
 
   const { permitId, ...entry } = body;

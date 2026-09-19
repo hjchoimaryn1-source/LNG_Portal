@@ -25,11 +25,27 @@ export type ModuleCode =
   | 'PTW_PERMITS'
   | 'SAFETY_GAS_TESTING'
   | 'SAFETY_ERT_READINESS'
-  | 'SAFETY_OVERVIEW';
+  | 'SAFETY_OVERVIEW'
+  | 'DAILY_OPS_REPORT'
+  | 'DAILY_OPS_PATROL_ENTRY'
+  | 'ALARM_ACTION_LOG'
+  // Stage 1A (User & Security Management) — ADMIN-only personnel/account module.
+  // Not yet wired into ROLE_PERMISSIONS/getEffectivePermission() below; the new
+  // src/lib/rbac/role_permissions DB table (Stage 1 role_code vocabulary) is a
+  // separate, unreconciled system — see userSecuritySchema.ts header comment.
+  | 'PERSONNEL_MANAGEMENT';
 
 export interface RolePermission {
   rolePermissionId: number;
-  roleCode: RoleCode;
+  /**
+   * Stage 2A-ii: getEffectivePermission() now also accepts the new Stage 1
+   * role_code vocabulary (ADMIN/SITE_MANAGER/OP_TEAM/HSSE/MAINTENANCE/
+   * LOGISTIC/HR — see userSecurityRolePermissionSeed.ts's Stage1RoleCode) in
+   * addition to the legacy RoleCode above, so this field is widened to
+   * `string` rather than aliasing either union. No consumer reads this field
+   * off a returned RolePermission today (repo-wide search, Stage 2A-ii).
+   */
+  roleCode: string;
   moduleCode: ModuleCode;
   canRead: boolean;
   canCreate: boolean;
@@ -37,4 +53,10 @@ export interface RolePermission {
   canDelete: boolean;
   canApprove: boolean;
   isReadOnlyForced: boolean;
+  /**
+   * Stage D Addendum (D-ADD-2) — SYSTEM_ADMIN-only right to open an HQ
+   * in-place edit window on an APPROVED Daily Ops report. Optional and only
+   * ever set on DAILY_OPS_REPORT rows; absent means false everywhere else.
+   */
+  canUnlockApproved?: boolean;
 }

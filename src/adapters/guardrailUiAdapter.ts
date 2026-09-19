@@ -5,12 +5,12 @@
 // PTW의 validatePtwSelfApproval처럼 이 유틸로 대체할 수 없는 모듈 고유 체크는 각
 // 호출부에서 별도로 병행 호출한다 (이 어댑터는 그 자리를 대신하지 않음).
 
-import type { RoleCode } from '../types/rbac';
+import type { Stage1RoleCode } from '../lib/rbac/userSecurityRolePermissionSeed';
 import { blockIfAuditorMode } from '../lib/rbac/guardrails';
 import { checkFatigueBlock } from '../lib/rbac/fatigueGuardrail';
 
 export interface GuardrailMutationContext {
-  roleCode: RoleCode;
+  roleCode: Stage1RoleCode;
   action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE';
   fatigueCheck?: { userId: string; targetDate: string };
 }

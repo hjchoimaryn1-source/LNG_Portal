@@ -6,6 +6,7 @@ import { PTW_SIGNATURE_ROLE_LABELS } from '../../../data/ptwSignatureRoles';
 import { evaluateSignatureGate } from '../../../adapters/ptwSignatureGate';
 import { usePTWPermitSync } from './usePTWPermitSync';
 import { applyLifecycleToPermit } from '../../../utils/ptwPermitRecordMapper';
+import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
 
 /**
  * Shared PTW permit register state (Master Register 소유, 향후 Gas Testing Log /
@@ -13,6 +14,7 @@ import { applyLifecycleToPermit } from '../../../utils/ptwPermitRecordMapper';
  */
 export function usePTWPermits() {
   const [permits, setPermits] = useState<PTWPermit[]>(INITIAL_PTW_PERMITS);
+  const activeSession = useActiveSession();
 
   // SQLite ptw_permits/ptw_signatures 영속화(usePTWPermitSync.ts) — status/
   // closedAt/signatures만 DB에서 병합한다. 게이트 판정(SSOT)은 여전히 아래
@@ -115,6 +117,19 @@ export function usePTWPermits() {
     const target = permits.find((p) => p.id === permitId);
     if (!target || (target.signatures || []).some((s) => s.role === role)) return;
 
+    // RBAC audit remediation — Phase 13 follow-up, 2026-09-16. Any role with
+    // real (non-forced-read-only) PTW_PERMITS access may sign — the specific
+    // signer-to-part mapping (Part C/D/E) is not itself an RBAC verb today.
+    if (!activeSession) {
+      alert('⚠️ [SIGNATURE BLOCKED]\n로그인 세션이 없습니다.');
+      return;
+    }
+    const permission = activeSession.permissions.PTW_PERMITS;
+    if (!permission || permission.isReadOnlyForced) {
+      alert(`⚠️ [SIGNATURE BLOCKED]\nRole ${activeSession.roleCode} is not permitted to sign PTW permits.`);
+      return;
+    }
+
     const newEntry = {
       role,
       staffId,
@@ -128,7 +143,7 @@ export function usePTWPermits() {
 
     // Fire-and-forget audit persistence — never re-validated, never blocks the
     // local signature state above (see usePTWPermitSync.ts header).
-    permitSync.persistSignature(permitId, newEntry);
+    permitSync.persistSignature(permitId, newEntry, activeSession.roleCode);
   };
 
   // Workflow State Transition (Draft -> Prepared -> Approved -> Active -> Closed)
@@ -195,7 +210,7 @@ export function usePTWPermits() {
 
     // Fire-and-forget audit persistence — never re-validated, never blocks the
     // local status state above (see usePTWPermitSync.ts header).
-    permitSync.persistStatusChange(permitId, nextStatus, closedAt);
+    permitSync.persistStatusChange(permitId, nextStatus, closedAt, activeSession?.roleCode);
   };
 
   const stats = useMemo(() => {

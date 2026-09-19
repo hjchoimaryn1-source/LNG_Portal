@@ -1,3 +1,5 @@
+APPROVED BY HJ CHOI 2026-09-16
+
 # Phase 10 — Stage 1D: NP-05 PM Mapping Proposal
 
 **확정 아님 — HJ 검토 필요.** This document is a candidate mapping only. No row was

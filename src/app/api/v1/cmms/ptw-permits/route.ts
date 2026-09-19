@@ -19,6 +19,8 @@ import {
   type PermitLifecycleLocalChanges,
 } from '../../../../../adapters/permitPersistenceAdapter';
 import type { PTWPermitLifecycleDraft } from '../../../../../adapters/db/ptwPermitDao';
+import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
 
 export const runtime = 'nodejs';
 
@@ -129,6 +131,23 @@ export async function PATCH(request: NextRequest) {
 
   if (!isValidStatusUpdate(body)) {
     return NextResponse.json({ success: false, error: 'Invalid status update payload.' }, { status: 400 });
+  }
+
+  // RBAC audit remediation — ptw-permits PATCH, 2026-09-16, extended Stage 3
+  // (HJ decision 2026-09-19, full PIN-login replacement). A valid Stage 1B
+  // session is now required for every caller, including NP08 cargo handling
+  // (useCargoHandlingLifecycle.ts) — that caller previously bypassed this
+  // check entirely because it never sent a roleCode; it now carries the same
+  // session cookie as every other client request, closing that gap.
+  const session = verifyUserSecuritySession(request);
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+  }
+  if (resolveSessionPermission(session.employeeId, 'PTW_PERMITS')?.canUpdate !== true) {
+    return NextResponse.json(
+      { success: false, error: `Role ${session.roleCode} is not permitted to update PTW permits.` },
+      { status: 403 }
+    );
   }
 
   const result = applyPermitUpdateWithConflictCheck({

@@ -1,10 +1,13 @@
 // src/components/locations/NiasTerminalView.tsx
 "use client";
 
-import React, { useState, useMemo } from 'react';
-import { usePortalData } from '../../context/PortalDataContext';
+import React, { useState, useMemo, useCallback } from 'react';
+import { saveIsoTankDailyReading } from './nias/monthlyReport/hooks/useMonthlyReportData';
+import { mapDailyMasterRecordToIsoTankReading } from '../../cmms-monthly-report/dao/isoTankDailyReadingsMapper';
+import { useFleetTankFacade } from '../../hooks/portalDataFacade/useFleetTankFacade';
+import { useDailyMasterFacade } from '../../hooks/portalDataFacade/useDailyMasterFacade';
+import { useSettlementFacade } from '../../hooks/portalDataFacade/useSettlementFacade';
 import { useTheme } from '../../context/ThemeContext';
-import { DailyMasterRecord, DefectCategory, FleetTankItem } from '../../types/lng';
 import SettlementAuditView from '../SettlementAuditView';
 import NiasOperationalOverviewTab from './nias/NiasOperationalOverviewTab';
 import { useNiasBackhaulInspection } from './nias/hooks/useNiasBackhaulInspection';
@@ -13,17 +16,19 @@ import { useNiasCalendar } from './nias/hooks/useNiasCalendar';
 import { useNiasTankInventoryInit } from './nias/hooks/useNiasTankInventoryInit';
 import { useNiasZoneTankViews } from './nias/hooks/useNiasZoneTankViews';
 import { useNiasTankModalTriggers } from './nias/hooks/useNiasTankModalTriggers';
+import { useNiasRelocationModal } from './nias/hooks/useNiasRelocationModal';
+import { useNiasTankTrendModal } from './nias/hooks/useNiasTankTrendModal';
 import { useNiasTankDragDrop } from '../../hooks/useNiasTankDragDrop';
 import { useNiasInspectionForm } from '../../hooks/useNiasInspectionForm';
 import NiasDomainHeaderPanel from './nias/panels/NiasDomainHeaderPanel';
 import NiasSubTabsNavPanel from './nias/panels/NiasSubTabsNavPanel';
 import NiasModalsPanel from './nias/panels/NiasModalsPanel';
 import NiasDomainContentRouter from './nias/panels/NiasDomainContentRouter';
-import { buildMasterInspectionList } from './nias/utils/buildMasterInspectionList';
+import { resolveNiasInitialView } from './nias/utils/resolveNiasInitialView';
 import { INSPECTION_DATES } from './nias/constants/niasInspectionDates';
 import { NIAS_EVENT_STREAM_SEED, NiasEventStreamEntry } from './nias/constants/niasEventStreamSeed';
 import { NIAS_RACK_TAG_BY_BAY_INDEX } from './nias/constants/niasRackTags';
-import { exportDailyMasterToCsv, exportShippingReportToCsv } from './nias/utils/niasCsvExportUtils';
+import { exportShippingReportToCsv } from './nias/utils/niasCsvExportUtils';
 import { exportDailyInspectionToExcel } from '../../utils/exportDailyInspectionExcel';
 import {
   calcVolumeFromMmH2O,
@@ -116,17 +121,20 @@ export type NiasDomain = 'TERMINAL_OVERVIEW' | 'ISO_TANK_MGMT' | 'REGAS_SYSTEM';
 
 export type NiasTankSubTab =
   | 'TANK_OVERVIEW'
-  | 'LAYDOWN_1_2_LOG'
   | 'ACTIVE_BAY_TANKS'
-  | 'LAYDOWN_3_HEEL'
-  | 'TANK_MASS_BALANCE';
+  | 'LAYDOWN_3_HEEL';
 
 export type NiasRegasSubTab =
   | 'GAS_PROCESS_TELEMETRY'
-  | 'GC_GAS_QUALITY'
-  | 'GAS_METERING_LEDGER'
-  | 'PLTMG_POWER_OUTPUT'
-  | 'CUSTODY_HEAT_SETTLEMENT';
+  | 'PATROL_LOG'
+  | 'GAS_METERING_DAILY'
+  | 'LAYDOWN_1_2_LOG'
+  | 'TANK_MASS_BALANCE'
+  | 'CUSTODY_HEAT_SETTLEMENT'
+  // Electrical System / Daily Ops Overview relocation (2026-09-18 correction):
+  // moved from top-level tabs into Regas & Gas Process sub-tabs.
+  | 'ELECTRICAL_SYSTEM'
+  | 'DAILY_OPS_OVERVIEW';
 
 export type NiasSubTab = NiasTankSubTab | NiasRegasSubTab | string;
 
@@ -134,6 +142,12 @@ interface NiasTerminalViewProps {
   initialDomain?: NiasDomain;
   initialSubTab?: string;
   onNavigateSubTab?: (targetTab: string, domain?: 'ISO_TANK_MGMT' | 'REGAS_SYSTEM') => void;
+  // Nias sub-tab flattening (2026-09-16) — see NiasDomainHeaderPanelProps /
+  // NiasSubTabsNavPanelProps for the rationale. Both default to legacy
+  // (visible switcher, full 5-item regas row) so existing callers/tests are
+  // unaffected.
+  hideDomainSwitcher?: boolean;
+  regasScope?: 'GAS_PROCESS' | 'POWER';
 }
 
 type LaydownZone = 'ALL' | 'LAYDOWN_1' | 'SKID' | 'LAYDOWN_2' | 'LAYDOWN_3' | 'FOUR_BAY_REGAS';
@@ -150,105 +164,64 @@ export default function NiasTerminalView({
   initialDomain = 'TERMINAL_OVERVIEW',
   initialSubTab = 'TERMINAL_OVERVIEW',
   onNavigateSubTab,
+  hideDomainSwitcher = false,
+  regasScope,
 }: NiasTerminalViewProps) {
   const { theme, isDark } = useTheme();
   const {
     fleetTanks,
-    dailyMasterRecords,
     activeBays,
     updateTankLog,
     moveTankLocation,
-    saveDailyInspectionRecord,
-    batchUpdateDailyMasterRecords,
     batchTransitionTanks,
     mountTankToBay,
     unmountBay,
     toggleBayRunning,
     markTankForMaintenance,
-    settlementRecords,
-    addDepressurizationLog,
     recordPostRegasOffload,
     authorizeBackhaulClearance,
-  } = usePortalData();
+  } = useFleetTankFacade();
+  const {
+    dailyMasterRecords,
+    saveDailyInspectionRecord,
+    batchUpdateDailyMasterRecords,
+    addDepressurizationLog,
+  } = useDailyMasterFacade();
+  const { settlementRecords } = useSettlementFacade();
 
-  // Determine initial active domain
-  const resolveInitialDomain = (): NiasDomain => {
-    if (initialDomain) return initialDomain;
-    if (
-      initialSubTab === 'TERMINAL_OVERVIEW' ||
-      initialSubTab === 'NIAS_TERMINAL_OVERVIEW' ||
-      initialSubTab === 'OPERATIONAL_OVERVIEW'
-    ) {
-      return 'TERMINAL_OVERVIEW';
-    }
-    if (
-      initialSubTab === 'GAS_PROCESS_TELEMETRY' ||
-      initialSubTab === 'GC_GAS_QUALITY' ||
-      initialSubTab === 'GAS_METERING_LEDGER' ||
-      initialSubTab === 'NIAS_GAS_METERING_LEDGER' ||
-      initialSubTab === 'PLTMG_POWER_OUTPUT' ||
-      initialSubTab === 'CUSTODY_HEAT_SETTLEMENT' ||
-      initialSubTab === 'FOUR_BAY_REGAS_GC' ||
-      initialSubTab === 'ACTIVE_REGAS_TELEMETRY' ||
-      initialSubTab === 'ACTIVE_REGAS' ||
-      initialSubTab === 'HEAT_SETTLEMENT'
-    ) {
-      return 'REGAS_SYSTEM';
-    }
-    return 'ISO_TANK_MGMT';
-  };
+  // ISO Tank & Mass Balance relocation stage: "ISO TK - LOG"'s Save action
+  // must additionally persist to SQLite (iso_tank_daily_readings) going
+  // forward. saveDailyInspectionRecord (PortalDataContext) is left exactly
+  // as-is — Daily Report Section D's print bridge still reads
+  // dailyMasterRecords from it — this adds a parallel SQLite write, not a
+  // replacement.
+  const saveDailyInspectionRecordAndSqlite = useCallback(
+    (record: Parameters<typeof saveDailyInspectionRecord>[0]) => {
+      saveDailyInspectionRecord(record);
+      saveIsoTankDailyReading(mapDailyMasterRecordToIsoTankReading(record)).catch(() => {});
+    },
+    [saveDailyInspectionRecord]
+  );
 
-  // Determine initial tank sub-tab
-  const resolveInitialTankTab = (): NiasTankSubTab => {
-    if (
-      initialSubTab === 'LAYDOWN_1_2_LOG' ||
-      initialSubTab === 'DAILY_CONDITION_BOG' ||
-      initialSubTab === 'DAILY_LOG_DEPRESS' ||
-      initialSubTab === 'LAYDOWN_DEPRESS'
-    ) {
-      return 'LAYDOWN_1_2_LOG';
-    }
-    if (initialSubTab === 'ACTIVE_BAY_TANKS' || initialSubTab === 'BAY_MOUNTED_TANKS') {
-      return 'ACTIVE_BAY_TANKS';
-    }
-    if (
-      initialSubTab === 'LAYDOWN_3_HEEL' ||
-      initialSubTab === 'EMPTY_RETURN_BACKHAUL' ||
-      initialSubTab === 'EMPTY_RETURN'
-    ) {
-      return 'LAYDOWN_3_HEEL';
-    }
-    if (
-      initialSubTab === 'TANK_MASS_BALANCE' ||
-      initialSubTab === 'MASS_BALANCE_LOG' ||
-      initialSubTab === 'MASS_BALANCE'
-    ) {
-      return 'TANK_MASS_BALANCE';
-    }
-    return 'TANK_OVERVIEW';
-  };
-
-  // Determine initial regas sub-tab
-  const resolveInitialRegasTab = (): NiasRegasSubTab => {
-    if (initialSubTab === 'GC_GAS_QUALITY' || initialSubTab === 'NIAS_GC_GAS_QUALITY') return 'GC_GAS_QUALITY';
-    if (initialSubTab === 'GAS_METERING_LEDGER' || initialSubTab === 'NIAS_GAS_METERING_LEDGER') return 'GAS_METERING_LEDGER';
-    if (initialSubTab === 'PLTMG_POWER_OUTPUT') return 'PLTMG_POWER_OUTPUT';
-    if (initialSubTab === 'CUSTODY_HEAT_SETTLEMENT' || initialSubTab === 'HEAT_SETTLEMENT') {
-      return 'CUSTODY_HEAT_SETTLEMENT';
-    }
-    return 'GAS_PROCESS_TELEMETRY';
-  };
-
+  // Determine initial active domain / tank sub-tab / regas sub-tab —
+  // extracted to resolveNiasInitialView.ts (pure, unit-tested).
   // Active 2-Domain state
-  const [activeDomain, setActiveDomain] = useState<NiasDomain>(resolveInitialDomain());
-  const [tankSubTab, setTankSubTab] = useState<NiasTankSubTab>(resolveInitialTankTab());
-  const [regasSubTab, setRegasSubTab] = useState<NiasRegasSubTab>(resolveInitialRegasTab());
+  const [activeDomain, setActiveDomain] = useState<NiasDomain>(
+    resolveNiasInitialView({ initialDomain, initialSubTab }).domain
+  );
+  const [tankSubTab, setTankSubTab] = useState<NiasTankSubTab>(
+    resolveNiasInitialView({ initialDomain, initialSubTab }).tankSubTab
+  );
+  const [regasSubTab, setRegasSubTab] = useState<NiasRegasSubTab>(
+    resolveNiasInitialView({ initialDomain, initialSubTab }).regasSubTab
+  );
 
   // Synchronize when prop changes
   React.useEffect(() => {
-    setActiveDomain(resolveInitialDomain());
-    setTankSubTab(resolveInitialTankTab());
-    setRegasSubTab(resolveInitialRegasTab());
+    const resolved = resolveNiasInitialView({ initialDomain, initialSubTab });
+    setActiveDomain(resolved.domain);
+    setTankSubTab(resolved.tankSubTab);
+    setRegasSubTab(resolved.regasSubTab);
   }, [initialDomain, initialSubTab]);
 
   // Unified Tank Inventory State
@@ -266,7 +239,9 @@ export default function NiasTerminalView({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTanks, setSelectedTanks] = useState<Set<string>>(new Set());
   const [selectedBackhaulTanks, setSelectedBackhaulTanks] = useState<Set<string>>(new Set());
-  // Modal / drawer trigger state group — encapsulated in hook
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Modal / drawer trigger state group (incl. MRO defect form + submit) — encapsulated in hook
   const {
     mountModalBayId,
     setMountModalBayId,
@@ -282,16 +257,12 @@ export default function NiasTerminalView({
     setSelectedDetailTank,
     openMountDropdownTankId,
     setOpenMountDropdownTankId,
-  } = useNiasTankModalTriggers();
-  const [defectCat, setDefectCat] = useState<DefectCategory>('VALVE_LEAK');
-  const [defectDesc, setDefectDesc] = useState<string>('');
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-
-
-
-  // Interactive Tank Relocation Modal State (Method A)
-  const [relocateModalTank, setRelocateModalTank] = useState<FleetTankItem | null>(null);
+    defectCat,
+    setDefectCat,
+    defectDesc,
+    setDefectDesc,
+    handleMroSubmit,
+  } = useNiasTankModalTriggers({ markTankForMaintenance, setToastMessage });
 
   // LD-2 (ORU LD-2) BOG Vent & Status Modal — state & handlers encapsulated in hook
   const {
@@ -328,15 +299,6 @@ export default function NiasTerminalView({
   const [eventStream, setEventStream] = useState<NiasEventStreamEntry[]>(NIAS_EVENT_STREAM_SEED);
   const [isEventStreamExpanded, setIsEventStreamExpanded] = useState<boolean>(false);
 
-  // Stage 1: Post-Regas Offload Condition Log Form State (Bay -> Laydown 2 with 4% Heel)
-  const [stage1Date, setStage1Date] = useState<string>(() => new Date().toISOString().slice(0, 16).replace('T', ' '));
-  const [heelLevelPct, setHeelLevelPct] = useState<number>(4.0);
-  const [heelPressureMPa, setHeelPressureMPa] = useState<number>(0.22);
-  const [heelPreVentPressureMPa, setHeelPreVentPressureMPa] = useState<number>(0.72);
-  const [heelTempC, setHeelTempC] = useState<number>(-135.0);
-  const [heelWeightKg, setHeelWeightKg] = useState<number>(350);
-  const [stage1Remarks, setStage1Remarks] = useState<string>('Normal post-regas offload to Laydown 2 (Heel Staging)');
-
   // Stage 2: Pre-Backhaul Inspection — state & handler encapsulated in hook
   const {
     isBackhaulModalOpen,
@@ -361,6 +323,7 @@ export default function NiasTerminalView({
     setStage2PressureWithinLimit,
     setStage2VacuumIntact,
     setStage2Remarks,
+    handleAuthorizeBackhaul,
     handleBackhaulModalSubmit,
   } = useNiasBackhaulInspection({
     selectedBackhaulTanks,
@@ -484,7 +447,7 @@ export default function NiasTerminalView({
     tankInventory,
     settlementRecords,
     setTankInventory,
-    saveDailyInspectionRecord,
+    saveDailyInspectionRecord: saveDailyInspectionRecordAndSqlite,
     setToastMessage,
     setSelectedTanks,
   });
@@ -507,24 +470,10 @@ export default function NiasTerminalView({
     return Array.from(s).filter(Boolean).sort();
   }, [dailyMasterRecords, fleetTanks, settlementRecords]);
 
-
-
-
-  // Large Screen SCADA Console: Historical Telemetry Trend Modal State
-  const [trendModalTankNo, setTrendModalTankNo] = useState<string | null>(null);
-
-  const handleOpenTankTrendModal = (tNo: string) => {
-    handleSelectTankForWorkstation(tNo);
-    setTrendModalTankNo(tNo);
-  };
-
-  // Helper: Normalize Tank Zone Position (Laydown 1, 2, 3)
-  const getTankZone = (position: string): 'Laydown 1' | 'Laydown 2' | 'Laydown 3' => {
-    const p = (position || '').toUpperCase();
-    if (p.includes('2') || p.includes('YARD 2') || p.includes('LAYDOWN 2')) return 'Laydown 2';
-    if (p.includes('3') || p.includes('YARD 3') || p.includes('LAYDOWN 3')) return 'Laydown 3';
-    return 'Laydown 1';
-  };
+  // Large Screen SCADA Console: Historical Telemetry Trend Modal — encapsulated in hook
+  const { trendModalTankNo, setTrendModalTankNo, handleOpenTankTrendModal } = useNiasTankTrendModal({
+    handleSelectTankForWorkstation,
+  });
 
   // Nias zone/tank derived views (categorization, workstation filter, zone aggregations, search) — encapsulated in hook
   const {
@@ -543,45 +492,6 @@ export default function NiasTerminalView({
   });
 
   const disputeCount = settlementRecords.filter((s) => s.disputeStatus === 'DISPUTE_ALERT').length;
-
-  // Date Navigation Handlers
-  const handlePrevDate = () => {
-    const idx = INSPECTION_DATES.indexOf(selectedDate);
-    if (idx > 0) setSelectedDate(INSPECTION_DATES[idx - 1]);
-  };
-
-  const handleNextDate = () => {
-    const idx = INSPECTION_DATES.indexOf(selectedDate);
-    if (idx < INSPECTION_DATES.length - 1) setSelectedDate(INSPECTION_DATES[idx + 1]);
-  };
-
-  // Helper: Retrieve Consumption BOG Losses from Settlement
-  const getTankLossData = (tankNo: string) => {
-    const s = settlementRecords.find((rec) => rec.tankNo === tankNo);
-    return {
-      lossKg: s?.lossesKg || 426,
-      lossPct: s?.lossesPercent || 4.17,
-      shipment: s?.shipment || 'N-1',
-    };
-  };
-
-  // Selection handlers
-  const toggleSelectTank = (tankNo: string) => {
-    setSelectedTanks((prev) => {
-      const next = new Set(prev);
-      if (next.has(tankNo)) next.delete(tankNo);
-      else next.add(tankNo);
-      return next;
-    });
-  };
-
-  const selectAll = () => {
-    if (selectedTanks.size === filteredLaydownTanks.length) {
-      setSelectedTanks(new Set());
-    } else {
-      setSelectedTanks(new Set(filteredLaydownTanks.map((t) => t.id)));
-    }
-  };
 
   // Drag & Drop Handlers encapsulated in hook
   const {
@@ -611,153 +521,13 @@ export default function NiasTerminalView({
     getRackTag,
   });
 
-  // Open Interactive Relocate Modal (Method A)
-  const openRelocateModal = (tank: FleetTankItem) => {
-    setRelocateModalTank(tank);
-  };
-
-  const handleConfirmRelocation = (data: {
-    tankNo: string;
-    origin: string;
-    targetZone: string;
-    slotNumber: number;
-    heelPct: number;
-    heelPressMPa: number;
-    heelTempC: number;
-    heelWeightKg: number;
-    remarks: string;
-  }) => {
-    const { tankNo, origin, targetZone, slotNumber, heelPct, heelPressMPa, heelTempC, heelWeightKg, remarks } = data;
-    const targetZoneEnum = targetZone === 'Laydown 2' || targetZone === 'Laydown 3' ? 'LAYDOWN_2' : 'LAYDOWN_1';
-    setTankInventory(prev => prev.map(t => t.id === tankNo ? { ...t, currentZone: targetZoneEnum, slotIndex: slotNumber } : t));
-
-    moveTankLocation(tankNo, targetZone, slotNumber, {
-      heelLevelPct: heelPct,
-      heelPressureMPa: heelPressMPa,
-      heelTempC: heelTempC,
-      heelWeightKg: heelWeightKg,
-      remarks: remarks || `Relocated from ${origin} to ${targetZone}`,
-    });
-
-    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setEventStream((prev) => [
-      {
-        id: `ev-${Date.now()}`,
-        time: nowTime,
-        text: `[${tankNo}] Relocated from ${origin} ➔ ${targetZone} (Slot ${slotNumber})`,
-        tag: 'RELOCATED',
-        tagColor: 'text-slate-950 font-bold',
-      },
-      ...prev,
-    ]);
-
-    setToastMessage(`✅ ${tankNo} relocated to ${targetZone} (Slot ${slotNumber})`);
-    setRelocateModalTank(null);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  // Batch Position Allocation
-  const handleBatchAllocateZone = (targetZone: 'Laydown 1' | 'Laydown 2' | 'Laydown 3') => {
-    if (selectedTanks.size === 0) return;
-    const count = selectedTanks.size;
-    const targetZoneEnum = targetZone === 'Laydown 2' || targetZone === 'Laydown 3' ? 'LAYDOWN_2' : 'LAYDOWN_1';
-    setTankInventory((prev) =>
-      prev.map((t) => (selectedTanks.has(t.id) ? { ...t, currentZone: targetZoneEnum } : t))
-    );
-    selectedTanks.forEach((tNo) => {
-      updateTankLog(tNo, { position: targetZone });
-    });
-    setSelectedTanks(new Set());
-    setToastMessage(`Reallocated ${count} tanks to ${targetZone}`);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  // Single Tank Interactive Position Dropdown Change
-  const handleSingleTankPositionChange = (tankNo: string, newPosition: string) => {
-    const targetZoneEnum = newPosition.toLowerCase().includes('laydown 2') || newPosition.toLowerCase().includes('laydown 3') || newPosition === 'LAYDOWN_2' ? 'LAYDOWN_2' : 'LAYDOWN_1';
-    setTankInventory((prev) =>
-      prev.map((t) => (t.id === tankNo ? { ...t, currentZone: targetZoneEnum } : t))
-    );
-    updateTankLog(tankNo, { position: newPosition });
-    setToastMessage(`Tank ${tankNo} relocated to ${newPosition}`);
-    setTimeout(() => setToastMessage(null), 2500);
-  };
-
-
-
-  // Computed Master Inspection List for Grid matching 14-Column Master DB schema
-  const masterInspectionList: DailyMasterRecord[] = useMemo(() => {
-    return buildMasterInspectionList({
-      dailyMasterRecords,
-      deletedRecordIds,
-      dateQueryMode,
-      selectedDate,
-      startDate,
-      endDate,
-      batchFilter,
-      zoneFilter,
-      searchQuery,
-      fleetTanks,
-      tankInventory,
-      getTankLossData,
-      normalizeBatch,
-    });
-  }, [dailyMasterRecords, selectedDate, startDate, endDate, dateQueryMode, batchFilter, zoneFilter, searchQuery, fleetTanks, tankInventory, deletedRecordIds]);
-
-  // Open inspection workstation for a tank across any sub-tab
-  const handleOpenInspectionWorkstationForTank = (tank: { tankNo: string }) => {
-    handleSelectTankForWorkstation(tank.tankNo);
-    setIsWorkstationCollapsed(false);
-    setActiveDomain('ISO_TANK_MGMT');
-    setTankSubTab('LAYDOWN_1_2_LOG');
-    const el = document.getElementById('daily-log-workstation-panel');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  // Pre-fill and load Row into Workstation
-  const handleLoadRowIntoWorkstation = (record: DailyMasterRecord) => {
-    setWsReportDate(record.reportDate || selectedDate);
-    setWsTankNo(record.tankNo);
-    setWsSerialNo(record.serialNo);
-    setWsShipment(record.shipment || 'N1');
-    setWsLevelPct(record.level);
-    setWsLevelM3(record.levelM3);
-    setWsLevelMmH2O(record.levelMmH2O);
-    setWsBattery(record.battery);
-    setWsPressureMPa(record.pressureMPa);
-    setWsTempC(record.tempC);
-    setWsTempC(record.tempC);
-    setWsPressBefore(record.pressBeforeMPa || 0.80);
-    setWsPressAfter(record.pressAfterMPa || 0.73);
-    setWsRemarks(record.remarks || 'Daily inspection');
-    setIsWorkstationCollapsed(false);
-    setActiveDomain('ISO_TANK_MGMT');
-    setTankSubTab('LAYDOWN_1_2_LOG');
-
-    const el = document.getElementById('daily-log-workstation-panel');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-  // Toggle selection for backhaul manifest
-  const toggleSelectBackhaulTank = (tankNo: string) => {
-    const next = new Set(selectedBackhaulTanks);
-    if (next.has(tankNo)) next.delete(tankNo);
-    else next.add(tankNo);
-    setSelectedBackhaulTanks(next);
-  };
-
-  // Stage 2: Open Pre-Backhaul Inspection Dialog
-  const handleAuthorizeBackhaul = () => {
-    if (selectedBackhaulTanks.size === 0) {
-      setToastMessage('Please select at least 1 empty heel tank for backhaul clearance');
-      setTimeout(() => setToastMessage(null), 2500);
-      return;
-    }
-    setIsBackhaulModalOpen(true);
-  };
+  // Interactive Tank Relocation Modal (Method A) — state & handler encapsulated in hook
+  const { relocateModalTank, setRelocateModalTank, handleConfirmRelocation } = useNiasRelocationModal({
+    setTankInventory,
+    moveTankLocation,
+    setEventStream,
+    setToastMessage,
+  });
 
   // Export Backhaul Shipping Report to CSV / Excel
   const handleExportShippingReport = () => {
@@ -765,23 +535,6 @@ export default function NiasTerminalView({
     setToastMessage(`📊 Exported Backhaul Shipping Report (${zoneStats.yard2.tanks.length} Tanks)`);
     setTimeout(() => setToastMessage(null), 3000);
   };
-
-  const handleMroSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!mroModalTankNo) return;
-    markTankForMaintenance(mroModalTankNo, defectCat, 'NIAS_MRO_BAY', defectDesc || 'Field reported defect');
-    setMroModalTankNo(null);
-    setDefectDesc('');
-    setToastMessage(`Tank ${mroModalTankNo} sent to Nias MRO Bay`);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  // Full 14-Column Master DB CSV Export
-  const handleExportDailyMasterCSV = () => {
-    exportDailyMasterToCsv(masterInspectionList);
-  };
-
-  const handleExportDailyReportCSV = handleExportDailyMasterCSV;
 
   return (
     <div className="h-full flex flex-col min-h-0 gap-1.5 w-full text-slate-950 font-bold font-sans overflow-hidden">
@@ -799,6 +552,7 @@ export default function NiasTerminalView({
         setActiveDomain={setActiveDomain}
         zoneStats={zoneStats}
         activeBays={activeBays}
+        hideSwitcher={hideDomainSwitcher}
       />
 
       {/* Sub-Tabs Bar (Contextual to Selected Domain) */}
@@ -809,6 +563,7 @@ export default function NiasTerminalView({
         regasSubTab={regasSubTab}
         setRegasSubTab={setRegasSubTab}
         disputeCount={disputeCount}
+        regasScope={regasScope}
       />
 
       {/* Domain 1 (ISO_TANK_MGMT) & Domain 2 (REGAS_SYSTEM) sub-tab content router */}

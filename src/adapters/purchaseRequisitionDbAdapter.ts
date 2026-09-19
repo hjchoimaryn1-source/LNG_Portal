@@ -14,8 +14,10 @@ import {
   insertRequisition,
   selectAllRequisitions,
   selectOpenRequisitionByPart,
+  updateRequisitionApprovalStatus,
   type NewPurchaseRequisitionInput,
   type PurchaseRequisitionRecord,
+  type PurchaseRequisitionApprovalStatus,
 } from './db/purchaseRequisitionDao';
 
 /** 전체 구매요청 목록 (최신순). */
@@ -32,4 +34,9 @@ export function ensureOpenRequisition(input: NewPurchaseRequisitionInput): Purch
   const existing = selectOpenRequisitionByPart(db, input.partNo);
   if (existing) return existing;
   return insertRequisition(db, input);
+}
+
+/** Approval Hub Phase 1 Stage 2c — 구매요청(PR) 승인/반려 액션. */
+export function approveRequisition(prId: number, approvalStatus: PurchaseRequisitionApprovalStatus): PurchaseRequisitionRecord | undefined {
+  return updateRequisitionApprovalStatus(getCmmsDb(), prId, approvalStatus);
 }

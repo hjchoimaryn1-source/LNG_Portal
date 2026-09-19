@@ -1,0 +1,243 @@
+// src/cmms-daily-ops/dao/dailyOpsPatrolDao.ts
+//
+// PURPOSE
+//   daily_ops_patrol_entries에 대한 도메인-비특정(domain-agnostic) 순수 DAO.
+//   SqlExecutor에만 의존하며 React/Next 바인딩이 없다 (truckInspectionDao.ts와 동일 패턴).
+//
+//   UPSERT: Phase 12 Addendum 1에서 dailyOpsPatrolSchema.ts에
+//   idx_daily_ops_patrol_unique(domain, equipment_tag, report_date, shift_time_slot)
+//   UNIQUE 인덱스를 추가했다 — node:sqlite(DatabaseSync)에서 `INSERT ...
+//   ON CONFLICT(...) DO UPDATE SET ...` 단일 문 upsert가 정상 동작함을 확인
+//   (동일 named param을 VALUES/SET에서 재사용해도 문제없음). Stage B의
+//   SELECT→UPDATE/INSERT 2단계 앱 레벨 upsert(deviation #1)를 대체한다.
+//
+//   컬럼 화이트리스트: values의 키(컬럼명)는 동적 SQL 텍스트에 그대로
+//   들어가므로, patrolFieldMaps.ts의 PATROL_FIELD_MAP에 없는 키는 즉시 거부한다.
+
+import type { SqlExecutor } from '../../adapters/db/sqlExecutor';
+import type { PatrolDomain, ReadingStatus, ShiftTimeSlot } from '../types/patrolLog';
+import { PATROL_FIELD_MAP } from './patrolFieldMaps';
+
+export type PatrolFieldValue = number | string | null;
+export type PatrolValues = Record<string, PatrolFieldValue>;
+
+export interface PatrolEntry {
+  id: number;
+  domain: PatrolDomain;
+  equipmentTag: string;
+  reportDate: string;
+  shiftTimeSlot: ShiftTimeSlot;
+  readingStatus: ReadingStatus;
+  remarkText: string | null;
+  recordedBy: string;
+  recordedAt: string;
+  values: PatrolValues;
+}
+
+interface PatrolEntryRow {
+  id: number;
+  domain: PatrolDomain;
+  equipment_tag: string;
+  report_date: string;
+  shift_time_slot: ShiftTimeSlot;
+  reading_status: ReadingStatus;
+  remark_text: string | null;
+  recorded_by: string;
+  recorded_at: string;
+  [column: string]: unknown;
+}
+
+const SELECT_ENTRIES_SQL = `
+  SELECT * FROM daily_ops_patrol_entries
+  WHERE domain = @domain AND equipment_tag = @equipmentTag AND report_date = @reportDate
+  ORDER BY shift_time_slot ASC
+`;
+
+const SELECT_LATEST_SQL = `
+  SELECT * FROM daily_ops_patrol_entries
+  WHERE domain = @domain AND equipment_tag = @equipmentTag
+  ORDER BY report_date DESC, shift_time_slot DESC
+  LIMIT 1
+`;
+
+// (domain, equipment_tag)별 최신 1행만 — B3(DailyOpsDataContext)가 마운트 시
+// Live P&ID 스토어(B2)를 DB의 마지막 저장값으로 채우는 데 쓴다.
+const SELECT_ALL_LATEST_SQL = `
+  SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (
+      PARTITION BY domain, equipment_tag
+      ORDER BY report_date DESC, shift_time_slot DESC
+    ) AS rn
+    FROM daily_ops_patrol_entries
+  ) WHERE rn = 1
+`;
+
+function assertKnownColumns(domain: PatrolDomain, values: PatrolValues): void {
+  const known = new Set(PATROL_FIELD_MAP[domain].map((f) => f.columnName));
+  for (const columnName of Object.keys(values)) {
+    if (!known.has(columnName)) {
+      throw new Error(`Unknown patrol column "${columnName}" for domain "${domain}"`);
+    }
+  }
+}
+
+function assertKnownColumn(domain: PatrolDomain, columnName: string): void {
+  const known = new Set(PATROL_FIELD_MAP[domain].map((f) => f.columnName));
+  if (!known.has(columnName)) {
+    throw new Error(`Unknown patrol column "${columnName}" for domain "${domain}"`);
+  }
+}
+
+function rowToEntry(row: PatrolEntryRow, domain: PatrolDomain): PatrolEntry {
+  const values: PatrolValues = {};
+  for (const field of PATROL_FIELD_MAP[domain]) {
+    values[field.columnName] = (row[field.columnName] as PatrolFieldValue) ?? null;
+  }
+  return {
+    id: row.id,
+    domain: row.domain,
+    equipmentTag: row.equipment_tag,
+    reportDate: row.report_date,
+    shiftTimeSlot: row.shift_time_slot,
+    readingStatus: row.reading_status,
+    remarkText: row.remark_text,
+    recordedBy: row.recorded_by,
+    recordedAt: row.recorded_at,
+    values,
+  };
+}
+
+/** (domain, equipmentTag, reportDate, shiftTimeSlot) 키로 upsert한다 (idx_daily_ops_patrol_unique 대상). */
+export function insertPatrolEntry(
+  db: SqlExecutor,
+  domain: PatrolDomain,
+  equipmentTag: string,
+  reportDate: string,
+  shiftTimeSlot: ShiftTimeSlot,
+  values: PatrolValues,
+  readingStatus: ReadingStatus,
+  remarkText: string | null,
+  recordedBy: string
+): void {
+  assertKnownColumns(domain, values);
+  const recordedAt = new Date().toISOString();
+  const columnNames = Object.keys(values);
+
+  const insertColumns = [
+    'domain',
+    'equipment_tag',
+    'report_date',
+    'shift_time_slot',
+    'reading_status',
+    'remark_text',
+    'recorded_by',
+    'recorded_at',
+    ...columnNames,
+  ];
+  const insertPlaceholders = [
+    '@domain',
+    '@equipmentTag',
+    '@reportDate',
+    '@shiftTimeSlot',
+    '@readingStatus',
+    '@remarkText',
+    '@recordedBy',
+    '@recordedAt',
+    ...columnNames.map((c) => `@${c}`),
+  ];
+  const updateSetClause = [
+    'reading_status = @readingStatus',
+    'remark_text = @remarkText',
+    'recorded_by = @recordedBy',
+    'recorded_at = @recordedAt',
+    ...columnNames.map((c) => `${c} = @${c}`),
+  ].join(', ');
+
+  const sql = `
+    INSERT INTO daily_ops_patrol_entries (${insertColumns.join(', ')})
+    VALUES (${insertPlaceholders.join(', ')})
+    ON CONFLICT(domain, equipment_tag, report_date, shift_time_slot)
+    DO UPDATE SET ${updateSetClause}
+  `;
+  db.run(sql, {
+    ...values,
+    domain,
+    equipmentTag,
+    reportDate,
+    shiftTimeSlot,
+    readingStatus,
+    remarkText,
+    recordedBy,
+    recordedAt,
+  });
+}
+
+/** 특정 (domain, equipmentTag, reportDate)의 전체 슬롯(최대 6개) 조회 */
+export function getPatrolEntries(
+  db: SqlExecutor,
+  domain: PatrolDomain,
+  equipmentTag: string,
+  reportDate: string
+): PatrolEntry[] {
+  return db
+    .all<PatrolEntryRow>(SELECT_ENTRIES_SQL, { domain, equipmentTag, reportDate })
+    .map((row) => rowToEntry(row, domain));
+}
+
+/** 전체 날짜/슬롯을 통틀어 가장 최근 값 1건 — Live P&ID(B2)와 Stage C 스냅샷이 사용 */
+export function getLatestPatrolValue(
+  db: SqlExecutor,
+  domain: PatrolDomain,
+  equipmentTag: string
+): PatrolEntry | undefined {
+  const row = db.get<PatrolEntryRow>(SELECT_LATEST_SQL, { domain, equipmentTag });
+  return row ? rowToEntry(row, domain) : undefined;
+}
+
+/** (domain, equipmentTag)마다 가장 최근 값 1건씩, 테이블 전체 — B3 초기 로드가 사용 */
+export function getAllLatestPatrolValues(db: SqlExecutor): PatrolEntry[] {
+  return db.all<PatrolEntryRow>(SELECT_ALL_LATEST_SQL).map((row) => rowToEntry(row, row.domain));
+}
+
+export interface PatrolTrendPoint {
+  timestamp: string;
+  value: number | null;
+}
+
+interface PatrolTrendRow {
+  report_date: string;
+  shift_time_slot: ShiftTimeSlot;
+  reading_status: ReadingStatus;
+  trend_value: number | null;
+}
+
+/**
+ * (domain, equipmentTag, columnName)의 sinceTimestamp(ISO) 이후 시계열.
+ * report_date에는 단일 datetime 컬럼이 없으므로 report_date+shift_time_slot을
+ * 'YYYY-MM-DDTHH:00' 문자열로 이어붙여 문자열 비교만으로 자정 경계를 넘는
+ * 조회를 처리한다(둘 다 zero-padded ISO 형식이라 사전식 비교가 시간순과 일치).
+ * reading_status='no_reading' 슬롯은 컬럼 원본값과 무관하게 value: null로
+ * 강제한다 — HMI-2d-3a 승인 결정(스파크라인에서 판독 불가 구간을 갭으로 표시).
+ */
+export function getPatrolEntriesForTrend(
+  db: SqlExecutor,
+  domain: PatrolDomain,
+  equipmentTag: string,
+  columnName: string,
+  sinceTimestamp: string
+): PatrolTrendPoint[] {
+  assertKnownColumn(domain, columnName);
+  const sql = `
+    SELECT report_date, shift_time_slot, reading_status, "${columnName}" AS trend_value
+    FROM daily_ops_patrol_entries
+    WHERE domain = @domain AND equipment_tag = @equipmentTag
+      AND (report_date || 'T' || shift_time_slot || ':00') >= @sinceTimestamp
+    ORDER BY report_date ASC, shift_time_slot ASC
+  `;
+  return db
+    .all<PatrolTrendRow>(sql, { domain, equipmentTag, sinceTimestamp })
+    .map((row) => ({
+      timestamp: `${row.report_date}T${row.shift_time_slot}`,
+      value: row.reading_status === 'no_reading' ? null : (row.trend_value ?? null),
+    }));
+}

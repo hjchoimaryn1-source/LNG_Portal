@@ -1,0 +1,29 @@
+/* src/hmi/faceplate/hmiAlarmFlash.css
+ *
+ * HMI-2d-2 — 미확인 HIGH/CRITICAL 배지용 1Hz 하드 블링크. ISA-101/Rockwell 관례상
+ * 알람 미확인 상태는 부드러운 페이드가 아니라 켜짐/꺼짐이 뚜렷한 블링크라 steps(1,end)
+ * 사용. prefers-reduced-motion 사용자는 애니메이션 대신 outline으로 시각 구분을
+ * 유지한다 — 알람 표시 자체를 끄지 않는다(지시문 하드 제약).
+ */
+
+@keyframes hmi-alarm-flash {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0.3;
+  }
+}
+
+.hmi-alarm-flash {
+  animation: hmi-alarm-flash 1s steps(1, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hmi-alarm-flash {
+    animation: none;
+    opacity: 1;
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+  }
+}

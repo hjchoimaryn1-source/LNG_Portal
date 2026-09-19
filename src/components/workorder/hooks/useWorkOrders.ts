@@ -19,6 +19,7 @@ import { toNewWorkOrderInput, applyRecordToItem } from '../../../utils/workOrder
 import type { WorkOrderRecord } from '../../../adapters/db/workOrderDao';
 import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../../adapters/guardrailUiAdapter';
+import { SESSION_EXPIRED_MESSAGE } from '../../../lib/rbac/sessionExpiryMessage';
 
 const WORK_ORDERS_API = '/api/v1/cmms/work-orders';
 
@@ -96,19 +97,27 @@ export function useWorkOrders(cmmsAssetRows: CmmsAssetRow[], permits: PTWPermit[
     // Phase 3 MOD_3: Auditor Mode hard block. No fatigueCheck — WOItem.tech is a
     // display-only technician name, not a userId matching daily_shift_assignments
     // (see CMMS_Architecture.md §3.4); fabricating that mapping is out of scope.
-    // Fail-open if no active session exists yet (pre-existing DEV bypass).
-    if (activeSession) {
-      const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'UPDATE' });
-      if (!guard.allowed) {
-        setBlockedMessage(guard.reason ?? 'WORK ORDER UPDATE BLOCKED');
-        return;
-      }
+    // Stage 3 Step 3: previously fail-open when no active session existed —
+    // now blocks with a session-expired message instead of proceeding unguarded.
+    if (!activeSession) {
+      setBlockedMessage(SESSION_EXPIRED_MESSAGE);
+      return;
+    }
+    // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+    if (activeSession.permissions.WORK_ORDER_DIRECTORY?.canUpdate !== true) {
+      setBlockedMessage(`역할 ${activeSession.roleCode}은(는) 작업지시 갱신 권한이 없습니다.`);
+      return;
+    }
+    const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'UPDATE' });
+    if (!guard.allowed) {
+      setBlockedMessage(guard.reason ?? 'WORK ORDER UPDATE BLOCKED');
+      return;
     }
 
     const res = await fetch(WORK_ORDERS_API, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ workOrderId, lastPerformedAt, status: 'COMPLETED' }),
+      body: JSON.stringify({ workOrderId, lastPerformedAt, status: 'COMPLETED', roleCode: activeSession.roleCode }),
     });
     const json = (await res.json()) as { success: boolean; record?: WorkOrderRecord };
     if (res.ok && json.success && json.record) {

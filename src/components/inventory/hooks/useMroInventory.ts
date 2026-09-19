@@ -11,6 +11,7 @@ import type { MroPartRecord, StockAdjustmentInput, StockTxType } from '../../../
 import type { PurchaseRequisitionRecord } from '../../../adapters/db/purchaseRequisitionDao';
 import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../../adapters/guardrailUiAdapter';
+import { SESSION_EXPIRED_MESSAGE } from '../../../lib/rbac/sessionExpiryMessage';
 
 const PARTS_API = '/api/v1/cmms/mro-inventory';
 const ADJUSTMENTS_API = '/api/v1/cmms/mro-inventory/adjustments';
@@ -74,21 +75,28 @@ export function useMroInventory() {
       // Phase 3 MOD_5: Auditor Mode hard block. No fatigueCheck — `performedBy` is
       // freeform text (StockAdjustmentModal.tsx: "사번 또는 이름"), not a validated
       // userId matching daily_shift_assignments.userId, so it can't be looked up
-      // reliably (see CMMS_Architecture.md §3.4 Phase 3 notes). Fail-open if no
-      // active session exists yet (pre-existing DEV bypass).
-      if (activeSession) {
-        const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'UPDATE' });
-        if (!guard.allowed) {
-          return { success: false, error: guard.reason };
-        }
+      // reliably (see CMMS_Architecture.md §3.4 Phase 3 notes).
+      // Stage 3 Step 3: previously fail-open when no active session existed —
+      // now blocks with a session-expired message instead of proceeding unguarded.
+      if (!activeSession) {
+        return { success: false, error: SESSION_EXPIRED_MESSAGE };
+      }
+      // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+      if (activeSession.permissions.MAINTENANCE_MRO_HUB?.canCreate !== true) {
+        return { success: false, error: `역할 ${activeSession.roleCode}은(는) 재고 조정 권한이 없습니다.` };
+      }
+      const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'UPDATE' });
+      if (!guard.allowed) {
+        return { success: false, error: guard.reason };
       }
 
-      const payload: StockAdjustmentInput = {
+      const payload: StockAdjustmentInput & { roleCode: typeof activeSession.roleCode } = {
         partNo: input.partNo,
         txType: input.txType,
         quantity: input.quantity,
         reason: input.reason ?? null,
         performedBy: input.performedBy,
+        roleCode: activeSession.roleCode,
       };
       const res = await fetch(ADJUSTMENTS_API, {
         method: 'POST',

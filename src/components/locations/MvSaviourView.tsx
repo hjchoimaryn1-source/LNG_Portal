@@ -2,7 +2,8 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { usePortalData } from '../../context/PortalDataContext';
+import { useFleetTankFacade } from '../../hooks/portalDataFacade/useFleetTankFacade';
+import { useDailyMasterFacade } from '../../hooks/portalDataFacade/useDailyMasterFacade';
 import { DefectCategory, NodeState } from '../../types/lng';
 import { exportToCSV } from '../../utils/exportCsv';
 import {
@@ -29,8 +30,8 @@ export default function MvSaviourView({ initialSubTab = 'STOWAGE_PLAN' }: MvSavi
     batchTransitionTanks,
     updateTankLog,
     markTankForMaintenance,
-    addDailyMasterLog,
-  } = usePortalData();
+  } = useFleetTankFacade();
+  const { addDailyMasterLog } = useDailyMasterFacade();
 
   // Normalize tab keys
   const getNormalizedTab = (key?: string): 'STOWAGE_PLAN' | 'VOYAGE_PRESSURE' | 'DISCHARGE_NIAS' => {

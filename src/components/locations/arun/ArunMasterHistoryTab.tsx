@@ -15,14 +15,15 @@ import {
   FileSpreadsheet,
   X,
 } from 'lucide-react';
-import { usePortalData } from '../../../context/PortalDataContext';
+import { useFleetTankFacade } from '../../../hooks/portalDataFacade/useFleetTankFacade';
+import { useSettlementFacade } from '../../../hooks/portalDataFacade/useSettlementFacade';
 import { exportToCSV } from '../../../utils/exportCsv';
 import { exportLedgerToExcel } from '../../../utils/exportExcelLedger';
 import { exportTransitLossAuditToExcel } from '../../../utils/exportTransitLossAuditExcel';
 import { calculateGaugeDriftError, sortTanksNaturally } from '../../../utils/scadaCalculations';
 
 export default function ArunMasterHistoryTab() {
-  const portalData = usePortalData() || {};
+  const portalData = { ...useFleetTankFacade(), ...useSettlementFacade() };
   const fleetTanks = portalData.fleetTanks || [];
   const certificateRecords: any[] = (portalData as any).certificateRecords || portalData.settlementRecords || [];
 

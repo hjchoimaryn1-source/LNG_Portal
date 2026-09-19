@@ -12,11 +12,12 @@ import {
   Percent,
   CheckCircle2,
 } from 'lucide-react';
-import { usePortalData } from '../../../context/PortalDataContext';
+import { useFleetTankFacade } from '../../../hooks/portalDataFacade/useFleetTankFacade';
+import { useSettlementFacade } from '../../../hooks/portalDataFacade/useSettlementFacade';
 import { exportTransitLossAuditToExcel } from '../../../utils/exportTransitLossAuditExcel';
 
 export default function ArunHeelBogLossView() {
-  const portalData = usePortalData() || {};
+  const portalData = { ...useFleetTankFacade(), ...useSettlementFacade() };
   const fleetTanks = portalData.fleetTanks || [];
   const certificateRecords: any[] = (portalData as any).certificateRecords || portalData.settlementRecords || [];
 

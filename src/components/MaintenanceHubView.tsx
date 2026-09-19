@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { usePortalData } from '../context/PortalDataContext';
+import { useFleetTankFacade } from '../hooks/portalDataFacade/useFleetTankFacade';
 import { DefectCategory, MaintenanceLocation, NodeState } from '../types/lng';
 import {
   Wrench,
@@ -65,7 +65,7 @@ export default function MaintenanceHubView() {
     fleetTanks,
     markTankForMaintenance,
     releaseTankFromMaintenance,
-  } = usePortalData();
+  } = useFleetTankFacade();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterCategory, setFilterCategory] = useState<DefectCategory | 'ALL'>('ALL');

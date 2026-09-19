@@ -14,7 +14,7 @@
 //   직접 참조해 "현재 status -> 다음 status 전이에 필요한 서명 중 미서명" 목록만 파생한다.
 //   각 패널은 화면 밀도를 위해 최대 PANEL_ROW_LIMIT행으로 자른다.
 
-import { getCmmsDb } from './db/cmmsDbSingleton';
+import { getApprovalHubDb } from '../cmms-approval-hub/db/approvalHubDbSingleton';
 import {
   selectWorkOrderStatusCounts,
   selectPtwPermitStatusCounts,
@@ -29,6 +29,8 @@ import { selectAllPermitLifecycle, type PTWPermitLifecycleDraft } from './db/ptw
 import { selectAllSignaturesByPermit } from './db/ptwSignatureDao';
 import { selectRecentGasTestRecords } from './db/gasTestDao';
 import { selectAllParts, type MroPartRecord } from './db/mroInventoryDao';
+import { selectAllRequisitions } from './db/purchaseRequisitionDao';
+import { selectPendingShiftOverrides } from './db/shiftOverrideDao';
 import type { GasTestRecordDraft } from './ptwFormAdapter';
 import { PTW_TRANSITION_REQUIRED_ROLES } from '../data/ptwSignatureRoles';
 import type { PTWSignatureRole, PTWWorkflowStatus } from '../types/lng';
@@ -60,6 +62,37 @@ export interface OverviewSummary {
   activeWorkOrders: WorkOrderRecord[];
   activePermits: PTWPermitLifecycleDraft[];
   lowStockParts: MroPartRecord[];
+  /** Approval Hub Phase 1 Stage 2a — PTW/WO/MRO_REQ/SHIFT_OVERRIDE 통합 승인 대기 집계. */
+  approvalHub: ApprovalHubSummary;
+}
+
+// ----------------------------------------------------------------------------
+// Approval Hub Phase 1 Stage 2a — PTW/WORK_ORDER/MRO_REQ/SHIFT_OVERRIDE 통합
+// 승인 대기 집계. work_orders/mro_purchase_requisitions/shift_overrides는
+// Stage 1(approval_status 3값 체계)이 있지만, PTW는 Stage 1d가 HJ 승인
+// 대기 중이라 아직 approval_status/hq_handoff_status 컬럼이 없다 — PTW 행은
+// 기존 computePendingApprovals()(서명 미비 판정, PTW_TRANSITION_REQUIRED_ROLES
+// SSOT)를 그대로 재사용해 "승인 대기"로 매핑하고, hqHandoffStatus는 null로 둔다.
+// ----------------------------------------------------------------------------
+
+export type ApprovalHubDocType = 'PTW' | 'WORK_ORDER' | 'MRO_REQ' | 'SHIFT_OVERRIDE';
+
+export interface ApprovalHubItem {
+  docType: ApprovalHubDocType;
+  id: string;
+  ref: string;
+  title: string;
+  requester: string | null;
+  requestedAt: string | null;
+  approvalStatus: string;
+  /** Stage 1d(HJ 승인 대기)가 반영되기 전까지는 항상 null. */
+  hqHandoffStatus: 'NOT_APPLICABLE' | 'PENDING_HQ_REVIEW' | null;
+}
+
+export interface ApprovalHubSummary {
+  totalPendingCount: number;
+  countsByDocType: Record<ApprovalHubDocType, number>;
+  items: ApprovalHubItem[];
 }
 
 const GAS_ALERT_WINDOW_HOURS = 24;
@@ -111,9 +144,72 @@ function computeRecentGasAlerts(db: SqlExecutor): GasTestRecordDraft[] {
   return selectRecentGasTestRecords(db, GAS_ALERT_WINDOW_HOURS).slice(0, PANEL_ROW_LIMIT);
 }
 
+function computeApprovalHub(db: SqlExecutor, ptwPending: PendingApprovalItem[]): ApprovalHubSummary {
+  const ptwItems: ApprovalHubItem[] = ptwPending.map((p) => ({
+    docType: 'PTW',
+    id: p.permitId,
+    ref: p.permitId,
+    title: `PTW ${p.permitId}`,
+    requester: null,
+    requestedAt: null,
+    approvalStatus: p.currentStatus,
+    hqHandoffStatus: null,
+  }));
+
+  const woItems: ApprovalHubItem[] = selectAllWorkOrders(db)
+    .filter((wo) => wo.approvalStatus === 'PENDING_SITE_APPROVAL')
+    .map((wo) => ({
+      docType: 'WORK_ORDER',
+      id: wo.workOrderId,
+      ref: wo.workOrderId,
+      title: wo.title,
+      requester: null,
+      requestedAt: wo.createdAt,
+      approvalStatus: wo.approvalStatus,
+      hqHandoffStatus: null,
+    }));
+
+  const mroItems: ApprovalHubItem[] = selectAllRequisitions(db)
+    .filter((pr) => pr.approvalStatus === 'PENDING_SITE_APPROVAL')
+    .map((pr) => ({
+      docType: 'MRO_REQ',
+      id: String(pr.prId),
+      ref: `PR-${pr.prId}`,
+      title: `${pr.partNo} x${pr.suggestedQty}`,
+      requester: null,
+      requestedAt: pr.createdAt,
+      approvalStatus: pr.approvalStatus,
+      hqHandoffStatus: null,
+    }));
+
+  const shiftItems: ApprovalHubItem[] = selectPendingShiftOverrides(db).map((so) => ({
+    docType: 'SHIFT_OVERRIDE',
+    id: String(so.id),
+    ref: `OVR-${so.id}`,
+    title: `${so.staffId} — ${so.overrideType} (${so.targetDate})`,
+    requester: so.requestedBy,
+    requestedAt: so.createdAt,
+    approvalStatus: so.approvalStatus,
+    hqHandoffStatus: null,
+  }));
+
+  const items = [...ptwItems, ...woItems, ...mroItems, ...shiftItems].slice(0, PANEL_ROW_LIMIT);
+
+  return {
+    totalPendingCount: ptwItems.length + woItems.length + mroItems.length + shiftItems.length,
+    countsByDocType: {
+      PTW: ptwItems.length,
+      WORK_ORDER: woItems.length,
+      MRO_REQ: mroItems.length,
+      SHIFT_OVERRIDE: shiftItems.length,
+    },
+    items,
+  };
+}
+
 /** Overview 대시보드 요약 카드 + 4개 패널용 스냅샷을 조립한다. */
 export function getOverviewSummary(): OverviewSummary {
-  const db = getCmmsDb();
+  const db = getApprovalHubDb();
 
   const activeWorkOrders = selectAllWorkOrders(db)
     .filter((wo) => wo.status !== 'COMPLETED')
@@ -123,6 +219,7 @@ export function getOverviewSummary(): OverviewSummary {
     .filter((p) => p.currentStockQty <= p.minStockQty)
     .sort((a, b) => a.currentStockQty - b.currentStockQty)
     .slice(0, PANEL_ROW_LIMIT);
+  const pendingApprovals = computePendingApprovals(db);
 
   return {
     assets: computeAssetStatusCounts(db),
@@ -133,10 +230,11 @@ export function getOverviewSummary(): OverviewSummary {
       windowHours: GAS_ALERT_WINDOW_HOURS,
     },
     mroLowStock: { count: selectLowStockPartCount(db) },
-    pendingApprovals: computePendingApprovals(db),
+    pendingApprovals,
     recentGasAlerts: computeRecentGasAlerts(db),
     activeWorkOrders,
     activePermits,
     lowStockParts,
+    approvalHub: computeApprovalHub(db, pendingApprovals),
   };
 }

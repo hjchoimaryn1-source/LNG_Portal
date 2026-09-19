@@ -8,31 +8,43 @@
 
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { LayoutDashboard } from 'lucide-react';
 import { useOverviewSummary } from './hooks/useOverviewSummary';
+import { useApprovalHubActions } from './hooks/useApprovalHubActions';
 import OverviewKpiCards from './OverviewKpiCards';
 import PendingApprovalsPanel from './panels/PendingApprovalsPanel';
 import GasSafetyAlertLogPanel from './panels/GasSafetyAlertLogPanel';
 import WorkOrderPtwLifecyclePanel from './panels/WorkOrderPtwLifecyclePanel';
 import MroLowStockPanel from './panels/MroLowStockPanel';
+import ApprovalHubPanel from './panels/ApprovalHubPanel';
 import { BEVEL_BUTTON } from '../cmms/scadaStyles';
+import { useActiveSession } from '../../lib/rbac/activeSessionStore';
 import type { SubProcessKey } from '../../types/lng';
 
 interface CmmsOverviewDashboardViewProps {
   onNavigate?: (key: SubProcessKey, focusId?: string) => void;
 }
 
+// Approval Hub Phase 1 Stage 2c(HJ Option A) — 인라인 승인 버튼 노출 여부. 서버
+// 라우트(work-orders/approve 등)의 게이팅과 동일하게 SITE_MANAGER/ADMIN만.
+const APPROVAL_HUB_APPROVER_ROLES = ['SITE_MANAGER', 'ADMIN'];
+
 export default function CmmsOverviewDashboardView({ onNavigate }: CmmsOverviewDashboardViewProps) {
   const { summary, loading, error, refresh } = useOverviewSummary();
+  const session = useActiveSession();
+  const canApproveHub = session ? APPROVAL_HUB_APPROVER_ROLES.includes(session.roleCode) : false;
+  const { approve, pendingKey, error: actionError } = useApprovalHubActions(() => refresh(true));
+  const approvalHubRef = useRef<HTMLDivElement>(null);
+  const scrollToApprovalHub = () => approvalHubRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   return (
-    <div className="h-full flex flex-col min-h-0 gap-2 w-full p-2 overflow-hidden">
-      <div className="win-panel px-2 py-1.5 flex items-center justify-between shrink-0">
-        <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-          <LayoutDashboard className="w-3.5 h-3.5" />
-          Command Center — CMMS Overview Dashboard
-        </span>
+    <div className="h-full flex flex-col min-h-0 gap-2 w-full p-2 overflow-y-auto">
+      <div className="tier3-title-bar flex flex-col md:flex-row justify-between items-start md:items-center gap-2 select-none shrink-0">
+        <div className="flex items-center gap-2">
+          <LayoutDashboard className="w-5 h-5 text-blue-900" />
+          <h2 className="text-base sm:text-lg font-black text-blue-950">DASHBOARD - CMMS Overview</h2>
+        </div>
         <button onClick={() => refresh()} className={`${BEVEL_BUTTON} !text-[10px] !py-0.5`}>
           Refresh
         </button>
@@ -51,10 +63,10 @@ export default function CmmsOverviewDashboardView({ onNavigate }: CmmsOverviewDa
       ) : (
         <>
           <div className="shrink-0">
-            <OverviewKpiCards summary={summary} onNavigate={onNavigate} />
+            <OverviewKpiCards summary={summary} onNavigate={onNavigate} onScrollToApprovalHub={scrollToApprovalHub} />
           </div>
 
-          <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-2">
+          <div className="shrink-0 grid grid-cols-1 lg:grid-cols-2 gap-2">
             <PendingApprovalsPanel items={summary.pendingApprovals} loading={loading} onNavigate={onNavigate} />
             <GasSafetyAlertLogPanel
               alerts={summary.recentGasAlerts}
@@ -68,6 +80,19 @@ export default function CmmsOverviewDashboardView({ onNavigate }: CmmsOverviewDa
               onNavigate={onNavigate}
             />
             <MroLowStockPanel parts={summary.lowStockParts} loading={loading} />
+          </div>
+
+          <div ref={approvalHubRef} className="shrink-0">
+            <ApprovalHubPanel
+              items={summary.approvalHub.items}
+              totalPendingCount={summary.approvalHub.totalPendingCount}
+              loading={loading}
+              canApprove={canApproveHub}
+              pendingKey={pendingKey}
+              actionError={actionError}
+              onApprove={approve}
+              onNavigate={onNavigate}
+            />
           </div>
         </>
       )}

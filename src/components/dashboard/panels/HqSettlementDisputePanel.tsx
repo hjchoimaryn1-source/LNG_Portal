@@ -13,7 +13,7 @@
 import React, { useState } from 'react';
 import { FileWarning } from 'lucide-react';
 import type { SettlementLedgerEntry, SubProcessKey } from '../../../types/lng';
-import type { RoleCode } from '../../../types/rbac';
+import type { Stage1RoleCode } from '../../../lib/rbac/userSecurityRolePermissionSeed';
 import { blockIfAuditorMode } from '../../../lib/rbac/guardrails';
 import { BEVEL_BUTTON, SUNKEN_PANEL, TITLE_BAR, CRITICALITY_BADGE } from '../../cmms/scadaStyles';
 import GuardrailBlockedBanner from '../../shared/GuardrailBlockedBanner';
@@ -21,7 +21,7 @@ import GuardrailBlockedBanner from '../../shared/GuardrailBlockedBanner';
 interface HqSettlementDisputePanelProps {
   disputeRecords: SettlementLedgerEntry[];
   readOnly: boolean;
-  roleCode: RoleCode;
+  roleCode: Stage1RoleCode;
   onNavigate?: (key: SubProcessKey, focusId?: string) => void;
 }
 

@@ -38,10 +38,13 @@ export type SubProcessKey =
   | 'NIAS_LAYDOWN_3_HEEL'
   // Nias Regas Terminal - Domain 2: Regas System & Gas-to-Power
   | 'NIAS_GAS_PROCESS_TELEMETRY'
-  | 'NIAS_GC_GAS_QUALITY'
-  | 'NIAS_GAS_METERING_LEDGER'
-  | 'NIAS_PLTMG_POWER_OUTPUT'
+  | 'NIAS_PATROL_LOG'
+  | 'NIAS_GAS_METERING_DAILY'
   | 'NIAS_HEAT_SETTLEMENT'
+  // PLTMG POWER — independent top-level tab (2026-09-18 correction). Fuel-gas
+  // draw/generation domain, distinct from both Regas & Gas Process and
+  // Electrical System (ORU internal distribution) — see NiasPowerThermalTab.tsx.
+  | 'NIAS_PLTMG_POWER_OUTPUT'
   // Legacy Aliases for Backwards Compatibility
   | 'NIAS_OPERATIONS_OVERVIEW'
   | 'NIAS_DAILY_CONDITION_BOG'
@@ -92,7 +95,21 @@ export type SubProcessKey =
   // Management of Change (NP-12) — Phase 11c Stage 2
   | 'MOC_HUB'
   | 'MOC_PLAN_OF_CHANGE'
-  | 'MOC_COMPLETION_REPORT';
+  | 'MOC_COMPLETION_REPORT'
+  // Daily Ops — Phase 12 Stage C4 (4 new LNG-Process tabs). Addendum C4 assumed
+  // these existed from "original Stage A" — they did not; added here now.
+  | 'DAILY_OPS_ISO_TANK_LOGISTICS'
+  | 'DAILY_OPS_ELECTRICAL_SYSTEM'
+  | 'DAILY_OPS_LIVE_PID_MAP'
+  // Daily Ops Overview — Phase 12 Pre-Flight III (approval state machine + RBAC)
+  | 'DAILY_OPS_OVERVIEW'
+  // HMI Overview — Phase 12 Daily Ops Sub-stage C. Parallel to DAILY_OPS_LIVE_PID_MAP
+  // (raster-overlay), not a replacement — HJ decision 2026-09-15, see HmiOverviewContainer.tsx.
+  | 'DAILY_OPS_HMI_OVERVIEW'
+  // --- HMI Control Maps (own sector, not Daily Ops — see hmiControlMapsRegistry.tsx) ---
+  | 'HMI_METERING_MAP'
+  | 'HMI_BUFFERING_MAP'
+  | 'HMI_VAPOR_MAP';
 
 export interface OffloadHeelMetrics {
   offloadDate: string;

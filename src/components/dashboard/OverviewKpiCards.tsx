@@ -45,9 +45,11 @@ function KpiCard({ label, value, subLabel, icon, tone, onClick }: KpiCardProps) 
 interface OverviewKpiCardsProps {
   summary: OverviewSummary;
   onNavigate?: (key: SubProcessKey) => void;
+  /** Approval Hub Phase 1 Stage 3c — 통합 승인 대기 KPI 카드 클릭 시 하단 Approval Hub 섹션으로 스크롤. */
+  onScrollToApprovalHub?: () => void;
 }
 
-export default function OverviewKpiCards({ summary, onNavigate }: OverviewKpiCardsProps) {
+export default function OverviewKpiCards({ summary, onNavigate, onScrollToApprovalHub }: OverviewKpiCardsProps) {
   const activeWoCount = summary.workOrders.SCHEDULED + summary.workOrders.IN_PROGRESS + summary.workOrders.PARTS_PENDING;
 
   return (
@@ -90,6 +92,14 @@ export default function OverviewKpiCards({ summary, onNavigate }: OverviewKpiCar
         subLabel="AGT FAIL 판정 건수"
         icon={<Flame className="w-3.5 h-3.5" />}
         tone={summary.gasTestAlerts.count > 0 ? 'danger' : 'ok'}
+      />
+      <KpiCard
+        label="Approval Hub — Pending"
+        value={summary.approvalHub.totalPendingCount}
+        subLabel={`WO ${summary.approvalHub.countsByDocType.WORK_ORDER} / MRO ${summary.approvalHub.countsByDocType.MRO_REQ} / OVR ${summary.approvalHub.countsByDocType.SHIFT_OVERRIDE} / PTW ${summary.approvalHub.countsByDocType.PTW}`}
+        icon={<ClipboardCheck className="w-3.5 h-3.5" />}
+        tone={summary.approvalHub.totalPendingCount > 0 ? 'warn' : 'ok'}
+        onClick={onScrollToApprovalHub}
       />
       <KpiCard
         label="MRO Low-Stock Items"

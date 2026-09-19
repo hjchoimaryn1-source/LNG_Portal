@@ -1,7 +1,11 @@
 // src/components/portal/utils/getInitialNav.ts
 import { SubProcessKey } from '../../../types/lng';
+import { HMI_CONTROL_MAPS_REGISTRY, HMI_CONTROL_MAPS_MENU } from '../../../config/hmiControlMapsRegistry';
 
 export function getInitialNav(key: SubProcessKey): { menu: string; subTab: string } {
+  if (HMI_CONTROL_MAPS_REGISTRY.some((entry) => entry.key === key)) {
+    return { menu: HMI_CONTROL_MAPS_MENU, subTab: key };
+  }
   if (key === 'LNG_PROCESS_OVERVIEW' || key === 'NIAS_TERMINAL_OVERVIEW') {
     return { menu: 'lng-process', subTab: 'LNG_PROCESS_OVERVIEW' };
   }
@@ -35,5 +39,7 @@ export function getInitialNav(key: SubProcessKey): { menu: string; subTab: strin
   if (key.startsWith('MOC')) {
     return { menu: 'moc', subTab: key };
   }
+  // DAILY_OPS_* (Stage C4 tabs) fall through to the default below —
+  // they belong to the 'lng-process' menu group like the fallback already does.
   return { menu: 'lng-process', subTab: key };
 }

@@ -5,6 +5,7 @@ import React from 'react';
 import { GripVertical } from 'lucide-react';
 import type { ActiveBayState, FleetTankItem } from '@/types/lng';
 import type { NiasTankAsset, NiasZone } from '../../NiasTerminalView';
+import { NiasTankOverviewKpiStrip } from './NiasTankOverviewKpiStrip';
 
 export interface NiasTankOverviewTabProps {
   zoneStats: {
@@ -69,7 +70,6 @@ export default function NiasTankOverviewTab({
 }: NiasTankOverviewTabProps) {
   const yard1TanksList = zoneStats.yard1.tanks;
   const yard2TanksList = zoneStats.yard2.tanks;
-  const yard1OccupancyPct = ((yard1TanksList.length / 34) * 100).toFixed(1);
 
   // Helper to match tank by slot index (1-indexed slot number)
   const getTankAtSlot = (list: typeof yard1TanksList, slotIdx: number): typeof yard1TanksList[0] | undefined => {
@@ -89,160 +89,13 @@ export default function NiasTankOverviewTab({
   const mountedCount = activeBays.filter((b) => b.tankNo).length;
   const runningCount = activeBays.filter((b) => b.status === 'RUNNING').length;
   const totalActiveFlow = runningCount > 0 ? 1700 : 0;
-  const yard1UsableMassTon = yard1TanksList.reduce(
-    (acc, t) => acc + Math.max(0, (((t.levelPercent || 60) - 4) / 100) * 18.2),
-    0
-  );
-  const yard1TotalEnergyMMBtu = Math.round((yard1UsableMassTon > 0 ? yard1UsableMassTon : 97.1) * 52.0);
-  const yard1AutonomyDays = ((yard1UsableMassTon > 0 ? yard1UsableMassTon : 97.1) / 21.6).toFixed(1);
 
   const yard1HighPressCount = yard1TanksList.filter((t) => (t.pressureMpa || 0) >= 0.74).length;
 
-  const activeRunningBay =
-    activeBays.find((b) => b.status === 'RUNNING') || activeBays.find((b) => b.tankNo) || activeBays[0];
-  const activeRackTag = getRackTag(activeRunningBay?.bayId || 'Bay 01');
-  const activeTankNo = activeRunningBay?.tankNo || 'ISOT-009';
-  const activeBayTankAsset = tankInventory.find((t) => t.id === activeRunningBay?.tankNo);
-  const activeFleetTank = fleetTanks.find((t) => t.tankNo === activeRunningBay?.tankNo);
-  const activeBayLevel = activeRunningBay?.level ?? activeBayTankAsset?.levelPercent ?? activeFleetTank?.level ?? 49.0;
-  const activeBayMassTon = (activeBayLevel / 100) * 18.2;
-  const currentTankMassKg = (activeBayLevel / 100) * 18200;
-  const usableToHeelKg = Math.max(0, currentTankMassKg - 420);
-  const remainHours = usableToHeelKg / 900;
-  const targetDate = new Date(Date.now() + remainHours * 3600 * 1000);
-  const targetTimeStr = targetDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-
-  const yard2TotalHeelTon =
-    yard2TanksList.length > 0
-      ? yard2TanksList.reduce((acc, t) => acc + ((t.levelPercent || 4) / 100) * 18.2, 0)
-      : 0.73;
-
   return (
     <div className="space-y-2.5 animate-in fade-in duration-200">
-      {/* 1. Top 3 Zone KPI Summary Strip (Engineering Autonomy & Energy SCADA Cards) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 select-none">
-        {/* Card 1: ORU ( LD - 1 ) */}
-        <div className="win-panel overflow-hidden border border-slate-300 flex flex-col justify-between">
-          <div className="bg-[#002b4d] px-3 py-2 flex justify-between items-center text-white border-b border-blue-900/60">
-            <span className="text-slate-100 font-bold text-xs sm:text-sm tracking-wider uppercase flex-1 text-center">
-              ORU ( LD - 1 )
-            </span>
-            <span
-              className="w-2.5 h-2.5 rounded-full bg-[#10b981] shrink-0"
-              title="Normal Cryo Ready Buffer"
-            />
-          </div>
-          <div className="p-3 space-y-1.5 font-mono text-xs sm:text-sm text-slate-800 bg-white">
-            <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Staged Tanks:</span>
-              <strong className="text-slate-900 font-bold text-xs text-right truncate pl-2 font-mono">
-                {yard1TanksList.length} / 34 Slots ({yard1OccupancyPct}%)
-              </strong>
-            </div>
-            <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Usable Net Mass:</span>
-              <strong className="text-slate-900 font-bold text-xs text-right truncate pl-2 font-mono">
-                {yard1UsableMassTon.toFixed(1)} ton LNG
-              </strong>
-            </div>
-            <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Total Energy:</span>
-              <strong className="text-blue-900 font-bold text-xs text-right truncate pl-2 font-mono">
-                {yard1TotalEnergyMMBtu.toLocaleString()} MMBtu
-              </strong>
-            </div>
-            <div className="flex items-center justify-between w-full pt-1">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Est. Autonomy:</span>
-              <strong className="text-[#0284c7] font-extrabold text-sm font-mono text-right truncate pl-2">
-                ~{yard1AutonomyDays} Days
-              </strong>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: ORU ( ISO TK - Skid ) */}
-        <div className="win-panel overflow-hidden border border-slate-300 flex flex-col justify-between">
-          <div className="bg-[#002b4d] px-3 py-2 flex justify-between items-center text-white border-b border-blue-900/60">
-            <span className="text-slate-100 font-bold text-xs sm:text-sm tracking-wider uppercase flex-1 text-center">
-              ORU ( ISO TK - Skid )
-            </span>
-            <span
-              className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                runningCount > 0 ? 'bg-[#10b981] animate-pulse' : 'bg-[#d97706]'
-              }`}
-              title={runningCount > 0 ? 'Active Vaporization Online' : 'Standby / Low Flow'}
-            />
-          </div>
-          <div className="p-3 space-y-1.5 font-mono text-xs sm:text-sm text-slate-800 bg-white">
-            <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Active Supply:</span>
-              <strong className="text-slate-900 font-bold text-xs text-right truncate pl-2 font-mono">
-                {activeRackTag} ({activeTankNo})
-              </strong>
-            </div>
-            <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Sendout Rate:</span>
-              <strong
-                className="text-blue-900 font-bold text-xs text-right truncate pl-2 font-mono"
-                title="2-Vaporizer Train Sendout Rate: 1,700 Nm³/h (43.2 t/day)"
-              >
-                1,700 Nm³/h (43.2 t/d)
-              </strong>
-            </div>
-            <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Active TK Mass:</span>
-              <strong className="text-slate-900 font-bold text-xs text-right truncate pl-2 font-mono">
-                {activeBayMassTon.toFixed(1)} ton (~{activeBayLevel.toFixed(0)}%)
-              </strong>
-            </div>
-            <div className="flex items-center justify-between w-full pt-1">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">1.0m³ Cutoff:</span>
-              <strong className="text-[#f59e0b] font-extrabold text-sm font-mono text-right truncate pl-2">
-                ~{remainHours.toFixed(1)}h (ETA: {targetTimeStr})
-              </strong>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: ORU ( LD - 2 ) */}
-        <div className="win-panel overflow-hidden border border-slate-300 flex flex-col justify-between">
-          <div className="bg-[#002b4d] px-3 py-2 flex justify-between items-center text-white border-b border-blue-900/60">
-            <span className="text-slate-100 font-bold text-xs sm:text-sm tracking-wider uppercase flex-1 text-center">
-              ORU ( LD - 2 )
-            </span>
-            <span
-              className="w-2.5 h-2.5 rounded-full bg-[#10b981] shrink-0"
-              title="Heel Buffer & Vacuum Intact"
-            />
-          </div>
-          <div className="p-3 space-y-1.5 font-mono text-xs sm:text-sm text-slate-800 bg-white">
-            <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Empty Staged:</span>
-              <strong className="text-slate-900 font-bold text-xs text-right truncate pl-2 font-mono">
-                {yard2TanksList.length} / 16 Slots
-              </strong>
-            </div>
-            <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Retained Heel:</span>
-              <strong className="text-purple-900 font-bold text-xs text-right truncate pl-2 font-mono">
-                {yard2TotalHeelTon.toFixed(2)} ton (1.0 m³ Cutoff)
-              </strong>
-            </div>
-            <div className="flex items-center justify-between w-full border-b border-slate-100 py-1.5">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">Backhaul Target:</span>
-              <strong className="text-blue-900 font-bold text-xs text-right truncate pl-2 font-mono">
-                {yard2TanksList.length} / 10 Ready
-              </strong>
-            </div>
-            <div className="flex items-center justify-between w-full pt-1">
-              <span className="text-slate-500 font-medium text-xs whitespace-nowrap shrink-0">M/V Saviour:</span>
-              <strong className="text-slate-800 font-bold text-xs text-right truncate pl-2 font-mono">
-                Shipment N-2 Staged
-              </strong>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* 1. Top 3 Zone KPI Summary Strip — live DB snapshot (Yard Map / ORU Dashboard rewiring, Part 2) */}
+      <NiasTankOverviewKpiStrip />
 
       {/* 2. Main 3-Column Visual Yard Map (Equal Height Flow Layout: 1.3fr 1fr 1.3fr) */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr_1.3fr] gap-2.5 items-stretch h-[calc(100vh-270px)] min-h-[660px] max-h-[calc(100vh-240px)]">

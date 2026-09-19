@@ -13,7 +13,7 @@ import {
   Download,
   CheckCircle2,
 } from 'lucide-react';
-import { usePortalData } from '../../../context/PortalDataContext';
+import { useFleetTankFacade } from '../../../hooks/portalDataFacade/useFleetTankFacade';
 import { NodeState } from '../../../types/lng';
 import { exportToCSV } from '../../../utils/exportCsv';
 import { FleetTankItem, getTankPhysicalMetrics, LNG_LIQUID_DENSITY_KG_M3 } from '../../../data/mockTankData';
@@ -67,7 +67,7 @@ export default function ArunLoadingCoqTab({
   onProceedToVesselStowage: propsOnProceedToVesselStowage,
   onProceedToVesselDischarge: propsOnProceedToVesselDischarge,
 }: ArunLoadingCoqTabProps) {
-  const portalData = usePortalData() || {};
+  const portalData = useFleetTankFacade();
   const fleetTanks: FleetTankItem[] = portalData.fleetTanks || [];
 
   // Local state fallback if not passed from container hook

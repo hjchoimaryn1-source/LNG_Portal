@@ -54,61 +54,96 @@ export const SUBPROCESS_TITLES_LNG_PROCESS: Record<string, SubProcessTitleEntry>
   },
   NIAS_TANK_OVERVIEW: {
     location: 'LNG-Process',
-    process: 'Nias Regas Unit > ISO Tank Management > Overview & Yard Map',
+    process: 'Nias Tank Yard > Overview & Yard Map',
     icon: <Building2 className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   NIAS_LAYDOWN_1_2_LOG: {
     location: 'LNG-Process',
-    process: 'Nias Regas Unit > ISO Tank Management > Laydown 1 Log & BOG',
+    // ISO Tank & Mass Balance relocation (2026-09-18): moved from Nias Tank
+    // Yard to Regas & Gas Process — text updated to avoid a stale-location
+    // fallback (same class of bug as the earlier 4-HR PATROL LOG rename).
+    process: 'Regas & Gas Process > ISO TK - LOG',
     icon: <MapPin className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   NIAS_ACTIVE_BAY_TANKS: {
     location: 'LNG-Process',
-    process: 'Nias Regas Unit > ISO Tank Management > Active Bay Mounted Tanks',
+    process: 'Nias Tank Yard > Active Bay Mounted Tanks',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   NIAS_LAYDOWN_3_HEEL: {
     location: 'LNG-Process',
-    process: 'Nias Regas Unit > ISO Tank Management > Laydown 2 (Heel 4%)',
+    process: 'Nias Tank Yard > Laydown 2 (Heel 4%)',
     icon: <MapPin className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   NIAS_GAS_PROCESS_TELEMETRY: {
     location: 'LNG-Process',
-    process: 'Nias Regas Unit > Regas & Power > Gas Process Telemetry',
+    process: 'Regas & Gas Process > Gas Process Telemetry',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
-  NIAS_GC_GAS_QUALITY: {
+  NIAS_PATROL_LOG: {
     location: 'LNG-Process',
-    process: 'Nias Regas Unit > Regas & Power > Gas Metering - Log',
+    process: 'Regas & Gas Process > Patrol Log',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
-  NIAS_GAS_METERING_LEDGER: {
+  NIAS_GAS_METERING_DAILY: {
     location: 'LNG-Process',
-    process: 'Nias Regas Unit > Regas & Power > Gas Metering (Ledger)',
+    process: 'Regas & Gas Process > Gas Metering (Daily)',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
-  NIAS_PLTMG_POWER_OUTPUT: {
+  // No entry previously existed for Mass Balance (pre-existing gap, not
+  // caused by this relocation) — added now since it's moving here.
+  NIAS_TANK_MASS_BALANCE: {
     location: 'LNG-Process',
-    process: 'Nias Regas Unit > Regas & Power > PLTMG Power & Output',
+    process: 'Regas & Gas Process > Mass Balance',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   NIAS_HEAT_SETTLEMENT: {
     location: 'LNG-Process',
-    process: 'Nias Regas Unit > Regas & Power > Custody Heat Settlement',
+    process: 'Regas & Gas Process > Monthly Report (PLN EPI)',
+    icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  DAILY_OPS_ISO_TANK_LOGISTICS: {
+    location: 'LNG-Process',
+    process: 'ISO Tank Logistics',
+    icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  NIAS_PLTMG_POWER_OUTPUT: {
+    location: 'LNG-Process',
+    process: 'PLTMG Power',
+    icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  DAILY_OPS_ELECTRICAL_SYSTEM: {
+    location: 'LNG-Process',
+    // Electrical System relocation (2026-09-18 correction): moved from a
+    // top-level tab into a Regas & Gas Process sub-tab.
+    process: 'Regas & Gas Process > Electrical System',
+    icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
+    color: 'text-black font-bold',
+  },
+  DAILY_OPS_OVERVIEW: {
+    location: 'LNG-Process',
+    // Daily Ops Overview relocation (2026-09-18 correction): moved from a
+    // top-level tab into a Regas & Gas Process sub-tab; its prior sidebar
+    // dual-access exception was rescinded in a later pass the same day —
+    // Regas & Gas Process > Daily Ops Overview is now the sole access point.
+    process: 'Regas & Gas Process > Daily Ops Overview',
     icon: <Activity className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },
   MAINTENANCE_MRO_HUB: {
-    location: 'LNG-Process',
-    process: 'Maintenance & Depot',
+    location: 'Work Order & Maintenance',
+    process: 'MRO Depot',
     icon: <Wrench className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },

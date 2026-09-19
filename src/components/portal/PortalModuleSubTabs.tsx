@@ -35,14 +35,6 @@ export default function PortalModuleSubTabs({
 }: PortalModuleSubTabsProps) {
   return (
     <div className="bg-[#e4e0d8] border-b-2 border-white px-2 py-1 flex items-center gap-1.5 overflow-x-auto shrink-0">
-      {/* Sub-Tabs for Launcher Hub */}
-      {currentModuleId === 'MOD_0_LAUNCHER' && (
-        <div className="flex items-center gap-2 text-xs font-mono text-slate-700 py-0.5">
-          <span className="font-bold text-slate-900">SECTOR LAUNCHER HUB</span>
-          <span className="text-slate-400">|</span>
-          <span>Select any of the 5 operational sectors below</span>
-        </div>
-      )}
       {currentModuleId === 'MOD_6_OVERVIEW' && (
         <div className="flex items-center gap-2 text-xs font-mono text-slate-700 py-0.5">
           <span className="font-bold text-slate-900">CMMS OVERVIEW DASHBOARD</span>

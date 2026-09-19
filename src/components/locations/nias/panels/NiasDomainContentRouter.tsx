@@ -8,10 +8,11 @@ import { NiasActiveBayWorkspace } from '../NiasActiveBayWorkspace';
 import { NiasLd2BackhaulTab } from '../tabs/NiasLd2BackhaulTab';
 import NiasTankMassBalanceTab from '../NiasTankMassBalanceTab';
 import NiasProcessPIDDiagram from '../NiasProcessPIDDiagram';
-import NiasGasQualityTab from '../NiasGasQualityTab';
-import NiasGasQualityLedgerTab from '../NiasGasQualityLedgerTab';
-import NiasPowerThermalTab from '../NiasPowerThermalTab';
-import NiasCustodySettlementTab from '../NiasCustodySettlementTab';
+import NiasPatrolLogTab from '../NiasPatrolLogTab';
+import GasMeteringDailyTab from '../GasMeteringDailyTab';
+import NiasMonthlyReportPlnEpiTab from '../monthlyReport/NiasMonthlyReportPlnEpiTab';
+import { ElectricalSystemView } from '../../../../cmms-daily-ops/views/ElectricalSystemView';
+import { DailyOpsOverviewView } from '../../../../cmms-daily-ops/views/DailyOpsOverviewView';
 import type { NiasDomainContentRouterProps } from '../types/niasDomainContentRouter.types';
 
 export default function NiasDomainContentRouter(props: NiasDomainContentRouterProps) {
@@ -41,9 +42,11 @@ export default function NiasDomainContentRouter(props: NiasDomainContentRouterPr
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 2: 📥 DAILY INSPECTION & BOG LOG (WORKSHEET)      */}
+      {/* DOMAIN 2 - SUB-TAB: 📥 DAILY INSPECTION & BOG LOG (WORKSHEET) —      */}
+      {/* relocated from ISO_TANK_MGMT to REGAS_SYSTEM ("ISO TK - LOG",       */}
+      {/* ISO Tank & Mass Balance relocation, 2026-09-18).                    */}
       {/* ==================================================================== */}
-      {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'LAYDOWN_1_2_LOG' && (
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'LAYDOWN_1_2_LOG' && (
         <NiasLaydownLogTab
           tankInventory={props.tankInventory}
           dailyMasterRecords={props.dailyMasterRecords}
@@ -132,13 +135,6 @@ export default function NiasDomainContentRouter(props: NiasDomainContentRouterPr
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 1 - SUB-TAB 5: ISO TANK MASS BALANCE & DEPRESSURIZATION LOG   */}
-      {/* ==================================================================== */}
-      {activeDomain === 'ISO_TANK_MGMT' && tankSubTab === 'TANK_MASS_BALANCE' && (
-        <NiasTankMassBalanceTab />
-      )}
-
-      {/* ==================================================================== */}
       {/* DOMAIN 2 - SUB-TAB 1: 1. PROCESS TELEMETRY                            */}
       {/* ==================================================================== */}
       {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_PROCESS_TELEMETRY' && (
@@ -148,31 +144,51 @@ export default function NiasDomainContentRouter(props: NiasDomainContentRouterPr
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 2: ✍️ GAS METERING (ENTRY)                        */}
+      {/* DOMAIN 2 - SUB-TAB 2: 🕓 4-HR PATROL LOG                              */}
       {/* ==================================================================== */}
-      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GC_GAS_QUALITY' && (
-        <NiasGasQualityTab />
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'PATROL_LOG' && (
+        <NiasPatrolLogTab />
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 3: 📊 GAS METERING (LEDGER)                       */}
+      {/* DOMAIN 2 - SUB-TAB 3: 📊 GAS METERING (DAILY)                        */}
       {/* ==================================================================== */}
-      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_METERING_LEDGER' && (
-        <NiasGasQualityLedgerTab />
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'GAS_METERING_DAILY' && (
+        <GasMeteringDailyTab />
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 3: ⚡ PLTMG POWER & THERMAL OUTPUT                 */}
+      {/* DOMAIN 2 - SUB-TAB: ⚖️ ISO TANK MASS BALANCE — relocated from        */}
+      {/* ISO_TANK_MGMT (ISO Tank & Mass Balance relocation, 2026-09-18).      */}
       {/* ==================================================================== */}
-      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'PLTMG_POWER_OUTPUT' && (
-        <NiasPowerThermalTab />
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'TANK_MASS_BALANCE' && (
+        <NiasTankMassBalanceTab />
       )}
 
       {/* ==================================================================== */}
-      {/* DOMAIN 2 - SUB-TAB 4: ⚖️ CUSTODY HEAT SETTLEMENT                    */}
+      {/* DOMAIN 2 - SUB-TAB 4: ⚖️ MONTHLY REPORT (PLN EPI)                    */}
+      {/* Legacy mock (NiasCustodySettlementTab.tsx) removed — rebuilt from    */}
+      {/* the real 13-sheet workbook (Floboss P1-P8 + ISO Tank monthly).      */}
       {/* ==================================================================== */}
       {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'CUSTODY_HEAT_SETTLEMENT' && (
-        <NiasCustodySettlementTab />
+        <NiasMonthlyReportPlnEpiTab />
+      )}
+
+      {/* ==================================================================== */}
+      {/* DOMAIN 2 - SUB-TAB 5: ⚡ ELECTRICAL SYSTEM — relocated from top-level */}
+      {/* tab bar into Regas & Gas Process (2026-09-18 correction).            */}
+      {/* ==================================================================== */}
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'ELECTRICAL_SYSTEM' && (
+        <ElectricalSystemView />
+      )}
+
+      {/* ==================================================================== */}
+      {/* DOMAIN 2 - SUB-TAB 6: 📋 DAILY OPS OVERVIEW — relocated from         */}
+      {/* top-level tab bar into Regas & Gas Process (2026-09-18 correction);  */}
+      {/* sidebar dual-access entry is unaffected by this move.                */}
+      {/* ==================================================================== */}
+      {activeDomain === 'REGAS_SYSTEM' && regasSubTab === 'DAILY_OPS_OVERVIEW' && (
+        <DailyOpsOverviewView />
       )}
     </>
   );

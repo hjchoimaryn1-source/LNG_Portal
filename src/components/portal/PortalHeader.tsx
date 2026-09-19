@@ -18,7 +18,6 @@ interface PortalHeaderProps {
   setWorkOrderFilter: (value: string) => void;
   handleSelectSubProcess: (key: SubProcessKey) => void;
   handleManpowerSubTab: (tab: ManpowerTabKey) => void;
-  handleRefreshCurrentModuleOverview: () => void;
   onReturnToLauncher?: () => void;
   onLogout?: () => void;
 }
@@ -31,7 +30,6 @@ export default function PortalHeader(props: PortalHeaderProps) {
         currentModuleId={props.currentModuleId}
         onReturnToLauncher={props.onReturnToLauncher}
         handleSelectSubProcess={props.handleSelectSubProcess}
-        handleRefreshCurrentModuleOverview={props.handleRefreshCurrentModuleOverview}
         onLogout={props.onLogout}
       />
       <PortalModuleSubTabs

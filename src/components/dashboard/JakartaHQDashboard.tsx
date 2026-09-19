@@ -18,9 +18,10 @@
 
 import React, { useMemo } from 'react';
 import { AlertTriangle, LayoutDashboard } from 'lucide-react';
-import { usePortalData } from '../../context/PortalDataContext';
+import { useFleetTankFacade } from '../../hooks/portalDataFacade/useFleetTankFacade';
+import { useSettlementFacade } from '../../hooks/portalDataFacade/useSettlementFacade';
 import type { SubProcessKey } from '../../types/lng';
-import type { RoleCode } from '../../types/rbac';
+import type { Stage1RoleCode } from '../../lib/rbac/userSecurityRolePermissionSeed';
 import { CRITICALITY_BADGE, TITLE_BAR } from '../cmms/scadaStyles';
 import HqTankFleetStatusPanel from './panels/HqTankFleetStatusPanel';
 import HqEnergyReconciliationPanel from './panels/HqEnergyReconciliationPanel';
@@ -29,12 +30,13 @@ import { computeEnergyReconciliation } from './utils/hqEnergyReconciliation';
 
 interface JakartaHQDashboardProps {
   readOnly: boolean;
-  roleCode: RoleCode;
+  roleCode: Stage1RoleCode;
   onNavigate?: (key: SubProcessKey, focusId?: string) => void;
 }
 
 export default function JakartaHQDashboard({ readOnly, roleCode, onNavigate }: JakartaHQDashboardProps) {
-  const { fleetTanks, settlementRecords } = usePortalData();
+  const { fleetTanks } = useFleetTankFacade();
+  const { settlementRecords } = useSettlementFacade();
   const reconciliation = useMemo(
     () => computeEnergyReconciliation(settlementRecords),
     [settlementRecords]

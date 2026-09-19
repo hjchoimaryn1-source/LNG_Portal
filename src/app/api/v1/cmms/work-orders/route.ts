@@ -18,6 +18,8 @@ import {
   EMPTY_SAFETY_GATE_INPUT,
   type SafetyGateWorkOrderInput,
 } from '../../../../../cmms-mro-bridge/safetyGate/evaluateSafetyGateRules';
+import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
 
 export const runtime = 'nodejs';
 
@@ -52,7 +54,12 @@ function applySafetyGate(items: SeedInputWithSafetyGate[]): NewWorkOrderInput[] 
   });
 }
 
-function isValidPerformanceUpdate(body: unknown): body is { workOrderId: string; lastPerformedAt: string; status?: WorkOrderStatus } {
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16. roleCode is no
+// longer read from the body (Stage 3, 2026-09-19) — the Stage 1B session is
+// the sole authorization source now that the client login has been replaced.
+function isValidPerformanceUpdate(
+  body: unknown
+): body is { workOrderId: string; lastPerformedAt: string; status?: WorkOrderStatus } {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
   return typeof r.workOrderId === 'string' && r.workOrderId.length > 0 &&
@@ -93,6 +100,18 @@ export async function PATCH(request: NextRequest) {
 
   if (!isValidPerformanceUpdate(body)) {
     return NextResponse.json({ success: false, error: 'Invalid performance update payload.' }, { status: 400 });
+  }
+  // Stage 3 (HJ decision 2026-09-19): full replacement of the PIN-login
+  // fallback — a valid Stage 1B session is now required.
+  const session = verifyUserSecuritySession(request);
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+  }
+  if (resolveSessionPermission(session.employeeId, 'WORK_ORDER_DIRECTORY')?.canUpdate !== true) {
+    return NextResponse.json(
+      { success: false, error: `Role ${session.roleCode} is not permitted to update work orders.` },
+      { status: 403 }
+    );
   }
 
   const record = markWorkOrderPerformed(body.workOrderId, body.lastPerformedAt, body.status);

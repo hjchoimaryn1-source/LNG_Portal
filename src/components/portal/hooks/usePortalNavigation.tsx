@@ -63,9 +63,8 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
       key === 'NIAS_ACTIVE_BAY_TANKS' ||
       key === 'NIAS_LAYDOWN_3_HEEL' ||
       key === 'NIAS_GAS_PROCESS_TELEMETRY' ||
-      key === 'NIAS_GC_GAS_QUALITY' ||
-      key === 'NIAS_GAS_METERING_LEDGER' ||
-      key === 'NIAS_PLTMG_POWER_OUTPUT' ||
+      key === 'NIAS_PATROL_LOG' ||
+      key === 'NIAS_GAS_METERING_DAILY' ||
       key === 'NIAS_HEAT_SETTLEMENT'
     ) {
       setActiveMenu('nias-terminal');
@@ -114,9 +113,7 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
 
   // Determine current active top module (1 to 5)
   const currentModuleId =
-    activeKey === 'SECTOR_LAUNCHER'
-      ? 'MOD_0_LAUNCHER'
-      : activeKey === 'CMMS_OVERVIEW_DASHBOARD'
+    activeKey === 'CMMS_OVERVIEW_DASHBOARD'
       ? 'MOD_6_OVERVIEW'
       : activeKey === 'HQ_OVERVIEW_DASHBOARD'
       ? 'MOD_7_HQ_OVERVIEW'
@@ -140,38 +137,6 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
       ? 'MOD_2_EQUIPMENT'
       : 'MOD_1_LNG_PROCESS';
 
-  // Internal state reset to the active module's Overview (Non-reloading Refresh)
-  const handleRefreshCurrentModuleOverview = () => {
-    switch (currentModuleId) {
-      case 'MOD_1_LNG_PROCESS':
-        handleSelectSubProcess('LNG_PROCESS_OVERVIEW');
-        break;
-      case 'MOD_2_EQUIPMENT':
-        setEquipmentFilter('ALL');
-        handleSelectSubProcess('EQUIPMENT_ASSET_REGISTRY');
-        break;
-      case 'MOD_3_WORK_ORDER':
-        setWorkOrderFilter('ALL');
-        handleSelectSubProcess('WORK_ORDER_DIRECTORY');
-        break;
-      case 'MOD_4_MANPOWER':
-        handleManpowerSubTab('OVERVIEW');
-        break;
-      case 'MOD_5_SAFETY_PTW':
-        handleSelectSubProcess('SAFETY_OVERVIEW');
-        break;
-      case 'MOD_6_OVERVIEW':
-        handleSelectSubProcess('CMMS_OVERVIEW_DASHBOARD');
-        break;
-      case 'MOD_7_HQ_OVERVIEW':
-        handleSelectSubProcess('HQ_OVERVIEW_DASHBOARD');
-        break;
-      default:
-        handleSelectSubProcess('SECTOR_LAUNCHER');
-        break;
-    }
-  };
-
   return {
     activeMenu,
     activeSubTab,
@@ -193,6 +158,5 @@ export function usePortalNavigation(initialKey: SubProcessKey, onReturnToLaunche
     currentModuleId,
     handleSelectSubProcess,
     handleManpowerSubTab,
-    handleRefreshCurrentModuleOverview,
   };
 }

@@ -1,3 +1,5 @@
+APPROVED BY HJ CHOI 2026-09-16
+
 # Phase 10 — Stage 2D: Final NP-05 PM Mapping (Pending HJ Approval)
 
 **미승인 상태 — pm_schedules INSERT 금지.** 이 문서는 `docs/phase10-stage1d-np05-pm-mapping-proposal.md`(원본, 미수정 보존)를 Stage 2C 산출물(시스템 레벨 자산 태그, VALIDITY_EXPIRY interval_type)로 갱신한 최종 매핑안이다. 본 문서에 대한 HJ 서면 승인 코멘트("APPROVED BY HJ CHOI <날짜>"가 이 파일 상단에 존재)가 확인되기 전까지 `pm_schedules`(또는 다른 어떤 테이블)에도 INSERT하지 않는다. 작성 시점 기준 `pm_schedules` row count는 0이며, 이 문서 작성으로 인해 변경되지 않았다.

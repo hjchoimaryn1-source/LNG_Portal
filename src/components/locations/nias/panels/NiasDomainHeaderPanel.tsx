@@ -11,6 +11,11 @@ export interface NiasDomainHeaderPanelProps {
   setActiveDomain: React.Dispatch<React.SetStateAction<NiasDomain>>;
   zoneStats: ZoneStats;
   activeBays: ActiveBayState[];
+  // Nias sub-tab flattening (2026-09-16): when the ISO_TANK_MGMT / REGAS_SYSTEM
+  // choice has already been made one level up by a dedicated top-nav tab
+  // (Nias Tank Yard / Regas & Gas Process / PLTMG Power), the in-panel domain
+  // switcher would duplicate that navigation — hide it in that case.
+  hideSwitcher?: boolean;
 }
 
 /**
@@ -22,6 +27,7 @@ export default function NiasDomainHeaderPanel({
   setActiveDomain,
   zoneStats,
   activeBays,
+  hideSwitcher = false,
 }: NiasDomainHeaderPanelProps) {
   return (
     <section className="shrink-0 win-panel px-3 py-1.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 select-none">
@@ -39,28 +45,30 @@ export default function NiasDomainHeaderPanel({
       </div>
 
       {/* 2-Domain Switcher Navigation (PAGT Arun Style SCADA Tabs) */}
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={() => setActiveDomain('ISO_TANK_MGMT')}
-          className={`px-3 py-1 text-xs font-bold font-mono transition-all cursor-pointer ${activeDomain === 'ISO_TANK_MGMT'
-            ? 'win-tab-active text-blue-900'
-            : 'win-tab-inactive'
-            }`}
-        >
-          ISO Tank Management
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveDomain('REGAS_SYSTEM')}
-          className={`px-3 py-1 text-xs font-bold font-mono transition-all cursor-pointer ${activeDomain === 'REGAS_SYSTEM'
-            ? 'win-tab-active text-blue-900'
-            : 'win-tab-inactive'
-            }`}
-        >
-          Regas &amp; Power
-        </button>
-      </div>
+      {!hideSwitcher && (
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setActiveDomain('ISO_TANK_MGMT')}
+            className={`px-3 py-1 text-xs font-bold font-mono transition-all cursor-pointer ${activeDomain === 'ISO_TANK_MGMT'
+              ? 'win-tab-active text-blue-900'
+              : 'win-tab-inactive'
+              }`}
+          >
+            ISO Tank Management
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveDomain('REGAS_SYSTEM')}
+            className={`px-3 py-1 text-xs font-bold font-mono transition-all cursor-pointer ${activeDomain === 'REGAS_SYSTEM'
+              ? 'win-tab-active text-blue-900'
+              : 'win-tab-inactive'
+              }`}
+          >
+            Regas &amp; Power
+          </button>
+        </div>
+      )}
     </section>
   );
 }

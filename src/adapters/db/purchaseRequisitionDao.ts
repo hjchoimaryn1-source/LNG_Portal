@@ -11,6 +11,8 @@
 import type { SqlExecutor } from './sqlExecutor';
 
 export type PurchaseRequisitionStatus = 'OPEN' | 'ORDERED' | 'RECEIVED' | 'CANCELLED';
+/** Approval Hub Phase 1 Stage 1b 추가 컬럼(approvalHubStage1Runner.ts). */
+export type PurchaseRequisitionApprovalStatus = 'PENDING_SITE_APPROVAL' | 'SITE_APPROVED' | 'REJECTED';
 
 export interface PurchaseRequisitionRecord {
   prId: number;
@@ -20,6 +22,8 @@ export interface PurchaseRequisitionRecord {
   triggerReason: string;
   createdAt: string;
   resolvedAt: string | null;
+  /** Approval Hub Phase 1 Stage 1b 추가 컬럼. 기존 row는 백필되어 'SITE_APPROVED'. */
+  approvalStatus: PurchaseRequisitionApprovalStatus;
 }
 
 export interface NewPurchaseRequisitionInput {
@@ -36,6 +40,7 @@ interface PurchaseRequisitionRow {
   trigger_reason: string;
   created_at: string;
   resolved_at: string | null;
+  approval_status: string;
 }
 
 const INSERT_PR_SQL = `
@@ -62,6 +67,7 @@ function rowToPr(row: PurchaseRequisitionRow): PurchaseRequisitionRecord {
     triggerReason: row.trigger_reason,
     createdAt: row.created_at,
     resolvedAt: row.resolved_at,
+    approvalStatus: row.approval_status as PurchaseRequisitionApprovalStatus,
   };
 }
 
@@ -84,4 +90,19 @@ export function insertRequisition(db: SqlExecutor, input: NewPurchaseRequisition
   });
   const row = db.get<PurchaseRequisitionRow>(SELECT_LAST_INSERTED_PR_SQL, { partNo: input.partNo })!;
   return rowToPr(row);
+}
+
+const UPDATE_APPROVAL_STATUS_SQL = `UPDATE mro_purchase_requisitions SET approval_status = @approvalStatus WHERE pr_id = @prId`;
+const SELECT_BY_ID_SQL = `SELECT * FROM mro_purchase_requisitions WHERE pr_id = @prId`;
+
+/** Approval Hub Phase 1 Stage 2c 승인 액션 전용. */
+export function updateRequisitionApprovalStatus(
+  db: SqlExecutor,
+  prId: number,
+  approvalStatus: PurchaseRequisitionApprovalStatus
+): PurchaseRequisitionRecord | undefined {
+  const existing = db.get<PurchaseRequisitionRow>(SELECT_BY_ID_SQL, { prId });
+  if (!existing) return undefined;
+  db.run(UPDATE_APPROVAL_STATUS_SQL, { prId, approvalStatus });
+  return rowToPr({ ...existing, approval_status: approvalStatus });
 }
