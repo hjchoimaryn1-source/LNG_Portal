@@ -15,9 +15,11 @@ import {
   insertWorkOrder,
   selectAllWorkOrders,
   updateWorkOrderPerformance,
+  updateWorkOrderApprovalStatus,
   type NewWorkOrderInput,
   type WorkOrderRecord,
   type WorkOrderStatus,
+  type WorkOrderApprovalStatus,
 } from './db/workOrderDao';
 
 /** 전체 WO 레코드 조회 (최신 생성순). */
@@ -47,4 +49,9 @@ export function markWorkOrderPerformed(
   status: WorkOrderStatus = 'COMPLETED'
 ): WorkOrderRecord | undefined {
   return updateWorkOrderPerformance(getCmmsDb(), workOrderId, lastPerformedAt, status);
+}
+
+/** Approval Hub Phase 1 Stage 2c — WO 승인/반려 액션. */
+export function approveWorkOrder(workOrderId: string, approvalStatus: WorkOrderApprovalStatus): WorkOrderRecord | undefined {
+  return updateWorkOrderApprovalStatus(getCmmsDb(), workOrderId, approvalStatus);
 }
