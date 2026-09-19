@@ -26,7 +26,7 @@ export default function OverviewCalibrationRoutes({ activeKey, calibrationFilter
   // HQ_OVERVIEW_DASHBOARD branch below shows a session-expired notice instead.
   const activeSession = useActiveSession();
   const hqReadOnly = activeSession
-    ? resolveEffectivePermission(activeSession.homeLocation, 'SITE', null, activeSession.userId).readOnly
+    ? resolveEffectivePermission(activeSession.homeLocation, 'SITE', null, activeSession.employeeId).readOnly
     : false;
 
   return (

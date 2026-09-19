@@ -13,7 +13,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useActiveSession } from '../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../adapters/guardrailUiAdapter';
-import { getEffectivePermission } from '../../lib/rbac/rolePermissionService';
 import type { DailyReportStatus } from '../dao/dailyReportSnapshotDao';
 
 const SNAPSHOTS_API = '/api/v1/cmms/daily-report-snapshots';
@@ -72,11 +71,10 @@ export function useDailyReportApproval(reportDate: string) {
     reload();
   }
 
-  // canApprove: 역할이 DAILY_OPS_REPORT.canApprove 권한을 갖는지(SITE_MANAGER/
-  // ACTING_SITE_MANAGER/SYSTEM_ADMIN). 세션이 아직 없으면(로그인 전) false.
-  const canApprove = activeSession
-    ? getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT')?.canApprove === true
-    : false;
+  // canApprove: 역할이 DAILY_OPS_REPORT.canApprove 권한을 갖는지(SITE_MANAGER,
+  // ADMIN, 또는 위임 활성 시 그 권한을 위임받은 역할). 세션이 아직 없으면
+  // (로그인 전) false.
+  const canApprove = activeSession?.permissions.DAILY_OPS_REPORT?.canApprove === true;
 
   async function approve(): Promise<void> {
     setMessage(null);
@@ -98,7 +96,7 @@ export function useDailyReportApproval(reportDate: string) {
     const res = await fetch(APPROVAL_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ snapshotId: snapshot.id, roleCode: activeSession.roleCode, actorId: activeSession.userId }),
+      body: JSON.stringify({ snapshotId: snapshot.id, roleCode: activeSession.roleCode, actorId: activeSession.employeeId }),
     });
     const json = await res.json();
     if (!json.success) {
@@ -137,7 +135,7 @@ export function useDailyReportApproval(reportDate: string) {
       body: JSON.stringify({
         snapshotId: snapshot.id,
         roleCode: activeSession.roleCode,
-        actorId: activeSession.userId,
+        actorId: activeSession.employeeId,
         reasonText,
       }),
     });

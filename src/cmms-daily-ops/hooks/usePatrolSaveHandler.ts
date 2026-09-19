@@ -26,7 +26,6 @@ import { useCallback } from 'react';
 import { setLatestPatrolEntry } from '../state/useDailyOpsPatrolStore';
 import { useActiveSession } from '../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../adapters/guardrailUiAdapter';
-import { getEffectivePermission } from '../../lib/rbac/rolePermissionService';
 import type { PatrolDomain } from '../types/patrolLog';
 import type { PatrolSaveHandler, PatrolSaveInput } from '../components/patrol/patrolFormTypes';
 
@@ -46,8 +45,7 @@ export function usePatrolSaveHandler(
         onBlocked?.('로그인 세션이 없습니다.');
         return;
       }
-      const canRecord =
-        getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_PATROL_ENTRY')?.canCreate === true;
+      const canRecord = activeSession.permissions.DAILY_OPS_PATROL_ENTRY?.canCreate === true;
       if (!canRecord) {
         onBlocked?.(`역할 ${activeSession.roleCode}은(는) 패트롤 기록 입력 권한이 없습니다.`);
         return;

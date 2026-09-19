@@ -9,7 +9,6 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { DailyReportStatus } from '../dao/dailyReportSnapshotDao';
-import type { RoleCode } from '../../types/rbac';
 
 const STATUS_LOG_API = '/api/v1/cmms/daily-report-status-log';
 
@@ -19,7 +18,10 @@ export interface StatusLogEntrySummary {
   fromStatus: DailyReportStatus | null;
   toStatus: DailyReportStatus | null;
   actorUserId: string;
-  actorRole: RoleCode;
+  /** Stage 3 (2026-09-19): widened from the legacy RoleCode union — matches
+   * dailyReportStatusLogDao.ts's actor_role column, now populated from the
+   * Stage 1B session's Stage1RoleCode value. */
+  actorRole: string;
   reasonText: string | null;
   createdAt: string;
 }

@@ -7,20 +7,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDailyOpsDb } from '../../../../../cmms-daily-ops/db/dailyOpsDbSingleton';
 import { upsertSafetyNotes, getSafetyNotes, type SafetyNotesInput } from '../../../../../cmms-daily-ops/dao/dailyReportChildDao';
-import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
 import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
 import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
-import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
-// RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-type SafetyNotesInputWithRole = SafetyNotesInput & { roleCode: RoleCode };
-
-function isValidInput(body: unknown): body is SafetyNotesInputWithRole {
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16. roleCode is no
+// longer read from the body (Stage 3, 2026-09-19) — the Stage 1B session is
+// the sole authorization source now that the client login has been replaced.
+function isValidInput(body: unknown): body is SafetyNotesInput {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
-  return typeof r.snapshotId === 'number' && typeof r.roleCode === 'string';
+  return typeof r.snapshotId === 'number';
 }
 
 export async function GET(request: NextRequest) {
@@ -42,22 +40,19 @@ export async function POST(request: NextRequest) {
   if (!isValidInput(body)) {
     return NextResponse.json({ success: false, error: 'Invalid safety notes payload.' }, { status: 400 });
   }
-  // Stage 2A-ii (HJ decision 2026-09-19): prefer a verified Stage 1B session;
-  // fall back to the client-supplied (spoofable) legacy roleCode until the
-  // deferred client-side migration stage lands — see final report.
+  // Stage 3 (HJ decision 2026-09-19): full replacement of the PIN-login
+  // fallback — a valid Stage 1B session is now required.
   const session = verifyUserSecuritySession(request);
-  const permission = session
-    ? resolveSessionPermission(session.employeeId, 'DAILY_OPS_REPORT')
-    : getEffectivePermission(body.roleCode, 'DAILY_OPS_REPORT');
-  const roleLabel = session?.roleCode ?? body.roleCode;
-  if (permission?.canCreate !== true) {
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+  }
+  if (resolveSessionPermission(session.employeeId, 'DAILY_OPS_REPORT')?.canCreate !== true) {
     return NextResponse.json(
-      { success: false, error: `Role ${roleLabel} is not permitted to save safety notes.` },
+      { success: false, error: `Role ${session.roleCode} is not permitted to save safety notes.` },
       { status: 403 }
     );
   }
-  const { roleCode: _roleCode, ...input } = body;
   const db = getDailyOpsDb();
-  upsertSafetyNotes(db, input);
+  upsertSafetyNotes(db, body);
   return NextResponse.json({ success: true });
 }

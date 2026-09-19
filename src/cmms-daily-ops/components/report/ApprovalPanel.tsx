@@ -12,14 +12,14 @@ import { BEVEL_BUTTON, SUNKEN_INPUT, RAISED_PANEL } from '../../../components/cm
 import GuardrailBlockedBanner from '../../../components/shared/GuardrailBlockedBanner';
 import type { DailyReportSnapshotSummary } from '../../hooks/useDailyReportApproval';
 import type { ActiveSession } from '../../../lib/rbac/activeSessionStore';
-import { USER_ACCOUNTS } from '../../../lib/rbac/userAccountsSeed';
 
 // 로그인 계정 기반 기본값 — 자유 텍스트 입력의 편의 프리필일 뿐 신원 검증이
 // 아니다(SignatureBlock.tsx의 defaultSignerName과 동일한 근거, 25493de 선례).
-// Rule of Three 미충족으로 공용 유틸 추출은 보류하고 로컬 복제한다.
-function defaultGeneratedByName(session: ActiveSession | null): string {
-  if (!session) return '';
-  return USER_ACCOUNTS.find((a) => a.userId === session.userId)?.displayName ?? '';
+// Stage 3(2026-09-19): USER_ACCOUNTS(구 PIN 로스터)는 더 이상 ActiveSession.
+// employeeId(Stage 1 personnel_master 어휘)와 같은 ID 공간이 아니라 조회 근거가
+// 사라졌다 — SignatureBlock.tsx와 동일하게 항상 빈 값으로 폴백한다.
+function defaultGeneratedByName(_session: ActiveSession | null): string {
+  return '';
 }
 
 const STATUS_LABEL: Record<DailyReportSnapshotSummary['status'], string> = {

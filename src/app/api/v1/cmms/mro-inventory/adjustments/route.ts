@@ -8,26 +8,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adjustStock, getStockTransactions } from '../../../../../../adapters/mroInventoryDbAdapter';
 import type { StockAdjustmentInput, StockTxType } from '../../../../../../adapters/db/mroInventoryDao';
-import { getEffectivePermission } from '../../../../../../lib/rbac/rolePermissionService';
 import { verifyUserSecuritySession } from '../../../../../../lib/rbac/userSecuritySessionMiddleware';
 import { resolveSessionPermission } from '../../../../../../lib/rbac/sessionPermissionResolver';
-import type { RoleCode } from '../../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
 const VALID_TX_TYPES: StockTxType[] = ['RECEIPT', 'ISSUE', 'ADJUSTMENT', 'RETURN', 'SCRAP'];
 
-// RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-type StockAdjustmentInputWithRole = StockAdjustmentInput & { roleCode: RoleCode };
-
-function isValidAdjustmentInput(body: unknown): body is StockAdjustmentInputWithRole {
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16. roleCode is no
+// longer read from the body (Stage 3, 2026-09-19) — the Stage 1B session is
+// the sole authorization source now that the client login has been replaced.
+function isValidAdjustmentInput(body: unknown): body is StockAdjustmentInput {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
   return typeof r.partNo === 'string' && r.partNo.length > 0 &&
     typeof r.txType === 'string' && VALID_TX_TYPES.includes(r.txType as StockTxType) &&
     typeof r.quantity === 'number' && r.quantity > 0 &&
     typeof r.performedBy === 'string' && r.performedBy.length > 0 &&
-    typeof r.roleCode === 'string' &&
     (r.reason === undefined || r.reason === null || typeof r.reason === 'string') &&
     (r.workOrderId === undefined || r.workOrderId === null || typeof r.workOrderId === 'string');
 }
@@ -49,23 +46,20 @@ export async function POST(request: NextRequest) {
   if (!isValidAdjustmentInput(body)) {
     return NextResponse.json({ success: false, error: 'Invalid StockAdjustmentInput payload.' }, { status: 400 });
   }
-  // Stage 2A-ii (HJ decision 2026-09-19): prefer a verified Stage 1B session;
-  // fall back to the client-supplied (spoofable) legacy roleCode until the
-  // deferred client-side migration stage lands — see final report.
+  // Stage 3 (HJ decision 2026-09-19): full replacement of the PIN-login
+  // fallback — a valid Stage 1B session is now required.
   const session = verifyUserSecuritySession(request);
-  const permission = session
-    ? resolveSessionPermission(session.employeeId, 'MAINTENANCE_MRO_HUB')
-    : getEffectivePermission(body.roleCode, 'MAINTENANCE_MRO_HUB');
-  const roleLabel = session?.roleCode ?? body.roleCode;
-  if (permission?.canCreate !== true) {
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+  }
+  if (resolveSessionPermission(session.employeeId, 'MAINTENANCE_MRO_HUB')?.canCreate !== true) {
     return NextResponse.json(
-      { success: false, error: `Role ${roleLabel} is not permitted to adjust MRO stock.` },
+      { success: false, error: `Role ${session.roleCode} is not permitted to adjust MRO stock.` },
       { status: 403 }
     );
   }
 
-  const { roleCode: _roleCode, ...adjustmentInput } = body;
-  const result = adjustStock(adjustmentInput);
+  const result = adjustStock(body);
   if (!result) {
     return NextResponse.json(
       { success: false, error: `Adjustment rejected: part not found or resulting stock would be negative (partNo=${body.partNo}).` },

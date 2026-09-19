@@ -1,117 +1,107 @@
 // src/components/auth/LoginGateway.tsx
-"use client";
+//
+// Stage 3 (2026-09-19, HJ decision — full replacement, not parallel exposure):
+// this used to be the Quick-Login PIN flow (USER_ACCOUNTS card select ->
+// PinEntryModal -> POST /api/v1/cmms/auth/login). It now POSTs username+password
+// to Stage 1B's /api/v1/cmms/user-security/login and populates ActiveSession
+// with the new role_code vocabulary + precomputed permissions map. The PIN
+// backend itself (staff_credentials/verifyStaffPin/devStaffPins.ts,
+// userAccountsSeed.ts, /api/v1/cmms/auth/login) is left intact and unused,
+// in case a rollback is needed during this transition — only this UI entry
+// point changed. QuickLoginAccountCard.tsx/PinEntryModal.tsx are now unused
+// by this file (left in place, not deleted, for the same rollback reason).
 
-import React, { useEffect, useState } from 'react';
-import { USER_ACCOUNTS, type UserAccountSeedRow } from '../../lib/rbac/userAccountsSeed';
+'use client';
+
+import React, { useState } from 'react';
 import { setActiveSession } from '../../lib/rbac/activeSessionStore';
-import type { EffectiveRole } from '../../cmms-auth/rbacTypes';
+import type { Stage1RoleCode } from '../../lib/rbac/userSecurityRolePermissionSeed';
+import type { ModuleCode, RolePermission } from '../../types/rbac';
+import { SUNKEN_INPUT, BEVEL_BUTTON } from '../cmms/scadaStyles';
 import { LOGIN_GATEWAY_STYLES } from './loginGatewayStyles';
 import { LOGIN_GATEWAY_TASK_STYLES } from './loginGatewayTaskStyles';
-import { LOGIN_GATEWAY_ACCOUNT_CARD_STYLES } from './loginGatewayAccountCardStyles';
-import QuickLoginAccountCard from './QuickLoginAccountCard';
-import PinEntryModal from './PinEntryModal';
 
 interface LoginGatewayProps {
   onEnter?: () => void;
   onLogin?: () => void;
 }
 
-const MAX_FAILED_ATTEMPTS = 5;
-
-function formatCountdown(msRemaining: number): string {
-  const totalSeconds = Math.max(0, Math.ceil(msRemaining / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+interface LoginSuccessResponse {
+  success: true;
+  roleCode: Stage1RoleCode;
+  employeeId: string;
+  mustChangePassword: boolean;
+  permissions: Partial<Record<ModuleCode, RolePermission>>;
 }
+
+interface LoginFailureResponse {
+  success: false;
+  error: 'INVALID_CREDENTIALS' | 'ACCOUNT_LOCKED' | 'ACCOUNT_DISABLED';
+}
+
+const LOGIN_FAILURE_MESSAGES: Record<LoginFailureResponse['error'], string> = {
+  INVALID_CREDENTIALS: '아이디 또는 비밀번호가 올바르지 않습니다.',
+  ACCOUNT_LOCKED: '로그인 시도 횟수 초과로 계정이 잠겼습니다. 15분 후 다시 시도하세요.',
+  ACCOUNT_DISABLED: '비활성화된 계정입니다. 관리자에게 문의하세요.',
+};
 
 export default function LoginGateway({ onEnter, onLogin }: LoginGatewayProps) {
   const [imgError, setImgError] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
-  // 계정 잠금 시뮬레이션 — 컴포넌트 상태로만 관리되며 새로고침 시 초기화됨.
-  // user_accounts.failed_attempt_count 백엔드 연동 전까지의 로컬 UI 목업(비기능).
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
-  const [now, setNow] = useState(() => Date.now());
-  const [pendingAccount, setPendingAccount] = useState<UserAccountSeedRow | null>(null);
-  const [isSubmittingPin, setIsSubmittingPin] = useState(false);
-  const [pinError, setPinError] = useState<string | undefined>(undefined);
+  const canSubmit = username.trim().length > 0 && password.length > 0 && !isSubmitting;
 
-  useEffect(() => {
-    if (lockoutUntil === null) return;
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, [lockoutUntil]);
-
-  const isLockedOut = lockoutUntil !== null && now < lockoutUntil;
-
-  useEffect(() => {
-    if (lockoutUntil !== null && now >= lockoutUntil) {
-      setLockoutUntil(null);
-      setFailedAttempts(0);
-    }
-  }, [now, lockoutUntil]);
-
-  const handleSelectAccount = (account: UserAccountSeedRow) => {
-    if (isLockedOut) return;
-    setPinError(undefined);
-    setPendingAccount(account);
-  };
-
-  const handlePinCancel = () => {
-    setPendingAccount(null);
-    setPinError(undefined);
-  };
-
-  // PIN 입력 후 /api/v1/cmms/auth/login을 거쳐 실제 authenticate() 경로를
-  // 통과한다 — src/cmms-auth/index.ts 참조.
-  const handlePinSubmit = async (pin: string) => {
-    if (!pendingAccount) return;
-    setIsSubmittingPin(true);
-    setPinError(undefined);
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+    setIsSubmitting(true);
+    setErrorMessage(undefined);
 
     let res: Response;
     try {
-      res = await fetch('/api/v1/cmms/auth/login', {
+      res = await fetch('/api/v1/cmms/user-security/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin, staffId: pendingAccount.userId }),
+        body: JSON.stringify({ username, password }),
       });
     } catch {
-      setIsSubmittingPin(false);
-      setPinError('네트워크 오류 — 다시 시도하세요.');
+      setIsSubmitting(false);
+      setErrorMessage('네트워크 오류 — 다시 시도하세요.');
       return;
     }
 
-    if (!res.ok) {
-      setIsSubmittingPin(false);
-      setFailedAttempts((prev) => prev + 1);
-      setPinError('PIN이 올바르지 않습니다.');
+    const data: LoginSuccessResponse | LoginFailureResponse = await res.json();
+    if (!res.ok || !data.success) {
+      setIsSubmitting(false);
+      setErrorMessage(!data.success ? LOGIN_FAILURE_MESSAGES[data.error] : '로그인 실패');
       return;
     }
 
-    const data: { effectiveRole?: EffectiveRole } = await res.json();
     setActiveSession({
-      userId: pendingAccount.userId,
-      roleCode: pendingAccount.roleCode,
-      homeLocation: pendingAccount.homeLocation,
-      effectiveRole: data.effectiveRole,
+      employeeId: data.employeeId,
+      roleCode: data.roleCode,
+      // Stage 1 schema has no HQ/SITE field — ADMIN is treated as HQ-homed
+      // (matching the retired SYSTEM_ADMIN/DEV-HQ-001 precedent), every other
+      // role as SITE-homed. See activeSessionStore.ts header comment.
+      homeLocation: data.roleCode === 'ADMIN' ? 'HQ' : 'SITE',
+      permissions: data.permissions,
     });
-    setIsSubmittingPin(false);
-    setFailedAttempts(0);
-    setPendingAccount(null);
+    setIsSubmitting(false);
+    setPassword('');
     if (onLogin) {
       onLogin();
     } else if (onEnter) {
       onEnter();
     }
-  };
+  }
 
   return (
     <div className="gateway-root">
       <style>{LOGIN_GATEWAY_STYLES}</style>
       <style>{LOGIN_GATEWAY_TASK_STYLES}</style>
-      <style>{LOGIN_GATEWAY_ACCOUNT_CARD_STYLES}</style>
 
       <div className="window">
         {/* 상단 타이틀바 */}
@@ -153,7 +143,7 @@ export default function LoginGateway({ onEnter, onLogin }: LoginGatewayProps) {
               <span className="status-badge">SYS_READY</span>
             </div>
             <div className="status-item">
-              &gt; GATEWAY STATUS: <span className="highlight">DEV NO-AUTH BYPASS ACTIVE</span>
+              &gt; GATEWAY STATUS: <span className="highlight">AWAITING CREDENTIALS</span>
             </div>
             <div className="status-item">
               &gt; SYSTEM SCOPE: <span className="highlight">120 ISO TANKS • 5-NODE SUPPLY CHAIN</span>
@@ -161,37 +151,37 @@ export default function LoginGateway({ onEnter, onLogin }: LoginGatewayProps) {
             <div className="status-item">
               &gt; DATA HYDRATION: <span className="highlight">DEFERRED (EXECUTES POST-LOGIN)</span>
             </div>
-            {/* TODO: wire to real user_sessions.expires_at once user_accounts backend exists */}
             <div className="status-item">
-              &gt; SESSION POLICY: <span className="highlight">30분 미조작 시 자동 로그아웃</span>
+              &gt; SESSION POLICY: <span className="highlight">12시간 만료 · 5회 실패 시 15분 잠금</span>
             </div>
           </div>
 
-          {/* 3b. Quick-Login: user_accounts 시드 3계정 카드 선택 (비밀번호 입력 없음) */}
-          <div className="quick-login-row">
-            <span className="quick-login-label">&gt; QUICK LOGIN (계정 선택)</span>
-            {USER_ACCOUNTS.map((account) => (
-              <QuickLoginAccountCard
-                key={account.userId}
-                account={account}
-                disabled={isLockedOut}
-                onSelect={handleSelectAccount}
-              />
-            ))}
-          </div>
+          {/* 3b. Username + Password 로그인 (Stage 1B) */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-1.5 mt-2">
+            <span className="quick-login-label">&gt; LOGIN</span>
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              autoComplete="username"
+              disabled={isSubmitting}
+              className={SUNKEN_INPUT}
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              autoComplete="current-password"
+              disabled={isSubmitting}
+              className={SUNKEN_INPUT}
+            />
+            <button type="submit" disabled={!canSubmit} className={BEVEL_BUTTON}>
+              {isSubmitting ? 'LOGGING IN...' : 'LOG IN'}
+            </button>
+          </form>
 
-          {/* 계정 잠금 안내 — 컴포넌트 로컬 상태 기반 UI 시뮬레이션 (새로고침 시 초기화, user_accounts 미연동, 비기능) */}
-          {isLockedOut && lockoutUntil !== null && (
-            <div className="lockout-banner">
-              계정이 잠겼습니다. {formatCountdown(lockoutUntil - now)} 후 다시 시도하세요.
-              (로컬 UI 시뮬레이션 — 실제 계정 잠금 아님)
-            </div>
-          )}
-          {!isLockedOut && failedAttempts > 0 && (
-            <div className="lockout-banner">
-              로그인 실패 ({failedAttempts}/{MAX_FAILED_ATTEMPTS} 시도)
-            </div>
-          )}
+          {errorMessage && <div className="lockout-banner">{errorMessage}</div>}
         </div>
 
         {/* 하단 상태 바 */}
@@ -200,16 +190,6 @@ export default function LoginGateway({ onEnter, onLogin }: LoginGatewayProps) {
           <span className="ready-indicator">⦿ SESSION STANDBY</span>
         </div>
       </div>
-
-      {pendingAccount && (
-        <PinEntryModal
-          account={pendingAccount}
-          onSubmit={handlePinSubmit}
-          onCancel={handlePinCancel}
-          isSubmitting={isSubmittingPin}
-          errorMessage={pinError}
-        />
-      )}
     </div>
   );
 }

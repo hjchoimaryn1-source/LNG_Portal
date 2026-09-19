@@ -17,3 +17,25 @@ import type { ModuleCode, RolePermission } from '../../types/rbac';
 export function resolveSessionPermission(employeeId: string, moduleCode: ModuleCode): RolePermission | null {
   return resolveSessionPermissionCore(getUserSecurityDb(), employeeId, moduleCode);
 }
+
+// Stage 3 — the only 6 ModuleCodes with a live client-side permission check
+// (Stage 2A-i inventory). Used to precompute a permissions map the login/session
+// HTTP responses hand to the client, so client hooks never need direct DB access
+// (resolveSessionPermission() itself is server-only, see file header).
+const CLIENT_MODULE_CODES: ModuleCode[] = [
+  'WORK_ORDER_DIRECTORY',
+  'DAILY_OPS_REPORT',
+  'DAILY_OPS_PATROL_ENTRY',
+  'PTW_PERMITS',
+  'ALARM_ACTION_LOG',
+  'MAINTENANCE_MRO_HUB',
+];
+
+export function buildClientPermissionsMap(employeeId: string): Partial<Record<ModuleCode, RolePermission>> {
+  const map: Partial<Record<ModuleCode, RolePermission>> = {};
+  for (const moduleCode of CLIENT_MODULE_CODES) {
+    const permission = resolveSessionPermission(employeeId, moduleCode);
+    if (permission) map[moduleCode] = permission;
+  }
+  return map;
+}

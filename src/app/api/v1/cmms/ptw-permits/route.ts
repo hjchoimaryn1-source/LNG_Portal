@@ -19,10 +19,8 @@ import {
   type PermitLifecycleLocalChanges,
 } from '../../../../../adapters/permitPersistenceAdapter';
 import type { PTWPermitLifecycleDraft } from '../../../../../adapters/db/ptwPermitDao';
-import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
 import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
 import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
-import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
@@ -56,15 +54,6 @@ interface StatusUpdateBody {
   baseVersion?: string;
   /** status/closedAt 외에 함께 반영할 안전 체크리스트 필드만 담는다(§5.5 동기화 충돌 판정 대상). */
   localChanges?: PermitLifecycleLocalChanges;
-  /**
-   * RBAC audit remediation — ptw-permits PATCH, 2026-09-16. 생략 시(NP08
-   * useCargoHandlingLifecycle 등 미마이그레이션 호출부) 권한 검증 없이 기존처럼
-   * 적용된다(하위호환) — NOTE: roleCode는 클라이언트가 보내는 값이며 서버가
-   * 세션 신원을 검증하지 않는다(인증 토큰 백엔드 없음 — §3.5 참고). 이 게이트는
-   * 정상 UI 오작동을 막는 것이지, roleCode를 위조한 직접 API 호출을 막는
-   * 보안 경계가 아니다.
-   */
-  roleCode?: RoleCode;
 }
 
 function isValidLocalChanges(value: unknown): value is PermitLifecycleLocalChanges {
@@ -86,7 +75,6 @@ function isValidStatusUpdate(body: unknown): body is StatusUpdateBody {
   if (!baseOk) return false;
   if (r.baseVersion !== undefined && typeof r.baseVersion !== 'string') return false;
   if (r.localChanges !== undefined && !isValidLocalChanges(r.localChanges)) return false;
-  if (r.roleCode !== undefined && typeof r.roleCode !== 'string') return false;
   return true;
 }
 
@@ -145,23 +133,19 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Invalid status update payload.' }, { status: 400 });
   }
 
-  // RBAC audit remediation — ptw-permits PATCH, 2026-09-16, extended Stage
-  // 2A-ii (HJ decision 2026-09-19). Prefer a verified Stage 1B session when
-  // present (authoritative, checked regardless of whether body.roleCode was
-  // sent). Otherwise fall back to the prior behavior: roleCode is optional
-  // client-supplied data, checked when present, and callers that omit it
-  // entirely (e.g. NP08 cargo handling) bypass this check, unchanged.
+  // RBAC audit remediation — ptw-permits PATCH, 2026-09-16, extended Stage 3
+  // (HJ decision 2026-09-19, full PIN-login replacement). A valid Stage 1B
+  // session is now required for every caller, including NP08 cargo handling
+  // (useCargoHandlingLifecycle.ts) — that caller previously bypassed this
+  // check entirely because it never sent a roleCode; it now carries the same
+  // session cookie as every other client request, closing that gap.
   const session = verifyUserSecuritySession(request);
-  if (session) {
-    if (resolveSessionPermission(session.employeeId, 'PTW_PERMITS')?.canUpdate !== true) {
-      return NextResponse.json(
-        { success: false, error: `Role ${session.roleCode} is not permitted to update PTW permits.` },
-        { status: 403 }
-      );
-    }
-  } else if (body.roleCode !== undefined && getEffectivePermission(body.roleCode, 'PTW_PERMITS')?.canUpdate !== true) {
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+  }
+  if (resolveSessionPermission(session.employeeId, 'PTW_PERMITS')?.canUpdate !== true) {
     return NextResponse.json(
-      { success: false, error: `Role ${body.roleCode} is not permitted to update PTW permits.` },
+      { success: false, error: `Role ${session.roleCode} is not permitted to update PTW permits.` },
       { status: 403 }
     );
   }

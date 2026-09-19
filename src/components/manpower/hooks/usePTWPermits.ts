@@ -7,7 +7,6 @@ import { evaluateSignatureGate } from '../../../adapters/ptwSignatureGate';
 import { usePTWPermitSync } from './usePTWPermitSync';
 import { applyLifecycleToPermit } from '../../../utils/ptwPermitRecordMapper';
 import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
-import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
 
 /**
  * Shared PTW permit register state (Master Register 소유, 향후 Gas Testing Log /
@@ -125,7 +124,7 @@ export function usePTWPermits() {
       alert('⚠️ [SIGNATURE BLOCKED]\n로그인 세션이 없습니다.');
       return;
     }
-    const permission = getEffectivePermission(activeSession.roleCode, 'PTW_PERMITS');
+    const permission = activeSession.permissions.PTW_PERMITS;
     if (!permission || permission.isReadOnlyForced) {
       alert(`⚠️ [SIGNATURE BLOCKED]\nRole ${activeSession.roleCode} is not permitted to sign PTW permits.`);
       return;

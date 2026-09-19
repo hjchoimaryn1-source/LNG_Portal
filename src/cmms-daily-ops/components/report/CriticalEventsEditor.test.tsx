@@ -3,7 +3,18 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { CriticalEventsEditor } from './CriticalEventsEditor';
-import { setActiveSession, clearActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { setActiveSession, clearActiveSession, type ActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
+import type { Stage1RoleCode } from '../../../lib/rbac/userSecurityRolePermissionSeed';
+
+function sessionFor(roleCode: Stage1RoleCode): ActiveSession {
+  return {
+    employeeId: 'E-1',
+    roleCode,
+    homeLocation: 'SITE',
+    permissions: { DAILY_OPS_REPORT: getEffectivePermission(roleCode, 'DAILY_OPS_REPORT') ?? undefined },
+  };
+}
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -62,7 +73,7 @@ describe('CriticalEventsEditor', () => {
   });
 
   it('saving a draft row replaces it with a saved row and keeps the minimum of 3 drafts', async () => {
-    setActiveSession({ userId: 'u1', roleCode: 'OPERATION_TEAM_LEADER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('OP_TEAM'));
     stubFetch([]);
     await mountAndFlush();
 
@@ -86,7 +97,7 @@ describe('CriticalEventsEditor', () => {
 
   it('blocks the save and does not fetch when the active role has no canCreate on DAILY_OPS_REPORT', async () => {
     // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-    setActiveSession({ userId: 'u1', roleCode: 'WORK_LEADER_TECH', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('MAINTENANCE'));
     const fetchMock = stubFetch([]);
     await mountAndFlush();
 

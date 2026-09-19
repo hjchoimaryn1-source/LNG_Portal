@@ -1,4 +1,4 @@
-import type { RoleCode } from '../../types/rbac';
+import type { Stage1RoleCode } from './userSecurityRolePermissionSeed';
 import { checkFatigueBlock } from './fatigueGuardrail';
 
 export function resolveEffectivePermission(
@@ -66,16 +66,19 @@ export async function validateApprovalGuardrails(
 }
 
 // C.4 Auditor Mode hard override — must be called before rolePermissionService's
-// getEffectivePermission() is trusted for any mutation. HQ_SUPERVISOR_AUDITOR is
-// blocked on all four mutation actions unconditionally, regardless of what a
-// role_permissions seed row says (a seed row can be re-authored to grant
-// can_update/can_create etc.; this check does not consult that data at all).
+// getEffectivePermission() is trusted for any mutation. Under the legacy 7-value
+// RoleCode vocabulary, HQ_SUPERVISOR_AUDITOR was blocked on all four mutation
+// actions unconditionally, regardless of what a role_permissions seed row says.
+//
+// Stage 3 (2026-09-19): the new Stage1RoleCode vocabulary (ADMIN/SITE_MANAGER/
+// OP_TEAM/HSSE/MAINTENANCE/LOGISTIC/HR) has no HQ_SUPERVISOR_AUDITOR-equivalent
+// role — it was deliberately not ported (Stage 2A-i HJ decision: deferred to a
+// future HQ-view phase, no 8th role_code created). This hard override is
+// therefore currently inert (always allowed) rather than deleted — reinstate the
+// literal check once that role is reintroduced under the new vocabulary.
 export function blockIfAuditorMode(
-  roleCode: RoleCode,
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE'
+  _roleCode: Stage1RoleCode,
+  _action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE'
 ): { allowed: boolean; reason?: string } {
-  if (roleCode === 'HQ_SUPERVISOR_AUDITOR') {
-    return { allowed: false, reason: 'AUDITOR_MODE_MUTATION_BLOCKED' };
-  }
   return { allowed: true };
 }

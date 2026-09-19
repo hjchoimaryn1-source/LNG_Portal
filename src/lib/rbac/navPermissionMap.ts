@@ -77,6 +77,6 @@ export const NAV_ITEM_MODULE_MAP: Partial<Record<SubProcessKey, ModuleCode[]>> =
 // still exists for when this restriction is relaxed sector-by-sector.
 export function isNavItemVisible(navKey: string, session: ActiveSession | null): boolean {
   if (!session) return false;
-  if (session.roleCode === 'SYSTEM_ADMIN') return true;
+  if (session.roleCode === 'ADMIN') return true;
   return ALWAYS_VISIBLE_NAV_KEYS.has(navKey);
 }

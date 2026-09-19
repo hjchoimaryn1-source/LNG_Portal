@@ -9,7 +9,6 @@
 import { useEffect, useState } from 'react';
 import { SUNKEN_INPUT, BEVEL_BUTTON, RAISED_PANEL, TITLE_BAR } from '../../../components/cmms/scadaStyles';
 import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
-import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
 
 const SAFETY_NOTES_API = '/api/v1/cmms/daily-report-safety-notes';
 
@@ -62,7 +61,7 @@ export function SafetyNotesEditor({ snapshotId }: SafetyNotesEditorProps) {
       setBlockedMessage('로그인 세션이 없습니다.');
       return;
     }
-    if (getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT')?.canCreate !== true) {
+    if (activeSession.permissions.DAILY_OPS_REPORT?.canCreate !== true) {
       setBlockedMessage(`역할 ${activeSession.roleCode}은(는) Safety Information 저장 권한이 없습니다.`);
       return;
     }

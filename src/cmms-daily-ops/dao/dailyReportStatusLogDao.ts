@@ -9,7 +9,6 @@
 
 import type { SqlExecutor } from '../../adapters/db/sqlExecutor';
 import type { DailyReportStatus } from './dailyReportSnapshotDao';
-import type { RoleCode } from '../../types/rbac';
 
 export type StatusLogEventType = 'status_transition' | 'hq_unlock' | 'hq_relock' | 'hq_edit_ack';
 
@@ -19,7 +18,10 @@ export interface StatusLogEntryInput {
   fromStatus: DailyReportStatus | null;
   toStatus: DailyReportStatus | null;
   actorUserId: string;
-  actorRole: RoleCode;
+  /** Stage 3 (2026-09-19): widened from the legacy RoleCode union — this column
+   * is free TEXT with no CHECK constraint, and is now populated from the
+   * verified Stage 1B session's Stage1RoleCode value. */
+  actorRole: string;
   reasonText: string | null;
 }
 
@@ -35,7 +37,7 @@ interface StatusLogRow {
   from_status: DailyReportStatus | null;
   to_status: DailyReportStatus | null;
   actor_user_id: string;
-  actor_role: RoleCode;
+  actor_role: string;
   reason_text: string | null;
   created_at: string;
 }

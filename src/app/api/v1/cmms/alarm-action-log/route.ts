@@ -17,10 +17,8 @@ import {
   listActiveSuppressions,
   listLatestAcknowledgedAt,
 } from '../../../../../cmms-daily-ops/dao/alarmActionLogDao';
-import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
 import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
 import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
-import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
@@ -30,11 +28,14 @@ interface LogActionPayload {
   columnName: string;
   actionType: 'acknowledge' | 'suppress';
   actorId: string;
-  actorRole: string;
   reasonText?: string;
   suppressExpiresAt?: string;
 }
 
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16, extended Stage 3
+// (2026-09-19): actorRole is no longer read from the body — the Stage 1B
+// session is the sole authorization AND persisted-actor-role source now that
+// the client login has been replaced.
 function isValidPayload(body: unknown): body is LogActionPayload {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
@@ -42,8 +43,7 @@ function isValidPayload(body: unknown): body is LogActionPayload {
     typeof r.domain !== 'string' ||
     typeof r.equipmentTag !== 'string' ||
     typeof r.columnName !== 'string' ||
-    typeof r.actorId !== 'string' ||
-    typeof r.actorRole !== 'string'
+    typeof r.actorId !== 'string'
   ) {
     return false;
   }
@@ -75,21 +75,15 @@ export async function POST(request: NextRequest) {
   if (!isValidPayload(body)) {
     return NextResponse.json({ success: false, error: 'Invalid alarm action payload.' }, { status: 400 });
   }
-  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16, extended Stage
-  // 2A-ii (HJ decision 2026-09-19). Prefer a verified Stage 1B session; fall
-  // back to the client-supplied (spoofable) legacy body.actorRole until the
-  // deferred client-side migration stage lands — see final report. actorRole
-  // is left unrenamed: it is still persisted to alarm_action_log below
-  // (non-auth use), and useAlarmActionLog.ts (a deferred client call site)
-  // still sends this exact field name on the wire.
+  // Stage 3 (HJ decision 2026-09-19): full replacement of the PIN-login
+  // fallback — a valid Stage 1B session is now required.
   const session = verifyUserSecuritySession(request);
-  const permission = session
-    ? resolveSessionPermission(session.employeeId, 'ALARM_ACTION_LOG')
-    : getEffectivePermission(body.actorRole as RoleCode, 'ALARM_ACTION_LOG');
-  const roleLabel = session?.roleCode ?? body.actorRole;
-  if (permission?.canCreate !== true) {
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+  }
+  if (resolveSessionPermission(session.employeeId, 'ALARM_ACTION_LOG')?.canCreate !== true) {
     return NextResponse.json(
-      { success: false, error: `Role ${roleLabel} is not permitted to record alarm actions.` },
+      { success: false, error: `Role ${session.roleCode} is not permitted to record alarm actions.` },
       { status: 403 }
     );
   }
@@ -100,7 +94,7 @@ export async function POST(request: NextRequest) {
     columnName: body.columnName,
     actionType: body.actionType,
     actorId: body.actorId,
-    actorRole: body.actorRole,
+    actorRole: session.roleCode,
     reasonText: body.reasonText ?? null,
     suppressExpiresAt: body.suppressExpiresAt ?? null,
   });

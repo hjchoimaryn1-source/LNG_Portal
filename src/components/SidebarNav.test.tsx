@@ -12,8 +12,13 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import SidebarNav from './SidebarNav';
-import { setActiveSession, clearActiveSession } from '../lib/rbac/activeSessionStore';
+import { setActiveSession, clearActiveSession, type ActiveSession } from '../lib/rbac/activeSessionStore';
+import type { Stage1RoleCode } from '../lib/rbac/userSecurityRolePermissionSeed';
 import type { SubProcessKey } from '../types/lng';
+
+function sessionFor(roleCode: Stage1RoleCode, homeLocation: 'HQ' | 'SITE'): ActiveSession {
+  return { employeeId: 'E-1', roleCode, homeLocation, permissions: {} };
+}
 
 const mockUseFleetTankFacade = vi.fn(() => ({ fleetTanks: [] }));
 vi.mock('../hooks/portalDataFacade/useFleetTankFacade', () => ({
@@ -76,7 +81,7 @@ afterEach(() => {
 
 describe('SidebarNav — Dashboard mode (sector list)', () => {
   it('SYSTEM_ADMIN sees all 9 section headers plus the HQ Overview entry, and no leaf items', async () => {
-    setActiveSession({ userId: 'DEV-HQ-001', roleCode: 'SYSTEM_ADMIN', homeLocation: 'HQ' });
+    setActiveSession(sessionFor('ADMIN', 'HQ'));
     await mount('CMMS_OVERVIEW_DASHBOARD');
     const text = container!.textContent ?? '';
 
@@ -105,7 +110,7 @@ describe('SidebarNav — Dashboard mode (sector list)', () => {
   });
 
   it('SITE_MANAGER sees only LNG-Process + HMI Control Maps headers, no HQ Overview entry, no leaf items', async () => {
-    setActiveSession({ userId: 'BSG259529', roleCode: 'SITE_MANAGER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('SITE_MANAGER', 'SITE'));
     await mount('CMMS_OVERVIEW_DASHBOARD');
     const text = container!.textContent ?? '';
 
@@ -124,7 +129,7 @@ describe('SidebarNav — Dashboard mode (sector list)', () => {
   });
 
   it('OPERATION_TEAM_LEADER sees the same allowlisted headers as SITE_MANAGER', async () => {
-    setActiveSession({ userId: 'BSG259524', roleCode: 'OPERATION_TEAM_LEADER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('OP_TEAM', 'SITE'));
     await mount('CMMS_OVERVIEW_DASHBOARD');
     const text = container!.textContent ?? '';
 
@@ -134,7 +139,7 @@ describe('SidebarNav — Dashboard mode (sector list)', () => {
   });
 
   it('clicking a sector-list header navigates to that sector\'s entry leaf key', async () => {
-    setActiveSession({ userId: 'DEV-HQ-001', roleCode: 'SYSTEM_ADMIN', homeLocation: 'HQ' });
+    setActiveSession(sessionFor('ADMIN', 'HQ'));
     const onSelectKey = vi.fn();
     await mount('CMMS_OVERVIEW_DASHBOARD', onSelectKey);
 
@@ -146,7 +151,7 @@ describe('SidebarNav — Dashboard mode (sector list)', () => {
   });
 
   it('clicking the DASHBOARD header while already on Dashboard harmlessly re-navigates to the same key', async () => {
-    setActiveSession({ userId: 'DEV-HQ-001', roleCode: 'SYSTEM_ADMIN', homeLocation: 'HQ' });
+    setActiveSession(sessionFor('ADMIN', 'HQ'));
     const onSelectKey = vi.fn();
     await mount('CMMS_OVERVIEW_DASHBOARD', onSelectKey);
 
@@ -160,7 +165,7 @@ describe('SidebarNav — Dashboard mode (sector list)', () => {
 
 describe('SidebarNav — in-sector mode (section menu, full replace)', () => {
   it('shows ONLY the LNG-Process leaf list, no other section headers, for SYSTEM_ADMIN', async () => {
-    setActiveSession({ userId: 'DEV-HQ-001', roleCode: 'SYSTEM_ADMIN', homeLocation: 'HQ' });
+    setActiveSession(sessionFor('ADMIN', 'HQ'));
     await mount('NIAS_TANK_OVERVIEW');
     const text = container!.textContent ?? '';
 
@@ -191,7 +196,7 @@ describe('SidebarNav — in-sector mode (section menu, full replace)', () => {
   });
 
   it('shows ONLY the LNG-Process leaf list for SITE_MANAGER too (same tier, same role rule)', async () => {
-    setActiveSession({ userId: 'BSG259529', roleCode: 'SITE_MANAGER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('SITE_MANAGER', 'SITE'));
     await mount('NIAS_TANK_OVERVIEW');
     const text = container!.textContent ?? '';
 
@@ -202,7 +207,7 @@ describe('SidebarNav — in-sector mode (section menu, full replace)', () => {
   });
 
   it('a drill-down leaf not directly on the sidebar (NIAS_LAYDOWN_1_2_LOG) still resolves to the LNG-Process menu', async () => {
-    setActiveSession({ userId: 'DEV-HQ-001', roleCode: 'SYSTEM_ADMIN', homeLocation: 'HQ' });
+    setActiveSession(sessionFor('ADMIN', 'HQ'));
     await mount('NIAS_LAYDOWN_1_2_LOG');
     const text = container!.textContent ?? '';
 
@@ -212,7 +217,7 @@ describe('SidebarNav — in-sector mode (section menu, full replace)', () => {
   });
 
   it('falls back to the sector list for a leaf-only entry with no submenu (HQ_OVERVIEW_DASHBOARD)', async () => {
-    setActiveSession({ userId: 'DEV-HQ-001', roleCode: 'SYSTEM_ADMIN', homeLocation: 'HQ' });
+    setActiveSession(sessionFor('ADMIN', 'HQ'));
     await mount('HQ_OVERVIEW_DASHBOARD');
     const text = container!.textContent ?? '';
 
@@ -222,7 +227,7 @@ describe('SidebarNav — in-sector mode (section menu, full replace)', () => {
   });
 
   it('clicking the DASHBOARD header from inside a sector navigates to CMMS_OVERVIEW_DASHBOARD and switches the sidebar back to the sector-list view', async () => {
-    setActiveSession({ userId: 'DEV-HQ-001', roleCode: 'SYSTEM_ADMIN', homeLocation: 'HQ' });
+    setActiveSession(sessionFor('ADMIN', 'HQ'));
     await mountStateful('NIAS_TANK_OVERVIEW');
 
     // Sanity check: starts in-sector (full replace — no other section headers).

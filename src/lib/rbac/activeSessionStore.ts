@@ -1,27 +1,46 @@
 // src/lib/rbac/activeSessionStore.ts
 //
-// DEV-ONLY in-memory session bridge. LoginGateway.tsx의 Quick-Login 카드 클릭이
-// setActiveSession()으로 세션을 기록하면, resolveEffectivePermission/blockIfAuditorMode를
-// 호출하는 지점(OverviewCalibrationRoutes.tsx 등)이 useActiveSession()으로 구독해
-// 더 이상 하드코딩된 세션 스텁을 쓰지 않는다.
-// 새로고침 시 초기화되며 user_sessions 테이블/토큰 발급을 대체하지 않는다 — 실제
-// 세션 백엔드 도입 전까지의 임시 어댑터. CMMS_Architecture.md §3.5 참조.
+// In-memory session bridge, in front of the actual Stage 1B session (httpOnly
+// cookie, /api/v1/cmms/user-security/login). LoginGateway.tsx's username/
+// password form calls setActiveSession() on a successful login response;
+// every RBAC call site (client hooks/components) subscribes via
+// useActiveSession() instead of hitting the server directly for permission
+// data (that data arrives precomputed in the login response — see
+// permissions below).
+// Resets on page refresh (in-memory only) — a refresh currently forces
+// re-login; this store does not itself read back the httpOnly cookie (it
+// can't, by design) or restore state from it. CMMS_Architecture.md §3.5.
 //
-// effectiveRole은 Phase 8 Stage 3에서 추가된 부가 필드다 — src/cmms-auth의
-// EffectiveRole(RoleTier, 위임 인지)을 실어 나르기만 할 뿐, roleCode(RoleCode)는
-// 그대로 두었다. evaluateMutationGuardrails({ roleCode })를 호출하는 8개
-// 프로덕션 소비처(useWorkOrders.ts, PTWStatusActions.tsx 등)는 무수정 — RoleCode/
-// RoleTier를 서로 파생시키는 결합은 별도 승인 대상으로 남겨둔다.
+// Stage 3 (2026-09-19, full PIN-login replacement, HJ decision): roleCode is
+// now the new Stage 1 vocabulary (Stage1RoleCode: ADMIN/SITE_MANAGER/OP_TEAM/
+// HSSE/MAINTENANCE/LOGISTIC/HR). permissions is the delegation-aware
+// RolePermission map the server already computed via resolveSessionPermission()
+// for the 6 modules with a live client-side check (sessionPermissionResolver.ts's
+// buildClientPermissionsMap) — client call sites read permissions[moduleCode]
+// directly instead of recomputing anything themselves; this is a UX-only
+// mirror of the same data the migrated server routes authoritatively enforce.
+//
+// homeLocation has no equivalent field in the Stage 1 schema (personnel_master
+// only has department_group, not a HQ/SITE distinction) — LoginGateway.tsx
+// derives it as 'HQ' for ADMIN (matching the retired SYSTEM_ADMIN/DEV-HQ-001
+// precedent) and 'SITE' for every other role. This only feeds
+// resolveEffectivePermission()'s HQ->SITE cross-context DOA check
+// (OverviewCalibrationRoutes.tsx) — flagged as an interim default, not a
+// real HQ/SITE modeling decision.
+//
+// effectiveRole (Phase 8 RoleTier) is dropped — it was never read off
+// ActiveSession by anything (confirmed via repo search), only set and never
+// consumed.
 
 import { useSyncExternalStore } from 'react';
-import type { RoleCode } from '../../types/rbac';
-import type { EffectiveRole } from '../../cmms-auth/rbacTypes';
+import type { ModuleCode, RolePermission } from '../../types/rbac';
+import type { Stage1RoleCode } from './userSecurityRolePermissionSeed';
 
 export interface ActiveSession {
-  userId: string;
-  roleCode: RoleCode;
+  employeeId: string;
+  roleCode: Stage1RoleCode;
   homeLocation: 'HQ' | 'SITE';
-  effectiveRole?: EffectiveRole;
+  permissions: Partial<Record<ModuleCode, RolePermission>>;
 }
 
 let activeSession: ActiveSession | null = null;

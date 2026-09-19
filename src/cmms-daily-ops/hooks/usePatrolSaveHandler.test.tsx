@@ -7,7 +7,18 @@ import {
   useDailyOpsPatrolValue,
   __resetDailyOpsPatrolStoreForTests,
 } from '../state/useDailyOpsPatrolStore';
-import { setActiveSession, clearActiveSession } from '../../lib/rbac/activeSessionStore';
+import { setActiveSession, clearActiveSession, type ActiveSession } from '../../lib/rbac/activeSessionStore';
+import { getEffectivePermission } from '../../lib/rbac/rolePermissionService';
+import type { Stage1RoleCode } from '../../lib/rbac/userSecurityRolePermissionSeed';
+
+function sessionFor(roleCode: Stage1RoleCode): ActiveSession {
+  return {
+    employeeId: 'E-1',
+    roleCode,
+    homeLocation: 'SITE',
+    permissions: { DAILY_OPS_PATROL_ENTRY: getEffectivePermission(roleCode, 'DAILY_OPS_PATROL_ENTRY') ?? undefined },
+  };
+}
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -52,7 +63,7 @@ async function mountAndCapture() {
 
 describe('usePatrolSaveHandler', () => {
   it('POSTs the domain/reportDate/recordedBy alongside the form input, then updates the B2 store on success', async () => {
-    setActiveSession({ userId: 'u1', roleCode: 'SITE_MANAGER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('SITE_MANAGER'));
     const postCalls: unknown[] = [];
     vi.stubGlobal(
       'fetch',
@@ -87,7 +98,7 @@ describe('usePatrolSaveHandler', () => {
   });
 
   it('does not update the B2 store when the save fails', async () => {
-    setActiveSession({ userId: 'u1', roleCode: 'SITE_MANAGER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('SITE_MANAGER'));
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: false }) }));
 
     const handler = await mountAndCapture();
@@ -107,7 +118,7 @@ describe('usePatrolSaveHandler', () => {
   });
 
   it('blocks the save and does not fetch when the active role is outside the allow-list', async () => {
-    setActiveSession({ userId: 'u1', roleCode: 'HSSE_OFFICER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('HSSE'));
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
     const blocked: string[] = [];

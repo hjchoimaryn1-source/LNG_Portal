@@ -11,7 +11,6 @@ import type { MroPartRecord, StockAdjustmentInput, StockTxType } from '../../../
 import type { PurchaseRequisitionRecord } from '../../../adapters/db/purchaseRequisitionDao';
 import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../../adapters/guardrailUiAdapter';
-import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
 import { SESSION_EXPIRED_MESSAGE } from '../../../lib/rbac/sessionExpiryMessage';
 
 const PARTS_API = '/api/v1/cmms/mro-inventory';
@@ -83,7 +82,7 @@ export function useMroInventory() {
         return { success: false, error: SESSION_EXPIRED_MESSAGE };
       }
       // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-      if (getEffectivePermission(activeSession.roleCode, 'MAINTENANCE_MRO_HUB')?.canCreate !== true) {
+      if (activeSession.permissions.MAINTENANCE_MRO_HUB?.canCreate !== true) {
         return { success: false, error: `역할 ${activeSession.roleCode}은(는) 재고 조정 권한이 없습니다.` };
       }
       const guard = evaluateMutationGuardrails({ roleCode: activeSession.roleCode, action: 'UPDATE' });

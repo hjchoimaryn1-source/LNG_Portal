@@ -3,7 +3,18 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { SafetyNotesEditor } from './SafetyNotesEditor';
-import { setActiveSession, clearActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { setActiveSession, clearActiveSession, type ActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
+import type { Stage1RoleCode } from '../../../lib/rbac/userSecurityRolePermissionSeed';
+
+function sessionFor(roleCode: Stage1RoleCode): ActiveSession {
+  return {
+    employeeId: 'E-1',
+    roleCode,
+    homeLocation: 'SITE',
+    permissions: { DAILY_OPS_REPORT: getEffectivePermission(roleCode, 'DAILY_OPS_REPORT') ?? undefined },
+  };
+}
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -56,7 +67,7 @@ describe('SafetyNotesEditor', () => {
   });
 
   it('saves all 4 fields, converting blanks to null', async () => {
-    setActiveSession({ userId: 'u1', roleCode: 'HSSE_OFFICER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('HSSE'));
     const postCalls = stubFetch(null);
     await mountAndFlush();
 
@@ -75,7 +86,7 @@ describe('SafetyNotesEditor', () => {
     expect(postCalls).toHaveLength(1);
     expect(postCalls[0]).toMatchObject({
       snapshotId: 1,
-      roleCode: 'HSSE_OFFICER',
+      roleCode: 'HSSE',
       unsafeActionText: 'Loose valve handle',
       unsafeConditionText: null,
       incidentText: null,
@@ -85,7 +96,7 @@ describe('SafetyNotesEditor', () => {
 
   it('blocks the save and does not fetch when the active role has no canCreate on DAILY_OPS_REPORT', async () => {
     // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-    setActiveSession({ userId: 'u1', roleCode: 'WORK_LEADER_TECH', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('MAINTENANCE'));
     const postCalls = stubFetch(null);
     await mountAndFlush();
 

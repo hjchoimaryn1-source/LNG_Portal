@@ -15,22 +15,23 @@ import {
   type SignatureRole,
 } from '../../../../../cmms-daily-ops/dao/dailyReportChildDao';
 import { finalizeSnapshot } from '../../../../../cmms-daily-ops/dao/dailyReportSnapshotDao';
-import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
 import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
 import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
-import type { RoleCode, RolePermission } from '../../../../../types/rbac';
+import type { RolePermission } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
 const VALID_ROLES: SignatureRole[] = ['prepared_by', 'acknowledged_by'];
 
-// RBAC audit remediation — Phase 13 follow-up, 2026-09-16 (split by signature type).
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16 (split by signature
+// type). roleCode is no longer read from the body (Stage 3, 2026-09-19) — the
+// Stage 1B session is the sole authorization source now that the client
+// login has been replaced.
 interface SignaturePayload {
   snapshotId: number;
   role: SignatureRole;
   signerName: string;
   signerTitle: string | null;
-  roleCode: RoleCode;
 }
 
 function isValidPayload(body: unknown): body is SignaturePayload {
@@ -40,8 +41,7 @@ function isValidPayload(body: unknown): body is SignaturePayload {
     typeof r.snapshotId === 'number' &&
     typeof r.role === 'string' &&
     VALID_ROLES.includes(r.role as SignatureRole) &&
-    typeof r.signerName === 'string' &&
-    typeof r.roleCode === 'string'
+    typeof r.signerName === 'string'
   );
 }
 
@@ -76,17 +76,16 @@ export async function POST(request: NextRequest) {
   if (!isValidPayload(body)) {
     return NextResponse.json({ success: false, error: 'Invalid signature payload.' }, { status: 400 });
   }
-  // Stage 2A-ii (HJ decision 2026-09-19): prefer a verified Stage 1B session;
-  // fall back to the client-supplied (spoofable) legacy roleCode until the
-  // deferred client-side migration stage lands — see final report.
+  // Stage 3 (HJ decision 2026-09-19): full replacement of the PIN-login
+  // fallback — a valid Stage 1B session is now required.
   const session = verifyUserSecuritySession(request);
-  const permission = session
-    ? resolveSessionPermission(session.employeeId, 'DAILY_OPS_REPORT')
-    : getEffectivePermission(body.roleCode, 'DAILY_OPS_REPORT');
-  const roleLabel = session?.roleCode ?? body.roleCode;
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+  }
+  const permission: RolePermission | null = resolveSessionPermission(session.employeeId, 'DAILY_OPS_REPORT');
   if (!isPermitted(permission, body.role)) {
     return NextResponse.json(
-      { success: false, error: `Role ${roleLabel} is not permitted to sign as ${body.role}.` },
+      { success: false, error: `Role ${session.roleCode} is not permitted to sign as ${body.role}.` },
       { status: 403 }
     );
   }

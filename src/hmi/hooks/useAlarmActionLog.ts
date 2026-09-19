@@ -9,7 +9,6 @@
 
 import { useCallback } from 'react';
 import { useActiveSession } from '../../lib/rbac/activeSessionStore';
-import { getEffectivePermission } from '../../lib/rbac/rolePermissionService';
 import { addActiveSuppression } from '../state/useAlarmSuppressionStore';
 import { markAlarmAcknowledged } from '../state/useAlarmAckStore';
 import type { PatrolDomain } from '../types/hmiCore';
@@ -45,7 +44,7 @@ export function useAlarmActionLog(): UseAlarmActionLogResult {
     async (domain: PatrolDomain, equipmentTag: string, columnName: string) => {
       if (!activeSession) return '로그인 세션이 없습니다.';
       // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-      if (getEffectivePermission(activeSession.roleCode, 'ALARM_ACTION_LOG')?.canCreate !== true) {
+      if (activeSession.permissions.ALARM_ACTION_LOG?.canCreate !== true) {
         return `역할 ${activeSession.roleCode}은(는) 알람 조치 기록 권한이 없습니다.`;
       }
       const err = await post({
@@ -53,7 +52,7 @@ export function useAlarmActionLog(): UseAlarmActionLogResult {
         equipmentTag,
         columnName,
         actionType: 'acknowledge',
-        actorId: activeSession.userId,
+        actorId: activeSession.employeeId,
         actorRole: activeSession.roleCode,
       });
       if (!err) markAlarmAcknowledged(domain, equipmentTag, columnName, new Date().toISOString());
@@ -66,7 +65,7 @@ export function useAlarmActionLog(): UseAlarmActionLogResult {
     async (domain: PatrolDomain, equipmentTag: string, columnName: string, reasonText: string, suppressExpiresAt: string) => {
       if (!activeSession) return '로그인 세션이 없습니다.';
       // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-      if (getEffectivePermission(activeSession.roleCode, 'ALARM_ACTION_LOG')?.canCreate !== true) {
+      if (activeSession.permissions.ALARM_ACTION_LOG?.canCreate !== true) {
         return `역할 ${activeSession.roleCode}은(는) 알람 조치 기록 권한이 없습니다.`;
       }
       if (!reasonText.trim()) return '억제 사유를 입력하세요.';
@@ -76,7 +75,7 @@ export function useAlarmActionLog(): UseAlarmActionLogResult {
         equipmentTag,
         columnName,
         actionType: 'suppress',
-        actorId: activeSession.userId,
+        actorId: activeSession.employeeId,
         actorRole: activeSession.roleCode,
         reasonText,
         suppressExpiresAt,

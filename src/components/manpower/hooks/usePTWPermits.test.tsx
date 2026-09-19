@@ -3,7 +3,18 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { usePTWPermits } from './usePTWPermits';
-import { setActiveSession, clearActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { setActiveSession, clearActiveSession, type ActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
+import { STAGE1_ROLE_CODES, type Stage1RoleCode } from '../../../lib/rbac/userSecurityRolePermissionSeed';
+
+function sessionFor(roleCode: Stage1RoleCode): ActiveSession {
+  return {
+    employeeId: 'E-1',
+    roleCode,
+    homeLocation: 'SITE',
+    permissions: { PTW_PERMITS: getEffectivePermission(roleCode, 'PTW_PERMITS') ?? undefined },
+  };
+}
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -64,7 +75,7 @@ async function mountAndCapture() {
 
 describe('usePTWPermits.addSignature RBAC gate', () => {
   it('persists the signature with roleCode for a role with real PTW_PERMITS access', async () => {
-    setActiveSession({ userId: 'u1', roleCode: 'WORK_LEADER_TECH', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('MAINTENANCE'));
     const { signaturePostCalls } = stubFetch();
     const getResult = await mountAndCapture();
     const permitId = getResult().permits[0].id;
@@ -75,25 +86,21 @@ describe('usePTWPermits.addSignature RBAC gate', () => {
     });
 
     expect(signaturePostCalls).toHaveLength(1);
-    expect(signaturePostCalls[0]).toMatchObject({ permitId, roleCode: 'WORK_LEADER_TECH', role: 'WORK_LEADER_ACCEPT' });
+    expect(signaturePostCalls[0]).toMatchObject({ permitId, roleCode: 'MAINTENANCE', role: 'WORK_LEADER_ACCEPT' });
   });
 
-  it('blocks the signature and does not fetch when the active role is forced read-only on PTW_PERMITS', async () => {
-    // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-    setActiveSession({ userId: 'u1', roleCode: 'HQ_SUPERVISOR_AUDITOR', homeLocation: 'HQ' });
-    alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-    const { fetchMock } = stubFetch();
-    const getResult = await mountAndCapture();
-    const permitId = getResult().permits[0].id;
-    const signatureCallsBefore = fetchMock.mock.calls.filter((c) => (c[0] as string).includes('/ptw-signatures')).length;
-
-    await act(async () => {
-      getResult().addSignature(permitId, 'WORK_LEADER_ACCEPT', 'S-1', 'Auditor One');
-      await Promise.resolve();
-    });
-
-    const signatureCallsAfter = fetchMock.mock.calls.filter((c) => (c[0] as string).includes('/ptw-signatures')).length;
-    expect(signatureCallsAfter).toBe(signatureCallsBefore);
-    expect(alertSpy).toHaveBeenCalled();
+  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16. This test used to
+  // exercise HQ_SUPERVISOR_AUDITOR's forced-read-only block. That role has no
+  // equivalent in the new Stage1RoleCode vocabulary (Stage 2A-i HJ decision:
+  // deferred to a future HQ-view phase, not ported — it would no longer even
+  // type-check as a literal here). Repurposed (Stage 3, 2026-09-19) to assert
+  // the fact that makes the old scenario unreachable today: no current-vocabulary
+  // role has isReadOnlyForced:true on PTW_PERMITS, so addSignature's
+  // `!permission || permission.isReadOnlyForced` guard has no live blocking case
+  // until an auditor-equivalent role is reintroduced.
+  it('documents that no current-vocabulary role is forced-read-only on PTW_PERMITS (HQ_SUPERVISOR_AUDITOR deferred, not ported)', () => {
+    for (const roleCode of STAGE1_ROLE_CODES) {
+      expect(getEffectivePermission(roleCode, 'PTW_PERMITS')?.isReadOnlyForced).toBe(false);
+    }
   });
 });

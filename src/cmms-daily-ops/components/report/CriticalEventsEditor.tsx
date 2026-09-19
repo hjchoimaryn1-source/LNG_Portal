@@ -12,7 +12,6 @@ import { useEffect, useState } from 'react';
 import { SUNKEN_INPUT, BEVEL_BUTTON, RAISED_PANEL, TITLE_BAR } from '../../../components/cmms/scadaStyles';
 import { DRAFT_FIELDS, emptyDraft, type SavedEvent, type DraftRow } from './criticalEventFields';
 import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
-import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
 
 const CRITICAL_EVENTS_API = '/api/v1/cmms/daily-report-critical-events';
 const MIN_DRAFT_ROWS = 3;
@@ -48,7 +47,7 @@ export function CriticalEventsEditor({ snapshotId }: CriticalEventsEditorProps) 
       setBlockedMessage('로그인 세션이 없습니다.');
       return;
     }
-    if (getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT')?.canCreate !== true) {
+    if (activeSession.permissions.DAILY_OPS_REPORT?.canCreate !== true) {
       setBlockedMessage(`역할 ${activeSession.roleCode}은(는) Critical Events 입력 권한이 없습니다.`);
       return;
     }
@@ -88,7 +87,7 @@ export function CriticalEventsEditor({ snapshotId }: CriticalEventsEditorProps) 
       setBlockedMessage('로그인 세션이 없습니다.');
       return;
     }
-    if (getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT')?.canCreate !== true) {
+    if (activeSession.permissions.DAILY_OPS_REPORT?.canCreate !== true) {
       setBlockedMessage(`역할 ${activeSession.roleCode}은(는) Critical Events 삭제 권한이 없습니다.`);
       return;
     }

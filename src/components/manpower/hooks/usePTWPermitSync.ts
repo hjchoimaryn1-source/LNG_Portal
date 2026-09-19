@@ -14,7 +14,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { PTWPermit, PTWSignatureEntry, PTWWorkflowStatus } from '../../../types/lng';
 import type { PTWPermitLifecycleDraft } from '../../../adapters/db/ptwPermitDao';
 import type { PermitSuspensionRow } from '../../../adapters/db/permitSuspensionDao';
-import type { RoleCode } from '../../../types/rbac';
+import type { Stage1RoleCode } from '../../../lib/rbac/userSecurityRolePermissionSeed';
 import { toPermitLifecycleSeed } from '../../../utils/ptwPermitRecordMapper';
 
 const PTW_PERMITS_API = '/api/v1/cmms/ptw-permits';
@@ -76,7 +76,7 @@ export function usePTWPermitSync(permits: PTWPermit[]) {
    * 영향 없음. roleCode는 optional(4번째 인자) — NP08 useCargoHandlingLifecycle처럼
    * 아직 넘기지 않는 호출부는 서버측 RBAC 검증 없이 기존과 동일하게 동작한다(하위호환).
    */
-  const persistStatusChange = useCallback((permitId: string, status: PTWWorkflowStatus, closedAt: string | null, roleCode?: RoleCode) => {
+  const persistStatusChange = useCallback((permitId: string, status: PTWWorkflowStatus, closedAt: string | null, roleCode?: Stage1RoleCode) => {
     (async () => {
       try {
         const res = await fetch(PTW_PERMITS_API, {
@@ -95,7 +95,7 @@ export function usePTWPermitSync(permits: PTWPermit[]) {
   }, []);
 
   /** addSignature() 로컬 갱신 직후 호출되는 fire-and-forget 영속화 — 게이트 판정에 영향 없음. */
-  const persistSignature = useCallback((permitId: string, entry: PTWSignatureEntry, roleCode: RoleCode) => {
+  const persistSignature = useCallback((permitId: string, entry: PTWSignatureEntry, roleCode: Stage1RoleCode) => {
     (async () => {
       try {
         const res = await fetch(PTW_SIGNATURES_API, {

@@ -12,7 +12,6 @@
 import { useState } from 'react';
 import { useActiveSession } from '../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../adapters/guardrailUiAdapter';
-import { getEffectivePermission } from '../../lib/rbac/rolePermissionService';
 import type { DailyReportSnapshotSummary } from './useDailyReportApproval';
 
 const OPEN_API = '/api/v1/cmms/daily-report-hq-edit-open';
@@ -23,16 +22,14 @@ export function useHqEditWindow(snapshot: DailyReportSnapshotSummary | null, rel
   const activeSession = useActiveSession();
   const [message, setMessage] = useState<string | null>(null);
 
-  // canUnlockApproved: SYSTEM_ADMIN만 true(rolePermissionService.ts D-ADD-2).
-  const canUnlockApproved = activeSession
-    ? getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT')?.canUnlockApproved === true
-    : false;
+  // canUnlockApproved: ADMIN만 true(rolePermissionService.ts D-ADD-2), 위임 시
+  // resolveSessionPermissionCore()가 SITE_MANAGER의 canUnlockApproved까지
+  // OR 병합하지만 그 값도 false이므로 결과는 동일하다(sessionPermissionCore.ts 참조).
+  const canUnlockApproved = activeSession?.permissions.DAILY_OPS_REPORT?.canUnlockApproved === true;
 
-  // D-ADD-2b — 통보 확인(acknowledge)은 canApprove 티어(SITE_MANAGER/
-  // ACTING_SITE_MANAGER/SYSTEM_ADMIN)가 대상 — 이 리포트를 승인했을 역할과 동일.
-  const canAcknowledge = activeSession
-    ? getEffectivePermission(activeSession.roleCode, 'DAILY_OPS_REPORT')?.canApprove === true
-    : false;
+  // D-ADD-2b — 통보 확인(acknowledge)은 canApprove 티어(SITE_MANAGER 및 위임
+  // 활성 시 그 권한을 위임받은 역할)가 대상 — 이 리포트를 승인했을 역할과 동일.
+  const canAcknowledge = activeSession?.permissions.DAILY_OPS_REPORT?.canApprove === true;
 
   async function openWindow(reasonText: string): Promise<void> {
     setMessage(null);
@@ -60,7 +57,7 @@ export function useHqEditWindow(snapshot: DailyReportSnapshotSummary | null, rel
       body: JSON.stringify({
         snapshotId: snapshot.id,
         roleCode: activeSession.roleCode,
-        actorId: activeSession.userId,
+        actorId: activeSession.employeeId,
         reasonText,
       }),
     });
@@ -99,7 +96,7 @@ export function useHqEditWindow(snapshot: DailyReportSnapshotSummary | null, rel
       body: JSON.stringify({
         snapshotId: snapshot.id,
         roleCode: activeSession.roleCode,
-        actorId: activeSession.userId,
+        actorId: activeSession.employeeId,
         summaryText,
       }),
     });
@@ -130,7 +127,7 @@ export function useHqEditWindow(snapshot: DailyReportSnapshotSummary | null, rel
       body: JSON.stringify({
         snapshotId: snapshot.id,
         roleCode: activeSession.roleCode,
-        actorId: activeSession.userId,
+        actorId: activeSession.employeeId,
       }),
     });
     const json = await res.json();

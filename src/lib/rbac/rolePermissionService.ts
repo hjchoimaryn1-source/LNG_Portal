@@ -1,183 +1,44 @@
 // src/lib/rbac/rolePermissionService.ts
 //
-// PART A 재검증 결과: `role_permissions` 테이블은 src/db/schema/cmms_schema.sql,
-// schema/cmms_schema.sqlite.sql, src/adapters/db/cmmsDbSingleton.ts(런타임 DDL로
-// 테이블을 보강하는 유일한 경로)의 어느 곳에도 CREATE TABLE 되어 있지 않고,
-// src/db/seeds/001_role_permissions.sql(77행)을 적재하는 시더 실행 코드도
-// 존재하지 않는다 — 즉 "실제로 조회 가능한 DB 테이블"이 아니다.
-// 따라서 이 서비스는 라이브 DB를 쿼리하지 않고, 001_role_permissions.sql의
-// 77행을 그대로 옮긴 정적 데이터셋을 in-memory로 조회한다.
-// 시드 SQL 파일 내용이 바뀌면 이 배열도 함께 갱신해야 한다.
+// PURPOSE
+//   Pure, DB-free lookup: Stage1RoleCode x ModuleCode -> RolePermission. Backed
+//   by userSecurityRolePermissionSeed.ts's HJ-confirmed matrix (Stage 2A-ii,
+//   2026-09-19) — the exact same source of truth the role_permissions table is
+//   seeded from, so this in-memory lookup and the DB never drift.
 //
-// Stage 2A-ii (2026-09-19) — 구 RoleCode(위 7개 값) 어휘는 그대로 살아있다.
-// activeSessionStore.ts/LoginGateway.tsx 기반 13개 클라이언트 호출부(PTW
-// 서명, 일일보고 서명 등)가 여전히 이 어휘로 activeSession.roleCode를
-// 채우고, Stage 1B(username/password) 로그인 UI가 아직 없어 이 호출부들을
-// 신규 role_code로 전환할 방법이 없다 — 별도 스테이지로 이연(HJ 결정).
-// 그래서 getEffectivePermission()은 두 어휘를 모두 받는다: 신규
-// Stage1RoleCode(ADMIN/SITE_MANAGER/OP_TEAM/HSSE/MAINTENANCE/LOGISTIC/HR)는
-// userSecurityRolePermissionSeed.ts의 HJ 확정 매트릭스로, 구 RoleCode는 아래
-// 정적 배열(무수정)로 조회한다. 'SITE_MANAGER' 문자열이 두 어휘에 우연히
-// 겹치는데(userSecuritySchema.ts 헤더 주석), 6개 호출부 모듈 전부에서 구/신
-// 매트릭스 값이 완전히 동일하도록 HJ 확정 매트릭스가 구성되어 있어(구
-// SITE_MANAGER -> 신 SITE_MANAGER 직접 매핑, Stage 2A-i) 어느 쪽 경로로
-// 가든 관측 가능한 차이가 없다 — 단, 두 매트릭스를 독립적으로 편집하면 이
-// 안전성이 깨지므로 향후 수정 시 주의.
+//   Deliberately has zero import chain into cmmsDbSingleton.ts/'node:sqlite' —
+//   userSecurityRolePermissionSeed.ts only has `import type { DatabaseSync }`
+//   (erased at compile time), so this file stays safe for tests that call
+//   getEffectivePermission() directly with no DB setup (e.g.
+//   useAlarmActionLog.test.tsx) under vitest/vite-node, which cannot statically
+//   resolve a value import of the experimental 'node:sqlite' core module
+//   (see userSecuritySessionCore.ts's header comment for the identical
+//   constraint on that file).
 //
-// 구 ROLE_PERMISSIONS 배열/RoleCode 타입 삭제는 13개 클라이언트 호출부가
-// 여전히 참조하므로 Step 4에서 보류했다(userSecurityRolePermissionSeed.ts
-// 헤더, 최종 보고서 참조).
+// Stage 3 (2026-09-19, full PIN-login replacement, HJ decision) — the legacy
+// 7-value RoleCode vocabulary (src/types/rbac.ts) and its static
+// ROLE_PERMISSIONS array (91-row mirror of 001_role_permissions.sql) are
+// deleted from this file. RoleCode itself is NOT deleted from types/rbac.ts —
+// userAccountsSeed.ts (PIN-login backend, deliberately kept inert per this
+// stage's instructions) still declares fields typed as RoleCode — but nothing
+// in this file, and no live call site, references it anymore. See the final
+// Stage 3 report for the full repo-wide search.
 
-import type { RoleCode, ModuleCode, RolePermission } from '../../types/rbac';
-import { STAGE1_ROLE_CODES, resolveStage1PermissionFlags, type Stage1RoleCode } from './userSecurityRolePermissionSeed';
+import type { ModuleCode, RolePermission } from '../../types/rbac';
+import { resolveStage1PermissionFlags, type Stage1RoleCode } from './userSecurityRolePermissionSeed';
 
-function isStage1RoleCode(roleCode: RoleCode | Stage1RoleCode): roleCode is Stage1RoleCode {
-  return (STAGE1_ROLE_CODES as readonly string[]).includes(roleCode);
-}
-
-const ROLE_PERMISSIONS: RolePermission[] = [
-  // SYSTEM_ADMIN: full access to all modules
-  { rolePermissionId: 1, roleCode: 'SYSTEM_ADMIN', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 2, roleCode: 'SYSTEM_ADMIN', moduleCode: 'LNG_PROCESS_OVERVIEW', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 3, roleCode: 'SYSTEM_ADMIN', moduleCode: 'EQUIPMENT_ASSET_REGISTRY', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 4, roleCode: 'SYSTEM_ADMIN', moduleCode: 'WORK_ORDER_DIRECTORY', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 5, roleCode: 'SYSTEM_ADMIN', moduleCode: 'MAINTENANCE_MRO_HUB', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 6, roleCode: 'SYSTEM_ADMIN', moduleCode: 'MANPOWER_DAILY_SHIFT', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 7, roleCode: 'SYSTEM_ADMIN', moduleCode: 'MANPOWER_ROTATION_TRACKER', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 8, roleCode: 'SYSTEM_ADMIN', moduleCode: 'PTW_PERMITS', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 9, roleCode: 'SYSTEM_ADMIN', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 10, roleCode: 'SYSTEM_ADMIN', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 11, roleCode: 'SYSTEM_ADMIN', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 78, roleCode: 'SYSTEM_ADMIN', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: true, canApprove: true, isReadOnlyForced: false, canUnlockApproved: true },
-  // Explicit allow-list per HJ decision 2026-09-15 — Phase 12 field-readiness pass.
-  // DAILY_OPS_PATROL_ENTRY is distinct from DAILY_OPS_REPORT: SITE_MANAGER has
-  // canCreate:false on the latter (report generation), but must still be able to
-  // record patrol readings — a separate moduleCode avoids repurposing a permission
-  // that would otherwise block SITE_MANAGER.
-  { rolePermissionId: 85, roleCode: 'SYSTEM_ADMIN', moduleCode: 'DAILY_OPS_PATROL_ENTRY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-  { rolePermissionId: 88, roleCode: 'SYSTEM_ADMIN', moduleCode: 'ALARM_ACTION_LOG', canRead: true, canCreate: true, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-
-  // SITE_MANAGER: read all, create/update PTW+WO(row-level), approve PTW/WO/Shift/CAR
-  { rolePermissionId: 12, roleCode: 'SITE_MANAGER', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 13, roleCode: 'SITE_MANAGER', moduleCode: 'LNG_PROCESS_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 14, roleCode: 'SITE_MANAGER', moduleCode: 'EQUIPMENT_ASSET_REGISTRY', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 15, roleCode: 'SITE_MANAGER', moduleCode: 'WORK_ORDER_DIRECTORY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 16, roleCode: 'SITE_MANAGER', moduleCode: 'MAINTENANCE_MRO_HUB', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 17, roleCode: 'SITE_MANAGER', moduleCode: 'MANPOWER_DAILY_SHIFT', canRead: true, canCreate: false, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 18, roleCode: 'SITE_MANAGER', moduleCode: 'MANPOWER_ROTATION_TRACKER', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 19, roleCode: 'SITE_MANAGER', moduleCode: 'PTW_PERMITS', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 20, roleCode: 'SITE_MANAGER', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 21, roleCode: 'SITE_MANAGER', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 22, roleCode: 'SITE_MANAGER', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: false, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
-  // Phase 12 — Daily Ops Report approval lock: only SITE_MANAGER/ACTING_SITE_MANAGER may approve (DRAFT->SUBMITTED->APPROVED).
-  { rolePermissionId: 79, roleCode: 'SITE_MANAGER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: false, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
-  // Explicit allow-list per HJ decision 2026-09-15 — Phase 12 field-readiness pass.
-  { rolePermissionId: 86, roleCode: 'SITE_MANAGER', moduleCode: 'DAILY_OPS_PATROL_ENTRY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-  { rolePermissionId: 89, roleCode: 'SITE_MANAGER', moduleCode: 'ALARM_ACTION_LOG', canRead: true, canCreate: true, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-
-  // ACTING_SITE_MANAGER: mirrors SITE_MANAGER but approve limited to PTW Stage 4 / SM-absence approval
-  { rolePermissionId: 23, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 24, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'LNG_PROCESS_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 25, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'EQUIPMENT_ASSET_REGISTRY', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 26, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'WORK_ORDER_DIRECTORY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 27, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'MAINTENANCE_MRO_HUB', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 28, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'MANPOWER_DAILY_SHIFT', canRead: true, canCreate: false, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 29, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'MANPOWER_ROTATION_TRACKER', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 30, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'PTW_PERMITS', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 31, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 32, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 33, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 80, roleCode: 'ACTING_SITE_MANAGER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
-
-  // OPERATION_TEAM_LEADER: site/operational modules only
-  { rolePermissionId: 34, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'HQ_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 35, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'LNG_PROCESS_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 36, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'EQUIPMENT_ASSET_REGISTRY', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 37, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'WORK_ORDER_DIRECTORY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 38, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'MAINTENANCE_MRO_HUB', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 39, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'MANPOWER_DAILY_SHIFT', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 40, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'MANPOWER_ROTATION_TRACKER', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 41, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'PTW_PERMITS', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 42, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 43, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 44, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 81, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  // Explicit allow-list per HJ decision 2026-09-15 — Phase 12 field-readiness pass.
-  { rolePermissionId: 87, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'DAILY_OPS_PATROL_ENTRY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-  { rolePermissionId: 90, roleCode: 'OPERATION_TEAM_LEADER', moduleCode: 'ALARM_ACTION_LOG', canRead: true, canCreate: true, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-
-  // HSSE_OFFICER: safety/PTW modules only
-  { rolePermissionId: 45, roleCode: 'HSSE_OFFICER', moduleCode: 'HQ_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 46, roleCode: 'HSSE_OFFICER', moduleCode: 'LNG_PROCESS_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 47, roleCode: 'HSSE_OFFICER', moduleCode: 'EQUIPMENT_ASSET_REGISTRY', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 48, roleCode: 'HSSE_OFFICER', moduleCode: 'WORK_ORDER_DIRECTORY', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 49, roleCode: 'HSSE_OFFICER', moduleCode: 'MAINTENANCE_MRO_HUB', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 50, roleCode: 'HSSE_OFFICER', moduleCode: 'MANPOWER_DAILY_SHIFT', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 51, roleCode: 'HSSE_OFFICER', moduleCode: 'MANPOWER_ROTATION_TRACKER', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 52, roleCode: 'HSSE_OFFICER', moduleCode: 'PTW_PERMITS', canRead: true, canCreate: false, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 53, roleCode: 'HSSE_OFFICER', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 54, roleCode: 'HSSE_OFFICER', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 55, roleCode: 'HSSE_OFFICER', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 82, roleCode: 'HSSE_OFFICER', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  // Forward-provisioned per HJ decision 2026-09-16 — no HSSE_OFFICER login account exists yet
-  // (see userAccountsSeed.ts); this row is inert until account seeding is separately authorized.
-  // Do not remove.
-  { rolePermissionId: 91, roleCode: 'HSSE_OFFICER', moduleCode: 'ALARM_ACTION_LOG', canRead: true, canCreate: true, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-
-  // WORK_LEADER_TECH: assigned WO + TBM sign only (row-level filtering required at query level)
-  { rolePermissionId: 56, roleCode: 'WORK_LEADER_TECH', moduleCode: 'HQ_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 57, roleCode: 'WORK_LEADER_TECH', moduleCode: 'LNG_PROCESS_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 58, roleCode: 'WORK_LEADER_TECH', moduleCode: 'EQUIPMENT_ASSET_REGISTRY', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 59, roleCode: 'WORK_LEADER_TECH', moduleCode: 'WORK_ORDER_DIRECTORY', canRead: true, canCreate: true, canUpdate: true, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 60, roleCode: 'WORK_LEADER_TECH', moduleCode: 'MAINTENANCE_MRO_HUB', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 61, roleCode: 'WORK_LEADER_TECH', moduleCode: 'MANPOWER_DAILY_SHIFT', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 62, roleCode: 'WORK_LEADER_TECH', moduleCode: 'MANPOWER_ROTATION_TRACKER', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 63, roleCode: 'WORK_LEADER_TECH', moduleCode: 'PTW_PERMITS', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: true, isReadOnlyForced: false },
-  { rolePermissionId: 64, roleCode: 'WORK_LEADER_TECH', moduleCode: 'SAFETY_GAS_TESTING', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 65, roleCode: 'WORK_LEADER_TECH', moduleCode: 'SAFETY_ERT_READINESS', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 66, roleCode: 'WORK_LEADER_TECH', moduleCode: 'SAFETY_OVERVIEW', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 83, roleCode: 'WORK_LEADER_TECH', moduleCode: 'DAILY_OPS_REPORT', canRead: false, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-
-  // HQ_SUPERVISOR_AUDITOR: read-only everywhere except own HQ_OVERVIEW home module (forced read-only on all Site modules)
-  { rolePermissionId: 67, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'HQ_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: false },
-  { rolePermissionId: 68, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'LNG_PROCESS_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
-  { rolePermissionId: 69, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'EQUIPMENT_ASSET_REGISTRY', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
-  { rolePermissionId: 70, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'WORK_ORDER_DIRECTORY', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
-  { rolePermissionId: 71, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'MAINTENANCE_MRO_HUB', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
-  { rolePermissionId: 72, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'MANPOWER_DAILY_SHIFT', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
-  { rolePermissionId: 73, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'MANPOWER_ROTATION_TRACKER', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
-  { rolePermissionId: 74, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'PTW_PERMITS', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
-  { rolePermissionId: 75, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'SAFETY_GAS_TESTING', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
-  { rolePermissionId: 76, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'SAFETY_ERT_READINESS', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
-  { rolePermissionId: 77, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'SAFETY_OVERVIEW', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
-  { rolePermissionId: 84, roleCode: 'HQ_SUPERVISOR_AUDITOR', moduleCode: 'DAILY_OPS_REPORT', canRead: true, canCreate: false, canUpdate: false, canDelete: false, canApprove: false, isReadOnlyForced: true },
-];
-
-export function getEffectivePermission(
-  roleCode: RoleCode | Stage1RoleCode,
-  moduleCode: ModuleCode
-): RolePermission | null {
-  if (isStage1RoleCode(roleCode)) {
-    const flags = resolveStage1PermissionFlags(roleCode, moduleCode);
-    return {
-      rolePermissionId: 0, // role_permissions(신규 스키마)에는 합성 ID 컬럼이 없다 — 아무 소비처도 읽지 않는 placeholder.
-      roleCode,
-      moduleCode,
-      canRead: flags.canRead === 1,
-      canCreate: flags.canCreate === 1,
-      canUpdate: flags.canUpdate === 1,
-      canDelete: flags.canDelete === 1,
-      canApprove: flags.canApprove === 1,
-      isReadOnlyForced: flags.isReadOnlyForced === 1,
-      canUnlockApproved: flags.canUnlockApproved === 1,
-    };
-  }
-  return (
-    ROLE_PERMISSIONS.find(
-      (row) => row.roleCode === roleCode && row.moduleCode === moduleCode
-    ) ?? null
-  );
+export function getEffectivePermission(roleCode: Stage1RoleCode, moduleCode: ModuleCode): RolePermission | null {
+  const flags = resolveStage1PermissionFlags(roleCode, moduleCode);
+  return {
+    rolePermissionId: 0, // role_permissions(신규 스키마)에는 합성 ID 컬럼이 없다 — 아무 소비처도 읽지 않는 placeholder.
+    roleCode,
+    moduleCode,
+    canRead: flags.canRead === 1,
+    canCreate: flags.canCreate === 1,
+    canUpdate: flags.canUpdate === 1,
+    canDelete: flags.canDelete === 1,
+    canApprove: flags.canApprove === 1,
+    isReadOnlyForced: flags.isReadOnlyForced === 1,
+    canUnlockApproved: flags.canUnlockApproved === 1,
+  };
 }

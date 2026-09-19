@@ -3,7 +3,18 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useMroInventory } from './useMroInventory';
-import { setActiveSession, clearActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { setActiveSession, clearActiveSession, type ActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
+import type { Stage1RoleCode } from '../../../lib/rbac/userSecurityRolePermissionSeed';
+
+function sessionFor(roleCode: Stage1RoleCode): ActiveSession {
+  return {
+    employeeId: 'E-1',
+    roleCode,
+    homeLocation: 'SITE',
+    permissions: { MAINTENANCE_MRO_HUB: getEffectivePermission(roleCode, 'MAINTENANCE_MRO_HUB') ?? undefined },
+  };
+}
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -60,7 +71,7 @@ async function mountAndCapture() {
 
 describe('useMroInventory adjustStock RBAC gate', () => {
   it('POSTs the roleCode alongside the adjustment for an allowed role', async () => {
-    setActiveSession({ userId: 'u1', roleCode: 'SITE_MANAGER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('SITE_MANAGER'));
     const { postCalls } = stubFetch();
     const getResult = await mountAndCapture();
 
@@ -81,7 +92,7 @@ describe('useMroInventory adjustStock RBAC gate', () => {
 
   it('blocks the adjustment and does not fetch when the active role has no canCreate on MAINTENANCE_MRO_HUB', async () => {
     // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-    setActiveSession({ userId: 'u1', roleCode: 'HSSE_OFFICER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('HSSE'));
     const { fetchMock } = stubFetch();
     const getResult = await mountAndCapture();
     const callsBeforeAdjust = fetchMock.mock.calls.filter((c) => (c[0] as string).includes('/adjustments')).length;

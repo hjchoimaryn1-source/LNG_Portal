@@ -7,10 +7,20 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useAlarmActionLog } from './useAlarmActionLog';
-import { setActiveSession, clearActiveSession } from '../../lib/rbac/activeSessionStore';
+import { setActiveSession, clearActiveSession, type ActiveSession } from '../../lib/rbac/activeSessionStore';
 import { getEffectivePermission } from '../../lib/rbac/rolePermissionService';
+import type { Stage1RoleCode } from '../../lib/rbac/userSecurityRolePermissionSeed';
 import { __resetAlarmSuppressionStoreForTests } from '../state/useAlarmSuppressionStore';
 import { __resetAlarmAckStoreForTests } from '../state/useAlarmAckStore';
+
+function sessionFor(roleCode: Stage1RoleCode): ActiveSession {
+  return {
+    employeeId: 'E-1',
+    roleCode,
+    homeLocation: 'SITE',
+    permissions: { ALARM_ACTION_LOG: getEffectivePermission(roleCode, 'ALARM_ACTION_LOG') ?? undefined },
+  };
+}
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -48,10 +58,10 @@ async function mountAndCapture() {
 }
 
 describe('useAlarmActionLog RBAC gate', () => {
-  it.each(['SYSTEM_ADMIN', 'SITE_MANAGER', 'OPERATION_TEAM_LEADER'] as const)(
+  it.each(['ADMIN', 'SITE_MANAGER', 'OP_TEAM'] as const)(
     'allows %s to acknowledge and fires the request',
     async (roleCode) => {
-      setActiveSession({ userId: 'u1', roleCode, homeLocation: 'SITE' });
+      setActiveSession(sessionFor(roleCode));
       const fetchMock = vi.fn().mockResolvedValue({ json: async () => ({ success: true }) });
       vi.stubGlobal('fetch', fetchMock);
 
@@ -66,8 +76,8 @@ describe('useAlarmActionLog RBAC gate', () => {
     }
   );
 
-  it('blocks a disallowed role (WORK_LEADER_TECH) and does not fetch', async () => {
-    setActiveSession({ userId: 'u1', roleCode: 'WORK_LEADER_TECH', homeLocation: 'SITE' });
+  it('blocks a disallowed role (MAINTENANCE) and does not fetch', async () => {
+    setActiveSession(sessionFor('MAINTENANCE'));
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
 
@@ -77,11 +87,11 @@ describe('useAlarmActionLog RBAC gate', () => {
       err = await handler.acknowledge('aav', 'AAV-102', 'pressure_gauge_us_bar');
     });
 
-    expect(err).toBe('역할 WORK_LEADER_TECH은(는) 알람 조치 기록 권한이 없습니다.');
+    expect(err).toBe('역할 MAINTENANCE은(는) 알람 조치 기록 권한이 없습니다.');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('confirms the HSSE_OFFICER forward-provisioned row is wired (static permission-table check only)', () => {
-    expect(getEffectivePermission('HSSE_OFFICER', 'ALARM_ACTION_LOG')?.canCreate).toBe(true);
+  it('confirms the HSSE row is wired (confirmed-matrix permission check only)', () => {
+    expect(getEffectivePermission('HSSE', 'ALARM_ACTION_LOG')?.canCreate).toBe(true);
   });
 });

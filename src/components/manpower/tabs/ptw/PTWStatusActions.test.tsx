@@ -9,8 +9,19 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import PTWStatusActions from './PTWStatusActions';
-import { setActiveSession, clearActiveSession } from '../../../../lib/rbac/activeSessionStore';
+import { setActiveSession, clearActiveSession, type ActiveSession } from '../../../../lib/rbac/activeSessionStore';
+import { getEffectivePermission } from '../../../../lib/rbac/rolePermissionService';
+import type { Stage1RoleCode } from '../../../../lib/rbac/userSecurityRolePermissionSeed';
 import type { PTWPermit } from '../../../../types/lng';
+
+function sessionFor(roleCode: Stage1RoleCode): ActiveSession {
+  return {
+    employeeId: 'E-1',
+    roleCode,
+    homeLocation: 'SITE',
+    permissions: { PTW_PERMITS: getEffectivePermission(roleCode, 'PTW_PERMITS') ?? undefined },
+  };
+}
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -91,8 +102,8 @@ function clickPrepareButton() {
 
 describe('PTWStatusActions — PREPARE pre-flight RBAC gate', () => {
   it('blocks PREPARE and shows a guardrail banner when the role lacks PTW_PERMITS.canUpdate', async () => {
-    // WORK_LEADER_TECH has canUpdate:false on PTW_PERMITS (rolePermissionService.ts).
-    setActiveSession({ userId: 'u1', roleCode: 'WORK_LEADER_TECH', homeLocation: 'SITE' });
+    // MAINTENANCE has canUpdate:false on PTW_PERMITS (confirmed matrix).
+    setActiveSession(sessionFor('MAINTENANCE'));
     const onTransitionStatus = vi.fn();
     await mountPrepareAction(onTransitionStatus);
 
@@ -101,11 +112,11 @@ describe('PTWStatusActions — PREPARE pre-flight RBAC gate', () => {
     });
 
     expect(onTransitionStatus).not.toHaveBeenCalled();
-    expect(container!.textContent).toContain('WORK_LEADER_TECH');
+    expect(container!.textContent).toContain('MAINTENANCE');
   });
 
   it('allows PREPARE to fire when the role has PTW_PERMITS.canUpdate', async () => {
-    setActiveSession({ userId: 'u2', roleCode: 'SITE_MANAGER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('SITE_MANAGER'));
     const onTransitionStatus = vi.fn();
     await mountPrepareAction(onTransitionStatus);
 

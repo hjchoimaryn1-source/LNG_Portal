@@ -3,9 +3,9 @@ import { describe, it, expect } from 'vitest';
 import { isNavItemVisible, NAV_ITEM_MODULE_MAP } from './navPermissionMap';
 import type { ActiveSession } from './activeSessionStore';
 
-const asSystemAdmin: ActiveSession = { userId: 'DEV-HQ-001', roleCode: 'SYSTEM_ADMIN', homeLocation: 'HQ' };
-const asSiteManager: ActiveSession = { userId: 'BSG259529', roleCode: 'SITE_MANAGER', homeLocation: 'SITE' };
-const asOperationTeamLeader: ActiveSession = { userId: 'BSG259524', roleCode: 'OPERATION_TEAM_LEADER', homeLocation: 'SITE' };
+const asSystemAdmin: ActiveSession = { employeeId: 'ADMIN-001', roleCode: 'ADMIN', homeLocation: 'HQ', permissions: {} };
+const asSiteManager: ActiveSession = { employeeId: 'E-SM-1', roleCode: 'SITE_MANAGER', homeLocation: 'SITE', permissions: {} };
+const asOperationTeamLeader: ActiveSession = { employeeId: 'E-OT-1', roleCode: 'OP_TEAM', homeLocation: 'SITE', permissions: {} };
 
 describe('isNavItemVisible', () => {
   it('SYSTEM_ADMIN sees every nav key, including ones with no ModuleCode mapping', () => {

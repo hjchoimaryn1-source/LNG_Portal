@@ -6,6 +6,10 @@
 // 'node:sqlite' core module. This is a unit test of the route's own request
 // validation / cookie-setting behavior, not the DB layer (covered separately
 // in userSecurityLoginService.test.ts).
+//
+// Stage 3 (2026-09-19) added buildClientPermissionsMap() to the success path
+// (computes the client-facing permissions map from the same DB chain) — mocked
+// out here too, same reasoning.
 
 import { describe, it, expect, vi } from 'vitest';
 
@@ -15,6 +19,9 @@ vi.mock('../../../../../../lib/rbac/userSecurityDbSingleton', () => ({
 }));
 vi.mock('../../../../../../lib/rbac/userSecurityLoginService', () => ({
   attemptLogin: (...args: unknown[]) => attemptLogin(...(args as [])),
+}));
+vi.mock('../../../../../../lib/rbac/sessionPermissionResolver', () => ({
+  buildClientPermissionsMap: vi.fn(() => ({})),
 }));
 
 import { NextRequest } from 'next/server';
@@ -54,6 +61,7 @@ describe('POST /api/v1/cmms/user-security/login', () => {
     expect(res.status).toBe(200);
     expect(json.success).toBe(true);
     expect(json.mustChangePassword).toBe(true);
+    expect(json.permissions).toEqual({});
 
     const cookie = res.cookies.get(SESSION_COOKIE_NAME);
     expect(cookie?.value).toBe('a'.repeat(64));

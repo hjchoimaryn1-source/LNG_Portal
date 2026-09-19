@@ -18,10 +18,8 @@ import {
   EMPTY_SAFETY_GATE_INPUT,
   type SafetyGateWorkOrderInput,
 } from '../../../../../cmms-mro-bridge/safetyGate/evaluateSafetyGateRules';
-import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
 import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
 import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
-import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
@@ -56,15 +54,16 @@ function applySafetyGate(items: SeedInputWithSafetyGate[]): NewWorkOrderInput[] 
   });
 }
 
-// RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
+// RBAC audit remediation — Phase 13 follow-up, 2026-09-16. roleCode is no
+// longer read from the body (Stage 3, 2026-09-19) — the Stage 1B session is
+// the sole authorization source now that the client login has been replaced.
 function isValidPerformanceUpdate(
   body: unknown
-): body is { workOrderId: string; lastPerformedAt: string; status?: WorkOrderStatus; roleCode: RoleCode } {
+): body is { workOrderId: string; lastPerformedAt: string; status?: WorkOrderStatus } {
   if (!body || typeof body !== 'object') return false;
   const r = body as Record<string, unknown>;
   return typeof r.workOrderId === 'string' && r.workOrderId.length > 0 &&
     typeof r.lastPerformedAt === 'string' && r.lastPerformedAt.length > 0 &&
-    typeof r.roleCode === 'string' &&
     (r.status === undefined || VALID_STATUSES.includes(r.status as WorkOrderStatus));
 }
 
@@ -102,17 +101,15 @@ export async function PATCH(request: NextRequest) {
   if (!isValidPerformanceUpdate(body)) {
     return NextResponse.json({ success: false, error: 'Invalid performance update payload.' }, { status: 400 });
   }
-  // Stage 2A-ii (HJ decision 2026-09-19): prefer a verified Stage 1B session;
-  // fall back to the client-supplied (spoofable) legacy roleCode until the
-  // deferred client-side migration stage lands — see final report.
+  // Stage 3 (HJ decision 2026-09-19): full replacement of the PIN-login
+  // fallback — a valid Stage 1B session is now required.
   const session = verifyUserSecuritySession(request);
-  const permission = session
-    ? resolveSessionPermission(session.employeeId, 'WORK_ORDER_DIRECTORY')
-    : getEffectivePermission(body.roleCode, 'WORK_ORDER_DIRECTORY');
-  const roleLabel = session?.roleCode ?? body.roleCode;
-  if (permission?.canUpdate !== true) {
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+  }
+  if (resolveSessionPermission(session.employeeId, 'WORK_ORDER_DIRECTORY')?.canUpdate !== true) {
     return NextResponse.json(
-      { success: false, error: `Role ${roleLabel} is not permitted to update work orders.` },
+      { success: false, error: `Role ${session.roleCode} is not permitted to update work orders.` },
       { status: 403 }
     );
   }

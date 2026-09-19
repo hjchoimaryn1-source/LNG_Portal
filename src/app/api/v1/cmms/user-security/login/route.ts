@@ -20,6 +20,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserSecurityDb } from '../../../../../../lib/rbac/userSecurityDbSingleton';
 import { attemptLogin } from '../../../../../../lib/rbac/userSecurityLoginService';
 import { SESSION_COOKIE_NAME } from '../../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { buildClientPermissionsMap } from '../../../../../../lib/rbac/sessionPermissionResolver';
 
 export const runtime = 'nodejs';
 
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
     roleCode: result.roleCode,
     employeeId: result.employeeId,
     mustChangePassword: result.mustChangePassword,
+    permissions: buildClientPermissionsMap(result.employeeId),
   });
 
   response.cookies.set(SESSION_COOKIE_NAME, result.rawSessionToken, {

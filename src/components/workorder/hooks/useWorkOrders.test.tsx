@@ -3,7 +3,18 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useWorkOrders } from './useWorkOrders';
-import { setActiveSession, clearActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { setActiveSession, clearActiveSession, type ActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
+import type { Stage1RoleCode } from '../../../lib/rbac/userSecurityRolePermissionSeed';
+
+function sessionFor(roleCode: Stage1RoleCode): ActiveSession {
+  return {
+    employeeId: 'E-1',
+    roleCode,
+    homeLocation: 'SITE',
+    permissions: { WORK_ORDER_DIRECTORY: getEffectivePermission(roleCode, 'WORK_ORDER_DIRECTORY') ?? undefined },
+  };
+}
 import type { CmmsAssetRow } from '../../../context/CmmsAwarePortalProvider';
 import type { PTWPermit } from '../../../types/lng';
 
@@ -81,7 +92,7 @@ async function mountAndCapture() {
 
 describe('useWorkOrders markCompleted RBAC gate', () => {
   it('PATCHes the roleCode alongside the completion for an allowed role', async () => {
-    setActiveSession({ userId: 'u1', roleCode: 'OPERATION_TEAM_LEADER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('OP_TEAM'));
     const { patchCalls } = stubFetch();
     const getResult = await mountAndCapture();
 
@@ -90,13 +101,13 @@ describe('useWorkOrders markCompleted RBAC gate', () => {
     });
 
     expect(patchCalls).toHaveLength(1);
-    expect(patchCalls[0]).toMatchObject({ workOrderId: 'WO-2026-0001', roleCode: 'OPERATION_TEAM_LEADER' });
+    expect(patchCalls[0]).toMatchObject({ workOrderId: 'WO-2026-0001', roleCode: 'OP_TEAM' });
     expect(getResult().blockedMessage).toBeNull();
   });
 
   it('blocks the completion and does not fetch when the active role has no canUpdate on WORK_ORDER_DIRECTORY', async () => {
     // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-    setActiveSession({ userId: 'u1', roleCode: 'HSSE_OFFICER', homeLocation: 'SITE' });
+    setActiveSession(sessionFor('HSSE'));
     const { fetchMock } = stubFetch();
     const getResult = await mountAndCapture();
     const patchCallsBefore = fetchMock.mock.calls.filter((c) => (c[1] as RequestInit | undefined)?.method === 'PATCH').length;

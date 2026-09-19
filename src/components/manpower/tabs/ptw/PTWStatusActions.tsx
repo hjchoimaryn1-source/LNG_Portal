@@ -8,7 +8,6 @@ import { evaluateSignatureGate } from '../../../../adapters/ptwSignatureGate';
 import { validatePtwSelfApproval } from '../../../../lib/rbac/ptwSelfApproval';
 import { getCurrentApproverId } from '../../../../lib/rbac/devAuthIdentity';
 import { useActiveSession } from '../../../../lib/rbac/activeSessionStore';
-import { getEffectivePermission } from '../../../../lib/rbac/rolePermissionService';
 import { evaluateMutationGuardrails } from '../../../../adapters/guardrailUiAdapter';
 import { SESSION_EXPIRED_MESSAGE } from '../../../../lib/rbac/sessionExpiryMessage';
 import GuardrailBlockedBanner from '../../../shared/GuardrailBlockedBanner';
@@ -47,7 +46,7 @@ export default function PTWStatusActions({ activePermit, isERTMet, isGasSafe, ga
       setBlockedMessage(SESSION_EXPIRED_MESSAGE);
       return;
     }
-    if (getEffectivePermission(activeSession.roleCode, 'PTW_PERMITS')?.canUpdate !== true) {
+    if (activeSession.permissions.PTW_PERMITS?.canUpdate !== true) {
       setBlockedMessage(`역할 ${activeSession.roleCode}은(는) 허가서 상태 갱신 권한이 없습니다.`);
       return;
     }

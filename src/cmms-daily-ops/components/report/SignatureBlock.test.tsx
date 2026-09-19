@@ -3,7 +3,18 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { SignatureBlock } from './SignatureBlock';
-import { setActiveSession, clearActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { setActiveSession, clearActiveSession, type ActiveSession } from '../../../lib/rbac/activeSessionStore';
+import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
+import type { Stage1RoleCode } from '../../../lib/rbac/userSecurityRolePermissionSeed';
+
+function sessionFor(roleCode: Stage1RoleCode): ActiveSession {
+  return {
+    employeeId: 'E-1',
+    roleCode,
+    homeLocation: 'SITE',
+    permissions: { DAILY_OPS_REPORT: getEffectivePermission(roleCode, 'DAILY_OPS_REPORT') ?? undefined },
+  };
+}
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -88,18 +99,18 @@ describe('SignatureBlock', () => {
   // RBAC audit remediation — Phase 13 follow-up, 2026-09-16 (split by signature type).
   describe('prepared_by permission gate (DAILY_OPS_REPORT.canCreate)', () => {
     it('allows OPERATION_TEAM_LEADER (canCreate=true) to sign and POSTs roleCode', async () => {
-      setActiveSession({ userId: 'u1', roleCode: 'OPERATION_TEAM_LEADER', homeLocation: 'SITE' });
+      setActiveSession(sessionFor('OP_TEAM'));
       const { postCalls } = stubFetch([], [{ role: 'prepared_by', signerName: 'OTL', signerTitle: null, signedAt: 'now' }]);
       await mountAndFlush('prepared_by');
       await signAs('OTL');
 
       expect(postCalls).toHaveLength(1);
-      expect(postCalls[0]).toMatchObject({ role: 'prepared_by', roleCode: 'OPERATION_TEAM_LEADER' });
+      expect(postCalls[0]).toMatchObject({ role: 'prepared_by', roleCode: 'OP_TEAM' });
       expect(container!.textContent).toContain('OTL');
     });
 
     it('blocks SITE_MANAGER (canCreate=false) from signing prepared_by and does not fetch', async () => {
-      setActiveSession({ userId: 'u1', roleCode: 'SITE_MANAGER', homeLocation: 'SITE' });
+      setActiveSession(sessionFor('SITE_MANAGER'));
       const { fetchMock } = stubFetch([], []);
       await mountAndFlush('prepared_by');
       const postCallsBefore = fetchMock.mock.calls.filter((c) => (c[1] as RequestInit | undefined)?.method === 'POST').length;
@@ -113,7 +124,7 @@ describe('SignatureBlock', () => {
 
   describe('acknowledged_by permission gate (DAILY_OPS_REPORT.canApprove)', () => {
     it('allows SITE_MANAGER (canApprove=true) to sign and POSTs roleCode', async () => {
-      setActiveSession({ userId: 'u1', roleCode: 'SITE_MANAGER', homeLocation: 'SITE' });
+      setActiveSession(sessionFor('SITE_MANAGER'));
       const { postCalls } = stubFetch([], [{ role: 'acknowledged_by', signerName: 'SM', signerTitle: null, signedAt: 'now' }]);
       await mountAndFlush('acknowledged_by');
       await signAs('SM');
@@ -124,7 +135,7 @@ describe('SignatureBlock', () => {
     });
 
     it('blocks OPERATION_TEAM_LEADER (canApprove=false) from signing acknowledged_by and does not fetch', async () => {
-      setActiveSession({ userId: 'u1', roleCode: 'OPERATION_TEAM_LEADER', homeLocation: 'SITE' });
+      setActiveSession(sessionFor('OP_TEAM'));
       const { fetchMock } = stubFetch([], []);
       await mountAndFlush('acknowledged_by');
       const postCallsBefore = fetchMock.mock.calls.filter((c) => (c[1] as RequestInit | undefined)?.method === 'POST').length;

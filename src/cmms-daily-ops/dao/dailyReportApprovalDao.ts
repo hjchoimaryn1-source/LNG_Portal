@@ -14,7 +14,6 @@
 
 import type { SqlExecutor } from '../../adapters/db/sqlExecutor';
 import type { DailyReportStatus } from './dailyReportSnapshotDao';
-import type { RoleCode } from '../../types/rbac';
 import { logStatusEvent } from './dailyReportStatusLogDao';
 
 const SELECT_STATUS_BY_DATE_SQL = `SELECT status FROM daily_report_snapshots WHERE report_date = @reportDate`;
@@ -69,7 +68,7 @@ export function approveSnapshot(
   db: SqlExecutor,
   snapshotId: number,
   approvedBy: string,
-  approverRole: RoleCode
+  approverRole: string
 ): ApproveSnapshotResult {
   const existing = db.get<{ id: number; status: DailyReportStatus }>(SELECT_STATUS_BY_ID_SQL, { id: snapshotId });
   if (!existing) {
@@ -104,7 +103,7 @@ export function rejectSubmission(
   db: SqlExecutor,
   snapshotId: number,
   rejectedBy: string,
-  rejectorRole: RoleCode,
+  rejectorRole: string,
   reasonText: string
 ): ApproveSnapshotResult {
   const existing = db.get<{ id: number; status: DailyReportStatus }>(SELECT_STATUS_BY_ID_SQL, { id: snapshotId });

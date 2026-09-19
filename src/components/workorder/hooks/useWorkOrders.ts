@@ -19,7 +19,6 @@ import { toNewWorkOrderInput, applyRecordToItem } from '../../../utils/workOrder
 import type { WorkOrderRecord } from '../../../adapters/db/workOrderDao';
 import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
 import { evaluateMutationGuardrails } from '../../../adapters/guardrailUiAdapter';
-import { getEffectivePermission } from '../../../lib/rbac/rolePermissionService';
 import { SESSION_EXPIRED_MESSAGE } from '../../../lib/rbac/sessionExpiryMessage';
 
 const WORK_ORDERS_API = '/api/v1/cmms/work-orders';
@@ -105,7 +104,7 @@ export function useWorkOrders(cmmsAssetRows: CmmsAssetRow[], permits: PTWPermit[
       return;
     }
     // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-    if (getEffectivePermission(activeSession.roleCode, 'WORK_ORDER_DIRECTORY')?.canUpdate !== true) {
+    if (activeSession.permissions.WORK_ORDER_DIRECTORY?.canUpdate !== true) {
       setBlockedMessage(`역할 ${activeSession.roleCode}은(는) 작업지시 갱신 권한이 없습니다.`);
       return;
     }

@@ -12,7 +12,6 @@
 
 import type { SqlExecutor } from '../../adapters/db/sqlExecutor';
 import type { DailyReportStatus } from './dailyReportSnapshotDao';
-import type { RoleCode } from '../../types/rbac';
 import type { ApproveSnapshotResult } from './dailyReportApprovalDao';
 import { logStatusEvent } from './dailyReportStatusLogDao';
 
@@ -51,7 +50,7 @@ export function openHqEditWindow(
   db: SqlExecutor,
   snapshotId: number,
   unlockedBy: string,
-  unlockedByRole: RoleCode,
+  unlockedByRole: string,
   reasonText: string
 ): ApproveSnapshotResult {
   const existing = db.get<HqEditStateRow>(SELECT_HQ_EDIT_STATE_BY_ID_SQL, { id: snapshotId });
@@ -91,7 +90,7 @@ export function closeHqEditWindowAndNotify(
   db: SqlExecutor,
   snapshotId: number,
   actorId: string,
-  actorRole: RoleCode,
+  actorRole: string,
   summaryText: string
 ): ApproveSnapshotResult {
   const existing = db.get<HqEditStateRow>(SELECT_HQ_EDIT_STATE_BY_ID_SQL, { id: snapshotId });
@@ -120,7 +119,7 @@ export function acknowledgeHqEdit(
   db: SqlExecutor,
   snapshotId: number,
   actorId: string,
-  actorRole: RoleCode
+  actorRole: string
 ): ApproveSnapshotResult {
   const existing = db.get<HqEditStateRow>(SELECT_HQ_EDIT_STATE_BY_ID_SQL, { id: snapshotId });
   if (!existing) {

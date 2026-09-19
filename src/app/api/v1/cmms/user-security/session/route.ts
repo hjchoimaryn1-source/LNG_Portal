@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyUserSecuritySession } from '../../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { buildClientPermissionsMap } from '../../../../../../lib/rbac/sessionPermissionResolver';
 
 export const runtime = 'nodejs';
 
@@ -21,5 +22,6 @@ export async function GET(request: NextRequest) {
     authenticated: true,
     roleCode: context.roleCode,
     employeeId: context.employeeId,
+    permissions: buildClientPermissionsMap(context.employeeId),
   });
 }
