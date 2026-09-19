@@ -8,6 +8,20 @@ import { COMPANY_CONFIG, CMMS_MODULES } from '../../config/siteConfig';
 import { WIN_TAB_ACTIVE, WIN_TAB_INACTIVE } from './utils/portalTabStyles';
 import { useActiveSession } from '../../lib/rbac/activeSessionStore';
 import { isNavItemVisible } from '../../lib/rbac/navPermissionMap';
+import type { Stage1RoleCode } from '../../lib/rbac/userSecurityRolePermissionSeed';
+
+// Approval Hub Phase 1 Stage 4 — 세션 role/권한 상태를 상시 보여주는 유일한 UI
+// 요소(Step 0 확인: 이전까지 없었음). 새 세션 로직을 만들지 않고 기존
+// useActiveSession()이 이미 들고 있는 roleCode/homeLocation만 읽는다.
+const ROLE_ACCESS_LABELS: Record<Stage1RoleCode, string> = {
+  ADMIN: 'Full System Access',
+  SITE_MANAGER: 'Site Approval Access',
+  OP_TEAM: 'Operations Team',
+  HSSE: 'HSSE Team',
+  MAINTENANCE: 'Maintenance Team',
+  LOGISTIC: 'Logistics Team',
+  HR: 'HR Team',
+};
 
 interface PortalTitleBarProps {
   currentNav: { location: string; process: string };
@@ -30,13 +44,21 @@ export default function PortalTitleBar({
   return (
     <>
       {/* Windows Titlebar */}
-      <div className="win-titlebar">
+      <div className="win-titlebar flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Monitor className="w-3.5 h-3.5 text-white" />
           <span className="text-xs font-bold tracking-wide">
             {COMPANY_CONFIG.systemTitle} | {COMPANY_CONFIG.companyName} - [ {currentNav.location} &gt; {currentNav.process} ]
           </span>
         </div>
+        {activeSession && (
+          <span
+            className="text-[10px] font-mono font-bold tracking-wide text-white/90 bg-white/10 border border-white/30 rounded px-1.5 py-0.5 shrink-0"
+            title={`Employee ${activeSession.employeeId} · ${activeSession.homeLocation}`}
+          >
+            {activeSession.roleCode} — {ROLE_ACCESS_LABELS[activeSession.roleCode]}
+          </span>
+        )}
       </div>
 
       {/* ========================================================================= */}
