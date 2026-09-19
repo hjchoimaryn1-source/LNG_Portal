@@ -17,6 +17,8 @@ import type { SqlExecutor } from './sqlExecutor';
 import { computeNextDueDate } from '../../utils/pmScheduleCalculator';
 
 export type WorkOrderStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'PARTS_PENDING' | 'COMPLETED';
+/** Approval Hub Phase 1 Stage 1a 추가 컬럼(approvalHubStage1Runner.ts). */
+export type WorkOrderApprovalStatus = 'PENDING_SITE_APPROVAL' | 'SITE_APPROVED' | 'REJECTED';
 
 export interface WorkOrderRecord {
   workOrderId: string;
@@ -29,6 +31,8 @@ export interface WorkOrderRecord {
   createdAt: string;
   /** Phase10 Stage1A 추가 컬럼. Stage1C evaluateSafetyGateRules() 판정 결과 — 생성 시점에만 세팅된다. */
   isPtwRequired: boolean;
+  /** Approval Hub Phase 1 Stage 1a 추가 컬럼. 기존 25개 row는 백필되어 'SITE_APPROVED'. */
+  approvalStatus: WorkOrderApprovalStatus;
 }
 
 export interface NewWorkOrderInput {
@@ -60,6 +64,7 @@ interface WorkOrderRow {
   status: string;
   created_at: string;
   is_ptw_required: number;
+  approval_status: string;
 }
 
 const INSERT_SQL = `
@@ -107,6 +112,7 @@ function rowToRecord(row: WorkOrderRow): WorkOrderRecord {
     status: row.status as WorkOrderStatus,
     createdAt: row.created_at,
     isPtwRequired: row.is_ptw_required === 1,
+    approvalStatus: row.approval_status as WorkOrderApprovalStatus,
   };
 }
 
@@ -161,6 +167,20 @@ export function updateWorkOrderPerformance(
 
 export function deleteWorkOrder(db: SqlExecutor, workOrderId: string): void {
   db.run(DELETE_SQL, { workOrderId });
+}
+
+const UPDATE_APPROVAL_STATUS_SQL = `UPDATE work_orders SET approval_status = @approvalStatus WHERE work_order_id = @workOrderId`;
+
+/** Approval Hub Phase 1 Stage 2c 승인 액션 전용. */
+export function updateWorkOrderApprovalStatus(
+  db: SqlExecutor,
+  workOrderId: string,
+  approvalStatus: WorkOrderApprovalStatus
+): WorkOrderRecord | undefined {
+  const existing = db.get<WorkOrderRow>(SELECT_BY_ID_SQL, { workOrderId });
+  if (!existing) return undefined;
+  db.run(UPDATE_APPROVAL_STATUS_SQL, { workOrderId, approvalStatus });
+  return rowToRecord({ ...existing, approval_status: approvalStatus });
 }
 
 export function selectWorkOrderById(db: SqlExecutor, workOrderId: string): WorkOrderRecord | undefined {
