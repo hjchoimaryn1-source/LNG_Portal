@@ -48,6 +48,12 @@ function ensureColumn(raw: DatabaseSync, table: string, columnName: string, addC
 // 본인 역할 권한에 SITE_MANAGER의 canApprove/canUnlockApproved만 OR 병합한다.
 const ADD_ACTING_AS_SITE_MANAGER_UNTIL_SQL = `ALTER TABLE user_accounts ADD COLUMN acting_as_site_manager_until TEXT`;
 
+// 2026-09-19(HJ 지시, 4차) — 새 role_code를 만들지 않고(7개 단순화 어휘 유지)
+// role_code 그룹 내부의 표시 순서만 예외적으로 지정하기 위한 컬럼(예: Shadiq
+// M. Shalih를 OP_TEAM 그룹 안에서 최상단에 고정). NULL이면 그룹 내 fullName
+// 알파벳순(기존 동작)을 그대로 따른다 — userSecurityLoginDirectoryDao.ts 참조.
+const ADD_DISPLAY_RANK_SQL = `ALTER TABLE personnel_master ADD COLUMN display_rank INTEGER`;
+
 export const PERSONNEL_MASTER_DDL = `
   CREATE TABLE IF NOT EXISTS personnel_master (
       employee_id        TEXT PRIMARY KEY,
@@ -130,6 +136,7 @@ export const USER_ACCOUNT_AUDIT_LOG_DDL = `
 /** 5개 테이블을 멱등하게 보강한다. FK 순서(personnel_master -> user_accounts -> user_sessions)를 지킨다. */
 export function ensureUserSecurityTables(raw: DatabaseSync): void {
   raw.exec(PERSONNEL_MASTER_DDL);
+  ensureColumn(raw, 'personnel_master', 'display_rank', ADD_DISPLAY_RANK_SQL);
   raw.exec(USER_ACCOUNTS_DDL);
   ensureColumn(raw, 'user_accounts', 'acting_as_site_manager_until', ADD_ACTING_AS_SITE_MANAGER_UNTIL_SQL);
   raw.exec(USER_SESSIONS_DDL);

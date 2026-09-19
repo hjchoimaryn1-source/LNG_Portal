@@ -17,6 +17,8 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { LayoutDashboard } from 'lucide-react';
 import { RAISED_PANEL, TITLE_BAR, BEVEL_BUTTON, BEVEL_BUTTON_PRESSED } from '../cmms/scadaStyles';
 import { useUserSecuritySession } from './hooks/useUserSecuritySession';
 import PersonnelListTab from './tabs/PersonnelListTab';
@@ -45,13 +47,22 @@ export default function PersonnelManagementView() {
   return (
     <div className="p-2 space-y-2">
       <div className={`${TITLE_BAR}`}>인력 관리 (Personnel Management)</div>
-      <div className="flex gap-1">
-        <button className={tab === 'PERSONNEL' ? BEVEL_BUTTON_PRESSED : BEVEL_BUTTON} onClick={() => setTab('PERSONNEL')}>
-          인력 / 계정
-        </button>
-        <button className={tab === 'AUDIT_LOG' ? BEVEL_BUTTON_PRESSED : BEVEL_BUTTON} onClick={() => setTab('AUDIT_LOG')}>
-          감사 로그
-        </button>
+      <div className="flex items-center justify-between gap-1">
+        <div className="flex gap-1">
+          <button className={tab === 'PERSONNEL' ? BEVEL_BUTTON_PRESSED : BEVEL_BUTTON} onClick={() => setTab('PERSONNEL')}>
+            인력 / 계정
+          </button>
+          <button className={tab === 'AUDIT_LOG' ? BEVEL_BUTTON_PRESSED : BEVEL_BUTTON} onClick={() => setTab('AUDIT_LOG')}>
+            감사 로그
+          </button>
+        </div>
+        {/* /admin/personnel은 메인 SPA(activeKey 상태머신) 밖의 독립 App Router
+            경로라, 대시보드로 되돌아갈 방법이 브라우저 뒤로가기뿐이었다 — 사이드바
+            "Personnel Management" 링크(SidebarSectorListView.tsx)의 역방향. */}
+        <Link href="/" className={`${BEVEL_BUTTON} flex items-center gap-1`}>
+          <LayoutDashboard className="w-3.5 h-3.5" />
+          대시보드로 돌아가기
+        </Link>
       </div>
       {tab === 'PERSONNEL' ? <PersonnelListTab /> : <AuditLogTab />}
     </div>

@@ -23,8 +23,9 @@ function ensureMocSchema(db: SqlExecutor): void {
   const here = dirname(fileURLToPath(import.meta.url));
   const sql = readFileSync(join(here, 'schema.sql'), 'utf8');
   const statements = sql
+    .replace(/--.*$/gm, '')
     .split(';')
-    .map((s) => s.replace(/--.*$/gm, '').trim())
+    .map((s) => s.trim())
     .filter((s) => s.length > 0);
   for (const stmt of statements) db.run(stmt);
 }

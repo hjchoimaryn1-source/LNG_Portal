@@ -5,7 +5,6 @@ import React, { useMemo, useState } from 'react';
 import {
   Search,
   Download,
-  FileCheck,
   X,
   Ship,
   TrendingDown,
@@ -400,15 +399,12 @@ export default function ArunHeelBogLossView() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
             <div className="bg-[#ece9d8] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] shadow-2xl w-[92vw] max-w-5xl flex flex-col max-h-[90vh] overflow-hidden select-none font-sans">
               {/* Modal Header */}
-              <div className="bg-[#0a2558] text-white px-5 py-3 flex items-center justify-between shadow-md">
-                <div className="flex items-center gap-3 font-bold text-base md:text-lg tracking-wide uppercase">
-                  <FileCheck className="w-5 h-5 text-cyan-300" />
-                  <span>
-                    {activeLossAuditModal.mode === 'NIAS_GROSS'
-                      ? `NIAS Est Gross Calculation Model - [${rec.tankNo}] (Serial: ${rec.serialNo})`
-                      : `BOG LOSS ESTIMATION & AUDIT - [${rec.tankNo}] (Serial: ${rec.serialNo})`}
-                  </span>
-                </div>
+              <div className="tier2-header tier2-header--sentence flex items-center justify-between shadow-md text-base md:text-lg">
+                <span>
+                  {activeLossAuditModal.mode === 'NIAS_GROSS'
+                    ? `NIAS Est Gross Calculation Model - [${rec.tankNo}] (Serial: ${rec.serialNo})`
+                    : `BOG LOSS ESTIMATION & AUDIT - [${rec.tankNo}] (Serial: ${rec.serialNo})`}
+                </span>
                 <button
                   type="button"
                   onClick={() => setActiveLossAuditModal(null)}

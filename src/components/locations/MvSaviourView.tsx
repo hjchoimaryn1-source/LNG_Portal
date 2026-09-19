@@ -307,9 +307,9 @@ export default function MvSaviourView({ initialSubTab = 'STOWAGE_PLAN' }: MvSavi
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 font-mono">
                 {/* Card 1 */}
                 <div className="bg-[#e8e4dc] border-2 border-[#8a8579] rounded-xs overflow-hidden shadow-xs flex flex-col justify-between">
-                  <div className="bg-[#4e5d6e] text-white px-3 py-1.5 flex items-center justify-between border-b border-[#334155]">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-white">VESSEL &amp; ROUTE</span>
-                    <span className="text-[9.5px] font-bold font-mono px-1.5 py-0.2 bg-[#334155] text-slate-200 border border-[#64748b] rounded-xs">TRANSIT</span>
+                  <div className="tier2-header flex items-center justify-between">
+                    <span>VESSEL &amp; ROUTE</span>
+                    <span className="text-[9.5px] font-bold font-mono px-1.5 py-0.2 bg-[#334155] text-slate-200 border border-[#64748b] rounded-xs normal-case">TRANSIT</span>
                   </div>
                   <div className="p-2.5 flex flex-col items-center justify-center text-center space-y-0.5">
                     <span className="text-base sm:text-lg font-black font-mono text-[#002b4d]">
@@ -324,9 +324,9 @@ export default function MvSaviourView({ initialSubTab = 'STOWAGE_PLAN' }: MvSavi
 
                 {/* Card 2 */}
                 <div className="bg-[#e8e4dc] border-2 border-[#8a8579] rounded-xs overflow-hidden shadow-xs flex flex-col justify-between">
-                  <div className="bg-[#4e5d6e] text-white px-3 py-1.5 flex items-center justify-between border-b border-[#334155]">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-white">SAILING CARGO</span>
-                    <span className="text-[9.5px] font-bold font-mono px-1.5 py-0.2 bg-[#334155] text-slate-200 border border-[#64748b] rounded-xs">{sailingTanks.length} UNITS</span>
+                  <div className="tier2-header flex items-center justify-between">
+                    <span>SAILING CARGO</span>
+                    <span className="text-[9.5px] font-bold font-mono px-1.5 py-0.2 bg-[#334155] text-slate-200 border border-[#64748b] rounded-xs normal-case">{sailingTanks.length} UNITS</span>
                   </div>
                   <div className="p-2.5 flex flex-col items-center justify-center text-center space-y-0.5">
                     <span className="text-xl sm:text-2xl font-black font-mono text-slate-900">
@@ -343,9 +343,9 @@ export default function MvSaviourView({ initialSubTab = 'STOWAGE_PLAN' }: MvSavi
 
                 {/* Card 3 */}
                 <div className="bg-[#e8e4dc] border-2 border-[#8a8579] rounded-xs overflow-hidden shadow-xs flex flex-col justify-between">
-                  <div className="bg-[#4e5d6e] text-white px-3 py-1.5 flex items-center justify-between border-b border-[#334155]">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-white">AVERAGE PRESSURE</span>
-                    <span className="text-[9.5px] font-bold font-mono px-1.5 py-0.2 bg-blue-950/80 text-cyan-200 border border-blue-700 rounded-xs">STABLE</span>
+                  <div className="tier2-header flex items-center justify-between">
+                    <span>AVERAGE PRESSURE</span>
+                    <span className="text-[9.5px] font-bold font-mono px-1.5 py-0.2 bg-blue-950/80 text-cyan-200 border border-blue-700 rounded-xs normal-case">STABLE</span>
                   </div>
                   <div className="p-2.5 flex flex-col items-center justify-center text-center space-y-0.5">
                     <span className="text-xl sm:text-2xl font-black font-mono text-[#0055aa]">
@@ -360,9 +360,9 @@ export default function MvSaviourView({ initialSubTab = 'STOWAGE_PLAN' }: MvSavi
 
                 {/* Card 4 */}
                 <div className="bg-[#f0f7ff] border-2 border-[#7ba4cc] rounded-xs overflow-hidden shadow-xs flex flex-col justify-between">
-                  <div className="bg-[#4e5d6e] text-white px-3 py-1.5 flex items-center justify-between border-b border-[#334155]">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-white">VOYAGE STATE</span>
-                    <span className="text-[9.5px] font-bold font-mono px-1.5 py-0.2 bg-emerald-950/80 text-emerald-200 border border-emerald-700 rounded-xs">UNDERWAY</span>
+                  <div className="tier2-header flex items-center justify-between">
+                    <span>VOYAGE STATE</span>
+                    <span className="text-[9.5px] font-bold font-mono px-1.5 py-0.2 bg-emerald-950/80 text-emerald-200 border border-emerald-700 rounded-xs normal-case">UNDERWAY</span>
                   </div>
                   <div className="p-2.5 flex flex-col items-center justify-center text-center space-y-0.5">
                     <div className="flex items-center justify-center gap-1.5">
@@ -766,10 +766,8 @@ export default function MvSaviourView({ initialSubTab = 'STOWAGE_PLAN' }: MvSavi
       {isDailyLogModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-mono">
           <div className="bg-white border-2 border-[#8a8579] rounded-xs max-w-lg w-full shadow-2xl overflow-hidden">
-            <div className="bg-[#0a2540] text-white px-3.5 py-2.5 flex justify-between items-center border-b-2 border-[#071a2e]">
-              <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider">
-                ADD DAILY MARINE DECK INSPECTION LOG
-              </h3>
+            <div className="tier2-header flex justify-between items-center text-xs sm:text-sm">
+              <h3>ADD DAILY MARINE DECK INSPECTION LOG</h3>
               <button
                 type="button"
                 onClick={() => setIsDailyLogModalOpen(false)}
@@ -883,9 +881,8 @@ export default function MvSaviourView({ initialSubTab = 'STOWAGE_PLAN' }: MvSavi
       {mroModalTankNo && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-mono">
           <div className="bg-white border-2 border-[#8a8579] rounded-xs max-w-md w-full shadow-2xl overflow-hidden">
-            <div className="bg-[#0a2540] text-white px-3.5 py-2.5 flex justify-between items-center border-b-2 border-[#071a2e]">
-              <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2">
-                <Wrench className="w-4 h-4 text-cyan-300" />
+            <div className="tier2-header flex justify-between items-center text-xs sm:text-sm">
+              <h3>
                 SEND {mroModalTankNo} TO MRO WORKSHOP
               </h3>
               <button

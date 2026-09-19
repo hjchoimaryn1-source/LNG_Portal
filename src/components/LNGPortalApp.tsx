@@ -13,8 +13,14 @@ import { SubProcessKey } from '../types/lng';
 import LoginGateway from './auth/LoginGateway';
 import SectorLauncherHub from './launcher/SectorLauncherHub';
 import LNGPortalInner from './portal/LNGPortalInner';
+import type { LoginDirectoryEntry } from '../lib/rbac/userSecurityLoginDirectoryDao';
 
-export default function LNGPortalApp() {
+interface LNGPortalAppProps {
+  /** page.tsx의 서버사이드 prefetch 결과 — 실패 시 undefined(LoginGateway가 자체 fetch로 폴백). */
+  initialLoginDirectory?: LoginDirectoryEntry[];
+}
+
+export default function LNGPortalApp({ initialLoginDirectory }: LNGPortalAppProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [activeSector, setActiveSector] = useState<SubProcessKey | null>(null);
 
@@ -52,6 +58,7 @@ export default function LNGPortalApp() {
             /* State 1: Compact classic SCADA login box centered directly on photo background */
             <div className="flex-1 flex items-center justify-center p-4">
               <LoginGateway
+                initialDirectory={initialLoginDirectory}
                 onLogin={() => {
                   setIsAuthenticated(true);
                   setActiveSector('CMMS_OVERVIEW_DASHBOARD');

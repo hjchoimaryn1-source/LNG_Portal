@@ -11,6 +11,8 @@ export type UserAccountAuditEventType =
   | 'ACCOUNT_CREATED'
   | 'ROLE_CHANGED'
   | 'PASSWORD_RESET'
+  | 'PASSWORD_CHANGED'
+  | 'PASSWORD_CHANGE_FAILED'
   | 'LOGIN_SUCCESS'
   | 'LOGIN_FAILED'
   | 'ACCOUNT_LOCKED'

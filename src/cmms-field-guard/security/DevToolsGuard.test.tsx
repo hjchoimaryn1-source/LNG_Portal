@@ -56,4 +56,16 @@ describe('DevToolsGuard', () => {
     expect(dispatchKey('F12').defaultPrevented).toBe(false);
     expect(dispatchKey('I', { ctrlKey: true, shiftKey: true }).defaultPrevented).toBe(false);
   });
+
+  it('does not crash when event.key is undefined (IME/composition/synthetic events from extensions)', () => {
+    mount('FIELD_CLIENT');
+
+    // KeyboardEvent의 표준 생성자는 key를 항상 빈 문자열로 기본 설정하므로
+    // undefined를 실제로 재현하려면 getter를 직접 덮어써야 한다.
+    const event = new KeyboardEvent('keydown', { cancelable: true });
+    Object.defineProperty(event, 'key', { value: undefined });
+
+    expect(() => window.dispatchEvent(event)).not.toThrow();
+    expect(event.defaultPrevented).toBe(false);
+  });
 });

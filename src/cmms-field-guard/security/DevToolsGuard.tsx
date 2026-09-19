@@ -16,6 +16,9 @@ export function DevToolsGuard(): null {
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (!event.key) {
+        return;
+      }
       const key = event.key.toUpperCase();
       const isF12 = key === 'F12';
       const isDevToolsCombo = event.ctrlKey && event.shiftKey && (key === 'I' || key === 'J' || key === 'C');

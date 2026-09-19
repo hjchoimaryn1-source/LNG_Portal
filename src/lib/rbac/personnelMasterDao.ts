@@ -55,6 +55,24 @@ export interface PersonnelFilter {
   employmentStatus?: string;
 }
 
+// 2026-09-19(HJ 지시) — Personnel Management 탭 기본 목록 순서를 employee_id
+// 문자열순 대신 조직 위계(SITE_MANAGER -> OP_TEAM -> MAINTENANCE -> HSSE ->
+// LOGISTIC -> HR)로 고정한다. ADMIN은 이 요청에 언급되지 않았으나 화면상 항상
+// 전체 목록(로그인 드롭다운과 달리 ADMIN도 노출)이라 맨 위(rank 0)에 둔다 —
+// userSecurityLoginDirectoryDao.ts의 CASE 기반 rank와 같은 패턴.
+const DEPARTMENT_GROUP_ORDER_SQL = `
+  CASE department_group
+    WHEN 'ADMIN' THEN 0
+    WHEN 'SITE_MANAGER' THEN 1
+    WHEN 'OP_TEAM' THEN 2
+    WHEN 'MAINTENANCE' THEN 3
+    WHEN 'HSSE' THEN 4
+    WHEN 'LOGISTIC' THEN 5
+    WHEN 'HR' THEN 6
+    ELSE 7
+  END
+`;
+
 export function listPersonnel(db: SqlExecutor, filter: PersonnelFilter = {}): PersonnelRecord[] {
   const clauses: string[] = [];
   const params: Record<string, unknown> = {};
@@ -67,7 +85,12 @@ export function listPersonnel(db: SqlExecutor, filter: PersonnelFilter = {}): Pe
     params.employmentStatus = filter.employmentStatus;
   }
   const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
-  return db.all<PersonnelRow>(`SELECT * FROM personnel_master ${where} ORDER BY employee_id`, params).map(rowToRecord);
+  return db
+    .all<PersonnelRow>(
+      `SELECT * FROM personnel_master ${where} ORDER BY ${DEPARTMENT_GROUP_ORDER_SQL}, full_name`,
+      params
+    )
+    .map(rowToRecord);
 }
 
 export function getPersonnelByEmployeeId(db: SqlExecutor, employeeId: string): PersonnelRecord | undefined {

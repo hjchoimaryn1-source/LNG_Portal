@@ -268,12 +268,12 @@ export default function NiasPowerThermalTab() {
   return (
     <div className="w-full space-y-4 animate-in fade-in duration-150 font-sans pb-10">
       {/* 1. Top Experion DCS Command Banner (Classic Slate Header) */}
-      <div className="bg-[#334155] text-white border-2 border-slate-600 rounded-none p-3 sm:py-2.5 sm:px-4 shadow-2xs flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+      <div className="tier2-header rounded-none shadow-2xs flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
         <div className="flex items-center gap-2.5 flex-wrap">
-          <h3 className="text-xs sm:text-sm font-black text-white font-mono uppercase tracking-wide">
+          <h3 className="text-xs sm:text-sm font-mono">
             PLTMG MONITOR
           </h3>
-          <span className="inline-flex items-center text-xs font-mono bg-[#1e293b] text-emerald-300 px-2 py-0.5 border border-slate-500 shadow-2xs font-bold">
+          <span className="inline-flex items-center text-xs font-mono bg-[#1e293b] text-emerald-300 px-2 py-0.5 border border-slate-500 shadow-2xs font-bold normal-case">
             Active Tank: <strong>{activeDischargingTank.tankNo}</strong> ({activeDischargingTank.levelPct.toFixed(1)}%)
           </span>
         </div>
@@ -337,9 +337,9 @@ export default function NiasPowerThermalTab() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Card 1: TOTAL GENERATION & LOAD */}
         <div className="bg-white border-2 border-slate-600 rounded-none overflow-hidden font-mono flex flex-col justify-between shadow-2xs">
-          <div className="bg-[#2d3748] text-white py-1 px-2 text-center text-[10px] font-bold uppercase tracking-wider flex justify-between items-center">
+          <div className="tier2-header flex justify-between items-center">
             <span className="flex-1 text-center">TOTAL GENERATION &amp; LOAD</span>
-            <span className="bg-[#1e293b] text-amber-300 px-1.5 py-0.2 border border-slate-500 text-[9px] font-bold">
+            <span className="bg-[#1e293b] text-amber-300 px-1.5 py-0.2 border border-slate-500 text-[9px] font-bold normal-case">
               {summary.runningCount}/5 RUN
             </span>
           </div>
@@ -355,7 +355,7 @@ export default function NiasPowerThermalTab() {
 
         {/* Card 2: FUEL POWER USAGE SHARE */}
         <div className="bg-white border-2 border-slate-600 rounded-none overflow-hidden font-mono flex flex-col justify-between shadow-2xs">
-          <div className="bg-[#2d3748] text-white py-1 px-2 text-center text-[10px] font-bold uppercase tracking-wider">
+          <div className="tier2-header text-center">
             FUEL POWER USAGE SHARE
           </div>
           <div className="p-3 flex flex-col items-center justify-center text-center">
@@ -370,7 +370,7 @@ export default function NiasPowerThermalTab() {
 
         {/* Card 3: GAS DEMAND & CONSUMPTION */}
         <div className="bg-white border-2 border-slate-600 rounded-none overflow-hidden font-mono flex flex-col justify-between shadow-2xs">
-          <div className="bg-[#2d3748] text-white py-1 px-2 text-center text-[10px] font-bold uppercase tracking-wider">
+          <div className="tier2-header text-center">
             GAS DEMAND &amp; CONSUMPTION
           </div>
           <div className="p-3 flex flex-col items-center justify-center text-center">
@@ -385,7 +385,7 @@ export default function NiasPowerThermalTab() {
 
         {/* Card 4: AUTONOMY BUFFER (TANK & YARD) */}
         <div className="bg-white border-2 border-slate-600 rounded-none overflow-hidden font-mono flex flex-col justify-between shadow-2xs">
-          <div className="bg-[#2d3748] text-white py-1 px-2 text-center text-[10px] font-bold uppercase tracking-wider">
+          <div className="tier2-header text-center">
             AUTONOMY BUFFER (TANK &amp; YARD)
           </div>
           <div className="p-3 flex flex-col items-center justify-center text-center">
@@ -481,7 +481,7 @@ export default function NiasPowerThermalTab() {
                 className="bg-white border-2 border-slate-600 rounded-none shadow-2xs flex flex-col justify-between overflow-hidden"
               >
                 {/* Engine Card Header Strip */}
-                <div className="bg-[#334155] text-white p-2.5 border-b-2 border-slate-600 font-mono space-y-1.5">
+                <div className="bg-[var(--win-navy-header)] text-white p-2.5 border-b-2 border-slate-600 font-mono space-y-1.5">
                   <div className="flex justify-between items-center">
                     <h5 className="font-black text-xs text-white uppercase tracking-wide">
                       {eng.name.toUpperCase()} (GEN-{eng.id})

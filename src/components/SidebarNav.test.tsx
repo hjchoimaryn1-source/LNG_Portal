@@ -79,8 +79,26 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+describe('SidebarNav — header block (logo/title, 2026-09-19 HJ 지시)', () => {
+  it('renders the company name ABOVE the logo image (not beside/below it), and the logo at the enlarged 64px (h-16) size', async () => {
+    setActiveSession(sessionFor('ADMIN', 'HQ'));
+    await mount('CMMS_OVERVIEW_DASHBOARD');
+
+    const heading = container!.querySelector('h1');
+    const logo = container!.querySelector('img[alt="BSG Lines Logo"]') as HTMLImageElement;
+    expect(heading?.textContent).toBe('BERKAT SAMUDRA GEMILANG LINES');
+    expect(logo).not.toBeNull();
+    expect(logo.className).toContain('h-16');
+
+    // DOM order is the actual "above" signal (this stack has no
+    // @testing-library, so compareDocumentPosition is the direct way to
+    // assert render order without a layout engine).
+    expect(heading!.compareDocumentPosition(logo)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+});
+
 describe('SidebarNav — Dashboard mode (sector list)', () => {
-  it('SYSTEM_ADMIN sees all 9 section headers plus the HQ Overview entry, and no leaf items', async () => {
+  it('SYSTEM_ADMIN sees all 9 section headers plus the HQ Overview entry, each with its second-level items expanded inline', async () => {
     setActiveSession(sessionFor('ADMIN', 'HQ'));
     await mount('CMMS_OVERVIEW_DASHBOARD');
     const text = container!.textContent ?? '';
@@ -100,16 +118,35 @@ describe('SidebarNav — Dashboard mode (sector list)', () => {
       expect(text).toContain(label);
     }
 
-    // Leaf-only labels must not leak into the sector-list view.
-    expect(text).not.toContain('PAGT (Arun)');
-    expect(text).not.toContain('120-Fleet Hub');
-    expect(text).not.toContain('Permits');
+    // Stage 2 (2026-09-19, HJ 지시): second-level items now render directly
+    // beneath each header — no extra click into the section required.
+    expect(text).toContain('PAGT (Arun)');
+    expect(text).toContain('Marine Transit');
+    expect(text).toContain('Nias Tank Yard');
+    expect(text).toContain('120-Fleet Hub');
+    expect(text).toContain('Permits');
+    // Jakarta HQ Overview has no submenu (hasSubMenu: false, single item ===
+    // the header itself) — must not duplicate the header as its own child.
+    expect(text.match(/Jakarta HQ Overview/g)?.length).toBe(1);
 
     // Stage 2: DASHBOARD master-container header is always present.
     expect(text).toContain('DASHBOARD');
   });
 
-  it('SITE_MANAGER sees only LNG-Process + HMI Control Maps headers, no HQ Overview entry, no leaf items', async () => {
+  it('ADMIN also sees a "Personnel Management" entry linking to /admin/personnel (Stage 1D sidebar wiring, 2026-09-19)', async () => {
+    setActiveSession(sessionFor('ADMIN', 'HQ'));
+    await mount('CMMS_OVERVIEW_DASHBOARD');
+    const text = container!.textContent ?? '';
+    expect(text).toContain('Personnel Management');
+
+    // /admin/personnel is a standalone App Router page (not a SubProcessKey
+    // in the SPA's activeKey state machine) — rendered as a real next/link
+    // <a>, not one of the SubProcessKey-driven <button> section headers.
+    const link = Array.from(container!.querySelectorAll('a')).find((a) => a.textContent?.trim() === 'Personnel Management');
+    expect(link?.getAttribute('href')).toBe('/admin/personnel');
+  });
+
+  it('SITE_MANAGER sees only LNG-Process + HMI Control Maps headers (with their leaf items inline), no HQ Overview entry, and no Personnel Management link', async () => {
     setActiveSession(sessionFor('SITE_MANAGER', 'SITE'));
     await mount('CMMS_OVERVIEW_DASHBOARD');
     const text = container!.textContent ?? '';
@@ -125,16 +162,25 @@ describe('SidebarNav — Dashboard mode (sector list)', () => {
     expect(text).not.toContain('Environment & Waste');
     expect(text).not.toContain('Management of Change');
     expect(text).not.toContain('Jakarta HQ Overview');
-    expect(text).not.toContain('PAGT (Arun)');
+    // LNG-Process's own leaf items ARE allowlisted for every role (Stage 3
+    // ALWAYS_VISIBLE_NAV_KEYS, navPermissionMap.ts) — they must still show
+    // inline for a non-ADMIN session, same as for ADMIN.
+    expect(text).toContain('PAGT (Arun)');
+    expect(text).toContain('Nias Tank Yard');
+    // ADMIN-only client-side UX gate (real boundary is the server-side ADMIN
+    // check on /admin/personnel's API routes, Stage 1C) — SITE_MANAGER must
+    // not even see the link.
+    expect(text).not.toContain('Personnel Management');
   });
 
-  it('OPERATION_TEAM_LEADER sees the same allowlisted headers as SITE_MANAGER', async () => {
+  it('OPERATION_TEAM_LEADER sees the same allowlisted headers (and their leaf items) as SITE_MANAGER', async () => {
     setActiveSession(sessionFor('OP_TEAM', 'SITE'));
     await mount('CMMS_OVERVIEW_DASHBOARD');
     const text = container!.textContent ?? '';
 
     expect(text).toContain('LNG-Process');
     expect(text).toContain('HMI Control Maps');
+    expect(text).toContain('PAGT (Arun)');
     expect(text).not.toContain('Jakarta HQ Overview');
   });
 
@@ -238,10 +284,12 @@ describe('SidebarNav — in-sector mode (section menu, full replace)', () => {
     });
 
     const text = container!.textContent ?? '';
-    // Back to the flat sector list: other sections' headers reappear...
+    // Back to the flat sector list: other sections' headers reappear (these
+    // were hidden entirely in-sector, unlike "Nias Tank Yard" which is an
+    // LNG-Process leaf item and — since Stage 2 (2026-09-19) — now renders
+    // inline in BOTH modes, so it's no longer a valid mode discriminator).
     expect(text).toContain('Equipment & Asset');
     expect(text).toContain('Safety & PTW');
-    // ...and the LNG-Process leaf items (e.g. "Nias Tank Yard") are gone.
-    expect(text).not.toContain('Nias Tank Yard');
+    expect(text).toContain('Nias Tank Yard');
   });
 });

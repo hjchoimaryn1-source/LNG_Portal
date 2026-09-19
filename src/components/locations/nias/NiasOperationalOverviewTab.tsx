@@ -11,12 +11,8 @@ import {
   Clock,
   User,
   Edit3,
-  Layers,
   ArrowRight,
-  Ship,
   Building2,
-  Cpu,
-  Gauge,
   Droplets,
   ExternalLink,
   XCircle,
@@ -27,7 +23,6 @@ import {
   AlertCircle,
   TrendingUp,
   Radio,
-  Boxes,
 } from 'lucide-react';
 import { useFleetTankFacade } from '@/hooks/portalDataFacade/useFleetTankFacade';
 import { useSettlementFacade } from '@/hooks/portalDataFacade/useSettlementFacade';
@@ -239,14 +234,9 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
       {/* 2. ISO TANK FLOW DIAGRAM (5-BLOCK PIPELINE)                               */}
       {/* ========================================================================= */}
       <div className="shrink-0 win-panel overflow-hidden border border-slate-300">
-        {/* Panel Header Bar (Deep Navy SCADA Theme) */}
-        <div className="bg-[#0a2558] px-3 py-1.5 flex justify-between items-center text-white select-none">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-cyan-400" />
-            <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-              ISO Tank Flow Diagram
-            </h4>
-          </div>
+        {/* Panel Header Bar (TIER 2) */}
+        <div className="tier2-header flex justify-between items-center select-none">
+          <h4>ISO Tank Flow Diagram</h4>
         </div>
 
         {/* 5 Process Flow Block Grid */}
@@ -257,8 +247,8 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
             className="win-panel border border-slate-300 hover:border-blue-600 rounded-none overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
-              <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
-                <span className="font-mono text-xs font-bold text-white uppercase tracking-wide">1. PAGT (Arun)</span>
+              <div className="tier2-header flex justify-between items-center">
+                <span className="font-mono">1. PAGT (Arun)</span>
                 <span className="w-2 h-2 rounded-none bg-emerald-400" title="Standby/Normal" />
               </div>
 
@@ -298,8 +288,8 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
             className="win-panel border border-slate-300 hover:border-blue-600 rounded-none overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
-              <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
-                <span className="font-mono text-xs font-bold text-white uppercase tracking-wide">2. M/V Saviour</span>
+              <div className="tier2-header flex justify-between items-center">
+                <span className="font-mono">2. M/V Saviour</span>
                 <span className="w-2 h-2 rounded-none bg-cyan-400 animate-pulse" />
               </div>
 
@@ -339,8 +329,8 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
             className="win-panel border border-slate-300 hover:border-blue-600 rounded-none overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
-              <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
-                <span className="font-mono text-xs font-bold text-white uppercase tracking-wide">3. NIAS (Laydown 1)</span>
+              <div className="tier2-header flex justify-between items-center">
+                <span className="font-mono">3. NIAS (Laydown 1)</span>
                 <span className="w-2 h-2 rounded-none bg-emerald-400" />
               </div>
 
@@ -376,8 +366,8 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
             className="win-panel border border-slate-300 hover:border-blue-600 rounded-none overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
-              <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
-                <span className="font-mono text-xs font-bold text-white uppercase tracking-wide">4. Regas & PRSS</span>
+              <div className="tier2-header flex justify-between items-center">
+                <span className="font-mono">4. Regas & PRSS</span>
                 <span className="w-2 h-2 rounded-none bg-cyan-400" />
               </div>
 
@@ -413,8 +403,8 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
             className="win-panel border border-slate-300 hover:border-blue-600 rounded-none overflow-hidden cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
-              <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
-                <span className="font-mono text-xs font-bold text-white uppercase tracking-wide">5. NIAS (Laydown 2)</span>
+              <div className="tier2-header flex justify-between items-center">
+                <span className="font-mono">5. NIAS (Laydown 2)</span>
                 <span className="w-2 h-2 rounded-none bg-emerald-400 animate-pulse" />
               </div>
 
@@ -456,15 +446,12 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
         <div className="win-panel overflow-hidden flex flex-col justify-between h-full min-h-0">
           <div className="flex flex-col h-full min-h-0 space-y-1 p-1">
             {/* Panel Title Bar */}
-            <div className="win-titlebar shrink-0">
-              <span className="flex items-center gap-1.5 text-white font-bold text-xs">
-                <Scale className="w-3.5 h-3.5 text-cyan-300" />
-                CUSTODY ENERGY & GAS CONVERSION (ARUN PAG → NIAS METERING)
-              </span>
+            <div className="tier2-header flex justify-between items-center shrink-0">
+              <span>CUSTODY ENERGY & GAS CONVERSION (ARUN PAG → NIAS METERING)</span>
               <button
                 type="button"
                 onClick={() => handleNavigate('CUSTODY_HEAT_SETTLEMENT', 'REGAS_SYSTEM')}
-                className="text-xs font-bold win-tab-inactive flex items-center gap-1 cursor-pointer"
+                className="text-xs font-bold win-tab-inactive flex items-center gap-1 cursor-pointer normal-case"
               >
                 <span>Custody Tab 4</span>
                 <ExternalLink className="w-3 h-3" />
@@ -566,11 +553,8 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
         <div className="win-panel overflow-hidden flex flex-col justify-between h-full min-h-0">
           <div className="flex flex-col h-full min-h-0 space-y-1 p-1">
             {/* Panel Title Bar */}
-            <div className="win-titlebar shrink-0">
-              <span className="flex items-center gap-1.5 text-white font-bold text-xs">
-                <Cpu className="w-3.5 h-3.5 text-yellow-300" />
-                PLTMG POWER DEMAND & SITE AUTONOMY SIMULATOR
-              </span>
+            <div className="tier2-header flex justify-between items-center shrink-0">
+              <span>PLTMG POWER DEMAND & SITE AUTONOMY SIMULATOR</span>
               <button
                 type="button"
                 onClick={() => {
@@ -579,7 +563,7 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
                   // handleNavigate's REGAS_SYSTEM-defaulted signature.
                   if (onNavigateSubTab) onNavigateSubTab('DAILY_OPS_ELECTRICAL_SYSTEM');
                 }}
-                className="text-xs font-bold win-tab-inactive flex items-center gap-1 cursor-pointer"
+                className="text-xs font-bold win-tab-inactive flex items-center gap-1 cursor-pointer normal-case"
               >
                 <span>Electrical System</span>
                 <ExternalLink className="w-3 h-3" />
@@ -716,21 +700,14 @@ export default function NiasOperationalOverviewTab({ onNavigateSubTab }: NiasOpe
             className="bg-white border-2 border-[#404040] rounded-none w-[90vw] max-w-6xl h-[85vh] max-h-[820px] overflow-hidden shadow-2xl font-sans text-slate-900 flex flex-col justify-between"
           >
             {/* Modal Title Bar */}
-            <div className="win-titlebar px-4 py-2 font-bold flex justify-between items-center text-white shrink-0">
-              <div className="flex items-center gap-2.5">
-                {activeModalBlock === 'BLOCK_1_ARUN' && <Building2 className="w-5 h-5 text-yellow-300" />}
-                {activeModalBlock === 'BLOCK_2_SAVIOUR' && <Ship className="w-5 h-5 text-cyan-300" />}
-                {activeModalBlock === 'BLOCK_3_NIAS_YARD' && <Droplets className="w-5 h-5 text-emerald-300" />}
-                {activeModalBlock === 'BLOCK_4_REGAS_PRSS' && <Gauge className="w-5 h-5 text-cyan-300" />}
-                {(activeModalBlock === 'BLOCK_5_NIAS_LAYDOWN_2' || activeModalBlock === 'BLOCK_5_PLTMG_PLANT') && <Boxes className="w-5 h-5 text-yellow-300" />}
-                <span className="text-sm sm:text-base font-extrabold tracking-wide">
-                  {activeModalBlock === 'BLOCK_1_ARUN' && 'Block 1: PAGT (Arun) LNG Loading Terminal (Aceh, Indonesia)'}
-                  {activeModalBlock === 'BLOCK_2_SAVIOUR' && 'Block 2: M/V Saviour Dedicated Marine Carrier (99 ISO Tanks)'}
-                  {activeModalBlock === 'BLOCK_3_NIAS_YARD' && 'Block 3: NIAS (Laydown 1 - Laden Stock Yard & Autonomy)'}
-                  {activeModalBlock === 'BLOCK_4_REGAS_PRSS' && 'Block 4: Re-Gas & PRSS / Decanting Bays (Bay 01 ~ Bay 04)'}
-                  {(activeModalBlock === 'BLOCK_5_NIAS_LAYDOWN_2' || activeModalBlock === 'BLOCK_5_PLTMG_PLANT') && 'Block 5: NIAS (Laydown 2 - Empty Return Staging & Backhaul)'}
-                </span>
-              </div>
+            <div className="tier2-header tier2-header--sentence flex justify-between items-center shrink-0 text-sm sm:text-base">
+              <span>
+                {activeModalBlock === 'BLOCK_1_ARUN' && 'Block 1: PAGT (Arun) LNG Loading Terminal (Aceh, Indonesia)'}
+                {activeModalBlock === 'BLOCK_2_SAVIOUR' && 'Block 2: M/V Saviour Dedicated Marine Carrier (99 ISO Tanks)'}
+                {activeModalBlock === 'BLOCK_3_NIAS_YARD' && 'Block 3: NIAS (Laydown 1 - Laden Stock Yard & Autonomy)'}
+                {activeModalBlock === 'BLOCK_4_REGAS_PRSS' && 'Block 4: Re-Gas & PRSS / Decanting Bays (Bay 01 ~ Bay 04)'}
+                {(activeModalBlock === 'BLOCK_5_NIAS_LAYDOWN_2' || activeModalBlock === 'BLOCK_5_PLTMG_PLANT') && 'Block 5: NIAS (Laydown 2 - Empty Return Staging & Backhaul)'}
+              </span>
               <button
                 type="button"
                 onClick={() => setActiveModalBlock(null)}

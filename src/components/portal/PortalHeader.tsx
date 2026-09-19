@@ -27,7 +27,7 @@ export default function PortalHeader(props: PortalHeaderProps) {
     <header className="shrink-0 z-20 bg-[#d4d0c8] border-b-2 border-[#808080] shadow-xs select-none">
       <PortalTitleBar
         currentNav={props.currentNav}
-        currentModuleId={props.currentModuleId}
+        activeKey={props.activeKey}
         onReturnToLauncher={props.onReturnToLauncher}
         handleSelectSubProcess={props.handleSelectSubProcess}
         onLogout={props.onLogout}

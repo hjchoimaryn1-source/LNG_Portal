@@ -9,7 +9,6 @@
 //   gasThresholdSeverity.ts에 위임한다.
 
 import React, { useMemo, useState } from 'react';
-import { Flame } from 'lucide-react';
 import type { GasTestRecordDraft } from '../../../adapters/ptwFormAdapter';
 import { classifyGasThresholdBreach } from '../../../utils/gasThresholdSeverity';
 import { BEVEL_BUTTON, BEVEL_BUTTON_PRESSED } from '../../cmms/scadaStyles';
@@ -34,9 +33,8 @@ export default function GasSafetyAlertLogPanel({ alerts, loading, windowHours }:
 
   return (
     <div className="win-panel flex flex-col min-h-0 h-full">
-      <div className="win-titlebar px-2 py-1 flex items-center gap-1.5">
-        <Flame className="w-3.5 h-3.5 text-white" />
-        <span className="text-xs font-bold text-white">Real-Time Gas Safety Alert Log (AGT)</span>
+      <div className="tier2-header flex items-center gap-1.5">
+        <span>Real-Time Gas Safety Alert Log (AGT)</span>
         <span className="ml-auto text-[10px] font-mono text-white/80">LAST {windowHours}H</span>
       </div>
       <div className="flex items-center gap-1.5 px-1.5 py-1 border-b border-slate-300 bg-[#d4d0c8]">

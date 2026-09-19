@@ -2,7 +2,8 @@
 //
 // Stage 2 (nav-level role-based tab hiding, 2026-09-18), simplified in Stage 3
 // (same day, see isNavItemVisible() below). Gates whether a SidebarNav.tsx item
-// or PortalTitleBar.tsx CMMS_MODULES tab is shown at all. Distinct from — and
+// or PortalTitleBar.tsx top-tab (both now read SIDEBAR_SECTIONS —
+// sidebarSections.ts, 2026-09-19 unification) is shown at all. Distinct from — and
 // independent of — the 5 existing leaf-level getEffectivePermission() call
 // sites (SignatureBlock.tsx, SafetyNotesEditor.tsx, CriticalEventsEditor.tsx x2,
 // PTWStatusActions.tsx), which gate CRUD actions *inside* a page and are

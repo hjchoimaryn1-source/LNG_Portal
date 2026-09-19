@@ -55,7 +55,8 @@ export default function LngProcessSubTabs({ activeKey, handleSelectSubProcess }:
         onClick={() => handleSelectSubProcess('ARUN_LOADING_COQ')}
         className={activeKey.startsWith('ARUN') ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
       >
-        <span>PAGT ( Arun )</span>
+        {/* TEMP PATCH: label drift fix vs sidebarSections.ts (canonical "PAGT (Arun)"). Real fix (extract NIAS_TANK_YARD_KEYS/NIAS_GAS_PROCESS_KEYS to shared file) deferred to avoid circular import. */}
+        <span>PAGT (Arun)</span>
       </button>
 
       <button
@@ -87,7 +88,8 @@ export default function LngProcessSubTabs({ activeKey, handleSelectSubProcess }:
         onClick={() => handleSelectSubProcess('NIAS_PLTMG_POWER_OUTPUT')}
         className={activeKey === 'NIAS_PLTMG_POWER_OUTPUT' ? WIN_TAB_ACTIVE : WIN_TAB_INACTIVE}
       >
-        <span>PLTMG POWER</span>
+        {/* TEMP PATCH: label drift fix vs sidebarSections.ts (canonical "PLTMG Power"). Real fix deferred (see comment above). */}
+        <span>PLTMG Power</span>
       </button>
     </>
   );

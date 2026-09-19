@@ -103,13 +103,13 @@ export default function NiasTankOverviewTab({
         {/* COLUMN 1: LAYDOWN YARD 1 (RECEIVING & BOG BUFFER - 34 SLOTS)      */}
         {/* ================================================================= */}
         <div className="win-panel overflow-hidden border border-slate-300 flex flex-col h-full min-h-0 bg-[#d6d3c8]">
-          {/* Navy Panel Header (Sticky Top) */}
-          <div className="bg-[#002b4d] px-3 py-2 flex items-center justify-between text-white shrink-0 sticky top-0 z-20 shadow-xs border-b border-blue-900/60">
-            <h4 className="font-bold text-xs text-slate-100 uppercase tracking-wide truncate">
+          {/* Panel Header (TIER 2, Sticky Top) */}
+          <div className="tier2-header flex items-center justify-between shrink-0 sticky top-0 z-20 shadow-xs">
+            <h4 className="truncate">
               ORU ( LD - 1 )
             </h4>
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[11px] font-mono font-black px-2 py-0.5 bg-blue-950/80 text-cyan-300 border border-blue-400/40 whitespace-nowrap">
+              <span className="text-[11px] font-mono font-black px-2 py-0.5 bg-blue-950/80 text-cyan-300 border border-blue-400/40 whitespace-nowrap normal-case">
                 {yard1TanksList.length} / 34
               </span>
               <span
@@ -435,14 +435,14 @@ export default function NiasTankOverviewTab({
         {/* COLUMN 2: ISO TK - SKID (PLTMG ACTIVE SENDOUT - 4 RACKS: T-201~T-204) */}
         {/* ================================================================= */}
         <div className="win-panel overflow-hidden border border-slate-300 flex flex-col h-full min-h-0 bg-[#d6d3c8]">
-          {/* Navy Panel Header (Sticky Top) */}
-          <div className="bg-[#002b4d] px-3 py-2 flex items-center justify-between text-white shrink-0 sticky top-0 z-20 shadow-xs border-b border-blue-900/60">
-            <h4 className="font-bold text-xs text-slate-100 uppercase tracking-wide truncate">
+          {/* Panel Header (TIER 2, Sticky Top) */}
+          <div className="tier2-header flex items-center justify-between shrink-0 sticky top-0 z-20 shadow-xs">
+            <h4 className="truncate">
               ORU ( ISO TK - Skid )
             </h4>
             <div className="flex items-center gap-2 shrink-0">
               <span
-                className="text-[11px] font-mono font-black px-2 py-0.5 bg-blue-950/80 text-emerald-300 border border-emerald-500/40 whitespace-nowrap"
+                className="text-[11px] font-mono font-black px-2 py-0.5 bg-blue-950/80 text-emerald-300 border border-emerald-500/40 whitespace-nowrap normal-case"
                 title="2-Vaporizer Train Nominal Flow Rate"
               >
                 {totalActiveFlow > 0 ? `${totalActiveFlow.toLocaleString()} Nm³/h` : '0 Nm³/h'}
@@ -847,13 +847,13 @@ export default function NiasTankOverviewTab({
         {/* COLUMN 3: LAYDOWN YARD 2 (EMPTY HEEL 1.0 m³ STAGING - 16 SLOTS)   */}
         {/* ================================================================= */}
         <div className="win-panel overflow-hidden border border-slate-300 flex flex-col h-full min-h-0 bg-[#d6d3c8]">
-          {/* Navy Panel Header (Sticky Top) */}
-          <div className="bg-[#002b4d] px-3 py-2 flex items-center justify-between text-white shrink-0 sticky top-0 z-20 shadow-xs border-b border-blue-900/60">
-            <h4 className="font-bold text-xs text-slate-100 uppercase tracking-wide truncate">
+          {/* Panel Header (TIER 2, Sticky Top) */}
+          <div className="tier2-header flex items-center justify-between shrink-0 sticky top-0 z-20 shadow-xs">
+            <h4 className="truncate">
               ORU ( LD - 2 )
             </h4>
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[11px] font-mono font-black px-2 py-0.5 bg-blue-950/80 text-cyan-300 border border-blue-400/40 whitespace-nowrap">
+              <span className="text-[11px] font-mono font-black px-2 py-0.5 bg-blue-950/80 text-cyan-300 border border-blue-400/40 whitespace-nowrap normal-case">
                 {yard2TanksList.length} / 16
               </span>
               <span className="w-2 h-2 rounded-full inline-block shrink-0 bg-[#10b981]" />

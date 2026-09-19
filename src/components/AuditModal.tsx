@@ -2,7 +2,6 @@
 "use client";
 
 import React from 'react';
-import { RotateCcw } from 'lucide-react';
 import { FleetTankItem } from '../data/mockTankData';
 
 interface AuditModalProps {
@@ -67,13 +66,10 @@ export default function AuditModal({
         className="border-2 border-slate-400 bg-[#d4d0c8] shadow-2xl w-[92vw] max-w-5xl rounded-none flex flex-col overflow-hidden text-slate-900 font-sans"
       >
         {/* Modal Header Strip */}
-        <div className="bg-[#0a2558] text-white font-bold px-4 py-2.5 flex justify-between items-center shrink-0">
-          <div className="flex items-center gap-2.5">
-            <RotateCcw className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span className="text-xs sm:text-sm font-black tracking-wide">
-              ISO Tank Closed-Loop Heel & Transit Audit Console — [Tank UID: {tank.tankNo} ({tank.serialNo})]
-            </span>
-          </div>
+        <div className="tier2-header tier2-header--sentence flex justify-between items-center shrink-0">
+          <span className="text-xs sm:text-sm">
+            ISO Tank Closed-Loop Heel & Transit Audit Console — [Tank UID: {tank.tankNo} ({tank.serialNo})]
+          </span>
           <button
             type="button"
             onClick={onClose}
@@ -89,11 +85,9 @@ export default function AuditModal({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Column 1: 1. NIAS OFFLOAD SPEC */}
             <div className="win-panel bg-white border border-slate-300 p-3 space-y-2">
-              <div className="bg-[#0a2558] px-2 py-1 flex justify-between items-center text-white">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-100">
-                  1. NIAS OFFLOAD SPEC
-                </span>
-                <span className="text-[10px] font-mono text-slate-200">{stage1.offloadDate}</span>
+              <div className="tier2-header flex justify-between items-center">
+                <span>1. NIAS OFFLOAD SPEC</span>
+                <span className="text-[10px] font-mono text-slate-200 normal-case">{stage1.offloadDate}</span>
               </div>
               <div className="space-y-1.5 text-xs font-mono text-slate-800 pt-1">
                 <div className="flex justify-between border-b border-slate-100 pb-0.5">
@@ -121,11 +115,9 @@ export default function AuditModal({
 
             {/* Column 2: 2. NIAS DEPARTURE SPEC */}
             <div className="win-panel bg-white border border-slate-300 p-3 space-y-2">
-              <div className="bg-[#0a2558] px-2 py-1 flex justify-between items-center text-white">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-100">
-                  2. NIAS DEPARTURE SPEC
-                </span>
-                <span className="text-[10px] font-mono text-slate-200">{stage2.departureDate}</span>
+              <div className="tier2-header flex justify-between items-center">
+                <span>2. NIAS DEPARTURE SPEC</span>
+                <span className="text-[10px] font-mono text-slate-200 normal-case">{stage2.departureDate}</span>
               </div>
               <div className="space-y-1.5 text-xs font-mono text-slate-800 pt-1">
                 <div className="flex justify-between border-b border-slate-100 pb-0.5">
@@ -153,11 +145,9 @@ export default function AuditModal({
 
             {/* Column 3: 3. ARUN ARRIVAL BASELINE */}
             <div className="win-panel bg-white border border-slate-300 p-3 space-y-2">
-              <div className="bg-[#0a2558] px-2 py-1 flex justify-between items-center text-white">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-100">
-                  3. ARUN ARRIVAL BASELINE
-                </span>
-                <span className="text-[10px] font-mono text-slate-200">{stage3.arrivalDate}</span>
+              <div className="tier2-header flex justify-between items-center">
+                <span>3. ARUN ARRIVAL BASELINE</span>
+                <span className="text-[10px] font-mono text-slate-200 normal-case">{stage3.arrivalDate}</span>
               </div>
               <div className="space-y-1.5 text-xs font-mono text-slate-800 pt-1">
                 <div className="flex justify-between border-b border-slate-100 pb-0.5">

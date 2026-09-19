@@ -89,8 +89,12 @@ export const SUBPROCESS_TITLES_MANPOWER_SAFETY: Record<string, SubProcessTitleEn
     color: 'text-black font-bold',
   },
   CMMS_OVERVIEW_DASHBOARD: {
-    location: 'CMMS Overview Dashboard',
-    process: 'Command Center Overview',
+    // 2026-09-19(HJ 지시, 승인됨) — in-page 제목(CmmsOverviewDashboardView.tsx)이
+    // "DASHBOARD - CMMS Overview"로 바뀐 뒤 이 매핑이 갱신되지 않아 브레드크럼과
+    // 페이지 제목이 서로 다른 문구를 보여주고 있었다. 이 페이지는 다단계 경로가
+    // 아니므로 process를 비워 단일 타이틀로 표시(PortalTitleBar.tsx 참고).
+    location: 'DASHBOARD - CMMS Overview',
+    process: '',
     icon: <LayoutDashboard className="w-3.5 h-3.5 text-black font-bold" />,
     color: 'text-black font-bold',
   },

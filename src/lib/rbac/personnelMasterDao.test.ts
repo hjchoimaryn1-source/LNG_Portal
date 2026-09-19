@@ -54,6 +54,21 @@ describe('personnelMasterDao', () => {
     expect(listPersonnel(db, { employmentStatus: 'RESIGNED' })).toHaveLength(0);
   });
 
+  it('orders by org hierarchy (ADMIN > SITE_MANAGER > OP_TEAM > MAINTENANCE > HSSE > LOGISTIC > HR), fullName ASC within a group, regardless of insertion/employee_id order (HJ 지시, 2026-09-19 — Personnel Management 목록 기본 정렬)', () => {
+    // employee_id 문자열순이었다면 E-1..E-7 순서 그대로 나왔을 것 — 위계 순서와
+    // 무관하게 뒤섞어 삽입해 우연히 통과하는 걸 배제한다.
+    createPersonnel(db, { employeeId: 'E-1', fullName: 'Zulkifli HR', positionTitle: 'X', departmentGroup: 'HR' }, 'A');
+    createPersonnel(db, { employeeId: 'E-2', fullName: 'Budi Logistic', positionTitle: 'X', departmentGroup: 'LOGISTIC' }, 'A');
+    createPersonnel(db, { employeeId: 'E-3', fullName: 'Chandra HSSE', positionTitle: 'X', departmentGroup: 'HSSE' }, 'A');
+    createPersonnel(db, { employeeId: 'E-4', fullName: 'Agunawan Maint', positionTitle: 'X', departmentGroup: 'MAINTENANCE' }, 'A');
+    createPersonnel(db, { employeeId: 'E-5', fullName: 'Zaki OpTeam', positionTitle: 'X', departmentGroup: 'OP_TEAM' }, 'A');
+    createPersonnel(db, { employeeId: 'E-6', fullName: 'Asman OpTeam', positionTitle: 'X', departmentGroup: 'OP_TEAM' }, 'A');
+    createPersonnel(db, { employeeId: 'E-7', fullName: 'Edi SiteManager', positionTitle: 'X', departmentGroup: 'SITE_MANAGER' }, 'A');
+    createPersonnel(db, { employeeId: 'E-8', fullName: 'Root Admin', positionTitle: 'X', departmentGroup: 'ADMIN' }, 'A');
+
+    expect(listPersonnel(db).map((p) => p.employeeId)).toEqual(['E-8', 'E-7', 'E-6', 'E-5', 'E-4', 'E-3', 'E-2', 'E-1']);
+  });
+
   it('updates only the provided fields', () => {
     createPersonnel(db, { employeeId: 'E-1', fullName: 'A', positionTitle: 'X', departmentGroup: 'ADMIN' }, 'ACTOR-1');
     updatePersonnel(db, 'E-1', { positionTitle: 'Y' }, 'ACTOR-1');

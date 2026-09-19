@@ -83,9 +83,9 @@ export default function ArunFieldTable({
 
   return (
     <div className="bg-white border border-slate-300 win-panel overflow-hidden rounded-t">
-      <div className="bg-[#0a2558] text-white px-3 py-1.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 rounded-t">
+      <div className="tier2-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 rounded-t">
         <div className="flex flex-wrap items-center gap-3">
-          <h3 className="text-white font-bold text-sm tracking-wide uppercase">
+          <h3 className="text-sm">
             ISO Tank Condition
           </h3>
 

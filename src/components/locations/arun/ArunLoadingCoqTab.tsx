@@ -3,15 +3,11 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  Calculator,
   FileCheck,
   Atom,
-  Boxes,
-  Weight,
   Search,
   Sparkles,
   Download,
-  CheckCircle2,
 } from 'lucide-react';
 import { useFleetTankFacade } from '../../../hooks/portalDataFacade/useFleetTankFacade';
 import { NodeState } from '../../../types/lng';
@@ -633,10 +629,9 @@ export default function ArunLoadingCoqTab({
         onSubmit={handleCreateLoadingSubmit}
         className="bg-[#ece9d8] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] win-panel p-2 space-y-2.5 shadow-sm"
       >
-        <div className="bg-[#0a2558] text-white px-2.5 py-1.5 flex flex-col sm:flex-row justify-between sm:items-center gap-1.5 select-none">
+        <div className="tier2-header flex flex-col sm:flex-row justify-between sm:items-center gap-1.5 select-none">
           <div className="flex items-center gap-2">
-            <Calculator className="w-4 h-4 text-cyan-300" />
-            <h3 className="text-xs sm:text-sm font-bold tracking-wide uppercase text-white">
+            <h3 className="text-xs sm:text-sm">
               PAGT (Arun) Custody &amp; COQ
             </h3>
           </div>
@@ -653,11 +648,8 @@ export default function ArunLoadingCoqTab({
         <div className="flex flex-col lg:flex-row gap-2.5 text-xs w-full">
           <div className="w-full lg:w-[44%] shrink-0 bg-[#ece9d8] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] win-panel p-2 flex flex-col justify-between gap-2">
             <div className="flex flex-col h-full">
-              <div className="bg-[#0a2558] text-white text-xs font-bold px-2 py-1 flex items-center justify-between tracking-wide uppercase mb-2">
-                <span className="flex items-center gap-1.5 text-white">
-                  <Boxes className="w-3.5 h-3.5 text-cyan-300" />
-                  1. SELECT ISO TANK
-                </span>
+              <div className="tier2-header flex items-center justify-between mb-2">
+                <span>1. SELECT ISO TANK</span>
                 <span className="font-mono text-[10px] text-cyan-200 uppercase">
                   {remainingCandidates} CANDIDATES
                 </span>
@@ -824,10 +816,9 @@ export default function ArunLoadingCoqTab({
 
           <div className="w-full lg:w-[56%] bg-[#ece9d8] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] win-panel p-2.5 flex flex-col justify-between gap-2.5">
             <div className="space-y-2.5">
-              <div className="bg-[#0a2558] text-white text-xs font-bold px-2.5 py-1.5 flex items-center justify-between tracking-wide uppercase shadow-sm">
+              <div className="tier2-header flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-2">
-                  <Weight className="w-4 h-4 text-cyan-300" />
-                  <span className="font-bold text-white tracking-wide">
+                  <span>
                     {formTankNo ? '2. CUSTODY SPECIFICATION' : '2. CUSTODY SPECIFICATION (NO TANK SELECTED)'}
                   </span>
                 </div>
@@ -1236,15 +1227,12 @@ export default function ArunLoadingCoqTab({
 
       {activeBatchRecords.length > 0 && (
         <div className="bg-[#ece9d8] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] win-panel overflow-hidden transition-all duration-300 ease-in-out animate-in fade-in slide-in-from-bottom-2 shadow-md">
-          <div className="bg-[#0a2558] text-white px-3 py-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 select-none">
+          <div className="tier2-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 select-none">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <div>
-                <span className="font-extrabold text-xs md:text-sm uppercase tracking-wide text-white mr-2">
-                  COQ &amp; Delivery Measurement
-                </span>
-              </div>
-              <span className="px-2 py-0.5 bg-[#051636] text-cyan-300 border border-blue-400/40 text-[10px] font-mono font-bold">
+              <span className="text-xs md:text-sm mr-2">
+                COQ &amp; Delivery Measurement
+              </span>
+              <span className="px-2 py-0.5 bg-[#051636] text-cyan-300 border border-blue-400/40 text-[10px] font-mono font-bold normal-case">
                 {activeBatchRecords.length} Certified
               </span>
             </div>

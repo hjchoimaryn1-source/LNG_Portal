@@ -11,15 +11,18 @@
 // header — an empty submenu would strand the user with no way back out.
 "use client";
 
-import React, { useMemo } from 'react';
-import { NodeState, SubProcessKey } from '../../../types/lng';
-import { useFleetTankFacade } from '../../../hooks/portalDataFacade/useFleetTankFacade';
+import React from 'react';
+import { SubProcessKey } from '../../../types/lng';
 import { useActiveSession } from '../../../lib/rbac/activeSessionStore';
-import { SIDEBAR_SECTIONS, SidebarFleetCounts } from './sidebarSections';
+import { SIDEBAR_SECTIONS } from './sidebarSections';
+import { useSidebarFleetCounts } from './useSidebarFleetCounts';
+import SidebarSectionSubItems from './SidebarSectionSubItems';
 import SidebarSectorListView from './SidebarSectorListView';
 
+// 2026-09-19(HJ 디자인 통일 승인) — Win98 베이지 베벨(TIER 2 밖의 별도 색상) 폐기,
+// 위젯/콘텐츠 섹션 헤더와 동일한 TIER 2(.tier2-header) 네이비로 통일.
 const SECTION_HEADER_BEVEL =
-  "bg-[#d4d0c8] text-slate-900 font-extrabold text-xs px-2.5 py-1.5 border-t-2 border-l-2 border-r-2 border-b-2 border-t-white border-l-white border-r-[#808080] border-b-[#808080] tracking-wider uppercase flex items-center justify-between cursor-default select-none shadow-xs";
+  "tier2-header flex items-center justify-between cursor-default select-none";
 
 interface SidebarSectionMenuProps {
   activeKey: SubProcessKey;
@@ -28,31 +31,8 @@ interface SidebarSectionMenuProps {
 }
 
 export default function SidebarSectionMenu({ activeKey, activeSubTab, onSelectKey }: SidebarSectionMenuProps) {
-  const { fleetTanks } = useFleetTankFacade();
   const session = useActiveSession();
-
-  const counts: SidebarFleetCounts = useMemo(() => {
-    let arunCount = 0;
-    let sailingCount = 0;
-    let laydownCount = 0;
-    let regasBayCount = 0;
-    let emptyReturnCount = 0;
-
-    fleetTanks.forEach((t) => {
-      if (t.node === NodeState.NODE_1_ARUN_PAG_TERMINAL) arunCount++;
-      else if (t.node === NodeState.NODE_2_MV_SAVIOUR_TRANSIT) sailingCount++;
-      else if (t.node === NodeState.NODE_3_NIAS_LAYDOWN_YARD) laydownCount++;
-      else if (t.node === NodeState.NODE_4_REGAS_ACTIVE_BAY) regasBayCount++;
-      else if (t.node === NodeState.NODE_5_EMPTY_RETURN_CYCLE) emptyReturnCount++;
-    });
-
-    return {
-      arunCount,
-      sailingCount,
-      niasTotal: laydownCount + regasBayCount + emptyReturnCount,
-      totalFleet: fleetTanks.length,
-    };
-  }, [fleetTanks]);
+  const counts = useSidebarFleetCounts();
 
   const activeSection = SIDEBAR_SECTIONS.find((sec) => sec.matches(activeKey));
 
@@ -65,40 +45,17 @@ export default function SidebarSectionMenu({ activeKey, activeSubTab, onSelectKe
       <div className={SECTION_HEADER_BEVEL}>
         <span>{activeSection.label}</span>
         {activeSection.headerBadge && (
-          <span className="font-mono text-xs font-bold text-slate-900">{activeSection.headerBadge(counts)}</span>
+          <span className="font-mono text-xs font-bold text-white/80 normal-case">{activeSection.headerBadge(counts)}</span>
         )}
       </div>
-      <div className="bg-[#d4d0c8]">
-        {activeSection.items
-          .filter((item) => item.visible(session))
-          .map((item) => {
-            const isSelected = item.isSelected ? item.isSelected(activeKey, activeSubTab) : activeKey === item.key;
-            const badgeValue = item.badge?.(counts);
-            return (
-              <button
-                key={item.key + item.label}
-                onClick={() => onSelectKey(item.key)}
-                className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left cursor-pointer transition-none select-none ${
-                  isSelected
-                    ? 'bg-slate-100 text-slate-950 font-extrabold border-t border-l border-b border-r border-t-slate-500 border-l-slate-500 border-b-white border-r-white shadow-[inset_1px_1px_2px_rgba(0,0,0,0.12)]'
-                    : 'bg-transparent text-slate-700 font-normal border-b border-slate-300 hover:bg-slate-200 hover:text-slate-900'
-                }`}
-              >
-                <span className="flex items-center">
-                  {isSelected && (
-                    <span className="text-[9px] text-slate-950 font-black mr-1.5 leading-none select-none">▶</span>
-                  )}
-                  <span>{item.label}</span>
-                </span>
-                {badgeValue !== undefined && (
-                  <span className={`font-mono text-xs ${isSelected ? 'text-slate-950 font-bold' : 'text-slate-600'}`}>
-                    {badgeValue}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-      </div>
+      <SidebarSectionSubItems
+        items={activeSection.items}
+        session={session}
+        activeKey={activeKey}
+        activeSubTab={activeSubTab}
+        counts={counts}
+        onSelectKey={onSelectKey}
+      />
     </div>
   );
 }

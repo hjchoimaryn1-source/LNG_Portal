@@ -6,7 +6,6 @@
 //   (adjustPartStock)는 이 패널의 책임이 아니다(읽기 전용 알림).
 
 import React from 'react';
-import { Boxes } from 'lucide-react';
 import type { MroPartRecord } from '../../../adapters/db/mroInventoryDao';
 
 interface MroLowStockPanelProps {
@@ -17,9 +16,8 @@ interface MroLowStockPanelProps {
 export default function MroLowStockPanel({ parts, loading }: MroLowStockPanelProps) {
   return (
     <div className="win-panel flex flex-col min-h-0 h-full">
-      <div className="win-titlebar px-2 py-1 flex items-center gap-1.5">
-        <Boxes className="w-3.5 h-3.5 text-white" />
-        <span className="text-xs font-bold text-white">MRO Low-Stock Inventory Alert</span>
+      <div className="tier2-header flex items-center gap-1.5">
+        <span>MRO Low-Stock Inventory Alert</span>
         <span className="ml-auto text-[10px] font-mono text-white/80">{parts.length} ITEMS</span>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto win-sunken">

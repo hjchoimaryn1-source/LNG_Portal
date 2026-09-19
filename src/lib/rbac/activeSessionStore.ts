@@ -41,6 +41,10 @@ export interface ActiveSession {
   roleCode: Stage1RoleCode;
   homeLocation: 'HQ' | 'SITE';
   permissions: Partial<Record<ModuleCode, RolePermission>>;
+  /** Part A(2026-09-19) — 로그인 응답의 mustChangePassword 미러. 기존 호출부(약
+   *  15개 테스트 파일)를 깨지 않기 위해 optional로 둔다: 생략 시 false와 동일하게
+   *  취급한다(LoginGateway.tsx만 이 필드를 실제로 채워 넣는다). */
+  mustChangePassword?: boolean;
 }
 
 let activeSession: ActiveSession | null = null;

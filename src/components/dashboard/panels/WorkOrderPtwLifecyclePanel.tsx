@@ -6,7 +6,6 @@
 //   가동 중인 작업/허가 lifecycle을 한눈에 보여준다.
 
 import React from 'react';
-import { Activity } from 'lucide-react';
 import type { WorkOrderRecord } from '../../../adapters/db/workOrderDao';
 import type { PTWPermitLifecycleDraft } from '../../../adapters/db/ptwPermitDao';
 import type { SubProcessKey } from '../../../types/lng';
@@ -21,9 +20,8 @@ interface WorkOrderPtwLifecyclePanelProps {
 export default function WorkOrderPtwLifecyclePanel({ workOrders, permits, loading, onNavigate }: WorkOrderPtwLifecyclePanelProps) {
   return (
     <div className="win-panel flex flex-col min-h-0 h-full">
-      <div className="win-titlebar px-2 py-1 flex items-center gap-1.5">
-        <Activity className="w-3.5 h-3.5 text-white" />
-        <span className="text-xs font-bold text-white">Work Order & PTW Active Lifecycle</span>
+      <div className="tier2-header flex items-center gap-1.5">
+        <span>Work Order & PTW Active Lifecycle</span>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto win-sunken grid grid-rows-2">
         <table className="w-full text-left border-collapse font-mono text-[10.5px] win-grid">

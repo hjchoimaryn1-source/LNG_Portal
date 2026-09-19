@@ -43,10 +43,8 @@ export default function KpiSummaryStrip({ kpis = DEFAULT_KPIS }: KpiSummaryStrip
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
       {/* Card 1: 1. EMPTY STAGED */}
       <div className="win-panel overflow-hidden border border-slate-300 flex flex-col justify-between">
-        <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
-          <span className="text-blue-100 font-bold text-[11px] uppercase tracking-wider">
-            1. EMPTY STAGED
-          </span>
+        <div className="tier2-header flex justify-between items-center">
+          <span>1. EMPTY STAGED</span>
           <span
             className={`w-2 h-2 rounded-full inline-block ${
               safeKpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'
@@ -73,10 +71,8 @@ export default function KpiSummaryStrip({ kpis = DEFAULT_KPIS }: KpiSummaryStrip
 
       {/* Card 2: 2. HEEL INTEGRITY */}
       <div className="win-panel overflow-hidden border border-slate-300 flex flex-col justify-between">
-        <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
-          <span className="text-blue-100 font-bold text-[11px] uppercase tracking-wider">
-            2. HEEL INTEGRITY
-          </span>
+        <div className="tier2-header flex justify-between items-center">
+          <span>2. HEEL INTEGRITY</span>
           <span
             className={`w-2 h-2 rounded-full inline-block ${
               safeKpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'
@@ -105,10 +101,8 @@ export default function KpiSummaryStrip({ kpis = DEFAULT_KPIS }: KpiSummaryStrip
 
       {/* Card 3: 3. HOLDING PRESSURE */}
       <div className="win-panel overflow-hidden border border-slate-300 flex flex-col justify-between">
-        <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
-          <span className="text-blue-100 font-bold text-[11px] uppercase tracking-wider">
-            3. HOLDING PRESSURE
-          </span>
+        <div className="tier2-header flex justify-between items-center">
+          <span>3. HOLDING PRESSURE</span>
           <span
             className={`w-2 h-2 rounded-full inline-block ${
               safeKpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'
@@ -133,10 +127,8 @@ export default function KpiSummaryStrip({ kpis = DEFAULT_KPIS }: KpiSummaryStrip
 
       {/* Card 4: 4. LOADING READINESS */}
       <div className="win-panel overflow-hidden border border-slate-300 flex flex-col justify-between">
-        <div className="bg-[#0a2558] px-2.5 py-1 flex justify-between items-center text-white">
-          <span className="text-blue-100 font-bold text-[11px] uppercase tracking-wider">
-            4. LOADING READINESS
-          </span>
+        <div className="tier2-header flex justify-between items-center">
+          <span>4. LOADING READINESS</span>
           <span
             className={`w-2 h-2 rounded-full inline-block ${
               safeKpis.isSelectionActive ? 'bg-cyan-400 animate-pulse' : 'bg-emerald-400'

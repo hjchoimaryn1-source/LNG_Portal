@@ -33,15 +33,12 @@ export default function PortalModuleSubTabs({
   handleSelectSubProcess,
   handleManpowerSubTab,
 }: PortalModuleSubTabsProps) {
+  // MOD_6_OVERVIEW의 섹션 타이틀은 CmmsOverviewDashboardView.tsx 자체의 병합된
+  // "CMMS OVERVIEW" 헤더 행에서 표시한다 — 여기서는 빈 바를 남기지 않도록 렌더링 생략.
+  if (currentModuleId === 'MOD_6_OVERVIEW') return null;
+
   return (
     <div className="bg-[#e4e0d8] border-b-2 border-white px-2 py-1 flex items-center gap-1.5 overflow-x-auto shrink-0">
-      {currentModuleId === 'MOD_6_OVERVIEW' && (
-        <div className="flex items-center gap-2 text-xs font-mono text-slate-700 py-0.5">
-          <span className="font-bold text-slate-900">CMMS OVERVIEW DASHBOARD</span>
-          <span className="text-slate-400">|</span>
-          <span>Command Center KPI Summary & Live Alert Panels</span>
-        </div>
-      )}
       {currentModuleId === 'MOD_1_LNG_PROCESS' && (
         <LngProcessSubTabs activeKey={activeKey} handleSelectSubProcess={handleSelectSubProcess} />
       )}

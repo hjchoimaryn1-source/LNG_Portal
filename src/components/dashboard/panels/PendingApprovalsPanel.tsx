@@ -6,7 +6,6 @@
 //   목록을 표시한다 — 서명 게이트 판정 로직은 재구현하지 않는다(SSOT: PART C/D/E).
 
 import React from 'react';
-import { ShieldAlert } from 'lucide-react';
 import type { PendingApprovalItem } from '../../../adapters/overviewSummaryAdapter';
 import { PTW_SIGNATURE_ROLE_LABELS } from '../../../data/ptwSignatureRoles';
 import type { SubProcessKey } from '../../../types/lng';
@@ -20,9 +19,8 @@ interface PendingApprovalsPanelProps {
 export default function PendingApprovalsPanel({ items, loading, onNavigate }: PendingApprovalsPanelProps) {
   return (
     <div className="win-panel flex flex-col min-h-0 h-full">
-      <div className="win-titlebar px-2 py-1 flex items-center gap-1.5">
-        <ShieldAlert className="w-3.5 h-3.5 text-white" />
-        <span className="text-xs font-bold text-white">Global Pending Approvals</span>
+      <div className="tier2-header flex items-center gap-1.5">
+        <span>Global Pending Approvals</span>
         <span className="ml-auto text-[10px] font-mono text-white/80">{items.length} PENDING</span>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto win-sunken">

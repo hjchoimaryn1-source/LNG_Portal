@@ -5,11 +5,6 @@ import React, { useMemo, useState, useEffect } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
-  Ship,
-  ShieldCheck,
-  Flame,
-  Truck,
-  Gauge,
 } from 'lucide-react';
 import { useFleetTankFacade } from '../../../hooks/portalDataFacade/useFleetTankFacade';
 import { useSettlementFacade } from '../../../hooks/portalDataFacade/useSettlementFacade';
@@ -346,9 +341,8 @@ export default function ArunLoadingTab({
     <div className="space-y-4 animate-in fade-in duration-200 select-none">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
         <div className="win-panel overflow-hidden border border-slate-300">
-          <div className="bg-[#0a2558] text-white text-xs font-bold px-2.5 py-1 flex justify-between items-center">
-            <span className="uppercase tracking-wider">1. BATCH COMPOSITION</span>
-            <Ship className="w-4 h-4 text-cyan-300" />
+          <div className="tier2-header flex justify-between items-center">
+            <span>1. BATCH COMPOSITION</span>
           </div>
           <div className="bg-white p-2.5 border border-[#cfccc0] text-slate-900">
             <div className="space-y-2 text-[11px] text-slate-700">
@@ -369,9 +363,8 @@ export default function ArunLoadingTab({
         </div>
 
         <div className="win-panel overflow-hidden border border-slate-300">
-          <div className="bg-[#0a2558] text-white text-xs font-bold px-2.5 py-1 flex justify-between items-center">
-            <span className="uppercase tracking-wider">2. NET DISPATCH MASS</span>
-            <Truck className="w-4 h-4 text-cyan-300" />
+          <div className="tier2-header flex justify-between items-center">
+            <span>2. NET DISPATCH MASS</span>
           </div>
           <div className="bg-white p-2.5 border border-[#cfccc0] text-slate-900">
             <div className="space-y-2 text-[11px] text-slate-700">
@@ -392,9 +385,8 @@ export default function ArunLoadingTab({
         </div>
 
         <div className="win-panel overflow-hidden border border-slate-300">
-          <div className="bg-[#0a2558] text-white text-xs font-bold px-2.5 py-1 flex justify-between items-center">
-            <span className="uppercase tracking-wider">3. NET LIQUID VOLUME</span>
-            <Gauge className="w-4 h-4 text-cyan-300" />
+          <div className="tier2-header flex justify-between items-center">
+            <span>3. NET LIQUID VOLUME</span>
           </div>
           <div className="bg-white p-2.5 border border-[#cfccc0] text-slate-900">
             <div className="space-y-2 text-[11px] text-slate-700">
@@ -419,9 +411,8 @@ export default function ArunLoadingTab({
         </div>
 
         <div className="win-panel overflow-hidden border border-slate-300">
-          <div className="bg-[#0a2558] text-white text-xs font-bold px-2.5 py-1 flex justify-between items-center">
-            <span className="uppercase tracking-wider">4. DELIVERED ENERGY</span>
-            <Flame className="w-4 h-4 text-cyan-300" />
+          <div className="tier2-header flex justify-between items-center">
+            <span>4. DELIVERED ENERGY</span>
           </div>
           <div className="bg-white p-2.5 border border-[#cfccc0] text-slate-900">
             <div className="space-y-2 text-[11px] text-slate-700">
@@ -447,11 +438,8 @@ export default function ArunLoadingTab({
       </div>
 
       <div className="w-full bg-[#ece9d8] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] p-3 shadow-sm">
-        <div className="bg-[#0a2558] text-white px-3 py-1.5 flex justify-between items-center rounded-t text-xs font-bold uppercase tracking-wide">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>PAGT (ARUN)</span>
-          </div>
+        <div className="tier2-header flex justify-between items-center rounded-t">
+          <span>PAGT (ARUN)</span>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <button
