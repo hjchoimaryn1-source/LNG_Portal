@@ -42,3 +42,38 @@ export function writeUserAccountAudit(db: SqlExecutor, entry: UserAccountAuditEn
     detail: entry.detail ?? null,
   });
 }
+
+export interface UserAccountAuditRow {
+  id: number;
+  employeeId: string | null;
+  accountId: string | null;
+  eventType: string;
+  actorAccountId: string | null;
+  detail: string | null;
+  createdAt: string;
+}
+
+interface RawAuditRow {
+  id: number;
+  employee_id: string | null;
+  account_id: string | null;
+  event_type: string;
+  actor_account_id: string | null;
+  detail: string | null;
+  created_at: string;
+}
+
+const SELECT_AUDIT_LOG_SQL = `SELECT * FROM user_account_audit_log ORDER BY id DESC LIMIT @limit`;
+
+/** Stage 1D 감사 로그 뷰어용 — 최신순, 기본 최대 200건. */
+export function listAuditLog(db: SqlExecutor, limit = 200): UserAccountAuditRow[] {
+  return db.all<RawAuditRow>(SELECT_AUDIT_LOG_SQL, { limit }).map((row) => ({
+    id: row.id,
+    employeeId: row.employee_id,
+    accountId: row.account_id,
+    eventType: row.event_type,
+    actorAccountId: row.actor_account_id,
+    detail: row.detail,
+    createdAt: row.created_at,
+  }));
+}
