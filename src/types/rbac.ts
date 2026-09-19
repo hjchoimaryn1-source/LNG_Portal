@@ -28,7 +28,12 @@ export type ModuleCode =
   | 'SAFETY_OVERVIEW'
   | 'DAILY_OPS_REPORT'
   | 'DAILY_OPS_PATROL_ENTRY'
-  | 'ALARM_ACTION_LOG';
+  | 'ALARM_ACTION_LOG'
+  // Stage 1A (User & Security Management) — ADMIN-only personnel/account module.
+  // Not yet wired into ROLE_PERMISSIONS/getEffectivePermission() below; the new
+  // src/lib/rbac/role_permissions DB table (Stage 1 role_code vocabulary) is a
+  // separate, unreconciled system — see userSecuritySchema.ts header comment.
+  | 'PERSONNEL_MANAGEMENT';
 
 export interface RolePermission {
   rolePermissionId: number;
