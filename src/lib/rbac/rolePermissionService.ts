@@ -8,8 +8,32 @@
 // 따라서 이 서비스는 라이브 DB를 쿼리하지 않고, 001_role_permissions.sql의
 // 77행을 그대로 옮긴 정적 데이터셋을 in-memory로 조회한다.
 // 시드 SQL 파일 내용이 바뀌면 이 배열도 함께 갱신해야 한다.
+//
+// Stage 2A-ii (2026-09-19) — 구 RoleCode(위 7개 값) 어휘는 그대로 살아있다.
+// activeSessionStore.ts/LoginGateway.tsx 기반 13개 클라이언트 호출부(PTW
+// 서명, 일일보고 서명 등)가 여전히 이 어휘로 activeSession.roleCode를
+// 채우고, Stage 1B(username/password) 로그인 UI가 아직 없어 이 호출부들을
+// 신규 role_code로 전환할 방법이 없다 — 별도 스테이지로 이연(HJ 결정).
+// 그래서 getEffectivePermission()은 두 어휘를 모두 받는다: 신규
+// Stage1RoleCode(ADMIN/SITE_MANAGER/OP_TEAM/HSSE/MAINTENANCE/LOGISTIC/HR)는
+// userSecurityRolePermissionSeed.ts의 HJ 확정 매트릭스로, 구 RoleCode는 아래
+// 정적 배열(무수정)로 조회한다. 'SITE_MANAGER' 문자열이 두 어휘에 우연히
+// 겹치는데(userSecuritySchema.ts 헤더 주석), 6개 호출부 모듈 전부에서 구/신
+// 매트릭스 값이 완전히 동일하도록 HJ 확정 매트릭스가 구성되어 있어(구
+// SITE_MANAGER -> 신 SITE_MANAGER 직접 매핑, Stage 2A-i) 어느 쪽 경로로
+// 가든 관측 가능한 차이가 없다 — 단, 두 매트릭스를 독립적으로 편집하면 이
+// 안전성이 깨지므로 향후 수정 시 주의.
+//
+// 구 ROLE_PERMISSIONS 배열/RoleCode 타입 삭제는 13개 클라이언트 호출부가
+// 여전히 참조하므로 Step 4에서 보류했다(userSecurityRolePermissionSeed.ts
+// 헤더, 최종 보고서 참조).
 
 import type { RoleCode, ModuleCode, RolePermission } from '../../types/rbac';
+import { STAGE1_ROLE_CODES, resolveStage1PermissionFlags, type Stage1RoleCode } from './userSecurityRolePermissionSeed';
+
+function isStage1RoleCode(roleCode: RoleCode | Stage1RoleCode): roleCode is Stage1RoleCode {
+  return (STAGE1_ROLE_CODES as readonly string[]).includes(roleCode);
+}
 
 const ROLE_PERMISSIONS: RolePermission[] = [
   // SYSTEM_ADMIN: full access to all modules
@@ -133,9 +157,24 @@ const ROLE_PERMISSIONS: RolePermission[] = [
 ];
 
 export function getEffectivePermission(
-  roleCode: RoleCode,
+  roleCode: RoleCode | Stage1RoleCode,
   moduleCode: ModuleCode
 ): RolePermission | null {
+  if (isStage1RoleCode(roleCode)) {
+    const flags = resolveStage1PermissionFlags(roleCode, moduleCode);
+    return {
+      rolePermissionId: 0, // role_permissions(신규 스키마)에는 합성 ID 컬럼이 없다 — 아무 소비처도 읽지 않는 placeholder.
+      roleCode,
+      moduleCode,
+      canRead: flags.canRead === 1,
+      canCreate: flags.canCreate === 1,
+      canUpdate: flags.canUpdate === 1,
+      canDelete: flags.canDelete === 1,
+      canApprove: flags.canApprove === 1,
+      isReadOnlyForced: flags.isReadOnlyForced === 1,
+      canUnlockApproved: flags.canUnlockApproved === 1,
+    };
+  }
   return (
     ROLE_PERMISSIONS.find(
       (row) => row.roleCode === roleCode && row.moduleCode === moduleCode

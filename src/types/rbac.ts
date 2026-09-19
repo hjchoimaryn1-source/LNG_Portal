@@ -37,7 +37,15 @@ export type ModuleCode =
 
 export interface RolePermission {
   rolePermissionId: number;
-  roleCode: RoleCode;
+  /**
+   * Stage 2A-ii: getEffectivePermission() now also accepts the new Stage 1
+   * role_code vocabulary (ADMIN/SITE_MANAGER/OP_TEAM/HSSE/MAINTENANCE/
+   * LOGISTIC/HR — see userSecurityRolePermissionSeed.ts's Stage1RoleCode) in
+   * addition to the legacy RoleCode above, so this field is widened to
+   * `string` rather than aliasing either union. No consumer reads this field
+   * off a returned RolePermission today (repo-wide search, Stage 2A-ii).
+   */
+  roleCode: string;
   moduleCode: ModuleCode;
   canRead: boolean;
   canCreate: boolean;

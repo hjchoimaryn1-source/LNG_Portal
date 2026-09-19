@@ -20,6 +20,8 @@ import {
 } from '../../../../../adapters/permitPersistenceAdapter';
 import type { PTWPermitLifecycleDraft } from '../../../../../adapters/db/ptwPermitDao';
 import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
 import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
@@ -143,13 +145,21 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Invalid status update payload.' }, { status: 400 });
   }
 
-  // RBAC audit remediation — ptw-permits PATCH, 2026-09-16. NOTE: roleCode is
-  // client-supplied; server does not verify session identity (no auth-token
-  // backend — see §3.5). This blocks normal UI misuse, not a forged direct
-  // API call. roleCode is optional for backward compatibility with callers
-  // that have not been migrated to send it (e.g. NP08 cargo handling) — those
-  // requests bypass this check entirely, unchanged from prior behavior.
-  if (body.roleCode !== undefined && getEffectivePermission(body.roleCode, 'PTW_PERMITS')?.canUpdate !== true) {
+  // RBAC audit remediation — ptw-permits PATCH, 2026-09-16, extended Stage
+  // 2A-ii (HJ decision 2026-09-19). Prefer a verified Stage 1B session when
+  // present (authoritative, checked regardless of whether body.roleCode was
+  // sent). Otherwise fall back to the prior behavior: roleCode is optional
+  // client-supplied data, checked when present, and callers that omit it
+  // entirely (e.g. NP08 cargo handling) bypass this check, unchanged.
+  const session = verifyUserSecuritySession(request);
+  if (session) {
+    if (resolveSessionPermission(session.employeeId, 'PTW_PERMITS')?.canUpdate !== true) {
+      return NextResponse.json(
+        { success: false, error: `Role ${session.roleCode} is not permitted to update PTW permits.` },
+        { status: 403 }
+      );
+    }
+  } else if (body.roleCode !== undefined && getEffectivePermission(body.roleCode, 'PTW_PERMITS')?.canUpdate !== true) {
     return NextResponse.json(
       { success: false, error: `Role ${body.roleCode} is not permitted to update PTW permits.` },
       { status: 403 }

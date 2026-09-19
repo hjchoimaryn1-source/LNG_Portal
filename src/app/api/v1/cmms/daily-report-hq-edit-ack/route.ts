@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDailyOpsDb } from '../../../../../cmms-daily-ops/db/dailyOpsDbSingleton';
 import { acknowledgeHqEdit } from '../../../../../cmms-daily-ops/dao/dailyReportHqEditDao';
 import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
 import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
@@ -36,10 +38,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'snapshotId, roleCode, actorId required.' }, { status: 400 });
   }
 
-  const permission = getEffectivePermission(body.roleCode, 'DAILY_OPS_REPORT');
+  // Stage 2A-ii (HJ decision 2026-09-19): prefer a verified Stage 1B session;
+  // fall back to the client-supplied (spoofable) legacy roleCode until the
+  // deferred client-side migration stage lands — see final report.
+  const session = verifyUserSecuritySession(request);
+  const permission = session
+    ? resolveSessionPermission(session.employeeId, 'DAILY_OPS_REPORT')
+    : getEffectivePermission(body.roleCode, 'DAILY_OPS_REPORT');
+  const roleLabel = session?.roleCode ?? body.roleCode;
   if (!permission?.canApprove) {
     return NextResponse.json(
-      { success: false, error: `Role ${body.roleCode} is not authorized to acknowledge HQ edit notices.` },
+      { success: false, error: `Role ${roleLabel} is not authorized to acknowledge HQ edit notices.` },
       { status: 403 }
     );
   }

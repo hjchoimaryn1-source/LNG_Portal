@@ -12,7 +12,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { persistPermitSignature, getPermitSignatures } from '../../../../../adapters/permitPersistenceAdapter';
 import type { PTWSignatureEntry, PTWSignatureRole } from '../../../../../types/lng';
 import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
-import type { RoleCode } from '../../../../../types/rbac';
+import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
+import type { RoleCode, RolePermission } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
@@ -29,8 +31,7 @@ function isValidSignaturePost(body: unknown): body is { permitId: string; roleCo
 }
 
 /** Any role with real (non-forced-read-only) PTW_PERMITS access may sign. */
-function isPermitted(roleCode: RoleCode): boolean {
-  const permission = getEffectivePermission(roleCode, 'PTW_PERMITS');
+function isPermitted(permission: RolePermission | null): boolean {
   return permission !== null && permission.isReadOnlyForced !== true;
 }
 
@@ -55,9 +56,17 @@ export async function POST(request: NextRequest) {
   if (!isValidSignaturePost(body)) {
     return NextResponse.json({ success: false, error: 'Invalid signature payload.' }, { status: 400 });
   }
-  if (!isPermitted(body.roleCode)) {
+  // Stage 2A-ii (HJ decision 2026-09-19): prefer a verified Stage 1B session;
+  // fall back to the client-supplied (spoofable) legacy roleCode until the
+  // deferred client-side migration stage lands — see final report.
+  const session = verifyUserSecuritySession(request);
+  const permission = session
+    ? resolveSessionPermission(session.employeeId, 'PTW_PERMITS')
+    : getEffectivePermission(body.roleCode, 'PTW_PERMITS');
+  const roleLabel = session?.roleCode ?? body.roleCode;
+  if (!isPermitted(permission)) {
     return NextResponse.json(
-      { success: false, error: `Role ${body.roleCode} is not permitted to sign PTW permits.` },
+      { success: false, error: `Role ${roleLabel} is not permitted to sign PTW permits.` },
       { status: 403 }
     );
   }

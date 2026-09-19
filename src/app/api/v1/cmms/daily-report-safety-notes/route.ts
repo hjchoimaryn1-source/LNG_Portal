@@ -8,6 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDailyOpsDb } from '../../../../../cmms-daily-ops/db/dailyOpsDbSingleton';
 import { upsertSafetyNotes, getSafetyNotes, type SafetyNotesInput } from '../../../../../cmms-daily-ops/dao/dailyReportChildDao';
 import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
 import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
@@ -40,9 +42,17 @@ export async function POST(request: NextRequest) {
   if (!isValidInput(body)) {
     return NextResponse.json({ success: false, error: 'Invalid safety notes payload.' }, { status: 400 });
   }
-  if (getEffectivePermission(body.roleCode, 'DAILY_OPS_REPORT')?.canCreate !== true) {
+  // Stage 2A-ii (HJ decision 2026-09-19): prefer a verified Stage 1B session;
+  // fall back to the client-supplied (spoofable) legacy roleCode until the
+  // deferred client-side migration stage lands — see final report.
+  const session = verifyUserSecuritySession(request);
+  const permission = session
+    ? resolveSessionPermission(session.employeeId, 'DAILY_OPS_REPORT')
+    : getEffectivePermission(body.roleCode, 'DAILY_OPS_REPORT');
+  const roleLabel = session?.roleCode ?? body.roleCode;
+  if (permission?.canCreate !== true) {
     return NextResponse.json(
-      { success: false, error: `Role ${body.roleCode} is not permitted to save safety notes.` },
+      { success: false, error: `Role ${roleLabel} is not permitted to save safety notes.` },
       { status: 403 }
     );
   }

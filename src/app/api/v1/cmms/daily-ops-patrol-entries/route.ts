@@ -31,6 +31,8 @@ import type { PatrolValues } from '../../../../../cmms-daily-ops/dao/dailyOpsPat
 import type { PatrolDomain, ReadingStatus, ShiftTimeSlot } from '../../../../../cmms-daily-ops/types/patrolLog';
 import { isReportDateApproved } from '../../../../../cmms-daily-ops/dao/dailyReportApprovalDao';
 import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
 import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
@@ -101,9 +103,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Invalid patrol entry payload.' }, { status: 400 });
   }
 
-  if (getEffectivePermission(body.roleCode, 'DAILY_OPS_PATROL_ENTRY')?.canCreate !== true) {
+  // Stage 2A-ii (HJ decision 2026-09-19): prefer a verified Stage 1B session;
+  // fall back to the client-supplied (spoofable) legacy roleCode until the
+  // deferred client-side migration stage lands — see final report.
+  const session = verifyUserSecuritySession(request);
+  const permission = session
+    ? resolveSessionPermission(session.employeeId, 'DAILY_OPS_PATROL_ENTRY')
+    : getEffectivePermission(body.roleCode, 'DAILY_OPS_PATROL_ENTRY');
+  const roleLabel = session?.roleCode ?? body.roleCode;
+  if (permission?.canCreate !== true) {
     return NextResponse.json(
-      { success: false, error: `Role ${body.roleCode} is not permitted to record patrol entries.` },
+      { success: false, error: `Role ${roleLabel} is not permitted to record patrol entries.` },
       { status: 403 }
     );
   }

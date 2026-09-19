@@ -13,7 +13,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import { getCmmsDb } from '../../adapters/db/cmmsDbSingleton';
 import type { SqlExecutor } from '../../adapters/db/sqlExecutor';
 import { ensureUserSecurityTables } from './userSecuritySchema';
-import { seedRolePermissions } from './userSecurityRolePermissionSeed';
+import { seedRolePermissions, applyConfirmedRolePermissionMatrix } from './userSecurityRolePermissionSeed';
 import { seedBootstrapAdminAccount } from './userSecurityBootstrapSeed';
 
 let userSecuritySchemaEnsured = false;
@@ -25,6 +25,7 @@ export function getUserSecurityDb(): SqlExecutor {
     const raw = (db as SqlExecutor & { raw: DatabaseSync }).raw;
     ensureUserSecurityTables(raw);
     seedRolePermissions(raw);
+    applyConfirmedRolePermissionMatrix(raw);
     seedBootstrapAdminAccount(raw);
     userSecuritySchemaEnsured = true;
   }

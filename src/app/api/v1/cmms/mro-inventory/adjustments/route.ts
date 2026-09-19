@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adjustStock, getStockTransactions } from '../../../../../../adapters/mroInventoryDbAdapter';
 import type { StockAdjustmentInput, StockTxType } from '../../../../../../adapters/db/mroInventoryDao';
 import { getEffectivePermission } from '../../../../../../lib/rbac/rolePermissionService';
+import { verifyUserSecuritySession } from '../../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../../lib/rbac/sessionPermissionResolver';
 import type { RoleCode } from '../../../../../../types/rbac';
 
 export const runtime = 'nodejs';
@@ -47,9 +49,17 @@ export async function POST(request: NextRequest) {
   if (!isValidAdjustmentInput(body)) {
     return NextResponse.json({ success: false, error: 'Invalid StockAdjustmentInput payload.' }, { status: 400 });
   }
-  if (getEffectivePermission(body.roleCode, 'MAINTENANCE_MRO_HUB')?.canCreate !== true) {
+  // Stage 2A-ii (HJ decision 2026-09-19): prefer a verified Stage 1B session;
+  // fall back to the client-supplied (spoofable) legacy roleCode until the
+  // deferred client-side migration stage lands — see final report.
+  const session = verifyUserSecuritySession(request);
+  const permission = session
+    ? resolveSessionPermission(session.employeeId, 'MAINTENANCE_MRO_HUB')
+    : getEffectivePermission(body.roleCode, 'MAINTENANCE_MRO_HUB');
+  const roleLabel = session?.roleCode ?? body.roleCode;
+  if (permission?.canCreate !== true) {
     return NextResponse.json(
-      { success: false, error: `Role ${body.roleCode} is not permitted to adjust MRO stock.` },
+      { success: false, error: `Role ${roleLabel} is not permitted to adjust MRO stock.` },
       { status: 403 }
     );
   }

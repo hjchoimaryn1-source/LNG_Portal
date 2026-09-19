@@ -18,6 +18,8 @@ import {
   listLatestAcknowledgedAt,
 } from '../../../../../cmms-daily-ops/dao/alarmActionLogDao';
 import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
+import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
 import type { RoleCode } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
@@ -73,10 +75,21 @@ export async function POST(request: NextRequest) {
   if (!isValidPayload(body)) {
     return NextResponse.json({ success: false, error: 'Invalid alarm action payload.' }, { status: 400 });
   }
-  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16.
-  if (getEffectivePermission(body.actorRole as RoleCode, 'ALARM_ACTION_LOG')?.canCreate !== true) {
+  // RBAC audit remediation — Phase 13 follow-up, 2026-09-16, extended Stage
+  // 2A-ii (HJ decision 2026-09-19). Prefer a verified Stage 1B session; fall
+  // back to the client-supplied (spoofable) legacy body.actorRole until the
+  // deferred client-side migration stage lands — see final report. actorRole
+  // is left unrenamed: it is still persisted to alarm_action_log below
+  // (non-auth use), and useAlarmActionLog.ts (a deferred client call site)
+  // still sends this exact field name on the wire.
+  const session = verifyUserSecuritySession(request);
+  const permission = session
+    ? resolveSessionPermission(session.employeeId, 'ALARM_ACTION_LOG')
+    : getEffectivePermission(body.actorRole as RoleCode, 'ALARM_ACTION_LOG');
+  const roleLabel = session?.roleCode ?? body.actorRole;
+  if (permission?.canCreate !== true) {
     return NextResponse.json(
-      { success: false, error: `Role ${body.actorRole} is not permitted to record alarm actions.` },
+      { success: false, error: `Role ${roleLabel} is not permitted to record alarm actions.` },
       { status: 403 }
     );
   }

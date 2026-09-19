@@ -10,6 +10,13 @@
 // pulls it in transitively with no test-only entry point to inject a fake
 // executor. Mocking the adapter both sidesteps that and keeps this a proper
 // unit test of the route's own validation/RBAC-gate logic, not the DB layer.
+//
+// Stage 2A-ii (2026-09-19) added a Stage 1B session check ahead of the legacy
+// body.roleCode gate — userSecuritySessionMiddleware.ts/sessionPermissionResolver.ts
+// pull in the same 'node:sqlite' chain via getUserSecurityDb(), so they are
+// mocked out here too. verifyUserSecuritySession() always returns null (no
+// cookie on these test requests), which exercises the exact fallback path
+// these three tests already cover — unchanged behavior.
 
 import { describe, it, expect, vi } from 'vitest';
 
@@ -20,6 +27,14 @@ vi.mock('../../../../../adapters/permitPersistenceAdapter', () => ({
   seedPermitLifecycleIfAbsent: vi.fn(),
   getAllPermitLifecycleWithSignatures: vi.fn(() => ({ lifecycle: [], signaturesByPermit: new Map() })),
   getActiveSuspensionsSnapshot: vi.fn(() => []),
+}));
+
+vi.mock('../../../../../lib/rbac/userSecuritySessionMiddleware', () => ({
+  verifyUserSecuritySession: vi.fn(() => null),
+}));
+
+vi.mock('../../../../../lib/rbac/sessionPermissionResolver', () => ({
+  resolveSessionPermission: vi.fn(() => null),
 }));
 
 import { NextRequest } from 'next/server';

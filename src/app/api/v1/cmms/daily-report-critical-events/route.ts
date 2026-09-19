@@ -13,7 +13,9 @@ import {
   type CriticalEventInput,
 } from '../../../../../cmms-daily-ops/dao/dailyReportChildDao';
 import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
-import type { RoleCode } from '../../../../../types/rbac';
+import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
+import type { RoleCode, RolePermission } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
@@ -26,8 +28,19 @@ function isValidInput(body: unknown): body is CriticalEventInputWithRole {
   return typeof r.snapshotId === 'number' && typeof r.roleCode === 'string';
 }
 
-function isPermitted(roleCode: RoleCode): boolean {
-  return getEffectivePermission(roleCode, 'DAILY_OPS_REPORT')?.canCreate === true;
+function isPermitted(permission: RolePermission | null): boolean {
+  return permission?.canCreate === true;
+}
+
+// Stage 2A-ii (HJ decision 2026-09-19): prefer a verified Stage 1B session;
+// fall back to the client-supplied (spoofable) legacy roleCode until the
+// deferred client-side migration stage lands — see final report.
+function resolvePermission(request: NextRequest, legacyRoleCode: RoleCode | null): { permission: RolePermission | null; roleLabel: string | null } {
+  const session = verifyUserSecuritySession(request);
+  if (session) {
+    return { permission: resolveSessionPermission(session.employeeId, 'DAILY_OPS_REPORT'), roleLabel: session.roleCode };
+  }
+  return { permission: legacyRoleCode ? getEffectivePermission(legacyRoleCode, 'DAILY_OPS_REPORT') : null, roleLabel: legacyRoleCode };
 }
 
 export async function GET(request: NextRequest) {
@@ -49,9 +62,10 @@ export async function POST(request: NextRequest) {
   if (!isValidInput(body)) {
     return NextResponse.json({ success: false, error: 'Invalid critical event payload.' }, { status: 400 });
   }
-  if (!isPermitted(body.roleCode)) {
+  const { permission, roleLabel } = resolvePermission(request, body.roleCode);
+  if (!isPermitted(permission)) {
     return NextResponse.json(
-      { success: false, error: `Role ${body.roleCode} is not permitted to record critical events.` },
+      { success: false, error: `Role ${roleLabel} is not permitted to record critical events.` },
       { status: 403 }
     );
   }
@@ -67,9 +81,10 @@ export async function DELETE(request: NextRequest) {
   if (!id) {
     return NextResponse.json({ success: false, error: 'id required.' }, { status: 400 });
   }
-  if (!roleCode || !isPermitted(roleCode)) {
+  const { permission, roleLabel } = resolvePermission(request, roleCode);
+  if (!isPermitted(permission)) {
     return NextResponse.json(
-      { success: false, error: `Role ${roleCode ?? '(none)'} is not permitted to delete critical events.` },
+      { success: false, error: `Role ${roleLabel ?? '(none)'} is not permitted to delete critical events.` },
       { status: 403 }
     );
   }

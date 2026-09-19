@@ -16,7 +16,9 @@ import {
 } from '../../../../../cmms-daily-ops/dao/dailyReportChildDao';
 import { finalizeSnapshot } from '../../../../../cmms-daily-ops/dao/dailyReportSnapshotDao';
 import { getEffectivePermission } from '../../../../../lib/rbac/rolePermissionService';
-import type { RoleCode } from '../../../../../types/rbac';
+import { verifyUserSecuritySession } from '../../../../../lib/rbac/userSecuritySessionMiddleware';
+import { resolveSessionPermission } from '../../../../../lib/rbac/sessionPermissionResolver';
+import type { RoleCode, RolePermission } from '../../../../../types/rbac';
 
 export const runtime = 'nodejs';
 
@@ -50,8 +52,7 @@ function isValidPayload(body: unknown): body is SignaturePayload {
  * their job) but canApprove:true, which is exactly the semantics an
  * "acknowledgement" needs. No new moduleCode/field required.
  */
-function isPermitted(roleCode: RoleCode, signatureRole: SignatureRole): boolean {
-  const permission = getEffectivePermission(roleCode, 'DAILY_OPS_REPORT');
+function isPermitted(permission: RolePermission | null, signatureRole: SignatureRole): boolean {
   if (!permission) return false;
   return signatureRole === 'prepared_by' ? permission.canCreate : permission.canApprove;
 }
@@ -75,9 +76,17 @@ export async function POST(request: NextRequest) {
   if (!isValidPayload(body)) {
     return NextResponse.json({ success: false, error: 'Invalid signature payload.' }, { status: 400 });
   }
-  if (!isPermitted(body.roleCode, body.role)) {
+  // Stage 2A-ii (HJ decision 2026-09-19): prefer a verified Stage 1B session;
+  // fall back to the client-supplied (spoofable) legacy roleCode until the
+  // deferred client-side migration stage lands — see final report.
+  const session = verifyUserSecuritySession(request);
+  const permission = session
+    ? resolveSessionPermission(session.employeeId, 'DAILY_OPS_REPORT')
+    : getEffectivePermission(body.roleCode, 'DAILY_OPS_REPORT');
+  const roleLabel = session?.roleCode ?? body.roleCode;
+  if (!isPermitted(permission, body.role)) {
     return NextResponse.json(
-      { success: false, error: `Role ${body.roleCode} is not permitted to sign as ${body.role}.` },
+      { success: false, error: `Role ${roleLabel} is not permitted to sign as ${body.role}.` },
       { status: 403 }
     );
   }

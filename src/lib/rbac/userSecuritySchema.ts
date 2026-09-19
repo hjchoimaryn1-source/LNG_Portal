@@ -33,6 +33,21 @@
 
 import type { DatabaseSync } from 'node:sqlite';
 
+// SQLite has no `ADD COLUMN IF NOT EXISTS` — guard via PRAGMA table_info(), same
+// convention as src/cmms-daily-ops/db/dailyReportSchema.ts's ensureColumn().
+function ensureColumn(raw: DatabaseSync, table: string, columnName: string, addColumnSql: string): void {
+  const columns = raw.prepare(`PRAGMA table_info(${table})`).all();
+  const hasColumn = columns.some((c) => (c as { name: string }).name === columnName);
+  if (!hasColumn) {
+    raw.exec(addColumnSql);
+  }
+}
+
+// Stage 2A-ii — ACTING_SITE_MANAGER 위임 재설계(HJ 확정 2026-09-19). 값이 있고
+// 아직 만료되지 않았으면 sessionPermissionCore.ts의 resolveSessionPermissionCore()가
+// 본인 역할 권한에 SITE_MANAGER의 canApprove/canUnlockApproved만 OR 병합한다.
+const ADD_ACTING_AS_SITE_MANAGER_UNTIL_SQL = `ALTER TABLE user_accounts ADD COLUMN acting_as_site_manager_until TEXT`;
+
 export const PERSONNEL_MASTER_DDL = `
   CREATE TABLE IF NOT EXISTS personnel_master (
       employee_id        TEXT PRIMARY KEY,
@@ -116,6 +131,7 @@ export const USER_ACCOUNT_AUDIT_LOG_DDL = `
 export function ensureUserSecurityTables(raw: DatabaseSync): void {
   raw.exec(PERSONNEL_MASTER_DDL);
   raw.exec(USER_ACCOUNTS_DDL);
+  ensureColumn(raw, 'user_accounts', 'acting_as_site_manager_until', ADD_ACTING_AS_SITE_MANAGER_UNTIL_SQL);
   raw.exec(USER_SESSIONS_DDL);
   raw.exec(ROLE_PERMISSIONS_DDL);
   raw.exec(USER_ACCOUNT_AUDIT_LOG_DDL);
